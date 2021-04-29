@@ -9,6 +9,8 @@ A tilemap rendering plugin for bevy which is more ECS friendly by having an enti
 ## Upcoming Features
  - Support for isometric and hexagon rendering?
  - Built in animation support.
+ - Texture array support
+ - Layers and add/remove tiles. (High Priority)
 
 
 ### How this works?
