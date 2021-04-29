@@ -16,6 +16,5 @@ bevy = "0.5"
 log = "0.4"
 
 [dev-dependencies]
-bevy_mod_debugdump = ""
 rand = "0.8"
 env_logger = "0.8"
