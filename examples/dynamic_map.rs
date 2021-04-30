@@ -78,7 +78,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Sparse Tiles Example"),
+            title: String::from("Dynamic Map Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
