@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::{PrimitiveTopology}}};
-use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, prelude::Tile};
+use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}};
 
 #[derive(Bundle, Default)]
 pub struct MapBundle {
@@ -9,7 +9,6 @@ pub struct MapBundle {
     pub global_transform: GlobalTransform,
 }
 
-#[derive(Debug, Default)]
 pub struct Map {
     pub size: MapVec2,
     pub chunk_size: MapVec2,
@@ -17,6 +16,21 @@ pub struct Map {
     pub texture_size: Vec2,
     pub layer_id: u32,
     chunks: HashMap<MapVec2, (Entity, HashMap<MapVec2, Entity>)>,
+    pub mesher: Box<dyn TilemapChunkMesher>,
+}
+
+impl Default for Map {
+    fn default() -> Self {
+        Self {
+            size: MapVec2::default(),
+            chunk_size: MapVec2::default(),
+            tile_size: Vec2::default(),
+            texture_size: Vec2::default(),
+            layer_id: 0,
+            chunks: HashMap::new(),
+            mesher: Box::new(SquareChunkMesher),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -37,6 +51,7 @@ impl Map {
             texture_size,
             layer_id,
             chunks: HashMap::new(),
+            mesher: Box::new(SquareChunkMesher),
         }
     }
 
@@ -152,7 +167,7 @@ impl Map {
                 mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle =  meshes.add(mesh);
-                let mut chunk = Chunk::new(map_entity, chunk_pos, self.chunk_size, self.tile_size, self.texture_size, mesh_handle.clone(), self.layer_id);
+                let mut chunk = Chunk::new(map_entity, chunk_pos, self.chunk_size, self.tile_size, self.texture_size, mesh_handle.clone(), self.layer_id, dyn_clone::clone_box(&*self.mesher));
 
                 if populate_chunks {
                     chunk.build_tiles(commands, chunk_entity);

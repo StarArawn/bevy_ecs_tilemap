@@ -21,7 +21,7 @@ fn startup(
     let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-
+    
     for (_, entity) in map.get_all_tiles().iter() {
         commands.entity(**entity).insert(LastUpdate::default());
     }
