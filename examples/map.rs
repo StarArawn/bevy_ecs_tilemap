@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
+mod helpers;
+
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -12,12 +14,13 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0));
-    let map_entity = commands.spawn()
-        .insert(Transform::default())
-        .id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity);
-    commands.entity(map_entity).insert(map);
+    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_entity = commands.spawn().id();
+    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    commands.entity(map_entity).insert_bundle(MapBundle {
+        map,
+        ..Default::default()
+    });
 }
 
 fn main() {
@@ -35,5 +38,6 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(TileMapPlugin)
         .add_startup_system(startup.system())
+        .add_system(helpers::camera::movement.system())
         .run();
 }

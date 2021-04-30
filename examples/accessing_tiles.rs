@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
+mod helpers;
+
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -12,11 +14,9 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(9.0, 9.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0));
-    let map_entity = commands.spawn()
-        .insert(Transform::default())
-        .id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity);
+    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(9.0, 9.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_entity = commands.spawn().id();
+    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
 
     assert!(map.get_tile(Vec2::new(0.0, 0.0).into()).is_some());
 
@@ -28,7 +28,10 @@ fn startup(
 
     assert!(map.get_tile_neighbors(Vec2::new(2.0, 2.0).into()).len() == 8);
 
-    commands.entity(map_entity).insert(map);
+    commands.entity(map_entity).insert_bundle(MapBundle {
+        map,
+        ..Default::default()
+    });
 }
 
 
@@ -73,5 +76,6 @@ fn main() {
         .add_plugin(TileMapPlugin)
         .add_startup_system(startup.system())
         .add_system(build_map.system())
+        .add_system(helpers::camera::movement.system())
         .run();
 }

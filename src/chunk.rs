@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::RenderPipeline, render_graph::base::MainPass}};
 use crate::{map_vec2::MapVec2, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
+pub struct RemeshChunk;
+
 #[derive(Bundle)]
 pub struct ChunkBundle {
     pub chunk: Chunk,
@@ -45,6 +47,7 @@ pub struct Chunk {
     mesh_handle: Handle<Mesh>,
     tile_size: Vec2,
     texture_size: Vec2,
+    layer_id: u32,
 }
 
 impl Default for Chunk {
@@ -57,12 +60,13 @@ impl Default for Chunk {
             mesh_handle: Default::default(),
             texture_size: Vec2::ZERO,
             tile_size: Vec2::ZERO,
+            layer_id: 0,
         }
     }
 }
 
 impl Chunk {
-    pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>) -> Self {
+    pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32) -> Self {
         let tiles = HashMap::new();
         Self {
             map_entity,
@@ -72,6 +76,7 @@ impl Chunk {
             tile_size,
             texture_size,
             mesh_handle,
+            layer_id,
         }
     }
 
@@ -85,7 +90,6 @@ impl Chunk {
                 let tile_entity = commands.spawn()
                     .insert(Tile {
                         chunk: chunk_entity,
-                        size: self.tile_size,
                         ..Tile::default()
                     })
                     .insert(tile_pos).id();
@@ -100,26 +104,42 @@ impl Chunk {
 }
 
 pub(crate) fn update_chunk_mesh(
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     tile_change_query: Query<&Tile, Or<(Changed<MapVec2>, Changed<Tile>)>>,
     tile_query: Query<(&MapVec2, &Tile)>,
-    mut chunk_query: Query<&Chunk>,
+    mut chunk_query: Query<(Entity, &Chunk)>,
+    changed_chunks: Query<(Entity, &Chunk), With<RemeshChunk>>,
 ) {
+    // TODO: use a hash set or something here instead. Perhaps the chunk entity itself?
     let mut updated_chunks = Vec::new();
     // If a tile has changed.
     for tile in tile_change_query.iter() {
-        if let Ok(chunk) = chunk_query.get_mut(tile.chunk) {
-            if !updated_chunks.iter().any(|position| chunk.position == *position) {
+        if let Ok((chunk_entity, chunk)) = chunk_query.get_mut(tile.chunk) {
+            if !updated_chunks.iter().any(|(position, layer_id)| chunk.position == *position && chunk.layer_id == *layer_id) {
+                log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
+                
                 // Rebuild tile map mesh.
-                // log::info!("Re-meshing chunk at: {:?}", chunk.position);
-
                 calculate_mesh(chunk, &mut meshes, &tile_query);
 
                 // Make sure we don't recalculate the chunk until the next time this system updates at least.
-                updated_chunks.push(chunk.position);
+                updated_chunks.push((chunk.position, chunk.layer_id));
+
+                commands.entity(chunk_entity).remove::<RemeshChunk>();
             }
         }
     }
+
+    // Update chunks that have been "marked" as needing remeshing.
+    for (chunk_entity, chunk) in changed_chunks.iter() {
+        if !updated_chunks.iter().any(|(position, layer_id)| chunk.position == *position && chunk.layer_id == *layer_id) {
+            log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
+            calculate_mesh(chunk, &mut meshes, &tile_query);
+
+            commands.entity(chunk_entity).remove::<RemeshChunk>();
+        }
+    }
+
 }
 
 pub fn calculate_mesh(chunk: &Chunk, meshes: &mut ResMut<Assets<Mesh>>, tile_query: &Query<(&MapVec2, &Tile)>) {
@@ -139,18 +159,18 @@ pub fn calculate_mesh(chunk: &Chunk, meshes: &mut ResMut<Assets<Mesh>>, tile_que
                     // log::info!("Getting vertices for tile at: {:?}", tile_position);
 
                     let tile_pixel_pos = Vec2::new(
-                        tile_position.x as f32 * tile.size.x,
-                        tile_position.y as f32 * tile.size.y
+                        tile_position.x as f32 * chunk.tile_size.x,
+                        tile_position.y as f32 * chunk.tile_size.y
                     );
 
                     // X, Y
                     positions.push([tile_pixel_pos.x, tile_pixel_pos.y, 0.0]);
                     // X, Y + 1
-                    positions.push([tile_pixel_pos.x, tile_pixel_pos.y + tile.size.y, 0.0]);
+                    positions.push([tile_pixel_pos.x, tile_pixel_pos.y + chunk.tile_size.y, 0.0]);
                     // X + 1, Y + 1
-                    positions.push([tile_pixel_pos.x + tile.size.x, tile_pixel_pos.y + tile.size.y, 0.0]);
+                    positions.push([tile_pixel_pos.x + chunk.tile_size.x, tile_pixel_pos.y + chunk.tile_size.y, 0.0]);
                     // X + 1, Y
-                    positions.push([tile_pixel_pos.x + tile.size.x, tile_pixel_pos.y, 0.0]);
+                    positions.push([tile_pixel_pos.x + chunk.tile_size.x, tile_pixel_pos.y, 0.0]);
 
                     // This calculation is much simpler we only care about getting the remainder
                     // and multiplying that by the tile width.
