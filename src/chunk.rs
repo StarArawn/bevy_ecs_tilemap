@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::RenderPipeline, render_graph::base::MainPass}};
-use crate::{map_vec2::MapVec2, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
+use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}};
+use crate::{map_vec2::MapVec2, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
 pub struct RemeshChunk;
 
@@ -38,16 +38,17 @@ impl Default for ChunkBundle {
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct Chunk {
+    #[allow(dead_code)]
     map_entity: Entity,
     pub position: MapVec2,
     pub size: MapVec2,
     pub(crate) tiles: HashMap<MapVec2, Entity>,
-    mesh_handle: Handle<Mesh>,
-    tile_size: Vec2,
-    texture_size: Vec2,
-    layer_id: u32,
+    pub(crate) mesh_handle: Handle<Mesh>,
+    pub(crate) tile_size: Vec2,
+    pub(crate) texture_size: Vec2,
+    pub(crate) layer_id: u32,
+    mesher: Box<dyn TilemapChunkMesher>,
 }
 
 impl Default for Chunk {
@@ -61,12 +62,13 @@ impl Default for Chunk {
             texture_size: Vec2::ZERO,
             tile_size: Vec2::ZERO,
             layer_id: 0,
+            mesher: Box::new(SquareChunkMesher)
         }
     }
 }
 
 impl Chunk {
-    pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32) -> Self {
+    pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesher: Box<dyn TilemapChunkMesher>) -> Self {
         let tiles = HashMap::new();
         Self {
             map_entity,
@@ -77,6 +79,7 @@ impl Chunk {
             texture_size,
             mesh_handle,
             layer_id,
+            mesher,
         }
     }
 
@@ -120,7 +123,7 @@ pub(crate) fn update_chunk_mesh(
                 log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
                 
                 // Rebuild tile map mesh.
-                calculate_mesh(chunk, &mut meshes, &tile_query);
+                chunk.mesher.mesh(chunk, &mut meshes, &tile_query);
 
                 // Make sure we don't recalculate the chunk until the next time this system updates at least.
                 updated_chunks.push((chunk.position, chunk.layer_id));
@@ -134,76 +137,10 @@ pub(crate) fn update_chunk_mesh(
     for (chunk_entity, chunk) in changed_chunks.iter() {
         if !updated_chunks.iter().any(|(position, layer_id)| chunk.position == *position && chunk.layer_id == *layer_id) {
             log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
-            calculate_mesh(chunk, &mut meshes, &tile_query);
+            chunk.mesher.mesh(chunk, &mut meshes, &tile_query);
 
             commands.entity(chunk_entity).remove::<RemeshChunk>();
         }
     }
 
-}
-
-pub fn calculate_mesh(chunk: &Chunk, meshes: &mut ResMut<Assets<Mesh>>, tile_query: &Query<(&MapVec2, &Tile)>) {
-    let mesh = meshes.get_mut(chunk.mesh_handle.clone()).unwrap();
-    let mut positions: Vec<[f32; 3]> = Vec::new();
-    let mut uvs: Vec<[f32; 2]> = Vec::new();
-    let mut indices: Vec<u32> = Vec::new();
-
-    let columns = (chunk.texture_size.x / chunk.tile_size.x).floor();
-
-    let mut i = 0;
-    for x in 0..chunk.size.x {
-        for y in 0..chunk.size.y {
-            let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-            if let Some(tile_entity) = chunk.tiles.get(&tile_position) {
-                if let Ok((_, tile)) = tile_query.get(*tile_entity) {
-                    // log::info!("Getting vertices for tile at: {:?}", tile_position);
-
-                    let tile_pixel_pos = Vec2::new(
-                        tile_position.x as f32 * chunk.tile_size.x,
-                        tile_position.y as f32 * chunk.tile_size.y
-                    );
-
-                    // X, Y
-                    positions.push([tile_pixel_pos.x, tile_pixel_pos.y, 0.0]);
-                    // X, Y + 1
-                    positions.push([tile_pixel_pos.x, tile_pixel_pos.y + chunk.tile_size.y, 0.0]);
-                    // X + 1, Y + 1
-                    positions.push([tile_pixel_pos.x + chunk.tile_size.x, tile_pixel_pos.y + chunk.tile_size.y, 0.0]);
-                    // X + 1, Y
-                    positions.push([tile_pixel_pos.x + chunk.tile_size.x, tile_pixel_pos.y, 0.0]);
-
-                    // This calculation is much simpler we only care about getting the remainder
-                    // and multiplying that by the tile width.
-                    let sprite_sheet_x: f32 =
-                        ((tile.texture_index as f32 % columns) * chunk.tile_size.x).floor();
-
-                    // Calculation here is (tile / columns).round_down * (tile_space + tile_height) - tile_space
-                    // Example: tile 30 / 28 columns = 1.0714 rounded down to 1 * 16 tile_height = 16 Y
-                    // which is the 2nd row in the sprite sheet.
-                    // Example2: tile 10 / 28 columns = 0.3571 rounded down to 0 * 16 tile_height = 0 Y
-                    // which is the 1st row in the sprite sheet.
-                    let sprite_sheet_y: f32 =
-                        (tile.texture_index as f32 / columns).floor() * chunk.tile_size.y;
-
-                    // Calculate UV:
-                    let start_u: f32 = sprite_sheet_x / chunk.texture_size.x;
-                    let end_u: f32 = (sprite_sheet_x + chunk.tile_size.x) / chunk.texture_size.x;
-                    let start_v: f32 = sprite_sheet_y / chunk.texture_size.y;
-                    let end_v: f32 = (sprite_sheet_y + chunk.tile_size.y) / chunk.texture_size.y;
-
-                    uvs.push([start_u, end_v]);
-                    uvs.push([start_u, start_v]);
-                    uvs.push([end_u, start_v]);
-                    uvs.push([end_u, end_v]);
-
-                    indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
-                    i += 4;
-                }
-            }
-        }
-    }
-    mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(positions.clone()));
-    mesh.set_attribute("Vertex_Normal", VertexAttributeValues::Float3(positions));
-    mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(uvs));
-    mesh.set_indices(Some(Indices::U32(indices)));
 }
