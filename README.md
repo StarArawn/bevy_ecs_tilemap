@@ -15,10 +15,14 @@ A tilemap rendering plugin for bevy which is more ECS friendly by having an enti
  - ~~Layers and add/remove tiles. (High Priority)~~ done
 
 
+## Screenshots
+![iso](screenshots/iso.png)
+![hex](screenshots/hex.png)
+
 ### How this works?
 Quite simple there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
 
-### Why use this over another bevy tilemap plugin?
+### Why use this over another bevy tile map plugin?
 Because each tile is an entity of its own editing tiles is super easy, and convenient. This allows you tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That's easy with this plugin:
 
 ```rust
