@@ -72,7 +72,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Map Example"),
+            title: String::from("Animated Map Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
