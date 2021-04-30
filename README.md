@@ -35,6 +35,7 @@ fn update_damage(
 
 ## Examples
  - accessing_tiles - An example showing how one can access tiles from the map object by using tile map coordinates.
+ - animation - Basic cpu animation example.
  - bench - A stress test of the map rendering system. Takes a while to load.
  - dynamic_map - A random map that is only partial filled with tiles that changes every so often.
  - layers - An example of how you can use multiple map entities/components for "layers".
@@ -49,3 +50,6 @@ fn update_damage(
 
 ## Known Issues
  - Currently if you despawn a ton of tiles during startup chunks might not update correctly. Seems to be an ordering issue with the systems.
+
+## Asset credits
+ - Field of green by GuttyKreum(https://guttykreum.itch.io/)
