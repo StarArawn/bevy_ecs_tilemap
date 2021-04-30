@@ -1,8 +1,13 @@
-use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{Rng, thread_rng};
 
 mod helpers;
+
+#[derive(Default)]
+struct LastUpdate {
+    value: f64,
+}    
 
 fn startup(
     mut commands: Commands,
@@ -10,43 +15,41 @@ fn startup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(2560.0, 2560.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-
-    for (_, entity) in map.get_all_tiles().iter() {
-        commands.entity(**entity).insert(LastUpdate::default());
-    }
 
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
         ..Default::default()
-    });
+    }).insert(LastUpdate::default());
 }
 
-#[derive(Default)]
-struct LastUpdate {
-    value: f64,
-}
-
-// Worst case lookup
-fn random(
-    time: ResMut<Time>,
-    mut query: Query<(&mut Tile, &mut LastUpdate)>,
+fn remove_tiles(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut map_query: Query<(&Map, &mut LastUpdate)>,
 ) {
     let current_time = time.seconds_since_startup();
-    let mut random = thread_rng();
-    for (mut tile, mut last_update) in query.iter_mut() {
-        if (current_time - last_update.value) > 0.1 {
-            tile.texture_index = random.gen_range(0..6);
+    for (map, mut last_update) in map_query.iter_mut() {
+        // Remove a tile every half second.
+        if (current_time - last_update.value) > 0.5 {
+            let mut random = thread_rng();
+            let tile_entity = map.get_tile(Vec2::new(
+                random.gen_range(0.0..16.0),
+                random.gen_range(0.0..16.0),
+            ).into());
+
+            // Note you can also call map.remove_tile() instead.
+            if tile_entity.is_some() {
+                commands.entity(*tile_entity.unwrap()).insert(RemoveTile);
+            }
+
             last_update.value = current_time;
         }
     }
@@ -54,22 +57,20 @@ fn random(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
+    .filter_level(log::LevelFilter::Info)
     .init();
 
     App::build()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Random Map Example"),
+            title: String::from("Map Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TileMapPlugin)
         .add_startup_system(startup.system())
-        .add_system(random.system())
         .add_system(helpers::camera::movement.system())
+        .add_system(remove_tiles.system())
         .run();
 }
