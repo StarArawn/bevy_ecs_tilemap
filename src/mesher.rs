@@ -59,10 +59,23 @@ impl TilemapChunkMesher for SquareChunkMesher {
                         let start_v: f32 = sprite_sheet_y / chunk.texture_size.y;
                         let end_v: f32 = (sprite_sheet_y + chunk.tile_size.y) / chunk.texture_size.y;
     
-                        uvs.push([start_u, end_v]);
-                        uvs.push([start_u, start_v]);
-                        uvs.push([end_u, start_v]);
-                        uvs.push([end_u, end_v]);
+                        let mut new_uv = vec![
+                            [start_u, end_v],
+                            [start_u, start_v],
+                            [end_u, start_v],
+                            [end_u, end_v],
+                        ];
+
+                        if tile.flip_x {
+                            new_uv.reverse();
+                        }
+                        if tile.flip_y {
+                            new_uv.reverse();
+                            new_uv.swap(0, 2);
+                            new_uv.swap(1, 3);
+                        }
+
+                        uvs.extend(new_uv);
     
                         indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
                         i += 4;
@@ -201,10 +214,24 @@ impl TilemapChunkMesher for HexChunkMesher {
                         let start_v: f32 = sprite_sheet_y / chunk.texture_size.y;
                         let end_v: f32 = (sprite_sheet_y + chunk.tile_size.y) / chunk.texture_size.y;
     
-                        uvs.push([start_u, end_v]);
-                        uvs.push([start_u, start_v]);
-                        uvs.push([end_u, start_v]);
-                        uvs.push([end_u, end_v]);
+                        let mut new_uv = vec![
+                            [start_u, end_v],
+                            [start_u, start_v],
+                            [end_u, start_v],
+                            [end_u, end_v],
+                        ];
+
+                        if tile.flip_x {
+                            new_uv.reverse();
+                        }
+                        if tile.flip_y {
+                            new_uv.reverse();
+                            new_uv.swap(0, 2);
+                            new_uv.swap(1, 3);
+                        }
+
+                        uvs.extend(new_uv);
+    
     
                         indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
                         i += 4;
@@ -288,10 +315,23 @@ impl TilemapChunkMesher for IsoChunkMesher {
                         let start_v: f32 = sprite_sheet_y / chunk.texture_size.y;
                         let end_v: f32 = (sprite_sheet_y + chunk.tile_size.y) / chunk.texture_size.y;
     
-                        uvs.push([start_u, end_v]);
-                        uvs.push([start_u, start_v]);
-                        uvs.push([end_u, start_v]);
-                        uvs.push([end_u, end_v]);
+                        let mut new_uv = vec![
+                            [start_u, end_v],
+                            [start_u, start_v],
+                            [end_u, start_v],
+                            [end_u, end_v],
+                        ];
+
+                        if tile.flip_x {
+                            new_uv.reverse();
+                        }
+                        if tile.flip_y {
+                            new_uv.reverse();
+                            new_uv.swap(0, 2);
+                            new_uv.swap(1, 3);
+                        }
+
+                        uvs.extend(new_uv);
     
                         indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
                         i += 4;
