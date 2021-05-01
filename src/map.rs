@@ -1,6 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::{PrimitiveTopology}}};
 use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}};
+
+pub(crate) struct SetTileEvent {
+    pub entity: Entity,
+    pub tile: Tile,
+}
 
 #[derive(Bundle, Default)]
 pub struct MapBundle {
@@ -17,6 +22,7 @@ pub struct Map {
     pub layer_id: u32,
     chunks: HashMap<MapVec2, (Entity, HashMap<MapVec2, Entity>)>,
     pub mesher: Box<dyn TilemapChunkMesher>,
+    events: VecDeque<SetTileEvent>
 }
 
 impl Default for Map {
@@ -29,14 +35,14 @@ impl Default for Map {
             layer_id: 0,
             chunks: HashMap::new(),
             mesher: Box::new(SquareChunkMesher),
+            events: VecDeque::new(),
         }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum MapTileError {
-    TileAlreadyExists,
-    UnableToFindChunk,
+    OutOfBounds,
 }
 
 /// A tag that allows you to remove a tile from the world;
@@ -52,6 +58,7 @@ impl Map {
             layer_id,
             chunks: HashMap::new(),
             mesher: Box::new(SquareChunkMesher),
+            events: VecDeque::new(),
         }
     }
 
@@ -60,32 +67,52 @@ impl Map {
     /// `commands.entity(tile_entity).insert(RemoveTile)`
     pub fn remove_tile(&self, commands: &mut Commands, tile_pos: MapVec2) {
         if let Some(tile_entity) = self.get_tile(tile_pos) {
-            commands.entity(*tile_entity).insert(RemoveTile);
+            commands.entity(tile_entity).insert(RemoveTile);
         }
     }
 
     /// Adds a new tile to the map if the tile already exists this code will do nothing.
     pub fn add_tile(&mut self, commands: &mut Commands, tile_pos: MapVec2, tile: Tile) -> Result<Entity, MapTileError> {
         // First find chunk tile should live in:
+        let mut possible_tile_event = None;
+
         if let Some(chunk_data) = self.get_chunk_mut(MapVec2::new(
             tile_pos.x / self.chunk_size.x,
             tile_pos.y / self.chunk_size.y
         )) {
-            if chunk_data.1.contains_key(&tile_pos) {
-                return Err(MapTileError::TileAlreadyExists);
-            }
-            let tile_entity = commands.spawn()
-                .insert(Tile {
-                    chunk: chunk_data.0,
-                    ..tile
-                })
-                .insert(tile_pos).id();
-            chunk_data.1.insert(tile_pos, tile_entity);
+            if let Some(tile_entity) = chunk_data.1.get(&tile_pos) {
+                // If the tile already exists we need to queue an event.
+                // We do this because we have good way of changing the actual tile data from here.
+                // Another possibility is having the user pass in a query of tiles and matching based off of entity,
+                // however the tile may not exist yet in this current frame even though it exists in the Commands
+                // buffer.
+                possible_tile_event = Some(SetTileEvent {
+                    entity: *tile_entity,
+                    tile: Tile {
+                        chunk: chunk_data.0,
+                        ..tile
+                    },
+                });
+            } else {
+                let tile_entity = commands.spawn()
+                    .insert(Tile {
+                        chunk: chunk_data.0,
+                        ..tile
+                    })
+                    .insert(tile_pos).id();
+                chunk_data.1.insert(tile_pos, tile_entity);
 
-            return Ok(tile_entity);
+                return Ok(tile_entity);
+            }
         }
 
-        Err(MapTileError::UnableToFindChunk)
+        if let Some(event) = possible_tile_event {
+            let tile_entity = event.entity;
+            self.events.push_back(event);
+            return Ok(tile_entity)
+        }
+
+        Err(MapTileError::OutOfBounds)
     }
  
     fn get_chunk_mut(&mut self, chunk_pos: MapVec2) -> Option<&mut (Entity, HashMap<MapVec2, Entity>)> {
@@ -93,22 +120,41 @@ impl Map {
     }
 
     /// Retrieves a list of neighbor entities in the following order:
-    /// N, S, W, E, NW, NE, SW, SE. None will be returned for OOBs.
-    pub fn get_tile_neighbors(&self, tile_pos: MapVec2) -> Vec<Option<&Entity>> {
+    /// N, S, W, E, NW, NE, SW, SE. None will be returned for tiles that don't exist.
+    pub fn get_tile_neighbors(&self, tile_pos: MapVec2) -> Vec<(MapVec2, Option<Entity>)> {
         let mut neighbors = Vec::new();
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x, tile_pos.y + 1)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x, tile_pos.y - 1)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x - 1, tile_pos.y)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x + 1, tile_pos.y)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x - 1, tile_pos.y + 1)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x + 1, tile_pos.y + 1)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x - 1, tile_pos.y - 1)));
-        neighbors.push(self.get_tile(MapVec2::new(tile_pos.x + 1, tile_pos.y - 1)));
+        let n = MapVec2::new(tile_pos.x, tile_pos.y + 1);
+        neighbors.push((n, self.get_tile(n)));
+        let s = MapVec2::new(tile_pos.x, tile_pos.y - 1);
+        neighbors.push((s, self.get_tile(s)));
+        let w = MapVec2::new(tile_pos.x - 1, tile_pos.y);
+        neighbors.push((w, self.get_tile(w)));
+        let e = MapVec2::new(tile_pos.x + 1, tile_pos.y);
+        neighbors.push((e, self.get_tile(e)));
+        let nw = MapVec2::new(tile_pos.x - 1, tile_pos.y + 1);
+        neighbors.push((nw, self.get_tile(nw)));
+        let ne = MapVec2::new(tile_pos.x + 1, tile_pos.y + 1);
+        neighbors.push((ne, self.get_tile(ne)));
+        let sw = MapVec2::new(tile_pos.x - 1, tile_pos.y - 1);
+        neighbors.push((sw, self.get_tile(sw)));
+        let se = MapVec2::new(tile_pos.x + 1, tile_pos.y - 1);
+        neighbors.push((se, self.get_tile(se)));
         neighbors
     }
 
-    /// Retrieves a tile entity from the map. None will be returned for OOBs.
-    pub fn get_tile(&self, tile_pos: MapVec2) -> Option<&Entity> {
+    /// Returns a list of tile entities base off of the positions requested
+    pub fn get_tiles(&self, tile_positions: Vec<MapVec2>) -> Vec<Option<Entity>> {
+        let mut tiles = Vec::new();
+        for pos in tile_positions {
+            tiles.push(
+                self.get_tile(pos)
+            );
+        }
+        tiles
+    }
+
+    /// Retrieves a tile entity from the map. None will be returned for tiles that don't exist.
+    pub fn get_tile(&self, tile_pos: MapVec2) -> Option<Entity> {
         let map_size = &self.get_map_size_in_tiles();
         if tile_pos.x >= 0 && tile_pos.y >= 0 && tile_pos.x <= map_size.x && tile_pos.y <= map_size.y {
             let chunk_pos = MapVec2::new(
@@ -119,7 +165,11 @@ impl Map {
             let chunk = self.chunks.get(&chunk_pos);
             if chunk.is_some() {
                 let (_, tiles) = chunk.unwrap();
-                return tiles.get(&tile_pos)
+                let tile = tiles.get(&tile_pos);
+                return match tile {
+                    Some(tile) => Some(*tile),
+                    None => None,
+                };
             } else {
                 return None;
             }
@@ -231,4 +281,17 @@ pub(crate) fn update_chunk_hashmap_for_removed_tiles(
             commands.entity(removed_tile.chunk).insert(RemeshChunk);
         }
     }
+}
+
+pub(crate) fn update_tiles(
+    mut commands: Commands,
+    mut map: Query<&mut Map>,
+) {
+
+    for mut map in map.iter_mut() {
+        while let Some(event) = map.events.pop_front() {
+            commands.entity(event.entity).remove::<Tile>().insert(event.tile);
+        }
+    }
+
 }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use chunk::update_chunk_mesh;
-use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles};
+use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
 use render::pipeline::add_tile_map_graph;
 
 mod tile;
@@ -17,7 +17,8 @@ impl Plugin for TileMapPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             // TODO: Perhaps use a stage here instead?
-            .add_system(update_chunk_hashmap_for_added_tiles.system().label("hash_update_for_tiles"))
+            .add_system(update_tiles.system().label("update_tile_data"))
+            .add_system(update_chunk_hashmap_for_added_tiles.system().label("hash_update_for_tiles").after("update_tile_data"))
             .add_system(update_chunk_hashmap_for_removed_tiles.system().label("hash_update_for_tiles_removal"))
             .add_system(update_chunk_mesh.system().after("hash_update_for_tiles").after("hash_update_for_tiles_removal"));
         let world = app.world_mut();

@@ -47,7 +47,7 @@ fn remove_tiles(
 
             // Note you can also call map.remove_tile() instead.
             if tile_entity.is_some() {
-                commands.entity(*tile_entity.unwrap()).insert(RemoveTile);
+                commands.entity(tile_entity.unwrap()).insert(RemoveTile);
             }
 
             last_update.value = current_time;
