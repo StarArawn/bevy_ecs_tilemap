@@ -65,7 +65,7 @@ impl Map {
     }
 
     /// Adds a new tile to the map if the tile already exists this code will do nothing.
-    pub fn add_tile(&mut self, commands: &mut Commands, tile_pos: MapVec2, tile: Tile) -> Result<(), MapTileError> {
+    pub fn add_tile(&mut self, commands: &mut Commands, tile_pos: MapVec2, tile: Tile) -> Result<Entity, MapTileError> {
         // First find chunk tile should live in:
         if let Some(chunk_data) = self.get_chunk_mut(MapVec2::new(
             tile_pos.x / self.chunk_size.x,
@@ -82,7 +82,7 @@ impl Map {
                 .insert(tile_pos).id();
             chunk_data.1.insert(tile_pos, tile_entity);
 
-            return Ok(());
+            return Ok(tile_entity);
         }
 
         Err(MapTileError::UnableToFindChunk)
