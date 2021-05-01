@@ -59,10 +59,14 @@ impl TilemapChunkMesher for SquareChunkMesher {
                         let start_v: f32 = sprite_sheet_y / chunk.texture_size.y;
                         let end_v: f32 = (sprite_sheet_y + chunk.tile_size.y) / chunk.texture_size.y;
     
-                        let mut new_uv = vec![
+                        let mut new_uv = [
+                            // X, Y
                             [start_u, end_v],
+                            // X, Y + 1
                             [start_u, start_v],
+                            // X + 1, Y + 1
                             [end_u, start_v],
+                            // X + 1, Y
                             [end_u, end_v],
                         ];
 
@@ -75,7 +79,7 @@ impl TilemapChunkMesher for SquareChunkMesher {
                             new_uv.swap(1, 3);
                         }
 
-                        uvs.extend(new_uv);
+                        new_uv.iter().for_each(|uv| uvs.push(*uv));
     
                         indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
                         i += 4;
@@ -252,7 +256,7 @@ pub struct IsoChunkMesher;
 impl IsoChunkMesher {
     fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
         let x = (pos.x - pos.y) * tile_width / 2.0;
-        let y = (pos.x + pos.y) * tile_height / 4.0;
+        let y = (pos.x + pos.y) * tile_height / 2.0;
         Vec2::new(x, -y)
     }
 }
