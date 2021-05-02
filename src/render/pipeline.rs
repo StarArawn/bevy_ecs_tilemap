@@ -1,4 +1,16 @@
-use bevy::{prelude::*, reflect::TypeUuid, render::{pipeline::{BlendFactor, BlendOperation, BlendState, ColorTargetState, ColorWrite, CompareFunction, CullMode, DepthBiasState, DepthStencilState, FrontFace, PipelineDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, StencilFaceState, StencilState}, shader::{ShaderStage, ShaderStages}, texture::TextureFormat}};
+use bevy::{
+    prelude::*,
+    reflect::TypeUuid,
+    render::{
+        pipeline::{
+            BlendFactor, BlendOperation, BlendState, ColorTargetState, ColorWrite, CompareFunction,
+            CullMode, DepthBiasState, DepthStencilState, FrontFace, PipelineDescriptor,
+            PolygonMode, PrimitiveState, PrimitiveTopology, StencilFaceState, StencilState,
+        },
+        shader::{ShaderStage, ShaderStages},
+        texture::TextureFormat,
+    },
+};
 
 pub const TILE_MAP_PIPELINE_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(PipelineDescriptor::TYPE_UUID, 4129645945969645246);
@@ -46,11 +58,19 @@ pub fn build_tile_map_pipeline(shaders: &mut Assets<Shader>) -> PipelineDescript
         ..PipelineDescriptor::new(ShaderStages {
             vertex: shaders.add(Shader::from_glsl(
                 ShaderStage::Vertex,
-                include_str!("tilemap.vert"),
+                if cfg!(feature = "web") {
+                    include_str!("tilemap.es.vert")
+                } else {
+                    include_str!("tilemap.vert")
+                },
             )),
             fragment: Some(shaders.add(Shader::from_glsl(
                 ShaderStage::Fragment,
-                include_str!("tilemap.frag"),
+                if cfg!(feature = "web") {
+                    include_str!("tilemap.es.frag")
+                } else {
+                    include_str!("tilemap.frag")
+                },
             ))),
         })
     }

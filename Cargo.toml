@@ -12,8 +12,22 @@ exclude = [
     "screenshots/*",
 ]
 
+[features]
+
+default = [
+    "bevy/bevy_wgpu",
+    "bevy/bevy_winit",
+    "bevy/png",
+    "bevy/render",
+]
+
+web = [
+    "bevy/bevy_winit",
+    "bevy/render",
+]
+
 [dependencies]
-bevy = "0.5"
+bevy = { version = "0.5", default-features = false }
 log = "0.4"
 dyn-clone = "1.0"
 
