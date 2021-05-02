@@ -173,8 +173,8 @@ impl HexChunkMesher {
                 pos
             },
             HexType::Column => {
-                pos.x -= actual_pos.x as f32 * (0.25 * tile_size.x).ceil();
-                pos.y -= actual_pos.x as f32 * (0.5 * tile_size.y).floor();
+                pos.x += actual_pos.x as f32 * (-0.25 * tile_size.x).floor();
+                pos.y += actual_pos.x as f32 * (0.5 * tile_size.y).ceil();
                 pos
             },
         }
