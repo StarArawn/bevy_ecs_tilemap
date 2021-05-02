@@ -109,6 +109,8 @@ pub enum HexType {
     RowOdd,
     ColumnEven,
     ColumnOdd,
+    Row,
+    Column,
 }
 
 #[derive(Debug, Clone)]
@@ -163,6 +165,16 @@ impl HexChunkMesher {
                     pos.y -= offset;
                 }
                 pos.x -= actual_pos.x as f32 * (0.25 * tile_size.x).ceil();
+                pos
+            },
+            HexType::Row => {
+                pos.x += actual_pos.y as f32 * (0.5 * tile_size.x).floor();
+                pos.y -= actual_pos.y as f32 * (0.25 * tile_size.y).ceil();
+                pos
+            },
+            HexType::Column => {
+                pos.x -= actual_pos.x as f32 * (0.25 * tile_size.x).ceil();
+                pos.y -= actual_pos.x as f32 * (0.5 * tile_size.y).floor();
                 pos
             },
         }

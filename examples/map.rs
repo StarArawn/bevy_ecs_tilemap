@@ -39,5 +39,6 @@ fn main() {
         .add_plugin(TileMapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
+        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
         .run();
 }

@@ -17,7 +17,7 @@ fn startup(
 
     let mut map = Map::new(Vec2::new(1.0, 1.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), 0);
     // New mesher needs to be applied before chunks are built with map.
-    map.mesher = Box::new(HexChunkMesher::new(HexType::RowEven));
+    map.mesher = Box::new(HexChunkMesher::new(HexType::Row));
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, true);
     commands.entity(map_entity).insert_bundle(MapBundle {
@@ -28,7 +28,7 @@ fn startup(
     for z in 0..2 {
         let mut map = Map::new(Vec2::new(1.0, 1.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), z + 1);
         // New mesher needs to be applied before chunks are built with map.
-        map.mesher = Box::new(HexChunkMesher::new(HexType::RowEven));
+        map.mesher = Box::new(HexChunkMesher::new(HexType::Row));
         let map_entity = commands.spawn().id();
         map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
 
@@ -45,6 +45,7 @@ fn startup(
                 ..Default::default()
             });
         }
+
         commands.entity(map_entity).insert_bundle(MapBundle {
             map,
             transform: Transform::from_xyz(0.0, 0.0, z as f32 + 1.0),
@@ -69,5 +70,6 @@ fn main() {
         .add_plugin(TileMapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
+        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
         .run();
 }

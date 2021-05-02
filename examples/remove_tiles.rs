@@ -75,5 +75,6 @@ fn main() {
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(remove_tiles.system())
+        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
         .run();
 }
