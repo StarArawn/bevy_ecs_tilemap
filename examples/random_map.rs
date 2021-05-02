@@ -1,6 +1,9 @@
-use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -17,11 +20,22 @@ fn startup(
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-
-    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_settings = MapSettings {
+        map_size: Vec2::new(10.0, 10.0).into(),
+        chunk_size: Vec2::new(32.0, 32.0).into(),
+        tile_size: Vec2::new(16.0, 16.0),
+        texture_size: Vec2::new(96.0, 256.0),
+    };
+    let mut map = Map::new(map_settings, 0);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-    
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
+
     for (_, entity) in map.get_all_tiles().iter() {
         commands.entity(**entity).insert(LastUpdate::default());
     }
@@ -38,10 +52,7 @@ struct LastUpdate {
 }
 
 // Worst case lookup
-fn random(
-    time: ResMut<Time>,
-    mut query: Query<(&mut Tile, &mut LastUpdate)>,
-) {
+fn random(time: ResMut<Time>, mut query: Query<(&mut Tile, &mut LastUpdate)>) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
     for (mut tile, mut last_update) in query.iter_mut() {
@@ -54,8 +65,8 @@ fn random(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
-    .init();
+        .filter_level(log::LevelFilter::Error)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

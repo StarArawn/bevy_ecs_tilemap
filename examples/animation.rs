@@ -21,10 +21,21 @@ fn startup(
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-
-    let mut map = Map::new(Vec2::new(4.0, 4.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_settings = MapSettings {
+        map_size: Vec2::new(4.0, 4.0).into(),
+        chunk_size: Vec2::new(32.0, 32.0).into(),
+        tile_size: Vec2::new(16.0, 16.0),
+        texture_size: Vec2::new(96.0, 256.0),
+    };
+    let mut map = Map::new(map_settings, 0);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
         ..Default::default()
@@ -32,10 +43,21 @@ fn startup(
 
     let texture_handle = asset_server.load("flower_sheet.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-
-    let mut map = Map::new(Vec2::new(4.0, 4.0).into(), Vec2::new(16.0, 16.0).into(), Vec2::new(32.0, 32.0), Vec2::new(32.0, 448.0), 1);
+    let map_settings = MapSettings {
+        map_size: Vec2::new(4.0, 4.0).into(),
+        chunk_size: Vec2::new(16.0, 16.0).into(),
+        tile_size: Vec2::new(32.0, 32.0),
+        texture_size: Vec2::new(32.0, 448.0),
+    };
+    let mut map = Map::new(map_settings, 1);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
     for (_, entity) in map.get_all_tiles() {
         commands.entity(*entity).insert(Animated::default());
     }
@@ -46,10 +68,7 @@ fn startup(
     });
 }
 
-fn animate(
-    time: Res<Time>,
-    mut query: Query<(&mut Tile, &mut Animated)>
-) {
+fn animate(time: Res<Time>, mut query: Query<(&mut Tile, &mut Animated)>) {
     let current_time = time.seconds_since_startup();
     for (mut tile, mut animated) in query.iter_mut() {
         if (current_time - animated.last_update) > 0.05 {
@@ -65,8 +84,8 @@ fn animate(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
-    .init();
+        .filter_level(log::LevelFilter::Error)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

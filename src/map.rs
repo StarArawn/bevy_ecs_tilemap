@@ -1,6 +1,16 @@
+use crate::{
+    chunk::{Chunk, ChunkBundle, RemeshChunk},
+    map_vec2::MapVec2,
+    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
+};
+use bevy::{
+    prelude::*,
+    render::{
+        mesh::{Indices, VertexAttributeValues},
+        pipeline::PrimitiveTopology,
+    },
+};
 use std::collections::HashMap;
-use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::{PrimitiveTopology}}};
-use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}};
 
 #[derive(Bundle, Default)]
 pub struct MapBundle {
@@ -10,10 +20,7 @@ pub struct MapBundle {
 }
 
 pub struct Map {
-    pub size: MapVec2,
-    pub chunk_size: MapVec2,
-    pub tile_size: Vec2,
-    pub texture_size: Vec2,
+    pub map_settings: MapSettings,
     pub layer_id: u32,
     chunks: HashMap<MapVec2, (Entity, HashMap<MapVec2, Entity>)>,
     pub mesher: Box<dyn TilemapChunkMesher>,
@@ -22,15 +29,23 @@ pub struct Map {
 impl Default for Map {
     fn default() -> Self {
         Self {
-            size: MapVec2::default(),
-            chunk_size: MapVec2::default(),
-            tile_size: Vec2::default(),
-            texture_size: Vec2::default(),
+            map_settings: MapSettings::default(),
             layer_id: 0,
             chunks: HashMap::new(),
             mesher: Box::new(SquareChunkMesher),
         }
     }
+}
+
+///The settings used to create a [Map](Map)
+///
+///You could store this as a Resource for reusability
+#[derive(Default, Debug, Clone, Copy)]
+pub struct MapSettings {
+    pub map_size: MapVec2,
+    pub chunk_size: MapVec2,
+    pub tile_size: Vec2,
+    pub texture_size: Vec2,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -43,12 +58,9 @@ pub enum MapTileError {
 pub struct RemoveTile;
 
 impl Map {
-    pub fn new(size: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, layer_id: u32) -> Self {
+    pub fn new(map_settings: MapSettings, layer_id: u32) -> Self {
         Self {
-            size,
-            chunk_size,
-            tile_size,
-            texture_size,
+            map_settings,
             layer_id,
             chunks: HashMap::new(),
             mesher: Box::new(SquareChunkMesher),
@@ -65,21 +77,28 @@ impl Map {
     }
 
     /// Adds a new tile to the map if the tile already exists this code will do nothing.
-    pub fn add_tile(&mut self, commands: &mut Commands, tile_pos: MapVec2, tile: Tile) -> Result<(), MapTileError> {
+    pub fn add_tile(
+        &mut self,
+        commands: &mut Commands,
+        tile_pos: MapVec2,
+        tile: Tile,
+    ) -> Result<(), MapTileError> {
         // First find chunk tile should live in:
         if let Some(chunk_data) = self.get_chunk_mut(MapVec2::new(
-            tile_pos.x / self.chunk_size.x,
-            tile_pos.y / self.chunk_size.y
+            tile_pos.x / self.map_settings.chunk_size.x,
+            tile_pos.y / self.map_settings.chunk_size.y,
         )) {
             if chunk_data.1.contains_key(&tile_pos) {
                 return Err(MapTileError::TileAlreadyExists);
             }
-            let tile_entity = commands.spawn()
+            let tile_entity = commands
+                .spawn()
                 .insert(Tile {
                     chunk: chunk_data.0,
                     ..tile
                 })
-                .insert(tile_pos).id();
+                .insert(tile_pos)
+                .id();
             chunk_data.1.insert(tile_pos, tile_entity);
 
             return Ok(());
@@ -87,8 +106,11 @@ impl Map {
 
         Err(MapTileError::UnableToFindChunk)
     }
- 
-    fn get_chunk_mut(&mut self, chunk_pos: MapVec2) -> Option<&mut (Entity, HashMap<MapVec2, Entity>)> {
+
+    fn get_chunk_mut(
+        &mut self,
+        chunk_pos: MapVec2,
+    ) -> Option<&mut (Entity, HashMap<MapVec2, Entity>)> {
         self.chunks.get_mut(&chunk_pos)
     }
 
@@ -110,16 +132,20 @@ impl Map {
     /// Retrieves a tile entity from the map. None will be returned for OOBs.
     pub fn get_tile(&self, tile_pos: MapVec2) -> Option<&Entity> {
         let map_size = &self.get_map_size_in_tiles();
-        if tile_pos.x >= 0 && tile_pos.y >= 0 && tile_pos.x <= map_size.x && tile_pos.y <= map_size.y {
+        if tile_pos.x >= 0
+            && tile_pos.y >= 0
+            && tile_pos.x <= map_size.x
+            && tile_pos.y <= map_size.y
+        {
             let chunk_pos = MapVec2::new(
-                tile_pos.x / self.chunk_size.x,
-                tile_pos.y / self.chunk_size.y,
+                tile_pos.x / self.map_settings.chunk_size.x,
+                tile_pos.y / self.map_settings.chunk_size.y,
             );
 
             let chunk = self.chunks.get(&chunk_pos);
             if chunk.is_some() {
                 let (_, tiles) = chunk.unwrap();
-                return tiles.get(&tile_pos)
+                return tiles.get(&tile_pos);
             } else {
                 return None;
             }
@@ -137,8 +163,8 @@ impl Map {
     /// Gets the map's size in tiles just for convenience.
     pub fn get_map_size_in_tiles(&self) -> MapVec2 {
         MapVec2::new(
-            self.size.x * self.chunk_size.x,
-            self.size.y * self.chunk_size.y,
+            self.map_settings.map_size.x * self.map_settings.chunk_size.x,
+            self.map_settings.map_size.y * self.map_settings.chunk_size.y,
         )
     }
 
@@ -152,8 +178,8 @@ impl Map {
         map_entity: Entity,
         populate_chunks: bool,
     ) {
-        for x in 0..self.size.x {
-            for y in 0..self.size.y {
+        for x in 0..self.map_settings.map_size.x {
+            for y in 0..self.map_settings.map_size.y {
                 let mut chunk_entity = None;
                 commands.entity(map_entity).with_children(|child_builder| {
                     chunk_entity = Some(child_builder.spawn().id());
@@ -166,23 +192,32 @@ impl Map {
                 mesh.set_attribute("Vertex_Normal", VertexAttributeValues::Float3(vec![]));
                 mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
-                let mesh_handle =  meshes.add(mesh);
-                let mut chunk = Chunk::new(map_entity, chunk_pos, self.chunk_size, self.tile_size, self.texture_size, mesh_handle.clone(), self.layer_id, dyn_clone::clone_box(&*self.mesher));
+                let mesh_handle = meshes.add(mesh);
+                let mut chunk = Chunk::new(
+                    map_entity,
+                    chunk_pos,
+                    self.map_settings.chunk_size,
+                    self.map_settings.tile_size,
+                    self.map_settings.texture_size,
+                    mesh_handle.clone(),
+                    self.layer_id,
+                    dyn_clone::clone_box(&*self.mesher),
+                );
 
                 if populate_chunks {
                     chunk.build_tiles(commands, chunk_entity);
                 }
 
-                self.chunks.insert(chunk_pos, (chunk_entity, chunk.tiles.clone()));
+                self.chunks
+                    .insert(chunk_pos, (chunk_entity, chunk.tiles.clone()));
 
-                commands.entity(chunk_entity)
-                    .insert_bundle(ChunkBundle {
-                        chunk,
-                        mesh: mesh_handle,
-                        material: material.clone(),
-                        transform: Transform::default(),
-                        ..Default::default()
-                    });
+                commands.entity(chunk_entity).insert_bundle(ChunkBundle {
+                    chunk,
+                    mesh: mesh_handle,
+                    material: material.clone(),
+                    transform: Transform::default(),
+                    ..Default::default()
+                });
             }
         }
     }
@@ -205,20 +240,19 @@ pub(crate) fn update_chunk_hashmap_for_removed_tiles(
     mut commands: Commands,
     mut map_query: Query<&mut Map>,
     mut chunk_query: Query<&mut Chunk>,
-    removed_tiles_query: Query<(Entity, &Tile, &MapVec2), With<RemoveTile>>
+    removed_tiles_query: Query<(Entity, &Tile, &MapVec2), With<RemoveTile>>,
 ) {
     // For now only loop over 1 map.
     if let Some(mut map) = map_query.iter_mut().next() {
         for (tile_entity, removed_tile, tile_pos) in removed_tiles_query.iter() {
-
             // Remove tile from chunk tiles cache.
             if let Ok(mut tile_chunk) = chunk_query.get_mut(removed_tile.chunk) {
                 tile_chunk.tiles.remove(&tile_pos);
             }
 
             let chunk_coords = MapVec2::new(
-                tile_pos.x / map.chunk_size.x,
-                tile_pos.y / map.chunk_size.y,
+                tile_pos.x / map.map_settings.chunk_size.x,
+                tile_pos.y / map.map_settings.chunk_size.y,
             );
 
             // Remove tile from map tiles cache.

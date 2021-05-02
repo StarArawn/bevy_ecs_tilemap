@@ -13,10 +13,21 @@ fn startup(
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(9.0, 9.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_settings = MapSettings {
+        map_size: Vec2::new(2.0, 2.0).into(),
+        chunk_size: Vec2::new(9.0, 9.0).into(),
+        tile_size: Vec2::new(16.0, 16.0),
+        texture_size: Vec2::new(96.0, 256.0),
+    };
+    let mut map = Map::new(map_settings, 0);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
 
     assert!(map.get_tile(Vec2::new(0.0, 0.0).into()).is_some());
 
@@ -34,19 +45,15 @@ fn startup(
     });
 }
 
-
 // Should run after the commands from startup have been processed.
-fn build_map(
-    map_query: Query<&Map, Added<Map>>,
-    mut tile_query: Query<&mut Tile>,
-) {
+fn build_map(map_query: Query<&Map, Added<Map>>, mut tile_query: Query<&mut Tile>) {
     for map in map_query.iter() {
         let mut color = 0;
         for x in (2..20).step_by(4) {
             color += 1;
             for y in (2..20).step_by(4) {
                 let neighbors = map.get_tile_neighbors(Vec2::new(x as f32, y as f32).into());
-            
+
                 for neighbor in neighbors.iter() {
                     if neighbor.is_some() {
                         let neighbor = neighbor.unwrap();
@@ -62,8 +69,8 @@ fn build_map(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {
