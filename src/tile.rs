@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+/// TODO: DOCS
 #[derive(Debug, Clone, Copy)]
 pub struct Tile {
     pub chunk: Entity,

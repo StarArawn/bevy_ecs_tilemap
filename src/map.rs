@@ -7,6 +7,7 @@ pub(crate) struct SetTileEvent {
     pub tile: Tile,
 }
 
+/// TODO: DOCS
 #[derive(Bundle, Default)]
 pub struct MapBundle {
     pub map: Map,
@@ -14,6 +15,7 @@ pub struct MapBundle {
     pub global_transform: GlobalTransform,
 }
 
+/// TODO: DOCS
 pub struct Map {
     pub size: MapVec2,
     pub chunk_size: MapVec2,
@@ -40,6 +42,7 @@ impl Default for Map {
     }
 }
 
+/// TODO: DOCS
 #[derive(Debug, Copy, Clone)]
 pub enum MapTileError {
     OutOfBounds,
@@ -49,6 +52,7 @@ pub enum MapTileError {
 pub struct RemoveTile;
 
 impl Map {
+    /// TODO: DOCS
     pub fn new(size: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, layer_id: u32) -> Self {
         Self {
             size,
@@ -117,6 +121,21 @@ impl Map {
  
     fn get_chunk_mut(&mut self, chunk_pos: MapVec2) -> Option<&mut (Entity, HashMap<MapVec2, Entity>)> {
         self.chunks.get_mut(&chunk_pos)
+    }
+
+    fn get_chunk(&self, chunk_pos: MapVec2) -> Option<&(Entity, HashMap<MapVec2, Entity>)> {
+        self.chunks.get(&chunk_pos)
+    }
+
+    /// Notify the map renderer that the tile is updated and to mesh the chunk again.
+    /// Note: This just adds a Tag to the chunk entity to be re-meshed.
+    pub fn notify(&self, commands: &mut Commands, position: MapVec2) {
+        if let Some(chunk_data) = self.get_chunk(MapVec2::new(
+            position.x / self.chunk_size.x,
+            position.y / self.chunk_size.y
+        )) {
+            commands.entity(chunk_data.0).insert(RemeshChunk);
+        }
     }
 
     /// Retrieves a list of neighbor entities in the following order:
@@ -290,6 +309,7 @@ pub(crate) fn update_tiles(
 
     for mut map in map.iter_mut() {
         while let Some(event) = map.events.pop_front() {
+            commands.entity(event.tile.chunk).insert(RemeshChunk);
             commands.entity(event.entity).remove::<Tile>().insert(event.tile);
         }
     }

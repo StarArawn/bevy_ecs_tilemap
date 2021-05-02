@@ -47,18 +47,30 @@ fn startup(
 }
 
 fn animate(
+    mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&mut Tile, &mut Animated)>
+    mut query: Query<(&MapVec2, &mut Tile, &mut Animated)>,
+    chunk_query: Query<&Chunk>,
+    map_query: Query<&Map>,
 ) {
     let current_time = time.seconds_since_startup();
-    for (mut tile, mut animated) in query.iter_mut() {
+    for (position, mut tile, mut animated) in query.iter_mut() {
         if (current_time - animated.last_update) > 0.05 {
             tile.texture_index += 1;
             if tile.texture_index > 13 {
                 tile.texture_index = 0;
             }
-
             animated.last_update = current_time;
+
+            // TODO: Provide a better API for this.
+            // We should be able to do something like:
+            // `map.notify(commands, position, layer)`;
+            // Have a hierarchy like: map entity > layer entities > chunk entities > tile entities
+            if let Ok(chunk) = chunk_query.get(tile.chunk) {
+                if let Ok(map) = map_query.get(chunk.map_entity) {
+                    map.notify(&mut commands, *position);
+                }
+            }
         }
     }
 }

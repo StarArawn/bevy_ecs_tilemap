@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+/// TODO: DOCS
 #[derive(Debug, Default, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct MapVec2 {
     pub x: i32,
@@ -7,6 +8,7 @@ pub struct MapVec2 {
 }
 
 impl MapVec2 {
+    /// TODO: DOCS
     pub fn new(x: i32, y: i32) -> Self {
         Self {
             x,
@@ -14,6 +16,7 @@ impl MapVec2 {
         }
     }
 
+    /// TODO: DOCS
     pub fn new_f(x: f32, y: f32) -> Self {
         Self::new(x as i32, y as i32)
     }

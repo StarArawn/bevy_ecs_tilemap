@@ -40,15 +40,18 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let tile_entity = map.get_tile(Vec2::new(
+            let position = Vec2::new(
                 random.gen_range(0.0..16.0),
                 random.gen_range(0.0..16.0),
-            ).into());
+            ).into();
+            let tile_entity = map.get_tile(position);
 
             // Note you can also call map.remove_tile() instead.
             if tile_entity.is_some() {
                 commands.entity(tile_entity.unwrap()).insert(RemoveTile);
             }
+
+            map.notify(&mut commands, position);
 
             last_update.value = current_time;
         }

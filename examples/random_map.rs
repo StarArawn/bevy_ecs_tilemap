@@ -18,7 +18,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(Vec2::new(5.0, 5.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     
@@ -39,15 +39,21 @@ struct LastUpdate {
 
 // Worst case lookup
 fn random(
+    mut commands: Commands,
     time: ResMut<Time>,
-    mut query: Query<(&mut Tile, &mut LastUpdate)>,
+    mut query: Query<(&MapVec2, &mut Tile, &mut LastUpdate)>,
+    map_query: Query<&Map>,
 ) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
-    for (mut tile, mut last_update) in query.iter_mut() {
+    for (position, mut tile, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.1 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
+
+            if let Ok(map) = map_query.single() {
+                map.notify(&mut commands, *position);
+            }
         }
     }
 }

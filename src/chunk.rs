@@ -1,9 +1,12 @@
-use std::collections::HashMap;
-use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}};
+use std::{collections::HashMap, task::{Context, Poll}};
+use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
+use futures_util::FutureExt;
 use crate::{map_vec2::MapVec2, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
+/// TODO: DOCS
 pub struct RemeshChunk;
 
+/// TODO: DOCS
 #[derive(Bundle)]
 pub struct ChunkBundle {
     pub chunk: Chunk,
@@ -37,10 +40,10 @@ impl Default for ChunkBundle {
         }
     }
 }
-
+/// TODO: DOCS
 pub struct Chunk {
     #[allow(dead_code)]
-    map_entity: Entity,
+    pub map_entity: Entity,
     pub position: MapVec2,
     pub size: MapVec2,
     pub(crate) tiles: HashMap<MapVec2, Entity>,
@@ -50,6 +53,23 @@ pub struct Chunk {
     pub(crate) layer_id: u32,
     mesher: Box<dyn TilemapChunkMesher>,
 }
+
+impl Clone for Chunk {
+    fn clone(&self) -> Chunk {
+        Chunk {
+            map_entity: self.map_entity,
+            position: self.position,
+            size: self.size,
+            tiles: self.tiles.clone(),
+            mesh_handle: self.mesh_handle.clone(),
+            tile_size: self.tile_size,
+            texture_size: self.texture_size,
+            layer_id: self.layer_id,
+            mesher: dyn_clone::clone_box(&*self.mesher),
+        }
+    }
+}
+
 
 impl Default for Chunk {
     fn default() -> Self {
@@ -108,38 +128,42 @@ impl Chunk {
 
 pub(crate) fn update_chunk_mesh(
     mut commands: Commands,
+    task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
-    tile_change_query: Query<&Tile, Or<(Changed<MapVec2>, Changed<Tile>)>>,
     tile_query: Query<(&MapVec2, &Tile)>,
-    mut chunk_query: Query<(Entity, &Chunk)>,
-    changed_chunks: Query<(Entity, &Chunk), With<RemeshChunk>>,
+    mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
+    changed_chunks: Query<(Entity, &Chunk), Or<(With<RemeshChunk>, Added<Chunk>)>>,
+
 ) {
-    // TODO: use a hash set or something here instead. Perhaps the chunk entity itself?
-    let mut updated_chunks = Vec::new();
-    // If a tile has changed.
-    for tile in tile_change_query.iter() {
-        if let Ok((chunk_entity, chunk)) = chunk_query.get_mut(tile.chunk) {
-            if !updated_chunks.iter().any(|(position, layer_id)| chunk.position == *position && chunk.layer_id == *layer_id) {
-                log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
-                
-                // Rebuild tile map mesh.
-                chunk.mesher.mesh(chunk, &mut meshes, &tile_query);
-
-                // Make sure we don't recalculate the chunk until the next time this system updates at least.
-                updated_chunks.push((chunk.position, chunk.layer_id));
-
-                commands.entity(chunk_entity).remove::<RemeshChunk>();
-            }
-        }
-    }
-
-    // Update chunks that have been "marked" as needing remeshing.
+    // Update chunks that have been "marked" as needing re-meshing.
     for (chunk_entity, chunk) in changed_chunks.iter() {
-        if !updated_chunks.iter().any(|(position, layer_id)| chunk.position == *position && chunk.layer_id == *layer_id) {
-            log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
-            chunk.mesher.mesh(chunk, &mut meshes, &tile_query);
+        log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
+        
+        let mut tile_chunk_data = HashMap::<MapVec2, Tile>::new();
+        chunk.tiles.values().for_each(|tile_entity| {
+            if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
+                tile_chunk_data.insert(*tile_pos, *tile);
+            }
+        });
 
-            commands.entity(chunk_entity).remove::<RemeshChunk>();
+        let mesher = dyn_clone::clone_box(&*chunk.mesher);
+        let new_mesh_task = task_pool.spawn(mesher.mesh(chunk.clone(), tile_chunk_data));
+        
+        commands.entity(chunk_entity).insert(new_mesh_task);
+        commands.entity(chunk_entity).remove::<RemeshChunk>();
+    }
+    let noop_waker = futures_util::task::noop_waker();
+    let mut cx = Context::from_waker(&noop_waker);
+
+    for (entity, mut task) in query_mesh_task.iter_mut() {
+        match task.poll_unpin(&mut cx) {
+            Poll::Ready((mesh_handle, new_mesh)) => {
+                if let Some(mesh) = meshes.get_mut(mesh_handle) {
+                    *mesh = new_mesh;
+                    commands.entity(entity).remove::<Task<(Handle<Mesh>, Mesh)>>();
+                }
+            },
+            _ => ()
         }
     }
 

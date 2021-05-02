@@ -12,7 +12,10 @@ fn startup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(OrthographicCameraBundle {
+        transform: Transform::from_xyz(1024.0, 1024.0, 1000.0 - 0.1),
+        ..OrthographicCameraBundle::new_2d()
+    });
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));

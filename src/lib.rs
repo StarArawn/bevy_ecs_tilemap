@@ -1,3 +1,5 @@
+//! TODO: DOCS
+
 use bevy::prelude::*;
 use chunk::update_chunk_mesh;
 use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
@@ -10,6 +12,7 @@ mod map;
 mod render;
 mod mesher;
 
+/// TODO: DOCS
 #[derive(Default)]
 pub struct TileMapPlugin;
 
