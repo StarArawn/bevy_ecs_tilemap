@@ -1,5 +1,5 @@
 use std::{task::{Context, Poll}};
-use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task, TaskPool}};
+use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
 use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
@@ -147,7 +147,7 @@ impl Chunk {
     pub fn to_chunk_pos(&self, position: MapVec2) -> MapVec2 {
         MapVec2::new(
             position.x - (self.settings.position.x * self.settings.size.x),
-            position.y - (self.settings.position.y * self.settings.size.x),
+            position.y - (self.settings.position.y * self.settings.size.y),
         )
     }
 }

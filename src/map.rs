@@ -80,11 +80,18 @@ impl Map {
         // First find chunk tile should live in:
         let mut possible_tile_event = None;
 
-        if let Some(chunk_data) = self.get_chunk_mut(MapVec2::new(
+        let chunk_pos = MapVec2::new(
             tile_pos.x / self.chunk_size.x,
             tile_pos.y / self.chunk_size.y
-        )) {
-            if let Some(tile_entity) = chunk_data.1[morton_index(tile_pos)] {
+        );
+        let chunk_size = self.chunk_size;
+        if let Some(chunk_data) = self.get_chunk_mut(chunk_pos) {
+            let chunk_tile_pos = MapVec2::new(
+                tile_pos.x - (chunk_pos.x * chunk_size.x),
+                tile_pos.y - (chunk_pos.y * chunk_size.y),
+            );
+
+            if let Some(tile_entity) = chunk_data.1[morton_index(chunk_tile_pos)] {
                 // If the tile already exists we need to queue an event.
                 // We do this because we have good way of changing the actual tile data from here.
                 // Another possibility is having the user pass in a query of tiles and matching based off of entity,
@@ -104,7 +111,7 @@ impl Map {
                         ..tile
                     })
                     .insert(tile_pos).id();
-                chunk_data.1[morton_index(tile_pos)] = Some(tile_entity);
+                chunk_data.1[morton_index(chunk_tile_pos)] = Some(tile_entity);
 
                 return Ok(tile_entity);
             }
@@ -180,11 +187,15 @@ impl Map {
                 tile_pos.x / self.chunk_size.x,
                 tile_pos.y / self.chunk_size.y,
             );
+            let chunk_tile_pos = MapVec2::new(
+                tile_pos.x - (chunk_pos.x * self.chunk_size.x),
+                tile_pos.y - (chunk_pos.y * self.chunk_size.y),
+            );
 
             let chunk = self.chunks.get(&chunk_pos);
             if chunk.is_some() {
                 let (_, tiles) = chunk.unwrap();
-                tiles[morton_index(tile_pos)]
+                tiles[morton_index(chunk_tile_pos)]
             } else {
                 return None;
             }
@@ -197,10 +208,15 @@ impl Map {
     /// Note: This list could be slightly out of date.
     /// This is slow.
     pub fn get_all_tiles(&self) -> Vec<(MapVec2, &Option<Entity>)> {
-        self.chunks.values().flat_map(|(_, tiles)|
-            tiles.iter().enumerate().map(|(index, entity)|
-                (MapVec2::from_morton(index), entity)
-            ).collect::<Vec<(MapVec2, &Option<Entity>)>>()
+        self.chunks.iter().flat_map(|(chunk_pos, tiles)|
+            tiles.1.iter().enumerate().map(|(index, entity)| {
+                let chunk_tile_pos = MapVec2::from_morton(index);
+                let global_tile_pos = MapVec2::new(
+                    chunk_tile_pos.x + (chunk_pos.x * self.chunk_size.x),
+                    chunk_tile_pos.y + (chunk_pos.y * self.chunk_size.y),
+                );
+                (global_tile_pos, entity)
+            }).collect::<Vec<(MapVec2, &Option<Entity>)>>()
         ).collect()
     }
 
@@ -284,7 +300,8 @@ pub(crate) fn update_chunk_hashmap_for_removed_tiles(
 
             // Remove tile from chunk tiles cache.
             if let Ok(mut tile_chunk) = chunk_query.get_mut(removed_tile.chunk) {
-                tile_chunk.tiles[morton_index(*tile_pos)] = None;
+                let tile_pos = tile_chunk.to_chunk_pos(*tile_pos);
+                tile_chunk.tiles[morton_index(tile_pos)] = None;
             }
 
             let chunk_coords = MapVec2::new(
@@ -294,7 +311,10 @@ pub(crate) fn update_chunk_hashmap_for_removed_tiles(
 
             // Remove tile from map tiles cache.
             if let Some(map_chunk) = map.chunks.get_mut(&chunk_coords) {
-                map_chunk.1[morton_index(*tile_pos)] = None;
+                if let Ok(tile_chunk) = chunk_query.get_mut(removed_tile.chunk) {
+                    let tile_pos = tile_chunk.to_chunk_pos(*tile_pos);
+                    map_chunk.1[morton_index(tile_pos)] = None;
+                }
             }
 
             // Remove tile entity

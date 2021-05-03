@@ -67,7 +67,6 @@ fn update_map(
                 current_color.0 = 1;
             }
             let mut color = current_color.0;
-            dbg!(color);
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     let neighbors = map.get_tile_neighbors(
