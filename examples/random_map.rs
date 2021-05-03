@@ -18,7 +18,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     
@@ -48,13 +48,23 @@ fn random(
 ) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
-    for (position, mut tile, mut last_update) in query.iter_mut() {
+    let mut did_update = false;
+    for (_, mut tile, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.1 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
+            did_update = true;
+        }
+    }
 
-            if let Ok(map) = map_query.single() {
-                map.notify(&mut commands, *position);
+    // Smarter way to update..
+    if did_update {
+        if let Ok(map) = map_query.single() {
+            for x in 0..map.size.x {
+                for y in 0..map.size.y {
+                    // Update first tile in each chunk at least until we get an notify_chunk
+                    map.notify(&mut commands, MapVec2::new(x * map.chunk_size.x, y * map.chunk_size.y));
+                }
             }
         }
     }

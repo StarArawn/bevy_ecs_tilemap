@@ -1,14 +1,12 @@
-use std::collections::HashMap;
-
 use dyn_clone::DynClone;
 use async_trait::async_trait;
 use bevy::{ecs::component::Component, prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::PrimitiveTopology}};
-use crate::prelude::*;
+use crate::{chunk::ChunkSettings, morton_index, prelude::*};
 
 /// TODO: DOCS
 #[async_trait]
 pub trait TilemapChunkMesher : Component + DynClone {
-    async fn mesh(self: Box<Self>, chunk: Chunk, tile_query: HashMap<MapVec2, Tile>) -> (Handle<Mesh>, Mesh);
+    async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh);
 }
 
 /// TODO: DOCS
@@ -17,7 +15,7 @@ pub struct SquareChunkMesher;
 
 #[async_trait]
 impl TilemapChunkMesher for SquareChunkMesher {
-    async fn mesh(self: Box<Self>, chunk: Chunk, tile_query: HashMap<MapVec2, Tile>) -> (Handle<Mesh>, Mesh) {
+    async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh) {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         let mut positions: Vec<[f32; 3]> = Vec::new();
         let mut uvs: Vec<[f32; 2]> = Vec::new();
@@ -29,7 +27,7 @@ impl TilemapChunkMesher for SquareChunkMesher {
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
                 let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query.get(&tile_position) {
+                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
                     // log::info!("Getting vertices for tile at: {:?}", tile_position);
 
                     let tile_pixel_pos = Vec2::new(
@@ -183,7 +181,7 @@ impl HexChunkMesher {
 
 #[async_trait]
 impl TilemapChunkMesher for HexChunkMesher {
-    async fn mesh(self: Box<Self>, chunk: Chunk, tile_query: HashMap<MapVec2, Tile>) -> (Handle<Mesh>, Mesh) {
+    async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh) {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         let mut positions: Vec<[f32; 3]> = Vec::new();
         let mut uvs: Vec<[f32; 2]> = Vec::new();
@@ -195,7 +193,7 @@ impl TilemapChunkMesher for HexChunkMesher {
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
                 let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query.get(&tile_position) {
+                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
                     let tile_pixel_pos = Vec2::new(
                         tile_position.x as f32 * chunk.tile_size.x,
                         tile_position.y as f32 * chunk.tile_size.y
@@ -284,7 +282,7 @@ impl IsoChunkMesher {
 
 #[async_trait]
 impl TilemapChunkMesher for IsoChunkMesher {
-    async fn mesh(self: Box<Self>, chunk: Chunk, tile_query: HashMap<MapVec2, Tile>) -> (Handle<Mesh>, Mesh) {
+    async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh) {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         let mut positions: Vec<[f32; 3]> = Vec::new();
         let mut uvs: Vec<[f32; 2]> = Vec::new();
@@ -295,7 +293,7 @@ impl TilemapChunkMesher for IsoChunkMesher {
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
                 let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query.get(&tile_position) {
+                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
                     // log::info!("Getting vertices for tile at: {:?}", tile_position);
 
                     let tile_pixel_pos = Vec2::new(

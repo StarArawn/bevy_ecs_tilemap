@@ -60,7 +60,7 @@ impl Map {
             tile_size,
             texture_size,
             layer_id,
-            chunks: HashMap::new(),
+            chunks: HashMap::with_capacity((size.x * size.y) as usize),
             mesher: Box::new(SquareChunkMesher),
             events: VecDeque::new(),
         }

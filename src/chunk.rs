@@ -1,5 +1,5 @@
-use std::{collections::HashMap, task::{Context, Poll}};
-use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
+use std::{task::{Context, Poll}};
+use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task, TaskPool}};
 use futures_util::FutureExt;
 use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
@@ -40,32 +40,46 @@ impl Default for ChunkBundle {
         }
     }
 }
+
+pub struct ChunkSettings {
+    pub position: MapVec2,
+    pub size: MapVec2,
+    pub(crate) tile_size: Vec2,
+    pub(crate) texture_size: Vec2,
+    pub(crate) layer_id: u32,
+    pub(crate) mesher: Box<dyn TilemapChunkMesher>,
+    pub(crate) mesh_handle: Handle<Mesh>,
+}
+
+impl Clone for ChunkSettings {
+    fn clone(&self) -> Self {
+        Self {
+            position: self.position,
+            size: self.size,
+            tile_size: self.tile_size,
+            texture_size: self.texture_size,
+            layer_id: self.layer_id,
+            mesh_handle: self.mesh_handle.clone(),
+            mesher: dyn_clone::clone_box(&*self.mesher),
+        }
+    }
+}
+
+
 /// TODO: DOCS
 pub struct Chunk {
     #[allow(dead_code)]
     pub map_entity: Entity,
-    pub position: MapVec2,
-    pub size: MapVec2,
+    pub settings: ChunkSettings,
     pub(crate) tiles: Vec<Option<Entity>>,
-    pub(crate) mesh_handle: Handle<Mesh>,
-    pub(crate) tile_size: Vec2,
-    pub(crate) texture_size: Vec2,
-    pub(crate) layer_id: u32,
-    mesher: Box<dyn TilemapChunkMesher>,
 }
 
 impl Clone for Chunk {
     fn clone(&self) -> Chunk {
         Chunk {
             map_entity: self.map_entity,
-            position: self.position,
-            size: self.size,
             tiles: self.tiles.clone(),
-            mesh_handle: self.mesh_handle.clone(),
-            tile_size: self.tile_size,
-            texture_size: self.texture_size,
-            layer_id: self.layer_id,
-            mesher: dyn_clone::clone_box(&*self.mesher),
+            settings: self.settings.clone(),
         }
     }
 }
@@ -75,14 +89,16 @@ impl Default for Chunk {
     fn default() -> Self {
         Self {
             map_entity: Entity::new(0),
-            position: Default::default(),
-            size: Default::default(),
             tiles: Vec::new(),
-            mesh_handle: Default::default(),
-            texture_size: Vec2::ZERO,
-            tile_size: Vec2::ZERO,
-            layer_id: 0,
-            mesher: Box::new(SquareChunkMesher)
+            settings: ChunkSettings {
+                position: Default::default(),
+                size: Default::default(),
+                mesh_handle: Default::default(),
+                texture_size: Vec2::ZERO,
+                tile_size: Vec2::ZERO,
+                layer_id: 0,
+                mesher: Box::new(SquareChunkMesher),
+            } 
         }
     }
 }
@@ -92,23 +108,25 @@ impl Chunk {
         let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
         Self {
             map_entity,
-            position,
             tiles,
-            size: chunk_size,
-            tile_size,
-            texture_size,
-            mesh_handle,
-            layer_id,
-            mesher,
+            settings: ChunkSettings {
+                position,
+                size: chunk_size,
+                tile_size,
+                texture_size,
+                mesh_handle,
+                layer_id,
+                mesher,
+            },
         }
     }
 
     pub(crate) fn build_tiles(&mut self, commands: &mut Commands, chunk_entity: Entity) {
-        for x in 0..self.size.x {
-            for y in 0..self.size.y {
+        for x in 0..self.settings.size.x {
+            for y in 0..self.settings.size.y {
                 let tile_pos = MapVec2 {
-                    x: (self.position.x * self.size.x) + x,
-                    y: (self.position.y * self.size.y) + y,
+                    x: (self.settings.position.x * self.settings.size.x) + x,
+                    y: (self.settings.position.y * self.settings.size.y) + y,
                 };
                 let tile_entity = commands.spawn()
                     .insert(Tile {
@@ -128,8 +146,8 @@ impl Chunk {
 
     pub fn to_chunk_pos(&self, position: MapVec2) -> MapVec2 {
         MapVec2::new(
-            position.x - (self.position.x * self.size.x),
-            position.y - (self.position.y * self.size.x),
+            position.x - (self.settings.position.x * self.settings.size.x),
+            position.y - (self.settings.position.y * self.settings.size.x),
         )
     }
 }
@@ -144,24 +162,27 @@ pub(crate) fn update_chunk_mesh(
 
 ) {
     // Update chunks that have been "marked" as needing re-meshing.
-    for (chunk_entity, chunk) in changed_chunks.iter() {
-        log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
+    // TODO: Eventually when par_for_each works better here we should use that.
+    // Currently we can't pull data out of a par_for_each or use commands inside of it. :(
+    changed_chunks.for_each(|(chunk_entity, chunk)| {
+        log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
         
-        let mut tile_chunk_data = HashMap::<MapVec2, Tile>::new();
-        chunk.tiles.iter().enumerate().for_each(|(_, tile_entity)| {
+        let mut tile_chunk_data = vec![None; (chunk.settings.size.x * chunk.settings.size.y) as usize];
+        chunk.tiles.iter().for_each(|tile_entity| {
             if let Some(tile_entity) = tile_entity {
                 if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
-                    tile_chunk_data.insert(*tile_pos, *tile);
+                    let tile_pos = chunk.to_chunk_pos(*tile_pos);
+                    tile_chunk_data[morton_index(tile_pos)] = Some(*tile);
                 }
             }
         });
 
-        let mesher = dyn_clone::clone_box(&*chunk.mesher);
-        let new_mesh_task = task_pool.spawn(mesher.mesh(chunk.clone(), tile_chunk_data));
+        let mesher = dyn_clone::clone_box(&*chunk.settings.mesher);
+        let new_mesh_task = task_pool.spawn(mesher.mesh(chunk.settings.clone(), tile_chunk_data));
         
         commands.entity(chunk_entity).insert(new_mesh_task);
         commands.entity(chunk_entity).remove::<RemeshChunk>();
-    }
+    });
     let noop_waker = futures_util::task::noop_waker();
     let mut cx = Context::from_waker(&noop_waker);
 
