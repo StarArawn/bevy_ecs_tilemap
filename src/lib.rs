@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 use chunk::update_chunk_mesh;
 use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
+use prelude::MapVec2;
 use render::pipeline::add_tile_map_graph;
 
 mod tile;
@@ -27,6 +28,10 @@ impl Plugin for TileMapPlugin {
         let world = app.world_mut();
         add_tile_map_graph(world);
     }
+}
+
+pub(crate) fn morton_index(tile_pos: MapVec2) -> usize {
+    lindel::morton_encode([tile_pos.x as u64, tile_pos.y as u64]) as usize
 }
 
 pub mod prelude {

@@ -18,12 +18,14 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(5.0, 5.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(64.0, 64.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     
     for (_, entity) in map.get_all_tiles().iter() {
-        commands.entity(**entity).insert(LastUpdate::default());
+        if let Some(entity) = entity {
+            commands.entity(*entity).insert(LastUpdate::default());
+        }
     }
 
     commands.entity(map_entity).insert_bundle(MapBundle {

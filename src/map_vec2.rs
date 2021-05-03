@@ -20,6 +20,11 @@ impl MapVec2 {
     pub fn new_f(x: f32, y: f32) -> Self {
         Self::new(x as i32, y as i32)
     }
+
+    pub fn from_morton(index: usize) -> Self {
+        let [x, y]: [u32; 2] = lindel::morton_decode(index as u64);
+        Self::new(x as i32, y as i32)
+    }
 }
 
 impl Into<Vec2> for MapVec2 {

@@ -50,7 +50,7 @@ fn build_map(map: &mut Map, commands: &mut Commands) {
 
 fn remove_map(map: &Map, commands: &mut Commands) {
     for (tile_pos, _) in map.get_all_tiles() {
-        map.remove_tile(commands, *tile_pos);
+        map.remove_tile(commands, tile_pos);
     }
 }
 

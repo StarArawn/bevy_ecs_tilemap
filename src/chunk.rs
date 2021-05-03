@@ -1,7 +1,7 @@
 use std::{collections::HashMap, task::{Context, Poll}};
 use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
-use crate::{map_vec2::MapVec2, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
+use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
 
 /// TODO: DOCS
 pub struct RemeshChunk;
@@ -46,7 +46,7 @@ pub struct Chunk {
     pub map_entity: Entity,
     pub position: MapVec2,
     pub size: MapVec2,
-    pub(crate) tiles: HashMap<MapVec2, Entity>,
+    pub(crate) tiles: Vec<Option<Entity>>,
     pub(crate) mesh_handle: Handle<Mesh>,
     pub(crate) tile_size: Vec2,
     pub(crate) texture_size: Vec2,
@@ -77,7 +77,7 @@ impl Default for Chunk {
             map_entity: Entity::new(0),
             position: Default::default(),
             size: Default::default(),
-            tiles: HashMap::new(),
+            tiles: Vec::new(),
             mesh_handle: Default::default(),
             texture_size: Vec2::ZERO,
             tile_size: Vec2::ZERO,
@@ -89,7 +89,7 @@ impl Default for Chunk {
 
 impl Chunk {
     pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesher: Box<dyn TilemapChunkMesher>) -> Self {
-        let tiles = HashMap::new();
+        let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
         Self {
             map_entity,
             position,
@@ -116,13 +116,21 @@ impl Chunk {
                         ..Tile::default()
                     })
                     .insert(tile_pos).id();
-                self.tiles.insert(tile_pos, tile_entity);
+                let morton_index = morton_index(MapVec2::new(x, y));
+                self.tiles[morton_index] = Some(tile_entity);
             }
         }
     }
 
-    pub fn get_tile_entity(&self, position: MapVec2) -> Option<&Entity> {
-        self.tiles.get(&position)
+    pub fn get_tile_entity(&self, position: MapVec2) -> Option<Entity> {
+        self.tiles[morton_index(position)]
+    }
+
+    pub fn to_chunk_pos(&self, position: MapVec2) -> MapVec2 {
+        MapVec2::new(
+            position.x - (self.position.x * self.size.x),
+            position.y - (self.position.y * self.size.x),
+        )
     }
 }
 
@@ -140,9 +148,11 @@ pub(crate) fn update_chunk_mesh(
         log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.position, chunk.layer_id);
         
         let mut tile_chunk_data = HashMap::<MapVec2, Tile>::new();
-        chunk.tiles.values().for_each(|tile_entity| {
-            if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
-                tile_chunk_data.insert(*tile_pos, *tile);
+        chunk.tiles.iter().enumerate().for_each(|(_, tile_entity)| {
+            if let Some(tile_entity) = tile_entity {
+                if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
+                    tile_chunk_data.insert(*tile_pos, *tile);
+                }
             }
         });
 

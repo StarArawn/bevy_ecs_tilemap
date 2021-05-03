@@ -37,7 +37,9 @@ fn startup(
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     for (_, entity) in map.get_all_tiles() {
-        commands.entity(*entity).insert(Animated::default());
+        if let Some(entity) = entity {
+            commands.entity(*entity).insert(Animated::default());
+        }
     }
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
@@ -77,7 +79,7 @@ fn animate(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
+    .filter_level(log::LevelFilter::Info)
     .init();
 
     App::build()
