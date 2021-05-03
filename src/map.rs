@@ -1,6 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::{PrimitiveTopology}}};
-use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}};
+use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, tile};
 
 pub(crate) struct SetTileEvent {
     pub entity: Entity,
@@ -130,6 +130,7 @@ impl Map {
                         chunk: chunk_data.0,
                         ..tile
                     })
+                    .insert(tile::Visible)
                     .insert(tile_pos).id();
                 chunk_data.1[morton_index(chunk_tile_pos)] = Some(tile_entity);
 

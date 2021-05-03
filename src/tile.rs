@@ -19,3 +19,6 @@ impl Default for Tile {
         }
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub struct Visible;

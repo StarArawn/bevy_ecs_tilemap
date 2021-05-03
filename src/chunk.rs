@@ -1,7 +1,7 @@
 use std::{task::{Context, Poll}};
 use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
-use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::Tile};
+use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::{self, Tile}};
 
 /// TODO: DOCS
 pub struct RemeshChunk;
@@ -135,6 +135,7 @@ impl Chunk {
                         chunk: chunk_entity,
                         ..Tile::default()
                     })
+                    .insert(tile::Visible)
                     .insert(tile_pos).id();
                 let morton_index = morton_index(MapVec2::new(x, y));
                 self.tiles[morton_index] = Some(tile_entity);
@@ -158,7 +159,7 @@ pub(crate) fn update_chunk_mesh(
     mut commands: Commands,
     task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&MapVec2, &Tile)>,
+    tile_query: Query<(&MapVec2, &Tile), With<tile::Visible>>,
     mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
     changed_chunks: Query<(Entity, &Chunk), Or<(With<RemeshChunk>, Added<Chunk>)>>,
 

@@ -35,7 +35,7 @@ pub(crate) fn morton_index(tile_pos: MapVec2) -> usize {
 }
 
 pub mod prelude {
-    pub use crate::tile::Tile;
+    pub use crate::tile::{Tile, Visible};
     pub use crate::chunk::Chunk;
     pub use crate::map_vec2::MapVec2;
     pub use crate::map::{Map, MapBundle, MapSettings, MapTileError, RemoveTile};
