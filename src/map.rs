@@ -14,29 +14,47 @@ pub struct MapBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
 }
-
-/// TODO: DOCS
-pub struct Map {
+pub struct MapSettings {
     pub size: MapVec2,
     pub chunk_size: MapVec2,
     pub tile_size: Vec2,
     pub texture_size: Vec2,
     pub layer_id: u32,
-    chunks: HashMap<MapVec2, (Entity, Vec<Option<Entity>>)>,
     pub mesher: Box<dyn TilemapChunkMesher>,
+}
+
+impl Clone for MapSettings {
+    fn clone(&self) -> Self {
+        Self {
+            size: self.size.clone(),
+            chunk_size: self.chunk_size.clone(),
+            tile_size: self.tile_size.clone(),
+            texture_size: self.texture_size.clone(),
+            layer_id: self.layer_id.clone(),
+            mesher: dyn_clone::clone_box(&*self.mesher),
+        }
+    }
+}
+
+/// TODO: DOCS
+pub struct Map {
+    pub settings: MapSettings,
+    chunks: HashMap<MapVec2, (Entity, Vec<Option<Entity>>)>,
     events: VecDeque<SetTileEvent>
 }
 
 impl Default for Map {
     fn default() -> Self {
         Self {
-            size: MapVec2::default(),
-            chunk_size: MapVec2::default(),
-            tile_size: Vec2::default(),
-            texture_size: Vec2::default(),
-            layer_id: 0,
+            settings: MapSettings {
+                size: MapVec2::default(),
+                chunk_size: MapVec2::default(),
+                tile_size: Vec2::default(),
+                texture_size: Vec2::default(),
+                layer_id: 0,
+                mesher: Box::new(SquareChunkMesher),
+            },
             chunks: HashMap::new(),
-            mesher: Box::new(SquareChunkMesher),
             events: VecDeque::new(),
         }
     }
@@ -55,13 +73,15 @@ impl Map {
     /// TODO: DOCS
     pub fn new(size: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, layer_id: u32) -> Self {
         Self {
-            size,
-            chunk_size,
-            tile_size,
-            texture_size,
-            layer_id,
+            settings: MapSettings {
+                size,
+                chunk_size,
+                tile_size,
+                texture_size,
+                layer_id,
+                mesher: Box::new(SquareChunkMesher),
+            },
             chunks: HashMap::with_capacity((size.x * size.y) as usize),
-            mesher: Box::new(SquareChunkMesher),
             events: VecDeque::new(),
         }
     }
@@ -81,10 +101,10 @@ impl Map {
         let mut possible_tile_event = None;
 
         let chunk_pos = MapVec2::new(
-            tile_pos.x / self.chunk_size.x,
-            tile_pos.y / self.chunk_size.y
+            tile_pos.x / self.settings.chunk_size.x,
+            tile_pos.y / self.settings.chunk_size.y
         );
-        let chunk_size = self.chunk_size;
+        let chunk_size = self.settings.chunk_size;
         if let Some(chunk_data) = self.get_chunk_mut(chunk_pos) {
             let chunk_tile_pos = MapVec2::new(
                 tile_pos.x - (chunk_pos.x * chunk_size.x),
@@ -138,8 +158,8 @@ impl Map {
     /// Note: This just adds a Tag to the chunk entity to be re-meshed.
     pub fn notify(&self, commands: &mut Commands, position: MapVec2) {
         if let Some(chunk_data) = self.get_chunk(MapVec2::new(
-            position.x / self.chunk_size.x,
-            position.y / self.chunk_size.y
+            position.x / self.settings.chunk_size.x,
+            position.y / self.settings.chunk_size.y
         )) {
             commands.entity(chunk_data.0).insert(RemeshChunk);
         }
@@ -184,12 +204,12 @@ impl Map {
         let map_size = &self.get_map_size_in_tiles();
         if tile_pos.x >= 0 && tile_pos.y >= 0 && tile_pos.x <= map_size.x && tile_pos.y <= map_size.y {
             let chunk_pos = MapVec2::new(
-                tile_pos.x / self.chunk_size.x,
-                tile_pos.y / self.chunk_size.y,
+                tile_pos.x / self.settings.chunk_size.x,
+                tile_pos.y / self.settings.chunk_size.y,
             );
             let chunk_tile_pos = MapVec2::new(
-                tile_pos.x - (chunk_pos.x * self.chunk_size.x),
-                tile_pos.y - (chunk_pos.y * self.chunk_size.y),
+                tile_pos.x - (chunk_pos.x * self.settings.chunk_size.x),
+                tile_pos.y - (chunk_pos.y * self.settings.chunk_size.y),
             );
 
             let chunk = self.chunks.get(&chunk_pos);
@@ -212,8 +232,8 @@ impl Map {
             tiles.1.iter().enumerate().map(|(index, entity)| {
                 let chunk_tile_pos = MapVec2::from_morton(index);
                 let global_tile_pos = MapVec2::new(
-                    chunk_tile_pos.x + (chunk_pos.x * self.chunk_size.x),
-                    chunk_tile_pos.y + (chunk_pos.y * self.chunk_size.y),
+                    chunk_tile_pos.x + (chunk_pos.x * self.settings.chunk_size.x),
+                    chunk_tile_pos.y + (chunk_pos.y * self.settings.chunk_size.y),
                 );
                 (global_tile_pos, entity)
             }).collect::<Vec<(MapVec2, &Option<Entity>)>>()
@@ -223,8 +243,8 @@ impl Map {
     /// Gets the map's size in tiles just for convenience.
     pub fn get_map_size_in_tiles(&self) -> MapVec2 {
         MapVec2::new(
-            self.size.x * self.chunk_size.x,
-            self.size.y * self.chunk_size.y,
+            self.settings.size.x * self.settings.chunk_size.x,
+            self.settings.size.y * self.settings.chunk_size.y,
         )
     }
 
@@ -238,8 +258,8 @@ impl Map {
         map_entity: Entity,
         populate_chunks: bool,
     ) {
-        for x in 0..self.size.x {
-            for y in 0..self.size.y {
+        for x in 0..self.settings.size.x {
+            for y in 0..self.settings.size.y {
                 let mut chunk_entity = None;
                 commands.entity(map_entity).with_children(|child_builder| {
                     chunk_entity = Some(child_builder.spawn().id());
@@ -253,7 +273,7 @@ impl Map {
                 mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle =  meshes.add(mesh);
-                let mut chunk = Chunk::new(map_entity, chunk_pos, self.chunk_size, self.tile_size, self.texture_size, mesh_handle.clone(), self.layer_id, dyn_clone::clone_box(&*self.mesher));
+                let mut chunk = Chunk::new(map_entity, chunk_pos, self.settings.chunk_size, self.settings.tile_size, self.settings.texture_size, mesh_handle.clone(), self.settings.layer_id, dyn_clone::clone_box(&*self.settings.mesher));
 
                 if populate_chunks {
                     chunk.build_tiles(commands, chunk_entity);
@@ -279,6 +299,9 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
     mut chunk_query: Query<&mut Chunk>,
     tile_query: Query<(Entity, &Tile, &MapVec2), Added<Tile>>,
 ) {
+    if tile_query.iter().count() > 0 {
+        log::info!("Updating tile cache.");
+    }
     for (tile_entity, new_tile, tile_pos) in tile_query.iter() {
         if let Ok(mut chunk) = chunk_query.get_mut(new_tile.chunk) {
             let tile_pos = chunk.to_chunk_pos(*tile_pos);
@@ -305,8 +328,8 @@ pub(crate) fn update_chunk_hashmap_for_removed_tiles(
             }
 
             let chunk_coords = MapVec2::new(
-                tile_pos.x / map.chunk_size.x,
-                tile_pos.y / map.chunk_size.y,
+                tile_pos.x / map.settings.chunk_size.x,
+                tile_pos.y / map.settings.chunk_size.y,
             );
 
             // Remove tile from map tiles cache.

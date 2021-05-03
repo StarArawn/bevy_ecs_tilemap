@@ -60,10 +60,10 @@ fn random(
     // Smarter way to update..
     if did_update {
         if let Ok(map) = map_query.single() {
-            for x in 0..map.size.x {
-                for y in 0..map.size.y {
+            for x in 0..map.settings.size.x {
+                for y in 0..map.settings.size.y {
                     // Update first tile in each chunk at least until we get an notify_chunk
-                    map.notify(&mut commands, MapVec2::new(x * map.chunk_size.x, y * map.chunk_size.y));
+                    map.notify(&mut commands, MapVec2::new(x * map.settings.chunk_size.x, y * map.settings.chunk_size.y));
                 }
             }
         }

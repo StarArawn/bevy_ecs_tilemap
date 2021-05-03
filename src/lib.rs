@@ -38,7 +38,7 @@ pub mod prelude {
     pub use crate::tile::Tile;
     pub use crate::chunk::Chunk;
     pub use crate::map_vec2::MapVec2;
-    pub use crate::map::{Map, MapBundle, MapTileError, RemoveTile};
+    pub use crate::map::{Map, MapBundle, MapSettings, MapTileError, RemoveTile};
     pub use crate::TileMapPlugin;
     pub use crate::mesher::{SquareChunkMesher, IsoChunkMesher, HexChunkMesher, HexType, TilemapChunkMesher};
 }

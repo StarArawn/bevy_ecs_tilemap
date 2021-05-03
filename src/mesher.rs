@@ -5,7 +5,7 @@ use crate::{chunk::ChunkSettings, morton_index, prelude::*};
 
 /// TODO: DOCS
 #[async_trait]
-pub trait TilemapChunkMesher : Component + DynClone {
+pub trait TilemapChunkMesher : Component + DynClone + std::fmt::Debug {
     async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh);
 }
 

@@ -17,7 +17,7 @@ fn startup(
 
     // Layer 0
     let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), 0);
-    map.mesher = Box::new(IsoChunkMesher);
+    map.settings.mesher = Box::new(IsoChunkMesher);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
     for x in 0..16 {
@@ -38,7 +38,7 @@ fn startup(
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
         let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), z + 1);
-        map.mesher = Box::new(IsoChunkMesher);
+        map.settings.mesher = Box::new(IsoChunkMesher);
         let map_entity = commands.spawn().id();
         map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
 

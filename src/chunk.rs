@@ -41,6 +41,7 @@ impl Default for ChunkBundle {
     }
 }
 
+#[derive(Debug)]
 pub struct ChunkSettings {
     pub position: MapVec2,
     pub size: MapVec2,
@@ -106,18 +107,19 @@ impl Default for Chunk {
 impl Chunk {
     pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesher: Box<dyn TilemapChunkMesher>) -> Self {
         let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
+        let settings = ChunkSettings {
+            position,
+            size: chunk_size,
+            tile_size,
+            texture_size,
+            mesh_handle,
+            layer_id,
+            mesher,
+        };
         Self {
             map_entity,
             tiles,
-            settings: ChunkSettings {
-                position,
-                size: chunk_size,
-                tile_size,
-                texture_size,
-                mesh_handle,
-                layer_id,
-                mesher,
-            },
+            settings,
         }
     }
 
