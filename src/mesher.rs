@@ -7,6 +7,9 @@ use crate::{chunk::ChunkSettings, morton_index, prelude::*};
 #[async_trait]
 pub trait TilemapChunkMesher : Component + DynClone + std::fmt::Debug {
     async fn mesh(self: Box<Self>, chunk: ChunkSettings, tile_query: Vec<Option<Tile>>) -> (Handle<Mesh>, Mesh);
+
+    // TODO: remove once proper iso/hex culling is implemented.
+    fn should_cull(&self) -> bool;
 }
 
 /// TODO: DOCS
@@ -97,10 +100,13 @@ impl TilemapChunkMesher for SquareChunkMesher {
 
         (chunk.mesh_handle, mesh)
     }
+
+    fn should_cull(&self) -> bool {
+        true
+    }
 }
 
 /// TODO: DOCS
-// TODO: Add more meshing types for hexagons.
 #[derive(Debug, Clone)]
 pub enum HexType {
     RowEven,
@@ -266,6 +272,10 @@ impl TilemapChunkMesher for HexChunkMesher {
 
         (chunk.mesh_handle, mesh)
     }
+
+    fn should_cull(&self) -> bool {
+        false
+    }
 }
 
 /// TODO: DOCS
@@ -367,5 +377,9 @@ impl TilemapChunkMesher for IsoChunkMesher {
         mesh.set_indices(Some(Indices::U32(indices)));
 
         (chunk.mesh_handle, mesh)
+    }
+
+    fn should_cull(&self) -> bool {
+        false
     }
 }

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::{morton_pos, prelude::*};
 use rand::{Rng, thread_rng};
 
 mod helpers;
@@ -44,13 +44,15 @@ fn build_map(map: &mut Map, commands: &mut Commands) {
         let _ = map.add_tile(commands, position, Tile {
             texture_index: 0,
             ..Default::default()
-        });
+        }, true);
     }
 }
 
 fn remove_map(map: &Map, commands: &mut Commands) {
-    for (tile_pos, _) in map.get_all_tiles() {
-        map.remove_tile(commands, tile_pos);
+    for (index, _) in map.get_all_tiles().iter().enumerate() {
+        // TODO: allow removing of tiles using index maybe?
+        let pos =  morton_pos(index);
+        map.remove_tile(commands, pos);
     }
 }
 
@@ -82,7 +84,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())

@@ -25,7 +25,7 @@ fn startup(
             let _ = map.add_tile(&mut commands, UVec2::new(x, y), Tile {
                 texture_index: 10,
                 ..Default::default()
-            });
+            }, true);
         }
     }
 
@@ -53,7 +53,7 @@ fn startup(
             let _ = map.add_tile(&mut commands, position, Tile {
                 texture_index: 10 + z + 1,
                 ..Default::default()
-            });
+            }, true);
         }
         commands.entity(map_entity).insert_bundle(MapBundle {
             map,
@@ -76,7 +76,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())

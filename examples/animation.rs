@@ -36,7 +36,7 @@ fn startup(
     let mut map = Map::new(UVec2::new(4, 4), UVec2::new(16, 16), Vec2::new(32.0, 32.0), Vec2::new(32.0, 448.0), 1);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-    for (_, entity) in map.get_all_tiles() {
+    for entity in map.get_all_tiles() {
         if let Some(entity) = entity {
             commands.entity(*entity).insert(Animated::default());
         }
@@ -90,7 +90,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())

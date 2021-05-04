@@ -22,7 +22,7 @@ fn startup(
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     
-    for (_, entity) in map.get_all_tiles().iter() {
+    for entity in map.get_all_tiles().iter() {
         if let Some(entity) = entity {
             commands.entity(*entity).insert(LastUpdate::default());
         }
@@ -50,18 +50,18 @@ fn random(
     let mut random = thread_rng();
     let mut did_update = false;
     for (_, mut tile, mut last_update) in query.iter_mut() {
-        if (current_time - last_update.value) > 0.1 {
+        // if (current_time - last_update.value) > 0.1 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
             did_update = true;
-        }
+        // }
     }
 
     // Smarter way to update..
     if did_update {
         if let Ok(map) = map_query.single() {
-            for x in 0..map.settings.size.x {
-                for y in 0..map.settings.size.y {
+            for x in 0..map.settings.map_size.x {
+                for y in 0..map.settings.map_size.y {
                     // Update first tile in each chunk at least until we get an notify_chunk
                     map.notify(&mut commands, UVec2::new(x * map.settings.chunk_size.x, y * map.settings.chunk_size.y));
                 }
@@ -72,7 +72,7 @@ fn random(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Trace)
+    .filter_level(log::LevelFilter::Info)
     .init();
 
     App::build()
@@ -85,7 +85,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(random.system())
         .add_system(helpers::camera::movement.system())

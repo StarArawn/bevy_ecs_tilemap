@@ -1,14 +1,13 @@
-use std::{task::{Context, Poll}};
-use bevy::{math::{Vec3Swizzles, Vec4Swizzles}, prelude::*, render::{camera::{Camera, OrthographicProjection}, pipeline::RenderPipeline, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool, Task}};
+use std::{sync::{Arc, Mutex}, task::{Context, Poll}};
+use bevy::{prelude::*, render::{camera::{Camera, OrthographicProjection}, pipeline::RenderPipeline, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
 use crate::{morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::{self, Tile}};
 
-/// TODO: DOCS
+/// A tag that causes a specific chunk to be "re-meshed" when re-meshing is started the tag is removed.
 pub struct RemeshChunk;
 
-/// TODO: DOCS
 #[derive(Bundle)]
-pub struct ChunkBundle {
+pub(crate) struct ChunkBundle {
     pub chunk: Chunk,
     pub main_pass: MainPass,
     pub material: Handle<ColorMaterial>,
@@ -41,13 +40,19 @@ impl Default for ChunkBundle {
     }
 }
 
+/// Chunk specific settings.
 #[derive(Debug)]
 pub struct ChunkSettings {
+    /// The specific location x,y of the chunk in the tile map in chunk coords.
     pub position: UVec2,
+    /// The size of the chunk.
     pub size: UVec2,
-    pub(crate) tile_size: Vec2,
-    pub(crate) texture_size: Vec2,
-    pub(crate) layer_id: u32,
+    /// The size of each tile in pixels.
+    pub tile_size: Vec2,
+    /// The size of the texture in pixels.
+    pub texture_size: Vec2,
+    /// What map layer the chunk lives in.
+    pub layer_id: u32,
     pub(crate) mesher: Box<dyn TilemapChunkMesher>,
     pub(crate) mesh_handle: Handle<Mesh>,
 }
@@ -67,10 +72,11 @@ impl Clone for ChunkSettings {
 }
 
 
-/// TODO: DOCS
+/// A component that stores information about a specific chunk in the tile map. 
 pub struct Chunk {
-    #[allow(dead_code)]
+    /// The map entity that parents the chunk.
     pub map_entity: Entity,
+    /// Chunk specific settings.
     pub settings: ChunkSettings,
     pub(crate) tiles: Vec<Option<Entity>>,
 }
@@ -123,7 +129,13 @@ impl Chunk {
         }
     }
 
-    pub(crate) fn build_tiles(&mut self, commands: &mut Commands, chunk_entity: Entity) {
+    pub(crate) fn build_tiles<F>(
+        &mut self,
+        commands: &mut Commands,
+        chunk_entity: Entity,
+        map_tiles: &mut Vec<Option<Entity>>,
+        mut f: F,
+    ) where F: FnMut(UVec2) -> Tile {
         for x in 0..self.settings.size.x {
             for y in 0..self.settings.size.y {
                 let tile_pos = UVec2::new(
@@ -133,12 +145,13 @@ impl Chunk {
                 let tile_entity = commands.spawn()
                     .insert(Tile {
                         chunk: chunk_entity,
-                        ..Tile::default()
+                        ..f(tile_pos)
                     })
-                    .insert(tile::Visible)
+                    .insert(tile::VisibleTile)
                     .insert(tile_pos).id();
-                let morton_index = morton_index(UVec2::new(x, y));
-                self.tiles[morton_index] = Some(tile_entity);
+                let morton_i = morton_index(UVec2::new(x, y));
+                self.tiles[morton_i] = Some(tile_entity);
+                map_tiles[morton_index(tile_pos)] = Some(tile_entity);
             }
         }
     }
@@ -159,7 +172,7 @@ pub(crate) fn update_chunk_mesh(
     mut commands: Commands,
     task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&UVec2, &Tile), With<tile::Visible>>,
+    tile_query: Query<(&UVec2, &Tile), With<tile::VisibleTile>>,
     mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
     changed_chunks: Query<(Entity, &Chunk, &Visible), Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>>,
 
@@ -169,7 +182,7 @@ pub(crate) fn update_chunk_mesh(
     // Currently we can't pull data out of a par_for_each or use commands inside of it. :(
     changed_chunks.for_each(|(chunk_entity, chunk, visible)| {
         if visible.is_visible  {
-            log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
+            log::trace!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
             
             let mut tile_chunk_data = vec![None; (chunk.settings.size.x * chunk.settings.size.y) as usize];
             chunk.tiles.iter().for_each(|tile_entity| {
@@ -223,6 +236,10 @@ pub(crate) fn update_chunk_visibility(
         let camera_bounds = Vec4::new(left, right, bottom, top);
         
         for (chunk, mut visible) in chunks.iter_mut() {
+
+            if !chunk.settings.mesher.should_cull() {
+                continue;
+            }
 
             let bounds_size = Vec2::new(
                 chunk.settings.size.x as f32 * chunk.settings.tile_size.x,

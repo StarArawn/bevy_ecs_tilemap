@@ -24,7 +24,7 @@ fn startup(
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
 
-    assert!(map.get_tile(UVec2::new(0, 0)).is_some());
+    assert!(map.get_tile(IVec2::new(0, 0)).is_some());
     assert!(map.get_tile_neighbors(UVec2::new(2, 2)).len() == 8);
 
     let mut color = 0;
@@ -35,10 +35,10 @@ fn startup(
                 UVec2::new(x, y)
             );
             for (pos, _neighbor) in neighbors.iter() {
-                let _ = map.add_tile(&mut commands, *pos, Tile {
+                let _ = map.add_tile(&mut commands, UVec2::new(pos.x as u32, pos.y as u32), Tile {
                     texture_index: color,
                     ..Default::default()
-                });
+                }, true);
             }
         }
     }
@@ -73,10 +73,10 @@ fn update_map(
                         UVec2::new(x, y)
                     );
                     for (pos, _neighbor) in neighbors.iter() {
-                        let _ = map.add_tile(&mut commands, *pos, Tile {
+                        let _ = map.add_tile(&mut commands, UVec2::new(pos.x as u32, pos.y as u32), Tile {
                             texture_index: color,
                             ..Default::default()
-                        });
+                        }, true);
                     }
                 }
                 color +=1;
@@ -103,7 +103,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(update_map.system())
         .add_system(helpers::camera::movement.system())

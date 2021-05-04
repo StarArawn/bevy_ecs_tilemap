@@ -48,12 +48,12 @@ fn update(
     mut commands: Commands,
     time: Res<Time>,
     mut map_query: Query<(&Map, &mut LastUpdate)>,
-    visible: Query<&bevy_ecs_tilemap::prelude::Visible>,
+    visible: Query<&bevy_ecs_tilemap::prelude::VisibleTile>,
     tile_query: Query<(Entity, &UVec2), With<Tile>>,
 ) {
     let current_time = time.seconds_since_startup();
     if let Ok((map, mut last_update)) = map_query.single_mut() {
-        if current_time - last_update.0 > 0.0 {
+        if current_time - last_update.0 > 0.1 {
             for (entity, pos) in tile_query.iter() {
                 // Get neighbor count.
                 let neighbor_count = map.get_tile_neighbors(*pos).iter().filter(|x| {
@@ -73,10 +73,10 @@ fn update(
                 };
 
                 if is_alive && !was_alive {
-                    commands.entity(entity).insert(bevy_ecs_tilemap::prelude::Visible);
+                    commands.entity(entity).insert(bevy_ecs_tilemap::prelude::VisibleTile);
                     map.notify(&mut commands, *pos);
                 } else if !is_alive && was_alive {
-                    commands.entity(entity).remove::<bevy_ecs_tilemap::prelude::Visible>();
+                    commands.entity(entity).remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
                     map.notify(&mut commands, *pos);
                 }
             }
@@ -101,7 +101,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())

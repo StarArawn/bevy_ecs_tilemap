@@ -40,7 +40,7 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = UVec2::new(
+            let position = IVec2::new(
                 random.gen_range(0..16),
                 random.gen_range(0..16),
             );
@@ -51,7 +51,7 @@ fn remove_tiles(
                 commands.entity(tile_entity.unwrap()).insert(RemoveTile);
             }
 
-            map.notify(&mut commands, position);
+            map.notify(&mut commands, UVec2::new(position.x as u32, position.y as u32));
 
             last_update.value = current_time;
         }
@@ -71,7 +71,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(remove_tiles.system())
