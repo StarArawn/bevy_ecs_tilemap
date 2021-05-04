@@ -1,7 +1,7 @@
 use std::{task::{Context, Poll}};
 use bevy::{math::{Vec3Swizzles, Vec4Swizzles}, prelude::*, render::{camera::{Camera, OrthographicProjection}, pipeline::RenderPipeline, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
-use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::{self, Tile}};
+use crate::{morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::{self, Tile}};
 
 /// TODO: DOCS
 pub struct RemeshChunk;
@@ -43,8 +43,8 @@ impl Default for ChunkBundle {
 
 #[derive(Debug)]
 pub struct ChunkSettings {
-    pub position: MapVec2,
-    pub size: MapVec2,
+    pub position: UVec2,
+    pub size: UVec2,
     pub(crate) tile_size: Vec2,
     pub(crate) texture_size: Vec2,
     pub(crate) layer_id: u32,
@@ -105,7 +105,7 @@ impl Default for Chunk {
 }
 
 impl Chunk {
-    pub(crate) fn new(map_entity: Entity, position: MapVec2, chunk_size: MapVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesher: Box<dyn TilemapChunkMesher>) -> Self {
+    pub(crate) fn new(map_entity: Entity, position: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesher: Box<dyn TilemapChunkMesher>) -> Self {
         let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
         let settings = ChunkSettings {
             position,
@@ -126,10 +126,10 @@ impl Chunk {
     pub(crate) fn build_tiles(&mut self, commands: &mut Commands, chunk_entity: Entity) {
         for x in 0..self.settings.size.x {
             for y in 0..self.settings.size.y {
-                let tile_pos = MapVec2 {
-                    x: (self.settings.position.x * self.settings.size.x) + x,
-                    y: (self.settings.position.y * self.settings.size.y) + y,
-                };
+                let tile_pos = UVec2::new(
+                    (self.settings.position.x * self.settings.size.x) + x,
+                    (self.settings.position.y * self.settings.size.y) + y,
+                );
                 let tile_entity = commands.spawn()
                     .insert(Tile {
                         chunk: chunk_entity,
@@ -137,18 +137,18 @@ impl Chunk {
                     })
                     .insert(tile::Visible)
                     .insert(tile_pos).id();
-                let morton_index = morton_index(MapVec2::new(x, y));
+                let morton_index = morton_index(UVec2::new(x, y));
                 self.tiles[morton_index] = Some(tile_entity);
             }
         }
     }
 
-    pub fn get_tile_entity(&self, position: MapVec2) -> Option<Entity> {
+    pub fn get_tile_entity(&self, position: UVec2) -> Option<Entity> {
         self.tiles[morton_index(position)]
     }
 
-    pub fn to_chunk_pos(&self, position: MapVec2) -> MapVec2 {
-        MapVec2::new(
+    pub fn to_chunk_pos(&self, position: UVec2) -> UVec2 {
+        UVec2::new(
             position.x - (self.settings.position.x * self.settings.size.x),
             position.y - (self.settings.position.y * self.settings.size.y),
         )
@@ -159,7 +159,7 @@ pub(crate) fn update_chunk_mesh(
     mut commands: Commands,
     task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&MapVec2, &Tile), With<tile::Visible>>,
+    tile_query: Query<(&UVec2, &Tile), With<tile::Visible>>,
     mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
     changed_chunks: Query<(Entity, &Chunk, &Visible), Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>>,
 

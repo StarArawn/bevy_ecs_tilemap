@@ -16,13 +16,13 @@ fn startup(
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Layer 0
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), 0);
+    let mut map = Map::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), 0);
     map.settings.mesher = Box::new(IsoChunkMesher);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
     for x in 0..16 {
         for y in 0..16 {
-            let _ = map.add_tile(&mut commands, MapVec2::new(x, y), Tile {
+            let _ = map.add_tile(&mut commands, UVec2::new(x, y), Tile {
                 texture_index: 10,
                 ..Default::default()
             });
@@ -37,7 +37,7 @@ fn startup(
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
-        let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), z + 1);
+        let mut map = Map::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), z + 1);
         map.settings.mesher = Box::new(IsoChunkMesher);
         let map_entity = commands.spawn().id();
         map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
@@ -45,12 +45,12 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..100 {
-            let position = Vec2::new(
-                random.gen_range(0.0..16.0),
-                random.gen_range(0.0..16.0),
+            let position = UVec2::new(
+                random.gen_range(0..16),
+                random.gen_range(0..16),
             );
             // Ignore errors for demo sake.
-            let _ = map.add_tile(&mut commands, position.into(), Tile {
+            let _ = map.add_tile(&mut commands, position, Tile {
                 texture_index: 10 + z + 1,
                 ..Default::default()
             });

@@ -1,14 +1,11 @@
 //! TODO: DOCS
-
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_visibility};
 use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
-use prelude::MapVec2;
 use render::pipeline::add_tile_map_graph;
 
 mod tile;
 mod chunk;
-mod map_vec2;
 mod map;
 mod render;
 mod mesher;
@@ -31,14 +28,18 @@ impl Plugin for TileMapPlugin {
     }
 }
 
-pub(crate) fn morton_index(tile_pos: MapVec2) -> usize {
+pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
     lindel::morton_encode([tile_pos.x as u64, tile_pos.y as u64]) as usize
+}
+
+pub(crate) fn morton_pos(index: usize) -> UVec2 {
+    let [x, y]: [u32; 2] = lindel::morton_decode(index as u64);
+    UVec2::new(x, y)
 }
 
 pub mod prelude {
     pub use crate::tile::{Tile, Visible};
     pub use crate::chunk::Chunk;
-    pub use crate::map_vec2::MapVec2;
     pub use crate::map::{Map, MapBundle, MapSettings, MapTileError, RemoveTile};
     pub use crate::TileMapPlugin;
     pub use crate::mesher::{SquareChunkMesher, IsoChunkMesher, HexChunkMesher, HexType, TilemapChunkMesher};

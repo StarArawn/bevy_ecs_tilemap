@@ -26,8 +26,8 @@ impl TilemapChunkMesher for SquareChunkMesher {
         let mut i = 0;
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
-                let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
+                let tile_position = UVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
+                if let Some(tile) = tile_query[morton_index(UVec2::new(x, y))] {
                     // log::info!("Getting vertices for tile at: {:?}", tile_position);
 
                     let tile_pixel_pos = Vec2::new(
@@ -123,7 +123,7 @@ impl HexChunkMesher {
         }
     }
 
-    fn offset_coords(&self, actual_pos: MapVec2, mut pos: Vec3, tile_size: Vec2) -> Vec3 {
+    fn offset_coords(&self, actual_pos: UVec2, mut pos: Vec3, tile_size: Vec2) -> Vec3 {
         match self.hex_type {
             HexType::RowEven => {
                 let offset = (0.25 * tile_size.x).floor();
@@ -192,8 +192,8 @@ impl TilemapChunkMesher for HexChunkMesher {
         let mut i = 0;
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
-                let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
+                let tile_position = UVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
+                if let Some(tile) = tile_query[morton_index(UVec2::new(x, y))] {
                     let tile_pixel_pos = Vec2::new(
                         tile_position.x as f32 * chunk.tile_size.x,
                         tile_position.y as f32 * chunk.tile_size.y
@@ -292,8 +292,8 @@ impl TilemapChunkMesher for IsoChunkMesher {
         let mut i = 0;
         for x in 0..chunk.size.x {
             for y in 0..chunk.size.y {
-                let tile_position = MapVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
-                if let Some(tile) = tile_query[morton_index(MapVec2::new(x, y))] {
+                let tile_position = UVec2::new((chunk.position.x * chunk.size.x) + x, (chunk.position.y * chunk.size.y) + y);
+                if let Some(tile) = tile_query[morton_index(UVec2::new(x, y))] {
                     // log::info!("Getting vertices for tile at: {:?}", tile_position);
 
                     let tile_pixel_pos = Vec2::new(

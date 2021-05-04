@@ -20,7 +20,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(4.0, 4.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(UVec2::new(4, 4), UVec2::new(8, 8), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
 
@@ -41,10 +41,10 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = Vec2::new(
-                random.gen_range(0.0..32.0),
-                random.gen_range(0.0..32.0),
-            ).into();
+            let position = UVec2::new(
+                random.gen_range(0..32),
+                random.gen_range(0..32),
+            );
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
             if let Some(tile_entity) = map.get_tile(position) {

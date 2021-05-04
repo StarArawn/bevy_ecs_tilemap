@@ -15,19 +15,19 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
 
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = Vec2::new(
-            random.gen_range(0.0..16.0),
-            random.gen_range(0.0..16.0),
+        let position = UVec2::new(
+            random.gen_range(0..16),
+            random.gen_range(0..16),
         );
         // Ignore errors for demo sake.
-        let _ = map.add_tile(&mut commands, position.into(), Tile {
+        let _ = map.add_tile(&mut commands, position, Tile {
             texture_index: 0,
             ..Default::default()
         });
