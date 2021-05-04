@@ -1,5 +1,5 @@
 use std::{task::{Context, Poll}};
-use bevy::{prelude::*, render::{pipeline::RenderPipeline, render_graph::base::MainPass}, tasks::{AsyncComputeTaskPool, Task}};
+use bevy::{math::{Vec3Swizzles, Vec4Swizzles}, prelude::*, render::{camera::{Camera, OrthographicProjection}, pipeline::RenderPipeline, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool, Task}};
 use futures_util::FutureExt;
 use crate::{map_vec2::MapVec2, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::pipeline::TILE_MAP_PIPELINE_HANDLE, tile::{self, Tile}};
 
@@ -161,30 +161,32 @@ pub(crate) fn update_chunk_mesh(
     mut meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&MapVec2, &Tile), With<tile::Visible>>,
     mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
-    changed_chunks: Query<(Entity, &Chunk), Or<(With<RemeshChunk>, Added<Chunk>)>>,
+    changed_chunks: Query<(Entity, &Chunk, &Visible), Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>>,
 
 ) {
     // Update chunks that have been "marked" as needing re-meshing.
     // TODO: Eventually when par_for_each works better here we should use that.
     // Currently we can't pull data out of a par_for_each or use commands inside of it. :(
-    changed_chunks.for_each(|(chunk_entity, chunk)| {
-        log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
-        
-        let mut tile_chunk_data = vec![None; (chunk.settings.size.x * chunk.settings.size.y) as usize];
-        chunk.tiles.iter().for_each(|tile_entity| {
-            if let Some(tile_entity) = tile_entity {
-                if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
-                    let tile_pos = chunk.to_chunk_pos(*tile_pos);
-                    tile_chunk_data[morton_index(tile_pos)] = Some(*tile);
+    changed_chunks.for_each(|(chunk_entity, chunk, visible)| {
+        if visible.is_visible  {
+            log::info!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
+            
+            let mut tile_chunk_data = vec![None; (chunk.settings.size.x * chunk.settings.size.y) as usize];
+            chunk.tiles.iter().for_each(|tile_entity| {
+                if let Some(tile_entity) = tile_entity {
+                    if let Ok((tile_pos, tile)) = tile_query.get(*tile_entity) {
+                        let tile_pos = chunk.to_chunk_pos(*tile_pos);
+                        tile_chunk_data[morton_index(tile_pos)] = Some(*tile);
+                    }
                 }
-            }
-        });
+            });
 
-        let mesher = dyn_clone::clone_box(&*chunk.settings.mesher);
-        let new_mesh_task = task_pool.spawn(mesher.mesh(chunk.settings.clone(), tile_chunk_data));
-        
-        commands.entity(chunk_entity).insert(new_mesh_task);
-        commands.entity(chunk_entity).remove::<RemeshChunk>();
+            let mesher = dyn_clone::clone_box(&*chunk.settings.mesher);
+            let new_mesh_task = task_pool.spawn(mesher.mesh(chunk.settings.clone(), tile_chunk_data));
+            
+            commands.entity(chunk_entity).insert(new_mesh_task);
+            commands.entity(chunk_entity).remove::<RemeshChunk>();
+        }
     });
     let noop_waker = futures_util::task::noop_waker();
     let mut cx = Context::from_waker(&noop_waker);
@@ -201,4 +203,66 @@ pub(crate) fn update_chunk_mesh(
         }
     }
 
+}
+
+pub(crate) fn update_chunk_visibility(
+    camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
+    mut chunks: Query<(&Chunk, &mut Visible)>,
+) {
+    if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data|
+        if let Some(name) = &data.0.name {
+            name == CAMERA_2D
+        } else { false }
+    ) {
+        // Transform camera into world space.
+        let left = camera_transform.translation.x + (ortho.left * camera_transform.scale.x);
+        let right = camera_transform.translation.x + (ortho.right * camera_transform.scale.x);
+        let bottom = camera_transform.translation.y + (ortho.bottom * camera_transform.scale.x);
+        let top = camera_transform.translation.y + (ortho.top * camera_transform.scale.x);
+
+        let camera_bounds = Vec4::new(left, right, bottom, top);
+        
+        for (chunk, mut visible) in chunks.iter_mut() {
+
+            let bounds_size = Vec2::new(
+                chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
+                chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
+            );
+
+            let bounds = Vec4::new(
+                chunk.settings.position.x as f32 * bounds_size.x,
+                (chunk.settings.position.x as f32 + 1.0) * bounds_size.x,
+                chunk.settings.position.y as f32 * bounds_size.y,
+                (chunk.settings.position.y as f32 + 1.0) * bounds_size.y,
+            );
+
+            let padded_camera_bounds = Vec4::new(
+                camera_bounds.x - (bounds_size.x),
+                camera_bounds.y + (bounds_size.x),
+                camera_bounds.z - (bounds_size.y),
+                camera_bounds.w + (bounds_size.y),
+            );
+
+            if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y)
+            {
+                if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w)
+                {
+                    if visible.is_visible {
+                        log::trace!("Hiding chunk @: {:?}", bounds);
+                        visible.is_visible = false;
+                    }
+                } else {
+                    if !visible.is_visible {
+                        log::trace!("Showing chunk @: {:?}", bounds);
+                        visible.is_visible = true;
+                    }
+                }
+            } else {
+                if visible.is_visible {
+                    log::trace!("Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}", bounds, padded_camera_bounds, bounds_size);
+                    visible.is_visible = false;
+                }
+            }
+        }
+    }
 }

@@ -18,7 +18,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(10.0, 10.0).into(), Vec2::new(32.0, 32.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(Vec2::new(5.0, 5.0).into(), Vec2::new(128.0, 128.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     
@@ -72,7 +72,7 @@ fn random(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
+    .filter_level(log::LevelFilter::Trace)
     .init();
 
     App::build()

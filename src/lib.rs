@@ -1,7 +1,7 @@
 //! TODO: DOCS
 
 use bevy::prelude::*;
-use chunk::update_chunk_mesh;
+use chunk::{update_chunk_mesh, update_chunk_visibility};
 use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
 use prelude::MapVec2;
 use render::pipeline::add_tile_map_graph;
@@ -24,6 +24,7 @@ impl Plugin for TileMapPlugin {
             .add_system(update_tiles.system().label("update_tile_data"))
             .add_system(update_chunk_hashmap_for_added_tiles.system().label("hash_update_for_tiles").after("update_tile_data"))
             .add_system(update_chunk_hashmap_for_removed_tiles.system().label("hash_update_for_tiles_removal"))
+            .add_system(update_chunk_visibility.system().label("update_chunk_visibility"))
             .add_system(update_chunk_mesh.system().after("hash_update_for_tiles").after("hash_update_for_tiles_removal"));
         let world = app.world_mut();
         add_tile_map_graph(world);
