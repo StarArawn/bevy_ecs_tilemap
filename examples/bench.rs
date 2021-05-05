@@ -19,7 +19,7 @@ fn startup(
 
     // Create map with (10 * 128) ^ 2 tiles or 1,638,400 tiles.
     // Be patient when running this example as meshing does not run on multiple CPU's yet..
-    let mut map = Map::new(UVec2::new(10, 10), UVec2::new(128, 128), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(MapSettings::new(UVec2::new(10, 10), UVec2::new(128, 128), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
 

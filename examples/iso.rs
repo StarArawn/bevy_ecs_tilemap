@@ -15,8 +15,10 @@ fn startup(
     let texture_handle = asset_server.load("iso.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
+    let map_settings = MapSettings::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), 0);
+
     // Layer 0
-    let mut map = Map::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), 0);
+    let mut map = Map::new(map_settings.clone());
     map.settings.mesher = Box::new(IsoChunkMesher);
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
@@ -37,7 +39,9 @@ fn startup(
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
-        let mut map = Map::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(64.0, 32.0), Vec2::new(640.0, 1024.0), z + 1);
+        let mut new_settings = map_settings.clone();
+        new_settings.layer_id = z + 1;
+        let mut map = Map::new(new_settings);
         map.settings.mesher = Box::new(IsoChunkMesher);
         let map_entity = commands.spawn().id();
         map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);

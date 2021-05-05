@@ -34,6 +34,19 @@ pub struct MapSettings {
     pub mesher: Box<dyn TilemapChunkMesher>,
 }
 
+impl MapSettings {
+    pub fn new(map_size: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2, layer_id: u32) -> Self {
+        Self {
+            map_size,
+            chunk_size,
+            tile_size,
+            texture_size,
+            layer_id,
+            mesher: Box::new(SquareChunkMesher)
+        }
+    }
+}
+
 impl Clone for MapSettings {
     fn clone(&self) -> Self {
         Self {
@@ -89,22 +102,15 @@ impl Map {
     /// - `tile_size`: Size in pixels of each tile.
     /// - `texture_size`: Size in pixels of the tilemap texture.
     /// - `layer_id`: The layer id associated with this map.
-    pub fn new(size: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2, layer_id: u32) -> Self {
-        let map_size_x = (1 << (size.x as f32).log2().ceil() as i32) as usize;
-        let map_size_y = (1 << (size.y as f32).log2().ceil() as i32) as usize;
+    pub fn new(settings: MapSettings) -> Self {
+        let map_size_x = (1 << (settings.map_size.x as f32).log2().ceil() as i32) as usize;
+        let map_size_y = (1 << (settings.map_size.y as f32).log2().ceil() as i32) as usize;
         let map_size = map_size_x * map_size_y;
-        let tile_size_x = (1 << ((size.x * chunk_size.x) as f32).log2().ceil() as i32) as usize;
-        let tile_size_y = (1 << ((size.y * chunk_size.y) as f32).log2().ceil() as i32) as usize;
+        let tile_size_x = (1 << ((settings.map_size.x * settings.chunk_size.x) as f32).log2().ceil() as i32) as usize;
+        let tile_size_y = (1 << ((settings.map_size.y * settings.chunk_size.y) as f32).log2().ceil() as i32) as usize;
         let tile_count = tile_size_x * tile_size_y;
         Self {
-            settings: MapSettings {
-                map_size: size,
-                chunk_size,
-                tile_size,
-                texture_size,
-                layer_id,
-                mesher: Box::new(SquareChunkMesher),
-            },
+            settings,
             chunks: vec![None; map_size],
             tiles: vec![None; tile_count],
             events: VecDeque::new(),

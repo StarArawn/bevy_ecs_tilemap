@@ -14,8 +14,10 @@ fn startup(
 
     let texture_handle = asset_server.load("pointy_hex_tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
+    
+    let map_settings = MapSettings::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), 0);
 
-    let mut map = Map::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), 0);
+    let mut map = Map::new(map_settings.clone());
     // New mesher needs to be applied before chunks are built with map.
     map.settings.mesher = Box::new(HexChunkMesher::new(HexType::Row));
     let map_entity = commands.spawn().id();
@@ -26,7 +28,9 @@ fn startup(
     });
 
     for z in 0..2 {
-        let mut map = Map::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), z + 1);
+        let mut new_settings = map_settings;
+        new_settings.layer_id = z + 1;
+        let mut map = Map::new(new_settings);
         // New mesher needs to be applied before chunks are built with map.
         map.settings.mesher = Box::new(HexChunkMesher::new(HexType::Row));
         let map_entity = commands.spawn().id();
