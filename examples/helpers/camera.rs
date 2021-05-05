@@ -36,6 +36,6 @@ pub fn movement(
             transform.scale = Vec3::new(scale, scale, scale);
         }
 
-        transform.translation += time.delta_seconds() * direction * 1000.;
+        transform.translation += time.delta_seconds() * direction * 500.;
     }
 }

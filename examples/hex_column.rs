@@ -15,11 +15,10 @@ fn startup(
     let texture_handle = asset_server.load("flat_hex_tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_settings = MapSettings::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(17.0, 15.0), Vec2::new(102.0, 15.0), 0);
+    let mut map_settings = MapSettings::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(17.0, 15.0), Vec2::new(102.0, 15.0), 0);
+    map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
     let mut map = Map::new(map_settings.clone());
-    // New mesher needs to be applied before chunks are built with map.
-    map.settings.mesher = Box::new(HexChunkMesher::new(HexType::Column));
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, true);
     commands.entity(map_entity).insert_bundle(MapBundle {
@@ -28,11 +27,9 @@ fn startup(
     });
 
     for z in 0..2 {
-        let mut new_settings = map_settings;
+        let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
-        let mut map = Map::new(new_settings);
-        // New mesher needs to be applied before chunks are built with map.
-        map.settings.mesher = Box::new(HexChunkMesher::new(HexType::Column));
+        let mut map = Map::new(new_settings.clone());
         let map_entity = commands.spawn().id();
         map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
 

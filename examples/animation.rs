@@ -1,5 +1,6 @@
-use bevy::prelude::*;
+use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
+use rand::{Rng, thread_rng};
 
 mod helpers;
 
@@ -22,7 +23,9 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_settings = MapSettings::new(UVec2::new(4, 4), UVec2::new(32, 32), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_size = UVec2::new(40, 40);
+
+    let map_settings = MapSettings::new(map_size, UVec2::new(32, 32), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
 
     let mut map = Map::new(map_settings.clone());
     let map_entity = commands.spawn().id();
@@ -35,14 +38,26 @@ fn startup(
     let texture_handle = asset_server.load("flower_sheet.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut new_settings = map_settings.clone();
-    new_settings.layer_id = 1;
-    let mut map = Map::new(new_settings);
+    let map_size = map_size / 2;
+    let map_settings = MapSettings::new(map_size, UVec2::new(32, 32), Vec2::new(32.0, 32.0), Vec2::new(32.0, 448.0), 1);
+    let mut map = Map::new(map_settings);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-    for entity in map.get_all_tiles() {
-        if let Some(entity) = entity {
-            commands.entity(*entity).insert(Animated::default());
+    map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
+
+    let mut random = thread_rng();
+
+    for _ in 0..750000 {
+        let position = UVec2::new(
+            random.gen_range(0..map_size.x * 32),
+            random.gen_range(0..map_size.y * 32),
+        );
+        let entity = map.add_tile(&mut commands, position, Tile {
+            texture_index: 0,
+            ..Default::default()
+        }, true);
+
+        if let Ok(entity) = entity {
+            commands.entity(entity).insert(GPUAnimated::new(0, 13, 0.95));
         }
     }
     commands.entity(map_entity).insert_bundle(MapBundle {
@@ -50,35 +65,6 @@ fn startup(
         transform: Transform::from_xyz(0.0, 0.0, 1.0),
         ..Default::default()
     });
-}
-
-fn animate(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut query: Query<(&UVec2, &mut Tile, &mut Animated)>,
-    chunk_query: Query<&Chunk>,
-    map_query: Query<&Map>,
-) {
-    let current_time = time.seconds_since_startup();
-    for (position, mut tile, mut animated) in query.iter_mut() {
-        if (current_time - animated.last_update) > 0.05 {
-            tile.texture_index += 1;
-            if tile.texture_index > 13 {
-                tile.texture_index = 0;
-            }
-            animated.last_update = current_time;
-
-            // TODO: Provide a better API for this.
-            // We should be able to do something like:
-            // `map.notify(commands, position, layer)`;
-            // Have a hierarchy like: map entity > layer entities > chunk entities > tile entities
-            if let Ok(chunk) = chunk_query.get(tile.chunk) {
-                if let Ok(map) = map_query.get(chunk.map_entity) {
-                    map.notify(&mut commands, *position);
-                }
-            }
-        }
-    }
 }
 
 fn main() {
@@ -94,10 +80,11 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())
-        .add_system(animate.system())
         .run();
 }

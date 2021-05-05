@@ -34,7 +34,7 @@
 //! ```
 
 use bevy::prelude::*;
-use chunk::{update_chunk_mesh, update_chunk_visibility};
+use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
 use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
 use render::pipeline::add_tile_map_graph;
 
@@ -47,16 +47,35 @@ mod mesher;
 pub use crate::tile::{Tile, VisibleTile, RemoveTile};
 pub use crate::chunk::Chunk;
 pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
-pub use crate::mesher::{SquareChunkMesher, IsoChunkMesher, HexChunkMesher, HexType, TilemapChunkMesher};
+pub use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
 pub struct TilemapPlugin;
 
+// TODO: DOCS
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HexType {
+    RowEven,
+    RowOdd,
+    ColumnEven,
+    ColumnOdd,
+    Row,
+    Column,
+}
+// TODO: DOCS
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TilemapMeshType {
+    Square,
+    Hexagon(HexType),
+    Isometric,
+}
+
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             // TODO: Perhaps use a stage here instead?
+            .add_system(update_chunk_time.system())
             .add_system(update_tiles.system().label("update_tile_data"))
             .add_system(update_chunk_hashmap_for_added_tiles.system().label("hash_update_for_tiles").after("update_tile_data"))
             .add_system(update_chunk_hashmap_for_removed_tiles.system().label("hash_update_for_tiles_removal"))
@@ -79,9 +98,10 @@ pub fn morton_pos(index: usize) -> UVec2 {
 
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
-    pub use crate::tile::{Tile, VisibleTile, RemoveTile};
+    pub use crate::{TilemapMeshType, HexType};
+    pub use crate::tile::{GPUAnimated, Tile, VisibleTile, RemoveTile};
     pub use crate::chunk::{Chunk,  ChunkSettings};
     pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
     pub use crate::TilemapPlugin;
-    pub use crate::mesher::{SquareChunkMesher, IsoChunkMesher, HexChunkMesher, HexType, TilemapChunkMesher};
+    pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
 }

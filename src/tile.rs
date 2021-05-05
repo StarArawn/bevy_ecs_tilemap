@@ -38,3 +38,23 @@ pub(crate) struct TileBundle {
     visible: VisibleTile,
     position: UVec2,
 }
+#[derive(Debug, Clone, Copy)]
+pub struct GPUAnimated {
+    pub start: u32,
+    pub end: u32,
+    pub speed: f32,
+}
+
+impl GPUAnimated {
+    pub fn new(
+        start: u32,
+        end: u32,
+        speed: f32,
+    ) -> Self {
+        Self {
+            start,
+            end,
+            speed,
+        }
+    }
+}

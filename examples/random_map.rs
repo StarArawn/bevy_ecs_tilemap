@@ -18,7 +18,8 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(UVec2::new(5, 5), UVec2::new(128, 128), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    // Chunk sizes of 64x64 seem optimal for meshing updates.
+    let mut map = Map::new(MapSettings::new(UVec2::new(10, 10), UVec2::new(64, 64), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
     let map_entity = commands.spawn().id();
     map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
     

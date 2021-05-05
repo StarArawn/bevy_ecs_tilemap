@@ -1,6 +1,6 @@
 use std::collections::{VecDeque};
 use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::{PrimitiveTopology}}};
-use crate::{chunk::{Chunk, ChunkBundle, RemeshChunk}, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, tile::RemoveTile};
+use crate::{TilemapMeshType, chunk::{Chunk, ChunkBundle, RemeshChunk}, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, render::TilemapData, tile::RemoveTile};
 
 pub(crate) struct SetTileEvent {
     pub entity: Entity,
@@ -31,7 +31,8 @@ pub struct MapSettings {
     /// The layer id associated with this map.
     pub layer_id: u32,
     /// The meshing algorithm used for the tilemap.
-    pub mesher: Box<dyn TilemapChunkMesher>,
+    pub mesh_type: TilemapMeshType,
+    pub(crate) mesher: Box<dyn TilemapChunkMesher>,
 }
 
 impl MapSettings {
@@ -42,6 +43,7 @@ impl MapSettings {
             tile_size,
             texture_size,
             layer_id,
+            mesh_type: TilemapMeshType::Square,
             mesher: Box::new(SquareChunkMesher)
         }
     }
@@ -55,6 +57,7 @@ impl Clone for MapSettings {
             tile_size: self.tile_size,
             texture_size: self.texture_size,
             layer_id: self.layer_id,
+            mesh_type: self.mesh_type,
             mesher: dyn_clone::clone_box(&*self.mesher),
         }
     }
@@ -78,6 +81,7 @@ impl Default for Map {
                 tile_size: Vec2::default(),
                 texture_size: Vec2::default(),
                 layer_id: 0,
+                mesh_type: TilemapMeshType::Square,
                 mesher: Box::new(SquareChunkMesher),
             },
             chunks: Vec::new(),
@@ -307,11 +311,10 @@ impl Map {
                 let chunk_pos = UVec2::new(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
                 mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Normal", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(vec![]));
+                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle =  meshes.add(mesh);
-                let mut chunk = Chunk::new(map_entity, chunk_pos, self.settings.chunk_size, self.settings.tile_size, self.settings.texture_size, mesh_handle.clone(), self.settings.layer_id, dyn_clone::clone_box(&*self.settings.mesher));
+                let mut chunk = Chunk::new(map_entity, chunk_pos, self.settings.chunk_size, self.settings.tile_size, self.settings.texture_size, mesh_handle.clone(), self.settings.layer_id, self.settings.mesh_type, dyn_clone::clone_box(&*self.settings.mesher));
 
                 if populate_chunks {
                     chunk.build_tiles(commands, chunk_entity, &mut self.tiles, &mut |_| {
@@ -322,12 +325,22 @@ impl Map {
                 let index = morton_index(chunk_pos);
                 self.chunks[index] = Some(chunk_entity);
 
+                let transform = Transform::from_xyz(
+                    chunk_pos.x as f32 * self.settings.chunk_size.x as f32 * self.settings.tile_size.x,
+                    chunk_pos.y as f32 * self.settings.chunk_size.y as f32 * self.settings.tile_size.y,
+                    0.0
+                );
+
+                let tilemap_data = TilemapData::from(&chunk.settings);
+
                 commands.entity(chunk_entity)
                     .insert_bundle(ChunkBundle {
                         chunk,
                         mesh: mesh_handle,
                         material: material.clone(),
-                        transform: Transform::default(),
+                        transform,
+                        tilemap_data,
+                        render_pipeline: self.settings.mesh_type.into(),
                         ..Default::default()
                     });
             }
@@ -353,23 +366,32 @@ impl Map {
                 let chunk_pos = UVec2::new(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
                 mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Normal", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Uv", VertexAttributeValues::Float2(vec![]));
+                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle =  meshes.add(mesh);
-                let mut chunk = Chunk::new(map_entity, chunk_pos, self.settings.chunk_size, self.settings.tile_size, self.settings.texture_size, mesh_handle.clone(), self.settings.layer_id, dyn_clone::clone_box(&*self.settings.mesher));
+                let mut chunk = Chunk::new(map_entity, chunk_pos, self.settings.chunk_size, self.settings.tile_size, self.settings.texture_size, mesh_handle.clone(), self.settings.layer_id, self.settings.mesh_type, dyn_clone::clone_box(&*self.settings.mesher));
 
                 chunk.build_tiles(commands, chunk_entity, &mut self.tiles, |p| f(p));
 
                 let index = morton_index(chunk_pos);
                 self.chunks[index] = Some(chunk_entity);
 
+                let transform = Transform::from_xyz(
+                    chunk_pos.x as f32 * self.settings.chunk_size.x as f32 * self.settings.tile_size.x,
+                    chunk_pos.y as f32 * self.settings.chunk_size.y as f32 * self.settings.tile_size.y,
+                    0.0
+                );
+
+                let tilemap_data = TilemapData::from(&chunk.settings);
+
                 commands.entity(chunk_entity)
                     .insert_bundle(ChunkBundle {
                         chunk,
                         mesh: mesh_handle,
                         material: material.clone(),
-                        transform: Transform::default(),
+                        transform,
+                        tilemap_data,
+                        render_pipeline: self.settings.mesh_type.into(),
                         ..Default::default()
                     });
             }
