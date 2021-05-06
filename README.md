@@ -5,7 +5,7 @@ A tilemap rendering plugin for bevy which is more ECS friendly by having an enti
  - A tile per entity
  - Fast rendering using a chunked approach.
  - Layers and sparse tile maps.
- - Animations
+ - GPU powered animations
  - Isometric and Hexagonal tile maps
 
 ## Upcoming Features
@@ -44,6 +44,7 @@ fn update_damage(
  - animation - Basic cpu animation example.
  - bench - A stress test of the map rendering system. Takes a while to load.
  - dynamic_map - A random map that is only partial filled with tiles that changes every so often.
+ - game_of_life - A game of life simulator.
  - hex_column - A map that is meshed using "pointy" hexagons.
  - hex_row - A map that is meshed using flat hexagons.
  - iso - An isometric meshed map.
@@ -52,6 +53,7 @@ fn update_damage(
  - random_map - A bench of editing all of the tiles every 100 ms.
  - remove_tiles - An example showing how you can remove tiles by using map.remove_tile or by applying the RemoveTile tag component.
  - sparse_tiles - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
+ - visibility - An example showcasing visibility of tiles and chunks.
 
 ### Running examples
 `cargo run --release --example map`
