@@ -61,12 +61,38 @@ void main() {
     float start_v = sprite_sheet_y / texture_size.y;
     float end_v = (sprite_sheet_y + tile_size.y) / texture_size.y;
 
-    vec2 atlas_uvs[4] = vec2[4](
-        vec2(start_u, end_v),
-        vec2(start_u, start_v),
-        vec2(end_u, start_v),
-        vec2(end_u, end_v)
-    );
+    vec2 atlas_uvs[4];
+    
+    // Texture flipping..
+    if (Vertex_Texture.y == 0) {
+        atlas_uvs = vec2[4](
+            vec2(start_u, end_v),
+            vec2(start_u, start_v),
+            vec2(end_u, start_v),
+            vec2(end_u, end_v)
+        );
+    } else if (Vertex_Texture.y == 1) { // flip x
+        atlas_uvs = vec2[4](
+            vec2(end_u, end_v),
+            vec2(end_u, start_v),
+            vec2(start_u, start_v),
+            vec2(start_u, end_v)
+        );
+    } else if(Vertex_Texture.y == 2) { // flip y
+        atlas_uvs = vec2[4](
+            vec2(start_u, start_v),
+            vec2(start_u, end_v),
+            vec2(end_u, end_v),
+            vec2(end_u, start_v)
+        );
+    } else if(Vertex_Texture.y == 3) { // both
+        atlas_uvs = vec2[4](
+            vec2(end_u, start_v),
+            vec2(end_u, end_v),
+            vec2(start_u, end_v),
+            vec2(start_u, start_v)
+        );
+    }
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
     // v_Uv += 1e-5;

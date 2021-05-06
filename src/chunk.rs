@@ -134,6 +134,7 @@ impl Chunk {
         chunk_size: UVec2,
         tile_size: Vec2,
         texture_size: Vec2,
+        tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
         layer_id: u32,
         mesh_type: TilemapMeshType,
@@ -148,7 +149,7 @@ impl Chunk {
             mesh_handle,
             layer_id,
             mesh_type,
-            spacing: Vec2::ZERO, // TODO: Allow spacing to be passed in from map settings,
+            spacing: tile_spacing, 
             mesher,
         };
         Self {

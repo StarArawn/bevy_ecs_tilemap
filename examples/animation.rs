@@ -21,7 +21,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_size = UVec2::new(40, 40);
+    let map_size = UVec2::new(20, 20);
 
     let map_settings = MapSettings::new(
         map_size,
@@ -68,7 +68,7 @@ fn startup(
 
     let mut random = thread_rng();
 
-    for _ in 0..750000 {
+    for _ in 0..10000 {
         let position = UVec2::new(
             random.gen_range(0..map_size.x * 32),
             random.gen_range(0..map_size.y * 32),

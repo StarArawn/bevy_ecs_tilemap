@@ -70,11 +70,22 @@ impl TilemapChunkMesher for SquareChunkMesher {
                         [tile_pos.x, tile_pos.y, animation_speed],
                     ]));
 
+                    let tile_flip_bits = match (tile.flip_x, tile.flip_y) {
+                        // no flip
+                        (false, false) => 0,
+                        // flip x
+                        (true, false) => 1,
+                        // flip y
+                        (false, true) => 2,
+                        // flip both
+                        (true, true) => 3,
+                    };
+                    
                     textures.extend(IntoIter::new([
-                        [tile.texture_index as i32, 0, animation_start, animation_end],
-                        [tile.texture_index as i32, 0, animation_start, animation_end],
-                        [tile.texture_index as i32, 0, animation_start, animation_end],
-                        [tile.texture_index as i32, 0, animation_start, animation_end],
+                        [tile.texture_index as i32, tile_flip_bits, animation_start, animation_end],
+                        [tile.texture_index as i32, tile_flip_bits, animation_start, animation_end],
+                        [tile.texture_index as i32, tile_flip_bits, animation_start, animation_end],
+                        [tile.texture_index as i32, tile_flip_bits, animation_start, animation_end],
                     ]));
 
                     indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);

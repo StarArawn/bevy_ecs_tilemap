@@ -45,6 +45,9 @@ pub struct MapSettings {
     pub layer_id: u32,
     /// The meshing algorithm used for the tilemap.
     pub mesh_type: TilemapMeshType,
+    /// Spacing around each tile in the atlas
+    /// Note: This is ignored in array mode.
+    pub tile_spacing: Vec2,
     pub(crate) mesher: Box<dyn TilemapChunkMesher>,
 }
 
@@ -63,6 +66,7 @@ impl MapSettings {
             texture_size,
             layer_id,
             mesh_type: TilemapMeshType::Square,
+            tile_spacing: Vec2::ZERO,
             mesher: Box::new(SquareChunkMesher),
         }
     }
@@ -77,6 +81,7 @@ impl Clone for MapSettings {
             texture_size: self.texture_size,
             layer_id: self.layer_id,
             mesh_type: self.mesh_type,
+            tile_spacing: self.tile_spacing,
             mesher: dyn_clone::clone_box(&*self.mesher),
         }
     }
@@ -101,6 +106,7 @@ impl Default for Map {
                 texture_size: Vec2::default(),
                 layer_id: 0,
                 mesh_type: TilemapMeshType::Square,
+                tile_spacing: Vec2::default(),
                 mesher: Box::new(SquareChunkMesher),
             },
             chunks: Vec::new(),
@@ -357,6 +363,7 @@ impl Map {
                     self.settings.chunk_size,
                     self.settings.tile_size,
                     self.settings.texture_size,
+                    self.settings.tile_spacing,
                     mesh_handle.clone(),
                     self.settings.layer_id,
                     self.settings.mesh_type,
@@ -427,6 +434,7 @@ impl Map {
                     self.settings.chunk_size,
                     self.settings.tile_size,
                     self.settings.texture_size,
+                    self.settings.tile_spacing,
                     mesh_handle.clone(),
                     self.settings.layer_id,
                     self.settings.mesh_type,
