@@ -201,9 +201,9 @@ impl Chunk {
 }
 
 pub(crate) fn update_chunk_mesh(
-    mut commands: Commands,
+    commands: Commands,
     task_pool: Res<AsyncComputeTaskPool>,
-    mut meshes: ResMut<Assets<Mesh>>,
+    meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
     changed_chunks: Query<
         (Entity, &Chunk, &Visible),
