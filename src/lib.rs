@@ -72,29 +72,35 @@ pub enum TilemapMeshType {
     Isometric,
 }
 
+/// The tilemap stage which runs before post update.
+pub const TILEMAP: &str = "tilemap";
+
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app
-            // TODO: Perhaps use a stage here instead?
-            .add_system(update_chunk_time.system())
-            .add_system(update_tiles.system().label("update_tile_data"))
-            .add_system(
+        app.add_stage_before(CoreStage::PostUpdate, TILEMAP, SystemStage::parallel())
+            .add_system_to_stage(TILEMAP, update_chunk_time.system())
+            .add_system_to_stage(TILEMAP, update_tiles.system().label("update_tile_data"))
+            .add_system_to_stage(
+                TILEMAP,
                 update_chunk_hashmap_for_added_tiles
                     .system()
                     .label("hash_update_for_tiles")
                     .after("update_tile_data"),
             )
-            .add_system(
+            .add_system_to_stage(
+                TILEMAP,
                 update_chunk_hashmap_for_removed_tiles
                     .system()
                     .label("hash_update_for_tiles_removal"),
             )
-            .add_system(
+            .add_system_to_stage(
+                TILEMAP,
                 update_chunk_visibility
                     .system()
                     .label("update_chunk_visibility"),
             )
-            .add_system(
+            .add_system_to_stage(
+                TILEMAP,
                 update_chunk_mesh
                     .system()
                     .after("hash_update_for_tiles")
