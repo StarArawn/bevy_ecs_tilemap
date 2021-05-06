@@ -149,7 +149,7 @@ impl Chunk {
             mesh_handle,
             layer_id,
             mesh_type,
-            spacing: tile_spacing, 
+            spacing: tile_spacing,
             mesher,
         };
         Self {
