@@ -38,10 +38,17 @@ pub(crate) struct TileBundle {
     visible: VisibleTile,
     position: UVec2,
 }
+
+/// A component that is attached to a Tile entity that
+/// tells the GPU how to animate the tile.
+/// Currently all frames must be aligned in your tilemap.
 #[derive(Debug, Clone, Copy)]
 pub struct GPUAnimated {
+    /// The start frame index in the tilemap atlas/array.
     pub start: u32,
+    /// The end frame index in the tilemap atlas/array.
     pub end: u32,
+    /// The speed the animation plays back at.
     pub speed: f32,
 }
 

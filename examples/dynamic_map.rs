@@ -50,7 +50,7 @@ fn build_map(map: &mut Map, commands: &mut Commands) {
 
 fn remove_map(map: &Map, commands: &mut Commands) {
     for (index, _) in map.get_all_tiles().iter().enumerate() {
-        // TODO: allow removing of tiles using index maybe?
+        // TODO: allow removing of tiles using index maybe? No, but we need a good way of removing all tiles for a specific map.
         let pos =  morton_pos(index);
         map.remove_tile(commands, pos);
     }

@@ -4,11 +4,6 @@ use rand::{Rng, thread_rng};
 
 mod helpers;
 
-#[derive(Default)]
-struct Animated {
-    last_update: f64,
-}
-
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,

@@ -44,16 +44,15 @@ mod map;
 mod render;
 mod mesher;
 
-pub use crate::tile::{Tile, VisibleTile, RemoveTile};
-pub use crate::chunk::Chunk;
+pub use crate::tile::{GPUAnimated, Tile, VisibleTile, RemoveTile};
+pub use crate::chunk::{Chunk,  ChunkSettings};
 pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
-pub use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
 pub struct TilemapPlugin;
 
-// TODO: DOCS
+/// Different hex coordinate systems. You can find out more at this link: https://www.redblobgames.com/grids/hexagons/
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HexType {
     RowEven,
@@ -63,7 +62,7 @@ pub enum HexType {
     Row,
     Column,
 }
-// TODO: DOCS
+/// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TilemapMeshType {
     Square,

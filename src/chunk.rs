@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use bevy::{prelude::*, render::{camera::{Camera, OrthographicProjection}, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool, Task}};
+use bevy::{prelude::*, render::{camera::{Camera, OrthographicProjection}, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool}};
 use crate::{TilemapMeshType, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::{TilemapData}, tile::{self, GPUAnimated, Tile}};
 
 /// A tag that causes a specific chunk to be "re-meshed" when re-meshing is started the tag is removed.
@@ -179,31 +179,15 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
-    mut query_mesh_task: Query<(Entity, &mut Task<(Handle<Mesh>, Mesh)>), With<Chunk>>,
     changed_chunks: Query<(Entity, &Chunk, &Visible), Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>>,
-
 ) {
     let threaded_commands = Mutex::new(commands);
     let threaded_meshes = Mutex::new(meshes);
 
-    // Update chunks that have been "marked" as needing re-meshing.
-    // TODO: Eventually when par_for_each works better here we should use that.
-    // Currently we can't pull data out of a par_for_each or use commands inside of it. :(
     changed_chunks.par_for_each(&task_pool, 10, |(chunk_entity, chunk, visible)| {
-    //changed_chunks.for_each(|(chunk_entity, chunk, visible)| {
         if visible.is_visible  {
             log::trace!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
             
-            // let instant = std::time::Instant::now();
-            // let mut tile_chunk_data = vec![None; (chunk.settings.size.x * chunk.settings.size.y) as usize];
-            // chunk.tiles.iter().enumerate().for_each(|(index, tile_entity)| {
-            //     if let Some(tile_entity) = tile_entity {
-            //         if let Ok(tile) = tile_query.get(*tile_entity) {
-            //             tile_chunk_data[index] = Some(*tile);
-            //         }
-            //     }
-            // });
-
             let (mesh_handle, new_mesh) = chunk.settings.mesher.mesh(chunk.settings.clone(), &chunk.tiles, &tile_query);
             let mut meshes = threaded_meshes.lock().unwrap();
             if let Some(mesh) = meshes.get_mut(mesh_handle) {
@@ -212,7 +196,6 @@ pub(crate) fn update_chunk_mesh(
 
             let mut commands = threaded_commands.lock().unwrap();
             commands.entity(chunk_entity).remove::<RemeshChunk>();
-            //dbg!(instant.elapsed());
         }
     });
 }

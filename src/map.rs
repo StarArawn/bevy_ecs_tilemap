@@ -101,11 +101,7 @@ pub enum MapTileError {
 impl Map {
     /// Creates a new map component.
     /// 
-    /// - `size`: Size of the tilemap in chunks.
-    /// - `chunk_size`: Size in tiles of each chunk.
-    /// - `tile_size`: Size in pixels of each tile.
-    /// - `texture_size`: Size in pixels of the tilemap texture.
-    /// - `layer_id`: The layer id associated with this map.
+    /// - `settings`: The map settings struct.
     pub fn new(settings: MapSettings) -> Self {
         let map_size_x = (1 << (settings.map_size.x as f32).log2().ceil() as i32) as usize;
         let map_size_y = (1 << (settings.map_size.y as f32).log2().ceil() as i32) as usize;
@@ -141,7 +137,7 @@ impl Map {
     /// - `commands`: Bevy's command buffer.
     /// - `tile_pos`: A `UVec2` of where the tile to remove in tilemap coords.
     /// - `tile`: The tile component data.
-    /// - `visible`: A boolean which if true will add the [`VisibleTile`] tag.
+    /// - `visible`: A boolean which if true will add the [`crate::VisibleTile`] tag.
     pub fn add_tile(&mut self, commands: &mut Commands, tile_pos: UVec2, tile: Tile, visible: bool) -> Result<Entity, MapTileError> {
         // First find chunk tile should live in:
         let mut possible_tile_event = None;
