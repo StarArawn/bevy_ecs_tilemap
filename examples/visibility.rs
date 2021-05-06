@@ -21,19 +21,22 @@ fn startup(
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let mut map = Map::new(MapSettings::new(
-        UVec2::new(2, 2),
+        UVec2::new(4, 4),
         UVec2::new(8, 8),
         Vec2::new(16.0, 16.0),
         Vec2::new(96.0, 256.0),
         0,
     ));
     let map_entity = commands.spawn().id();
-    map.build(
+    map.build_iter(
         &mut commands,
         &mut meshes,
         material_handle,
         map_entity,
-        true,
+        |_| Tile {
+            texture_index: 1,
+            ..Default::default()
+        },
     );
 
     commands
@@ -49,18 +52,26 @@ fn remove_tiles(
     mut commands: Commands,
     time: Res<Time>,
     mut map_query: Query<(&Map, &mut LastUpdate)>,
+    visibility_query: Query<&bevy_ecs_tilemap::prelude::VisibleTile>,
 ) {
     let current_time = time.seconds_since_startup();
     for (map, mut last_update) in map_query.iter_mut() {
         // Remove a tile every half second.
-        if (current_time - last_update.value) > 0.5 {
+        if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
-            let position = IVec2::new(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map.get_tile(position);
+            let position = IVec2::new(random.gen_range(0..32), random.gen_range(0..32));
 
-            // Note you can also call map.remove_tile() instead.
-            if tile_entity.is_some() {
-                commands.entity(tile_entity.unwrap()).insert(RemoveTile);
+            // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
+            if let Some(tile_entity) = map.get_tile(position) {
+                if visibility_query.get(tile_entity).is_ok() {
+                    commands
+                        .entity(tile_entity)
+                        .remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
+                } else {
+                    commands
+                        .entity(tile_entity)
+                        .insert(bevy_ecs_tilemap::prelude::VisibleTile);
+                }
             }
 
             map.notify(
@@ -75,7 +86,7 @@ fn remove_tiles(
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(log::LevelFilter::Trace)
         .init();
 
     App::build()

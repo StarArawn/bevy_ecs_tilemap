@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -15,22 +15,36 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(Vec2::new(2.0, 2.0).into(), Vec2::new(8.0, 8.0).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(2, 2),
+        UVec2::new(8, 8),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        false,
+    );
 
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = Vec2::new(
-            random.gen_range(0.0..16.0),
-            random.gen_range(0.0..16.0),
-        );
+        let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = map.add_tile(&mut commands, position.into(), Tile {
-            texture_index: 0,
-            ..Default::default()
-        });
+        let _ = map.add_tile(
+            &mut commands,
+            position,
+            Tile {
+                texture_index: 0,
+                ..Default::default()
+            },
+            true,
+        );
     }
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
@@ -40,8 +54,8 @@ fn startup(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {
@@ -51,8 +65,9 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(TileMapPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
+        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
         .run();
 }

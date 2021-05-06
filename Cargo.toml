@@ -14,8 +14,10 @@ exclude = [
 
 [dependencies]
 bevy = "0.5"
-log = "0.4"
 dyn-clone = "1.0"
+futures-util = "0.3"
+morton-encoding = "2.0"
+log = "0.4"
 
 [dev-dependencies]
 rand = "0.8"
