@@ -1,6 +1,9 @@
-use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -20,11 +23,23 @@ fn startup(
 
     let map_size = UVec2::new(40, 40);
 
-    let map_settings = MapSettings::new(map_size, UVec2::new(32, 32), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0);
+    let map_settings = MapSettings::new(
+        map_size,
+        UVec2::new(32, 32),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    );
 
     let mut map = Map::new(map_settings.clone());
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
         ..Default::default()
@@ -34,10 +49,22 @@ fn startup(
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = map_size / 2;
-    let map_settings = MapSettings::new(map_size, UVec2::new(32, 32), Vec2::new(32.0, 32.0), Vec2::new(32.0, 448.0), 1);
+    let map_settings = MapSettings::new(
+        map_size,
+        UVec2::new(32, 32),
+        Vec2::new(32.0, 32.0),
+        Vec2::new(32.0, 448.0),
+        1,
+    );
     let mut map = Map::new(map_settings);
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        false,
+    );
 
     let mut random = thread_rng();
 
@@ -46,13 +73,20 @@ fn startup(
             random.gen_range(0..map_size.x * 32),
             random.gen_range(0..map_size.y * 32),
         );
-        let entity = map.add_tile(&mut commands, position, Tile {
-            texture_index: 0,
-            ..Default::default()
-        }, true);
+        let entity = map.add_tile(
+            &mut commands,
+            position,
+            Tile {
+                texture_index: 0,
+                ..Default::default()
+            },
+            true,
+        );
 
         if let Ok(entity) = entity {
-            commands.entity(entity).insert(GPUAnimated::new(0, 13, 0.95));
+            commands
+                .entity(entity)
+                .insert(GPUAnimated::new(0, 13, 0.95));
         }
     }
     commands.entity(map_entity).insert_bundle(MapBundle {
@@ -64,8 +98,8 @@ fn startup(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

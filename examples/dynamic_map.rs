@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::{morton_pos, prelude::*};
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -20,38 +20,55 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(UVec2::new(2, 2).into(), UVec2::new(8, 8).into(), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(2, 2).into(),
+        UVec2::new(8, 8).into(),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        false,
+    );
 
     build_map(&mut map, &mut commands);
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    }).insert(LastUpdate::default());
+    commands
+        .entity(map_entity)
+        .insert_bundle(MapBundle {
+            map,
+            ..Default::default()
+        })
+        .insert(LastUpdate::default());
 }
 
 fn build_map(map: &mut Map, commands: &mut Commands) {
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = UVec2::new(
-            random.gen_range(0..16),
-            random.gen_range(0..16),
-        );
+        let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = map.add_tile(commands, position, Tile {
-            texture_index: 0,
-            ..Default::default()
-        }, true);
+        let _ = map.add_tile(
+            commands,
+            position,
+            Tile {
+                texture_index: 0,
+                ..Default::default()
+            },
+            true,
+        );
     }
 }
 
 fn remove_map(map: &Map, commands: &mut Commands) {
     for (index, _) in map.get_all_tiles().iter().enumerate() {
         // TODO: allow removing of tiles using index maybe? No, but we need a good way of removing all tiles for a specific map.
-        let pos =  morton_pos(index);
+        let pos = morton_pos(index);
         map.remove_tile(commands, pos);
     }
 }
@@ -59,7 +76,7 @@ fn remove_map(map: &Map, commands: &mut Commands) {
 fn update_map(
     time: ResMut<Time>,
     mut commands: Commands,
-    mut query: Query<(&mut Map, &mut LastUpdate)>
+    mut query: Query<(&mut Map, &mut LastUpdate)>,
 ) {
     let current_time = time.seconds_since_startup();
     for (mut map, mut last_update) in query.iter_mut() {
@@ -73,8 +90,8 @@ fn update_map(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

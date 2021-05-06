@@ -1,4 +1,17 @@
-use bevy::{prelude::*, reflect::TypeUuid, render::{pipeline::{BlendFactor, BlendOperation, BlendState, ColorTargetState, ColorWrite, CompareFunction, DepthBiasState, DepthStencilState, PipelineDescriptor, RenderPipeline, StencilFaceState, StencilState}, render_graph::{RenderGraph, RenderResourcesNode, base}, shader::{ShaderStage, ShaderStages}, texture::TextureFormat}};
+use bevy::{
+    prelude::*,
+    reflect::TypeUuid,
+    render::{
+        pipeline::{
+            BlendFactor, BlendOperation, BlendState, ColorTargetState, ColorWrite, CompareFunction,
+            DepthBiasState, DepthStencilState, PipelineDescriptor, RenderPipeline,
+            StencilFaceState, StencilState,
+        },
+        render_graph::{base, RenderGraph, RenderResourcesNode},
+        shader::{ShaderStage, ShaderStages},
+        texture::TextureFormat,
+    },
+};
 
 use crate::TilemapMeshType;
 
@@ -45,8 +58,10 @@ macro_rules! create_chunk_pipeline {
                     clamp_depth: false,
                 }),
                 ..PipelineDescriptor::new(ShaderStages {
-                    vertex: shaders
-                        .add(Shader::from_glsl(ShaderStage::Vertex, include_str!($vert_file))),
+                    vertex: shaders.add(Shader::from_glsl(
+                        ShaderStage::Vertex,
+                        include_str!($vert_file),
+                    )),
                     fragment: Some(shaders.add(Shader::from_glsl(
                         ShaderStage::Fragment,
                         include_str!($frag_file),
@@ -128,15 +143,41 @@ pub mod node {
 impl Into<RenderPipelines> for TilemapMeshType {
     fn into(self) -> RenderPipelines {
         match self {
-            TilemapMeshType::Square => RenderPipelines::from_pipelines(vec![RenderPipeline::new(SQUARE_PIPELINE.typed(),)]),
-            TilemapMeshType::Isometric => RenderPipelines::from_pipelines(vec![RenderPipeline::new(ISO_PIPELINE.typed(),)]),
+            TilemapMeshType::Square => {
+                RenderPipelines::from_pipelines(vec![RenderPipeline::new(SQUARE_PIPELINE.typed())])
+            }
+            TilemapMeshType::Isometric => {
+                RenderPipelines::from_pipelines(vec![RenderPipeline::new(ISO_PIPELINE.typed())])
+            }
             TilemapMeshType::Hexagon(hex_type) => match hex_type {
-                crate::HexType::Column => RenderPipelines::from_pipelines(vec![RenderPipeline::new(COLUMN_HEX_PIPELINE.typed(),)]),
-                crate::HexType::ColumnEven => RenderPipelines::from_pipelines(vec![RenderPipeline::new(COLUMN_EVEN_HEX_PIPELINE.typed(),)]),
-                crate::HexType::ColumnOdd => RenderPipelines::from_pipelines(vec![RenderPipeline::new(COLUMN_ODD_HEX_PIPELINE.typed(),)]),
-                crate::HexType::Row => RenderPipelines::from_pipelines(vec![RenderPipeline::new(ROW_HEX_PIPELINE.typed(),)]),
-                crate::HexType::RowEven => RenderPipelines::from_pipelines(vec![RenderPipeline::new(ROW_EVEN_HEX_PIPELINE.typed(),)]),
-                crate::HexType::RowOdd => RenderPipelines::from_pipelines(vec![RenderPipeline::new(ROW_ODD_HEX_PIPELINE.typed(),)]),
+                crate::HexType::Column => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        COLUMN_HEX_PIPELINE.typed(),
+                    )])
+                }
+                crate::HexType::ColumnEven => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        COLUMN_EVEN_HEX_PIPELINE.typed(),
+                    )])
+                }
+                crate::HexType::ColumnOdd => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        COLUMN_ODD_HEX_PIPELINE.typed(),
+                    )])
+                }
+                crate::HexType::Row => RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                    ROW_HEX_PIPELINE.typed(),
+                )]),
+                crate::HexType::RowEven => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        ROW_EVEN_HEX_PIPELINE.typed(),
+                    )])
+                }
+                crate::HexType::RowOdd => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        ROW_ODD_HEX_PIPELINE.typed(),
+                    )])
+                }
             },
         }
     }
@@ -146,20 +187,11 @@ pub(crate) fn add_tile_map_graph(world: &mut World) {
     world.resource_scope(|world, mut pipelines: Mut<Assets<PipelineDescriptor>>| {
         world.resource_scope(|world, mut shaders: Mut<Assets<Shader>>| {
             let mut graph = world.get_resource_mut::<RenderGraph>().unwrap();
-            pipelines.set_untracked(
-                SQUARE_PIPELINE,
-                create_square_pipeline(&mut shaders),
-            );
+            pipelines.set_untracked(SQUARE_PIPELINE, create_square_pipeline(&mut shaders));
 
-            pipelines.set_untracked(
-                ISO_PIPELINE,
-                create_iso_pipeline(&mut shaders),
-            );
+            pipelines.set_untracked(ISO_PIPELINE, create_iso_pipeline(&mut shaders));
 
-            pipelines.set_untracked(
-                ROW_HEX_PIPELINE,
-                create_hex_row_pipeline(&mut shaders),
-            );
+            pipelines.set_untracked(ROW_HEX_PIPELINE, create_hex_row_pipeline(&mut shaders));
 
             pipelines.set_untracked(
                 ROW_ODD_HEX_PIPELINE,

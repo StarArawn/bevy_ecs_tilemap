@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
 #[derive(Default)]
 struct LastUpdate {
     value: f64,
-}    
+}
 
 fn startup(
     mut commands: Commands,
@@ -20,14 +20,29 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(UVec2::new(2, 2), UVec2::new(8, 8), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(2, 2),
+        UVec2::new(8, 8),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    }).insert(LastUpdate::default());
+    commands
+        .entity(map_entity)
+        .insert_bundle(MapBundle {
+            map,
+            ..Default::default()
+        })
+        .insert(LastUpdate::default());
 }
 
 fn remove_tiles(
@@ -40,10 +55,7 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = IVec2::new(
-                random.gen_range(0..16),
-                random.gen_range(0..16),
-            );
+            let position = IVec2::new(random.gen_range(0..16), random.gen_range(0..16));
             let tile_entity = map.get_tile(position);
 
             // Note you can also call map.remove_tile() instead.
@@ -51,7 +63,10 @@ fn remove_tiles(
                 commands.entity(tile_entity.unwrap()).insert(RemoveTile);
             }
 
-            map.notify(&mut commands, UVec2::new(position.x as u32, position.y as u32));
+            map.notify(
+                &mut commands,
+                UVec2::new(position.x as u32, position.y as u32),
+            );
 
             last_update.value = current_time;
         }
@@ -60,8 +75,8 @@ fn remove_tiles(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

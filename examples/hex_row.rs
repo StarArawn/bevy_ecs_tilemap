@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -14,14 +14,26 @@ fn startup(
 
     let texture_handle = asset_server.load("pointy_hex_tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-    
-    let mut map_settings = MapSettings::new(UVec2::new(1, 1), UVec2::new(64, 64), Vec2::new(15.0, 17.0), Vec2::new(105.0, 17.0), 0);
+
+    let mut map_settings = MapSettings::new(
+        UVec2::new(1, 1),
+        UVec2::new(64, 64),
+        Vec2::new(15.0, 17.0),
+        Vec2::new(105.0, 17.0),
+        0,
+    );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Row);
 
     let mut map = Map::new(map_settings.clone());
     // New mesher needs to be applied before chunks are built with map.
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle.clone(),
+        map_entity,
+        true,
+    );
     commands.entity(map_entity).insert_bundle(MapBundle {
         map,
         ..Default::default()
@@ -32,20 +44,28 @@ fn startup(
         new_settings.layer_id = z + 1;
         let mut map = Map::new(new_settings);
         let map_entity = commands.spawn().id();
-        map.build(&mut commands, &mut meshes, material_handle.clone(), map_entity, false);
+        map.build(
+            &mut commands,
+            &mut meshes,
+            material_handle.clone(),
+            map_entity,
+            false,
+        );
 
         let mut random = thread_rng();
 
         for _ in 0..100 {
-            let position = UVec2::new(
-                random.gen_range(0..64),
-                random.gen_range(0..64),
-            );
+            let position = UVec2::new(random.gen_range(0..64), random.gen_range(0..64));
             // Ignore errors for demo sake.
-            let _ = map.add_tile(&mut commands, position, Tile {
-                texture_index: z + 1,
-                ..Default::default()
-            }, true);
+            let _ = map.add_tile(
+                &mut commands,
+                position,
+                Tile {
+                    texture_index: z + 1,
+                    ..Default::default()
+                },
+                true,
+            );
         }
 
         commands.entity(map_entity).insert_bundle(MapBundle {
@@ -58,8 +78,8 @@ fn startup(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

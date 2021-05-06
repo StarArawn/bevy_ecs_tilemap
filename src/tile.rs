@@ -53,15 +53,7 @@ pub struct GPUAnimated {
 }
 
 impl GPUAnimated {
-    pub fn new(
-        start: u32,
-        end: u32,
-        speed: f32,
-    ) -> Self {
-        Self {
-            start,
-            end,
-            speed,
-        }
+    pub fn new(start: u32, end: u32, speed: f32) -> Self {
+        Self { start, end, speed }
     }
 }

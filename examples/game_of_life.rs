@@ -1,4 +1,7 @@
-use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -16,30 +19,47 @@ fn startup(
 
     let map_size = UVec2::new(10 * 16, 10 * 16);
 
-    let mut map = Map::new(MapSettings::new(UVec2::new(10, 10), UVec2::new(16, 16), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(10, 10),
+        UVec2::new(16, 16),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, false);
-    
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        false,
+    );
+
     let mut i = 0;
     for x in 0..map_size.x {
         for y in 0..map_size.y {
-            let position = UVec2::new(
-                x,
-                y,
-            );
+            let position = UVec2::new(x, y);
             // Ignore errors for demo sake.
-            let _ = map.add_tile(&mut commands, position, Tile {
-                texture_index: 0,
-                ..Default::default()
-            }, i % 2 == 0 || i % 7 == 0);
+            let _ = map.add_tile(
+                &mut commands,
+                position,
+                Tile {
+                    texture_index: 0,
+                    ..Default::default()
+                },
+                i % 2 == 0 || i % 7 == 0,
+            );
             i += 1;
         }
     }
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    }).insert(LastUpdate(0.0));
+    commands
+        .entity(map_entity)
+        .insert_bundle(MapBundle {
+            map,
+            ..Default::default()
+        })
+        .insert(LastUpdate(0.0));
 }
 
 pub struct LastUpdate(f64);
@@ -56,12 +76,16 @@ fn update(
         if current_time - last_update.0 > 0.1 {
             for (entity, pos) in tile_query.iter() {
                 // Get neighbor count.
-                let neighbor_count = map.get_tile_neighbors(*pos).iter().filter(|x| {
-                    if let Some(entity) = x.1 {
-                        return visible.get(entity).is_ok();
-                    }
-                    return false;
-                }).count();
+                let neighbor_count = map
+                    .get_tile_neighbors(*pos)
+                    .iter()
+                    .filter(|x| {
+                        if let Some(entity) = x.1 {
+                            return visible.get(entity).is_ok();
+                        }
+                        return false;
+                    })
+                    .count();
                 let was_alive = visible.get(entity).is_ok();
 
                 let is_alive = match (was_alive, neighbor_count) {
@@ -73,10 +97,14 @@ fn update(
                 };
 
                 if is_alive && !was_alive {
-                    commands.entity(entity).insert(bevy_ecs_tilemap::prelude::VisibleTile);
+                    commands
+                        .entity(entity)
+                        .insert(bevy_ecs_tilemap::prelude::VisibleTile);
                     map.notify(&mut commands, *pos);
                 } else if !is_alive && was_alive {
-                    commands.entity(entity).remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
+                    commands
+                        .entity(entity)
+                        .remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
                     map.notify(&mut commands, *pos);
                 }
             }
@@ -88,8 +116,8 @@ fn update(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Error)
-    .init();
+        .filter_level(log::LevelFilter::Error)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

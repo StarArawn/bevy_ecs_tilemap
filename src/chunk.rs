@@ -1,6 +1,19 @@
+use crate::{
+    morton_index,
+    prelude::{SquareChunkMesher, TilemapChunkMesher},
+    render::TilemapData,
+    tile::{self, GPUAnimated, Tile},
+    TilemapMeshType,
+};
+use bevy::{
+    prelude::*,
+    render::{
+        camera::{Camera, OrthographicProjection},
+        render_graph::base::{camera::CAMERA_2D, MainPass},
+    },
+    tasks::AsyncComputeTaskPool,
+};
 use std::sync::Mutex;
-use bevy::{prelude::*, render::{camera::{Camera, OrthographicProjection}, render_graph::base::{MainPass, camera::CAMERA_2D}}, tasks::{AsyncComputeTaskPool}};
-use crate::{TilemapMeshType, morton_index, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::{TilemapData}, tile::{self, GPUAnimated, Tile}};
 
 /// A tag that causes a specific chunk to be "re-meshed" when re-meshing is started the tag is removed.
 pub struct RemeshChunk;
@@ -75,7 +88,7 @@ impl Clone for ChunkSettings {
     }
 }
 
-/// A component that stores information about a specific chunk in the tile map. 
+/// A component that stores information about a specific chunk in the tile map.
 pub struct Chunk {
     /// The map entity that parents the chunk.
     pub map_entity: Entity,
@@ -94,7 +107,6 @@ impl Clone for Chunk {
     }
 }
 
-
 impl Default for Chunk {
     fn default() -> Self {
         Self {
@@ -110,13 +122,23 @@ impl Default for Chunk {
                 spacing: Vec2::ZERO,
                 mesh_type: TilemapMeshType::Square,
                 mesher: Box::new(SquareChunkMesher),
-            } 
+            },
         }
     }
 }
 
 impl Chunk {
-    pub(crate) fn new(map_entity: Entity, position: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2, mesh_handle: Handle<Mesh>, layer_id: u32, mesh_type: TilemapMeshType, mesher: Box<dyn TilemapChunkMesher>) -> Self {
+    pub(crate) fn new(
+        map_entity: Entity,
+        position: UVec2,
+        chunk_size: UVec2,
+        tile_size: Vec2,
+        texture_size: Vec2,
+        mesh_handle: Handle<Mesh>,
+        layer_id: u32,
+        mesh_type: TilemapMeshType,
+        mesher: Box<dyn TilemapChunkMesher>,
+    ) -> Self {
         let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
         let settings = ChunkSettings {
             position,
@@ -142,7 +164,9 @@ impl Chunk {
         chunk_entity: Entity,
         map_tiles: &mut Vec<Option<Entity>>,
         mut f: F,
-    ) where F: FnMut(UVec2) -> Tile {
+    ) where
+        F: FnMut(UVec2) -> Tile,
+    {
         for x in 0..self.settings.size.x {
             for y in 0..self.settings.size.y {
                 let tile_pos = UVec2::new(
@@ -151,10 +175,12 @@ impl Chunk {
                 );
                 let mut tile = f(tile_pos);
                 tile.chunk = chunk_entity;
-                let tile_entity = commands.spawn()
+                let tile_entity = commands
+                    .spawn()
                     .insert(tile)
                     .insert(tile::VisibleTile)
-                    .insert(tile_pos).id();
+                    .insert(tile_pos)
+                    .id();
                 let morton_i = morton_index(UVec2::new(x, y));
                 self.tiles[morton_i] = Some(tile_entity);
                 map_tiles[morton_index(tile_pos)] = Some(tile_entity);
@@ -179,16 +205,27 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     mut meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
-    changed_chunks: Query<(Entity, &Chunk, &Visible), Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>>,
+    changed_chunks: Query<
+        (Entity, &Chunk, &Visible),
+        Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>,
+    >,
 ) {
     let threaded_commands = Mutex::new(commands);
     let threaded_meshes = Mutex::new(meshes);
 
     changed_chunks.par_for_each(&task_pool, 10, |(chunk_entity, chunk, visible)| {
-        if visible.is_visible  {
-            log::trace!("Re-meshing chunk at: {:?} layer id of: {}", chunk.settings.position, chunk.settings.layer_id);
-            
-            let (mesh_handle, new_mesh) = chunk.settings.mesher.mesh(chunk.settings.clone(), &chunk.tiles, &tile_query);
+        if visible.is_visible {
+            log::trace!(
+                "Re-meshing chunk at: {:?} layer id of: {}",
+                chunk.settings.position,
+                chunk.settings.layer_id
+            );
+
+            let (mesh_handle, new_mesh) =
+                chunk
+                    .settings
+                    .mesher
+                    .mesh(chunk.settings.clone(), &chunk.tiles, &tile_query);
             let mut meshes = threaded_meshes.lock().unwrap();
             if let Some(mesh) = meshes.get_mut(mesh_handle) {
                 *mesh = new_mesh;
@@ -204,11 +241,13 @@ pub(crate) fn update_chunk_visibility(
     camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
     mut chunks: Query<(&Chunk, &mut Visible)>,
 ) {
-    if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data|
+    if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
         if let Some(name) = &data.0.name {
             name == CAMERA_2D
-        } else { false }
-    ) {
+        } else {
+            false
+        }
+    }) {
         // Transform camera into world space.
         let left = camera_transform.translation.x + (ortho.left * camera_transform.scale.x);
         let right = camera_transform.translation.x + (ortho.right * camera_transform.scale.x);
@@ -216,9 +255,8 @@ pub(crate) fn update_chunk_visibility(
         let top = camera_transform.translation.y + (ortho.top * camera_transform.scale.x);
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
-        
-        for (chunk, mut visible) in chunks.iter_mut() {
 
+        for (chunk, mut visible) in chunks.iter_mut() {
             if chunk.settings.mesh_type != TilemapMeshType::Square {
                 continue;
             }
@@ -242,10 +280,8 @@ pub(crate) fn update_chunk_visibility(
                 camera_bounds.w + (bounds_size.y),
             );
 
-            if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y)
-            {
-                if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w)
-                {
+            if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
+                if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
                     if visible.is_visible {
                         log::trace!("Hiding chunk @: {:?}", bounds);
                         visible.is_visible = false;
@@ -258,7 +294,12 @@ pub(crate) fn update_chunk_visibility(
                 }
             } else {
                 if visible.is_visible {
-                    log::trace!("Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}", bounds, padded_camera_bounds, bounds_size);
+                    log::trace!(
+                        "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
+                        bounds,
+                        padded_camera_bounds,
+                        bounds_size
+                    );
                     visible.is_visible = false;
                 }
             }
@@ -266,10 +307,7 @@ pub(crate) fn update_chunk_visibility(
     }
 }
 
-pub(crate) fn update_chunk_time(
-    time: Res<Time>,
-    mut query: Query<&mut TilemapData>,
-) {
+pub(crate) fn update_chunk_time(time: Res<Time>, mut query: Query<&mut TilemapData>) {
     for mut data in query.iter_mut() {
         data.time = time.seconds_since_startup() as f32;
     }

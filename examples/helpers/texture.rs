@@ -8,11 +8,11 @@ pub fn set_texture_filters_to_nearest(
     for event in texture_events.iter() {
         match event {
             AssetEvent::Created { handle } => {
-                if let Some(mut texture) = textures.get_mut(handle){
+                if let Some(mut texture) = textures.get_mut(handle) {
                     texture.sampler.min_filter = FilterMode::Nearest;
                 }
             }
-            _ => ()
+            _ => (),
         }
     }
 }

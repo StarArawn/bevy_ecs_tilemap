@@ -20,9 +20,21 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(UVec2::new(4, 4), UVec2::new(32, 32), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(4, 4),
+        UVec2::new(32, 32),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
 
     assert!(map.get_tile(IVec2::new(0, 0)).is_some());
     assert!(map.get_tile_neighbors(UVec2::new(2, 2)).len() == 8);
@@ -31,26 +43,30 @@ fn startup(
     for x in (2..128).step_by(4) {
         color += 1;
         for y in (2..128).step_by(4) {
-            let neighbors = map.get_tile_neighbors(
-                UVec2::new(x, y)
-            );
+            let neighbors = map.get_tile_neighbors(UVec2::new(x, y));
             for (pos, _neighbor) in neighbors.iter() {
-                let _ = map.add_tile(&mut commands, UVec2::new(pos.x as u32, pos.y as u32), Tile {
-                    texture_index: color,
-                    ..Default::default()
-                }, true);
+                let _ = map.add_tile(
+                    &mut commands,
+                    UVec2::new(pos.x as u32, pos.y as u32),
+                    Tile {
+                        texture_index: color,
+                        ..Default::default()
+                    },
+                    true,
+                );
             }
         }
     }
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    })
-    .insert(CurrentColor(1))
-    .insert(LastUpdate(0.0));
+    commands
+        .entity(map_entity)
+        .insert_bundle(MapBundle {
+            map,
+            ..Default::default()
+        })
+        .insert(CurrentColor(1))
+        .insert(LastUpdate(0.0));
 }
-
 
 // Should run after the commands from startup have been processed.
 // An example of a slow way of editing tiles..
@@ -69,17 +85,20 @@ fn update_map(
             let mut color = current_color.0;
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
-                    let neighbors = map.get_tile_neighbors(
-                        UVec2::new(x, y)
-                    );
+                    let neighbors = map.get_tile_neighbors(UVec2::new(x, y));
                     for (pos, _neighbor) in neighbors.iter() {
-                        let _ = map.add_tile(&mut commands, UVec2::new(pos.x as u32, pos.y as u32), Tile {
-                            texture_index: color,
-                            ..Default::default()
-                        }, true);
+                        let _ = map.add_tile(
+                            &mut commands,
+                            UVec2::new(pos.x as u32, pos.y as u32),
+                            Tile {
+                                texture_index: color,
+                                ..Default::default()
+                            },
+                            true,
+                        );
                     }
                 }
-                color +=1;
+                color += 1;
                 if color > 5 {
                     color = 1;
                 }
@@ -92,8 +111,8 @@ fn update_map(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

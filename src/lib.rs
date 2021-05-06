@@ -1,12 +1,12 @@
 //! A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile.
-//! 
+//!
 //! ## Features
 //!  - A tile per entity
 //!  - Fast rendering using a chunked approach.
 //!  - Layers and sparse tile maps.
 //!  - Animations
 //!  - Isometric and Hexagonal tile maps
-//! 
+//!
 //! ## Upcoming Features
 //!  - ~~Support for isometric and hexagon rendering~~ done
 //!  - ~~Built in animation support.~~ done see animation example
@@ -17,7 +17,7 @@
 //! ```
 //! let texture_handle = asset_server.load("tiles.png");
 //! let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-//! 
+//!
 //! let mut map = Map::new(
 //!     UVec2::new(2, 2),
 //!     UVec2::new(8, 8),
@@ -35,18 +35,20 @@
 
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
-use map::{update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles};
+use map::{
+    update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles,
+};
 use render::pipeline::add_tile_map_graph;
 
-mod tile;
 mod chunk;
 mod map;
-mod render;
 mod mesher;
+mod render;
+mod tile;
 
-pub use crate::tile::{GPUAnimated, Tile, VisibleTile, RemoveTile};
-pub use crate::chunk::{Chunk,  ChunkSettings};
+pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
+pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -76,10 +78,29 @@ impl Plugin for TilemapPlugin {
             // TODO: Perhaps use a stage here instead?
             .add_system(update_chunk_time.system())
             .add_system(update_tiles.system().label("update_tile_data"))
-            .add_system(update_chunk_hashmap_for_added_tiles.system().label("hash_update_for_tiles").after("update_tile_data"))
-            .add_system(update_chunk_hashmap_for_removed_tiles.system().label("hash_update_for_tiles_removal"))
-            .add_system(update_chunk_visibility.system().label("update_chunk_visibility"))
-            .add_system(update_chunk_mesh.system().after("hash_update_for_tiles").after("hash_update_for_tiles_removal").after("update_chunk_visibility"));
+            .add_system(
+                update_chunk_hashmap_for_added_tiles
+                    .system()
+                    .label("hash_update_for_tiles")
+                    .after("update_tile_data"),
+            )
+            .add_system(
+                update_chunk_hashmap_for_removed_tiles
+                    .system()
+                    .label("hash_update_for_tiles_removal"),
+            )
+            .add_system(
+                update_chunk_visibility
+                    .system()
+                    .label("update_chunk_visibility"),
+            )
+            .add_system(
+                update_chunk_mesh
+                    .system()
+                    .after("hash_update_for_tiles")
+                    .after("hash_update_for_tiles_removal")
+                    .after("update_chunk_visibility"),
+            );
         let world = app.world_mut();
         add_tile_map_graph(world);
     }
@@ -97,10 +118,10 @@ pub fn morton_pos(index: usize) -> UVec2 {
 
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
-    pub use crate::{TilemapMeshType, HexType};
-    pub use crate::tile::{GPUAnimated, Tile, VisibleTile, RemoveTile};
-    pub use crate::chunk::{Chunk,  ChunkSettings};
+    pub use crate::chunk::{Chunk, ChunkSettings};
     pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
-    pub use crate::TilemapPlugin;
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
+    pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
+    pub use crate::TilemapPlugin;
+    pub use crate::{HexType, TilemapMeshType};
 }

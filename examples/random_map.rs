@@ -1,6 +1,9 @@
-use bevy::{diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}, prelude::*};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -19,10 +22,22 @@ fn startup(
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Chunk sizes of 64x64 seem optimal for meshing updates.
-    let mut map = Map::new(MapSettings::new(UVec2::new(10, 10), UVec2::new(64, 64), Vec2::new(16.0, 16.0), Vec2::new(96.0, 256.0), 0));
+    let mut map = Map::new(MapSettings::new(
+        UVec2::new(10, 10),
+        UVec2::new(64, 64),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
+        0,
+    ));
     let map_entity = commands.spawn().id();
-    map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-    
+    map.build(
+        &mut commands,
+        &mut meshes,
+        material_handle,
+        map_entity,
+        true,
+    );
+
     for entity in map.get_all_tiles().iter() {
         if let Some(entity) = entity {
             commands.entity(*entity).insert(LastUpdate::default());
@@ -52,9 +67,9 @@ fn random(
     let mut did_update = false;
     for (_, mut tile, mut last_update) in query.iter_mut() {
         // if (current_time - last_update.value) > 0.1 {
-            tile.texture_index = random.gen_range(0..6);
-            last_update.value = current_time;
-            did_update = true;
+        tile.texture_index = random.gen_range(0..6);
+        last_update.value = current_time;
+        did_update = true;
         // }
     }
 
@@ -64,7 +79,10 @@ fn random(
             for x in 0..map.settings.map_size.x {
                 for y in 0..map.settings.map_size.y {
                     // Update first tile in each chunk at least until we get an notify_chunk
-                    map.notify(&mut commands, UVec2::new(x * map.settings.chunk_size.x, y * map.settings.chunk_size.y));
+                    map.notify(
+                        &mut commands,
+                        UVec2::new(x * map.settings.chunk_size.x, y * map.settings.chunk_size.y),
+                    );
                 }
             }
         }
@@ -73,8 +91,8 @@ fn random(
 
 fn main() {
     env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Info)
-    .init();
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     App::build()
         .insert_resource(WindowDescriptor {

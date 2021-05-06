@@ -1,6 +1,9 @@
-use bevy::{core::Byteable, prelude::*, reflect::TypeUuid, render::{
-        renderer::{RenderResources, RenderResource},
-    }};
+use bevy::{
+    core::Byteable,
+    prelude::*,
+    reflect::TypeUuid,
+    render::renderer::{RenderResource, RenderResources},
+};
 
 use crate::prelude::ChunkSettings;
 
