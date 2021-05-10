@@ -86,6 +86,6 @@ void main() {
     }
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
-
+    v_Uv += 1e-5;
     gl_Position = ViewProj * Model * vec4(position, 0.0, 1.0);
 }
