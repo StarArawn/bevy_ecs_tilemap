@@ -67,6 +67,8 @@ pub struct ChunkSettings {
     pub layer_id: u32,
     /// How much spacing between each tile in the atlas.
     pub spacing: Vec2,
+    /// Cull the chunks in the map when they are off screen.
+    pub cull: bool,
     pub mesh_type: TilemapMeshType,
     pub(crate) mesher: Box<dyn TilemapChunkMesher>,
     pub(crate) mesh_handle: Handle<Mesh>,
@@ -83,6 +85,7 @@ impl Clone for ChunkSettings {
             spacing: self.spacing,
             mesh_handle: self.mesh_handle.clone(),
             mesh_type: self.mesh_type.clone(),
+            cull: self.cull,
             mesher: dyn_clone::clone_box(&*self.mesher),
         }
     }
@@ -120,6 +123,7 @@ impl Default for Chunk {
                 tile_size: Vec2::ZERO,
                 layer_id: 0,
                 spacing: Vec2::ZERO,
+                cull: true,
                 mesh_type: TilemapMeshType::Square,
                 mesher: Box::new(SquareChunkMesher),
             },
@@ -139,6 +143,7 @@ impl Chunk {
         layer_id: u32,
         mesh_type: TilemapMeshType,
         mesher: Box<dyn TilemapChunkMesher>,
+        cull: bool,
     ) -> Self {
         let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
         let settings = ChunkSettings {
@@ -151,6 +156,7 @@ impl Chunk {
             mesh_type,
             spacing: tile_spacing,
             mesher,
+            cull,
         };
         Self {
             map_entity,
@@ -259,7 +265,7 @@ pub(crate) fn update_chunk_visibility(
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
         for (chunk, mut visible) in chunks.iter_mut() {
-            if chunk.settings.mesh_type != TilemapMeshType::Square {
+            if chunk.settings.mesh_type != TilemapMeshType::Square || !chunk.settings.cull {
                 continue;
             }
 
