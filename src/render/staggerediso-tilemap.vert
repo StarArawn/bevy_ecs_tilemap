@@ -39,8 +39,7 @@ void main() {
     );
 
     position = positions[gl_VertexIndex % 4];
-    position.x *= tile_size.x;
-    position.y *= tile_size.y / 2.0;
+    position *= tile_size;
 
     float offset = floor(0.25 * tile_size.x);
     if (int(world_pos.y) % 2 == 0) {
@@ -48,7 +47,7 @@ void main() {
     } else {
         position.x -= offset;
     }
-    position.y -= world_pos.y * ceil(0.25 * tile_size.y);
+    position.y -= world_pos.y * (tile_size.y / 2.0);
 
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
 

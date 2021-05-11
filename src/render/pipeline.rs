@@ -90,7 +90,7 @@ create_chunk_pipeline!(
 
 create_chunk_pipeline!(
     STAGGERED_ISO_PIPELINE,
-    1571326172373592468,
+    6571326172373592468,
     create_iso_staggered_pipeline,
     "staggerediso-tilemap.vert",
     "iso-tilemap.frag"
