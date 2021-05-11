@@ -45,6 +45,8 @@ pub struct MapSettings {
     pub layer_id: u32,
     /// The meshing algorithm used for the tilemap.
     pub mesh_type: TilemapMeshType,
+    /// Cull the chunks in the map when they are off screen.
+    pub cull: bool,
     /// Spacing around each tile in the atlas
     /// Note: This is ignored in array mode.
     pub tile_spacing: Vec2,
@@ -65,6 +67,7 @@ impl MapSettings {
             tile_size,
             texture_size,
             layer_id,
+            cull: true,
             mesh_type: TilemapMeshType::Square,
             tile_spacing: Vec2::ZERO,
             mesher: Box::new(SquareChunkMesher),
@@ -82,6 +85,7 @@ impl Clone for MapSettings {
             layer_id: self.layer_id,
             mesh_type: self.mesh_type,
             tile_spacing: self.tile_spacing,
+            cull: self.cull,
             mesher: dyn_clone::clone_box(&*self.mesher),
         }
     }
@@ -107,6 +111,7 @@ impl Default for Map {
                 layer_id: 0,
                 mesh_type: TilemapMeshType::Square,
                 tile_spacing: Vec2::default(),
+                cull: true,
                 mesher: Box::new(SquareChunkMesher),
             },
             chunks: Vec::new(),
@@ -368,6 +373,7 @@ impl Map {
                     self.settings.layer_id,
                     self.settings.mesh_type,
                     dyn_clone::clone_box(&*self.settings.mesher),
+                    self.settings.cull,
                 );
 
                 if populate_chunks {
@@ -439,6 +445,7 @@ impl Map {
                     self.settings.layer_id,
                     self.settings.mesh_type,
                     dyn_clone::clone_box(&*self.settings.mesher),
+                    self.settings.cull,
                 );
 
                 chunk.build_tiles(commands, chunk_entity, &mut self.tiles, |p| f(p));
