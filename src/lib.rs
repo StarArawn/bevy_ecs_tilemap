@@ -64,12 +64,20 @@ pub enum HexType {
     Row,
     Column,
 }
+
+/// Different iso coordinate systems.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IsoType {
+    Diamond,
+    Staggered
+}
+
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TilemapMeshType {
     Square,
     Hexagon(HexType),
-    Isometric,
+    Isometric(IsoType),
 }
 
 /// The tilemap stage which runs before post update.
@@ -133,5 +141,5 @@ pub mod prelude {
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
     pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
     pub use crate::TilemapPlugin;
-    pub use crate::{HexType, TilemapMeshType};
+    pub use crate::{HexType, IsoType, TilemapMeshType};
 }
