@@ -246,8 +246,7 @@ pub(crate) fn update_chunk_mesh(
 
 pub(crate) fn update_chunk_visibility(
     camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
-    mut chunks: Query<(&Chunk, &mut Visible)>,
-    map_query: Query<&Transform, With<crate::Map>>,
+    mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visible)>,
 ) {
     if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
         if let Some(name) = &data.0.name {
@@ -264,53 +263,51 @@ pub(crate) fn update_chunk_visibility(
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
-        for (chunk, mut visible) in chunks.iter_mut() {
+        for (global_transform, chunk, mut visible) in chunks.iter_mut() {
             if chunk.settings.mesh_type != TilemapMeshType::Square || !chunk.settings.cull {
                 continue;
             }
 
-            if let Ok(map_transform) = map_query.get(chunk.map_entity) {
-                let bounds_size = Vec2::new(
-                    chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
-                    chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
-                );
+            let bounds_size = Vec2::new(
+                chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
+                chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
+            );
+            
+            let bounds = Vec4::new(
+                global_transform.translation.x,
+                global_transform.translation.x + bounds_size.x,
+                global_transform.translation.y,
+                global_transform.translation.y + bounds_size.y,
+            );
 
-                let bounds = Vec4::new(
-                    map_transform.translation.x + chunk.settings.position.x as f32 * bounds_size.x,
-                    map_transform.translation.x + (chunk.settings.position.x as f32 + 1.0) * bounds_size.x,
-                    map_transform.translation.y + chunk.settings.position.y as f32 * bounds_size.y,
-                    map_transform.translation.y + (chunk.settings.position.y as f32 + 1.0) * bounds_size.y,
-                );
+            let padded_camera_bounds = Vec4::new(
+                camera_bounds.x - (bounds_size.x),
+                camera_bounds.y + (bounds_size.x),
+                camera_bounds.z - (bounds_size.y),
+                camera_bounds.w + (bounds_size.y),
+            );
 
-                let padded_camera_bounds = Vec4::new(
-                    camera_bounds.x - (bounds_size.x),
-                    camera_bounds.y + (bounds_size.x),
-                    camera_bounds.z - (bounds_size.y),
-                    camera_bounds.w + (bounds_size.y),
-                );
-
-                if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
-                    if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
-                        if visible.is_visible {
-                            log::trace!("Hiding chunk @: {:?}", bounds);
-                            visible.is_visible = false;
-                        }
-                    } else {
-                        if !visible.is_visible {
-                            log::trace!("Showing chunk @: {:?}", bounds);
-                            visible.is_visible = true;
-                        }
-                    }
-                } else {
+            if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
+                if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
                     if visible.is_visible {
-                        log::trace!(
-                            "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
-                            bounds,
-                            padded_camera_bounds,
-                            bounds_size
-                        );
+                        log::trace!("Hiding chunk @: {:?}", bounds);
                         visible.is_visible = false;
                     }
+                } else {
+                    if !visible.is_visible {
+                        log::trace!("Showing chunk @: {:?}", bounds);
+                        visible.is_visible = true;
+                    }
+                }
+            } else {
+                if visible.is_visible {
+                    log::trace!(
+                        "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
+                        bounds,
+                        padded_camera_bounds,
+                        bounds_size
+                    );
+                    visible.is_visible = false;
                 }
             }
         }
