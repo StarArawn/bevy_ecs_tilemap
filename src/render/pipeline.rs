@@ -81,10 +81,18 @@ create_chunk_pipeline!(
 );
 
 create_chunk_pipeline!(
-    ISO_PIPELINE,
+    DIAMOND_ISO_PIPELINE,
     5716002228110903793,
-    create_iso_pipeline,
-    "iso-tilemap.vert",
+    create_iso_diamond_pipeline,
+    "diamondiso-tilemap.vert",
+    "iso-tilemap.frag"
+);
+
+create_chunk_pipeline!(
+    STAGGERED_ISO_PIPELINE,
+    6571326172373592468,
+    create_iso_staggered_pipeline,
+    "staggerediso-tilemap.vert",
     "iso-tilemap.frag"
 );
 
@@ -146,8 +154,17 @@ impl Into<RenderPipelines> for TilemapMeshType {
             TilemapMeshType::Square => {
                 RenderPipelines::from_pipelines(vec![RenderPipeline::new(SQUARE_PIPELINE.typed())])
             }
-            TilemapMeshType::Isometric => {
-                RenderPipelines::from_pipelines(vec![RenderPipeline::new(ISO_PIPELINE.typed())])
+            TilemapMeshType::Isometric(iso_type) => match iso_type {
+                crate::IsoType::Diamond => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        DIAMOND_ISO_PIPELINE.typed(),
+                    )])
+                }
+                crate::IsoType::Staggered => {
+                    RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        STAGGERED_ISO_PIPELINE.typed(),
+                    )])
+                }
             }
             TilemapMeshType::Hexagon(hex_type) => match hex_type {
                 crate::HexType::Column => {
@@ -187,11 +204,25 @@ pub(crate) fn add_tile_map_graph(world: &mut World) {
     world.resource_scope(|world, mut pipelines: Mut<Assets<PipelineDescriptor>>| {
         world.resource_scope(|world, mut shaders: Mut<Assets<Shader>>| {
             let mut graph = world.get_resource_mut::<RenderGraph>().unwrap();
-            pipelines.set_untracked(SQUARE_PIPELINE, create_square_pipeline(&mut shaders));
+            pipelines.set_untracked(
+                SQUARE_PIPELINE,
+                create_square_pipeline(&mut shaders)
+            );
 
-            pipelines.set_untracked(ISO_PIPELINE, create_iso_pipeline(&mut shaders));
+            pipelines.set_untracked(
+                DIAMOND_ISO_PIPELINE,
+                create_iso_diamond_pipeline(&mut shaders)
+            );
 
-            pipelines.set_untracked(ROW_HEX_PIPELINE, create_hex_row_pipeline(&mut shaders));
+            pipelines.set_untracked(
+                STAGGERED_ISO_PIPELINE,
+                create_iso_staggered_pipeline(&mut shaders)
+            );
+
+            pipelines.set_untracked(
+                ROW_HEX_PIPELINE,
+                create_hex_row_pipeline(&mut shaders)
+            );
 
             pipelines.set_untracked(
                 ROW_ODD_HEX_PIPELINE,
@@ -222,6 +253,7 @@ pub(crate) fn add_tile_map_graph(world: &mut World) {
                 node::TILEMAP_DATA,
                 RenderResourcesNode::<TilemapData>::new(true),
             );
+
             graph
                 .add_node_edge(node::TILEMAP_DATA, base::node::MAIN_PASS)
                 .unwrap();

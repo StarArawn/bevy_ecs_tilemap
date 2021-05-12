@@ -22,7 +22,7 @@ fn startup(
         Vec2::new(640.0, 1024.0),
         0,
     );
-    map_settings.mesh_type = TilemapMeshType::Isometric;
+    map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
 
     // Layer 0
     let mut map = Map::new(map_settings.clone());
@@ -90,7 +90,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Iso Map"),
+            title: String::from("Iso diamond Map"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
