@@ -19,13 +19,24 @@ fn startup(
     // Apply textures to materials
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    // Set a ratio for texture size. Higher means chunkier textures
+
+    let map_size_x:u32 = 4;
+    let map_size_y:u32 = 4;
+
+    let chunk_size_x:u32 = 32;
+    let chunk_size_y:u32 = 32;
+
+    let tile_size_x:f32 = 64.0;
+    let tile_size_y:f32 = 64.0;
+
+
+
 
 
     let mut map_settings = MapSettings::new(
-        UVec2::new(4, 4), // Map Size
-        UVec2::new(32, 32), // Chunk Size
-        Vec2::new(64.0, 64.0), //Tile Size
+        UVec2::new(map_size_x.clone(), map_size_y.clone()), // Map Size
+        UVec2::new(chunk_size_x.clone(), chunk_size_y.clone()), // Chunk Size
+        Vec2::new(tile_size_x.clone(), tile_size_y.clone()), //Tile Size
         Vec2::new(640.0, 1024.0), // Texture Size
         0, // Layer ID
     );
@@ -38,7 +49,9 @@ fn startup(
     
     // Get an entity ID to be able to refer to the map later on
     let map_entity_id = commands.spawn().id();
-    
+
+    // Get a random number generator to generate random grass tiles
+    let mut random = thread_rng();
     // Iterate through all tiles and populate all of these with the same texture
     // The fifth argument is a function which is iterated though. 
     map.build_iter(
@@ -47,7 +60,7 @@ fn startup(
         material_handle.clone(),
         map_entity_id,
         |_| Tile {
-            texture_index: 10,
+            texture_index: random.gen_range(10..18),
             ..Default::default()
         },
     );
@@ -61,7 +74,7 @@ fn startup(
     });
 
     // Make 2 layers on "top" of the base map.
-    for z in 0..5 {
+    for z in 0..1 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
         let mut map = Map::new(new_settings);
@@ -77,17 +90,59 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..1000 {
-            let position = UVec2::new(random.gen_range(0..128), random.gen_range(0..128));
-            // Ignore errors for demo sake.
+            // For now we do not want to spawn any hills next to the edge.
+            // If we do, we need to add a check so we do not try to address out of bounds tiles
+            let max_x = (chunk_size_x.clone() * map_size_x.clone()) - 10;
+            let max_y = (chunk_size_y.clone() * map_size_y.clone()) - 10;
+
+            let position = UVec2::new(random.gen_range(10..max_x), random.gen_range(10..max_y));
+
             let _ = map.add_tile(
                 &mut commands,
                 position,
                 Tile {
-                    texture_index: 70 + z + 1,
+                    texture_index: 42,
                     ..Default::default()
                 },
                 true,
             );
+
+            let mut new_pos = position.clone();
+            new_pos[1] -= 1;
+            let _ = map.add_tile(
+                &mut commands,
+                new_pos,
+                Tile {
+                    texture_index: 41,
+                    ..Default::default()
+                },
+                true,
+            );
+
+            let mut new_pos = position.clone();
+            new_pos[0] += 1;
+            let _ = map.add_tile(
+                &mut commands,
+                new_pos,
+                Tile {
+                    texture_index: 43,
+                    ..Default::default()
+                },
+                true,
+            );
+
+            let mut new_pos = position.clone();
+            new_pos[0] -= 1;
+            let _ = map.add_tile(
+                &mut commands,
+                new_pos,
+                Tile {
+                    texture_index: 40,
+                    ..Default::default()
+                },
+                true,
+            );
+
         }
         commands.entity(map_entity).insert_bundle(MapBundle {
             map,
