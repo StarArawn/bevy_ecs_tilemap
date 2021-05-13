@@ -19,7 +19,7 @@ fn startup(
     // Apply textures to materials
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-
+    // map_size * chunk_size is the maximum canvas we can use when generating tiles
     let map_size_x:u32 = 4;
     let map_size_y:u32 = 4;
 
@@ -28,10 +28,6 @@ fn startup(
 
     let tile_size_x:f32 = 64.0;
     let tile_size_y:f32 = 64.0;
-
-
-
-
 
     let mut map_settings = MapSettings::new(
         UVec2::new(map_size_x.clone(), map_size_y.clone()), // Map Size
@@ -90,58 +86,24 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..1000 {
-            // For now we do not want to spawn any hills next to the edge.
+            // For now we do not want to spawn any grass next to the edge.
             // If we do, we need to add a check so we do not try to address out of bounds tiles
             let max_x = (chunk_size_x.clone() * map_size_x.clone()) - 10;
             let max_y = (chunk_size_y.clone() * map_size_y.clone()) - 10;
 
             let position = UVec2::new(random.gen_range(10..max_x), random.gen_range(10..max_y));
 
+
             let _ = map.add_tile(
                 &mut commands,
                 position,
                 Tile {
-                    texture_index: 42,
+                    texture_index: random.gen_range(118..121),
                     ..Default::default()
                 },
                 true,
             );
 
-            let mut new_pos = position.clone();
-            new_pos[1] -= 1;
-            let _ = map.add_tile(
-                &mut commands,
-                new_pos,
-                Tile {
-                    texture_index: 41,
-                    ..Default::default()
-                },
-                true,
-            );
-
-            let mut new_pos = position.clone();
-            new_pos[0] += 1;
-            let _ = map.add_tile(
-                &mut commands,
-                new_pos,
-                Tile {
-                    texture_index: 43,
-                    ..Default::default()
-                },
-                true,
-            );
-
-            let mut new_pos = position.clone();
-            new_pos[0] -= 1;
-            let _ = map.add_tile(
-                &mut commands,
-                new_pos,
-                Tile {
-                    texture_index: 40,
-                    ..Default::default()
-                },
-                true,
-            );
 
         }
         commands.entity(map_entity).insert_bundle(MapBundle {
