@@ -22,7 +22,7 @@ layout(set = 2, binding = 1) uniform TilemapData {
 
 vec2 project_iso(vec2 pos, float tile_width, float tile_height) {
     float x = (pos.x - pos.y) * tile_width / 2.0;
-    float y = (pos.x + pos.y) * tile_height / 2.0;
+    float y = (pos.x + pos.y) * tile_height / 4.0;
     return vec2(x, -y);
 }
 

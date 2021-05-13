@@ -10,35 +10,51 @@ fn startup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
+    // Create the camera setup
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
+    // Load textures
     let texture_handle = asset_server.load("iso.png");
+    
+    // Apply textures to materials
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
+    // Set a ratio for texture size. Higher means chunkier textures
+
+
     let mut map_settings = MapSettings::new(
-        UVec2::new(4, 4),
-        UVec2::new(32, 32),
-        Vec2::new(64.0, 32.0),
-        Vec2::new(640.0, 1024.0),
-        0,
+        UVec2::new(4, 4), // Map Size
+        UVec2::new(32, 32), // Chunk Size
+        Vec2::new(64.0, 64.0), //Tile Size
+        Vec2::new(640.0, 1024.0), // Texture Size
+        0, // Layer ID
     );
+
+    // We want an isometric map, so We'll set the mesh_type to the relevant type
     map_settings.mesh_type = TilemapMeshType::Isometric;
 
-    // Layer 0
+    // Get a map for Layer 0
     let mut map = Map::new(map_settings.clone());
-    let map_entity = commands.spawn().id();
+    
+    // Get an entity ID to be able to refer to the map later on
+    let map_entity_id = commands.spawn().id();
+    
+    // Iterate through all tiles and populate all of these with the same texture
+    // The fifth argument is a function which is iterated though. 
     map.build_iter(
         &mut commands,
         &mut meshes,
         material_handle.clone(),
-        map_entity,
+        map_entity_id,
         |_| Tile {
             texture_index: 10,
             ..Default::default()
         },
     );
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
+    // Save the map and add the Bevy bundle
+    // containing Map, Transform and GlobalTransform components
+    commands.entity(map_entity_id).insert_bundle(MapBundle {
         map,
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()
@@ -67,7 +83,7 @@ fn startup(
                 &mut commands,
                 position,
                 Tile {
-                    texture_index: 10 + z + 1,
+                    texture_index: 70 + z + 1,
                     ..Default::default()
                 },
                 true,
