@@ -95,6 +95,7 @@ impl Clone for MapSettings {
 pub struct Map {
     /// The map information for the tilemap entity.
     pub settings: MapSettings,
+    map_entity: Option<Entity>,
     chunks: Vec<Option<Entity>>,
     tiles: Vec<Option<Entity>>,
     events: VecDeque<SetTileEvent>,
@@ -114,6 +115,7 @@ impl Default for Map {
                 cull: true,
                 mesher: Box::new(SquareChunkMesher),
             },
+            map_entity: None,
             chunks: Vec::new(),
             tiles: Vec::new(),
             events: VecDeque::new(),
@@ -147,6 +149,7 @@ impl Map {
         let tile_count = tile_size_x * tile_size_y;
         Self {
             settings,
+            map_entity: None,
             chunks: vec![None; map_size],
             tiles: vec![None; tile_count],
             events: VecDeque::new(),
@@ -205,6 +208,7 @@ impl Map {
             } else {
                 let mut tile_commands = commands.spawn();
                 tile_commands
+                    .insert(Parent(self.map_entity.unwrap()))
                     .insert(Tile {
                         chunk: chunk,
                         ..tile
@@ -348,6 +352,8 @@ impl Map {
         map_entity: Entity,
         populate_chunks: bool,
     ) {
+        self.map_entity = Some(map_entity);
+
         for x in 0..self.settings.map_size.x {
             for y in 0..self.settings.map_size.y {
                 let mut chunk_entity = None;
