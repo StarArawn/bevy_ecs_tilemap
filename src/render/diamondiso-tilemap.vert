@@ -54,9 +54,9 @@ void main() {
 
     int texture_index = int(current_animation_frame);
     
-    int columns = int(floor(texture_size.x / tile_size.x));
+    int columns = int(texture_size.x) / int(tile_size.x);
 
-    float sprite_sheet_x = floor(mod(float(texture_index), float(columns)) * (tile_size.x + spacing.x) - spacing.x);
+    float sprite_sheet_x = floor(float(texture_index % columns)) * (tile_size.x + spacing.x) - spacing.x;
     float sprite_sheet_y = floor((texture_index / columns)) * (tile_size.y + spacing.y) - spacing.y;
 
     float start_u = sprite_sheet_x / texture_size.x;
