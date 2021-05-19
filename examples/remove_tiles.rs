@@ -12,61 +12,51 @@ struct LastUpdate {
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-
-    let mut map = Map::new(MapSettings::new(
-        UVec2::new(2, 2),
-        UVec2::new(8, 8),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
+    
+    let layer_entity = commands.spawn().id();
+    let mut layer_builder = LayerBuilder::new(
         &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        true,
+        layer_entity,
+        LayerSettings::new(
+            UVec2::new(2, 2),
+            UVec2::new(8, 8),
+            Vec2::new(16.0, 16.0),
+            Vec2::new(96.0, 256.0),
+        )
     );
+    layer_builder.set_all(TileBundle::default(), true);
+    
+    map_query.create_layer(&mut commands, layer_builder, material_handle);
 
-    commands
-        .entity(map_entity)
-        .insert_bundle(MapBundle {
-            map,
-            ..Default::default()
-        })
+    commands.entity(layer_entity)
         .insert(LastUpdate::default());
 }
 
 fn remove_tiles(
     mut commands: Commands,
     time: Res<Time>,
-    mut map_query: Query<(&Map, &mut LastUpdate)>,
+    mut last_update_query: Query<&mut LastUpdate>,
+    map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    for (map, mut last_update) in map_query.iter_mut() {
+    for mut last_update in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = IVec2::new(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map.get_tile(position);
+            let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+            let tile_entity = map_query.get_tile_entity(position, 0);
 
             // Note you can also call map.remove_tile() instead.
-            if tile_entity.is_some() {
+            if tile_entity.is_ok() {
                 commands.entity(tile_entity.unwrap()).insert(RemoveTile);
-            }
-
-            map.notify(
-                &mut commands,
-                UVec2::new(position.x as u32, position.y as u32),
-            );
+            }            
 
             last_update.value = current_time;
         }

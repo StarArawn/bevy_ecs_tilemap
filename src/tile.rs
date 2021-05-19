@@ -24,6 +24,15 @@ impl Default for Tile {
     }
 }
 
+impl Into<TileBundle> for Tile {
+    fn into(self) -> TileBundle {
+        TileBundle {
+            tile: self,
+            ..Default::default()
+        }
+    }
+}
+
 /// Allows the tile to be meshed and rendered.
 /// Tiles without this tag will be ignored by the meshing and rendering systems.
 #[derive(Debug, Copy, Clone)]
@@ -31,13 +40,6 @@ pub struct VisibleTile;
 
 /// A tag that allows you to remove a tile from the world
 pub struct RemoveTile;
-
-#[derive(Bundle)]
-pub(crate) struct TileBundle {
-    tile: Tile,
-    visible: VisibleTile,
-    position: UVec2,
-}
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
@@ -55,5 +57,32 @@ pub struct GPUAnimated {
 impl GPUAnimated {
     pub fn new(start: u32, end: u32, speed: f32) -> Self {
         Self { start, end, speed }
+    }
+}
+
+/// This trait allows you to create your own entity bundles which
+/// allow the layer_builder to access the tile component.
+pub trait TileBundleTrait: Bundle + Clone {
+    fn get_tile_mut(&mut self) -> &mut Tile;
+}
+
+/// The standard tile bundle.
+#[derive(Bundle, Clone)]
+pub struct TileBundle {
+    /// Tile component.
+    pub tile: Tile,
+}
+
+impl Default for TileBundle {
+    fn default() -> Self {
+        Self {
+            tile: Tile::default(),
+        }
+    }
+}
+
+impl TileBundleTrait for TileBundle {
+    fn get_tile_mut(&mut self) -> &mut Tile {
+        &mut self.tile
     }
 }

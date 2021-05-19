@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::{morton_pos, prelude::*};
+use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;
@@ -12,77 +12,64 @@ struct LastUpdate {
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(
-        UVec2::new(2, 2).into(),
-        UVec2::new(8, 8).into(),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
+    let layer_entity = commands.spawn().id();
+    let layer_builder = LayerBuilder::<TileBundle>::new(
         &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        false,
+        layer_entity,
+        LayerSettings::new(
+            UVec2::new(2, 2).into(),
+            UVec2::new(8, 8).into(),
+            Vec2::new(16.0, 16.0),
+            Vec2::new(96.0, 256.0),
+        ),
     );
 
-    build_map(&mut map, &mut commands);
+    map_query.create_layer(&mut commands, layer_builder, material_handle);
 
     commands
-        .entity(map_entity)
-        .insert_bundle(MapBundle {
-            map,
-            ..Default::default()
-        })
+        .entity(layer_entity)
         .insert(LastUpdate::default());
 }
 
-fn build_map(map: &mut Map, commands: &mut Commands) {
+fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
     let mut random = thread_rng();
 
     for _ in 0..100 {
         let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = map.add_tile(
+        let _ = map_query.add_tile(
             commands,
             position,
             Tile {
                 texture_index: 0,
                 ..Default::default()
             },
+            0,
             true,
         );
-    }
-}
-
-fn remove_map(map: &Map, commands: &mut Commands) {
-    for (index, _) in map.get_all_tiles().iter().enumerate() {
-        // TODO: allow removing of tiles using index maybe? No, but we need a good way of removing all tiles for a specific map.
-        let pos = morton_pos(index);
-        map.remove_tile(commands, pos);
+        map_query.notify_chunk_for_tile(position, 0);
     }
 }
 
 fn update_map(
     time: ResMut<Time>,
     mut commands: Commands,
-    mut query: Query<(&mut Map, &mut LastUpdate)>,
+    mut query: Query<&mut LastUpdate>,
+    mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    for (mut map, mut last_update) in query.iter_mut() {
+    for mut last_update in query.iter_mut() {
         if (current_time - last_update.value) > 1.0 {
-            remove_map(&map, &mut commands);
-            build_map(&mut map, &mut commands);
+            map_query.despawn_layer_tiles(&mut commands, 0);
+            build_map(&mut map_query, &mut commands);
             last_update.value = current_time;
         }
     }

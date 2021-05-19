@@ -7,77 +7,62 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("iso.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map_settings = MapSettings::new(
+    let mut map_settings = LayerSettings::new(
         UVec2::new(4, 4),
         UVec2::new(32, 32),
         Vec2::new(64.0, 32.0),
         Vec2::new(640.0, 1024.0),
-        0,
     );
     map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Staggered);
 
     // Layer 0
-    let mut map = Map::new(map_settings.clone());
-    let map_entity = commands.spawn().id();
-    map.build_iter(
-        &mut commands,
-        &mut meshes,
-        material_handle.clone(),
-        map_entity,
-        |_| Tile {
+    let layer_0_entity = commands.spawn().id();
+    let mut layer_0 = LayerBuilder::new(&mut commands, layer_0_entity, map_settings.clone());
+    layer_0.set_all(TileBundle {
+        tile: Tile {
             texture_index: 10,
             ..Default::default()
         },
-    );
-
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()
-    });
+    }, true);
+
+    map_query.create_layer(&mut commands, layer_0, material_handle.clone());
+
 
     // Make 2 layers on "top" of the base map.
     for z in 0..5 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
-        let mut map = Map::new(new_settings);
-        let map_entity = commands.spawn().id();
-        map.build(
-            &mut commands,
-            &mut meshes,
-            material_handle.clone(),
-            map_entity,
-            false,
-        );
-
+        let layer_entity = commands.spawn().id();
+        let mut layer_builder = LayerBuilder::new(&mut commands, layer_entity, new_settings.clone());
+        
         let mut random = thread_rng();
 
         for _ in 0..1000 {
             let position = UVec2::new(random.gen_range(0..128), random.gen_range(0..128));
             // Ignore errors for demo sake.
-            let _ = map.add_tile(
-                &mut commands,
+            let _ = layer_builder.set_tile(
                 position,
-                Tile {
-                    texture_index: 10 + z + 1,
+                TileBundle {
+                    tile: Tile {
+                        texture_index: 10 + z + 1,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
                 true,
             );
         }
-        commands.entity(map_entity).insert_bundle(MapBundle {
-            map,
-            transform: Transform::from_xyz(0.0, 0.0, z as f32 + 1.0),
-            ..Default::default()
-        });
+        
+        map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
     }
 }
 

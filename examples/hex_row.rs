@@ -7,72 +7,54 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("pointy_hex_tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map_settings = MapSettings::new(
+    let layer_entity = commands.spawn().id();
+    let mut map_settings = LayerSettings::new(
         UVec2::new(1, 1),
         UVec2::new(64, 64),
         Vec2::new(15.0, 17.0),
         Vec2::new(105.0, 17.0),
-        0,
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Row);
 
-    let mut map = Map::new(map_settings.clone());
-    // New mesher needs to be applied before chunks are built with map.
-    let map_entity = commands.spawn().id();
-    map.build(
+    let mut layer_builder = LayerBuilder::<TileBundle>::new(
         &mut commands,
-        &mut meshes,
-        material_handle.clone(),
-        map_entity,
-        true,
+        layer_entity,
+        map_settings.clone()
     );
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    });
+    layer_builder.set_all(Tile::default().into(), true);
+    
+    map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
 
     for z in 0..2 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
-        let mut map = Map::new(new_settings);
-        let map_entity = commands.spawn().id();
-        map.build(
-            &mut commands,
-            &mut meshes,
-            material_handle.clone(),
-            map_entity,
-            false,
-        );
-
+        let layer_entity = commands.spawn().id();
+        let mut layer_builder = LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, new_settings);
+        
         let mut random = thread_rng();
 
         for _ in 0..100 {
             let position = UVec2::new(random.gen_range(0..64), random.gen_range(0..64));
             // Ignore errors for demo sake.
-            let _ = map.add_tile(
-                &mut commands,
+            let _ = layer_builder.set_tile(
                 position,
                 Tile {
                     texture_index: z + 1,
                     ..Default::default()
-                },
+                }.into(),
                 true,
             );
         }
 
-        commands.entity(map_entity).insert_bundle(MapBundle {
-            map,
-            transform: Transform::from_xyz(0.0, 0.0, z as f32 + 1.0),
-            ..Default::default()
-        });
+        map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
     }
 }
 

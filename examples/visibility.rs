@@ -12,57 +12,56 @@ struct LastUpdate {
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(
-        UVec2::new(4, 4),
-        UVec2::new(8, 8),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build_iter(
+    let layer_entity = commands.spawn().id();
+    let mut layer_builder = LayerBuilder::new(
         &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        |_| Tile {
+        layer_entity,
+        LayerSettings::new(
+            UVec2::new(4, 4),
+            UVec2::new(8, 8),
+            Vec2::new(16.0, 16.0),
+            Vec2::new(96.0, 256.0),
+        ),
+    );
+    layer_builder.set_all(TileBundle {
+        tile: Tile {
             texture_index: 1,
             ..Default::default()
         },
-    );
+        ..Default::default()
+    }, true);
+
+    map_query.create_layer(&mut commands, layer_builder, material_handle);
 
     commands
-        .entity(map_entity)
-        .insert_bundle(MapBundle {
-            map,
-            ..Default::default()
-        })
+        .entity(layer_entity)
         .insert(LastUpdate::default());
 }
 
 fn remove_tiles(
     mut commands: Commands,
     time: Res<Time>,
-    mut map_query: Query<(&Map, &mut LastUpdate)>,
+    mut last_update_query: Query<&mut LastUpdate>,
     visibility_query: Query<&bevy_ecs_tilemap::prelude::VisibleTile>,
+    mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    for (map, mut last_update) in map_query.iter_mut() {
+    for mut last_update in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
-            let position = IVec2::new(random.gen_range(0..32), random.gen_range(0..32));
+            let position = UVec2::new(random.gen_range(0..32), random.gen_range(0..32));
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
-            if let Some(tile_entity) = map.get_tile(position) {
+            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0) {
                 if visibility_query.get(tile_entity).is_ok() {
                     commands
                         .entity(tile_entity)
@@ -74,10 +73,7 @@ fn remove_tiles(
                 }
             }
 
-            map.notify(
-                &mut commands,
-                UVec2::new(position.x as u32, position.y as u32),
-            );
+            map_query.notify_chunk_for_tile(position, 0);
 
             last_update.value = current_time;
         }
@@ -86,7 +82,7 @@ fn remove_tiles(
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Trace)
+        .filter_level(log::LevelFilter::Info)
         .init();
 
     App::build()
