@@ -39,6 +39,7 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             self.tiles[morton_tile_index].1 = Some((tile, visible));
+            return Ok(());
         }
         Err(MapTileError::OutOfBounds)
     }

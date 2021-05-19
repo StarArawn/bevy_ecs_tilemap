@@ -140,7 +140,16 @@ impl Chunk {
         mesher: Box<dyn TilemapChunkMesher>,
         cull: bool,
     ) -> Self {
-        let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
+        let tile_size_x = (1
+            << (chunk_size.x as f32)
+                .log2()
+                .ceil() as i32) as usize;
+        let tile_size_y = (1
+            << (chunk_size.y as f32)
+                .log2()
+                .ceil() as i32) as usize;
+        let tile_count = tile_size_x * tile_size_y;
+        let tiles = vec![None; tile_count];
         let settings = ChunkSettings {
             position,
             size: chunk_size,
