@@ -34,9 +34,7 @@ fn startup(
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
-    commands
-        .entity(layer_entity)
-        .insert(LastUpdate::default());
+    commands.entity(layer_entity).insert(LastUpdate::default());
 }
 
 fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {

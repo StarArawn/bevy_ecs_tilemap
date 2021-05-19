@@ -31,12 +31,9 @@ fn startup(
     );
 
     let layer_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
-        &mut commands,
-        layer_entity,
-        layer_settings.clone()
-    );
-    
+    let mut layer_builder =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, layer_settings.clone());
+
     layer_builder.set_all(Tile::default().into(), true);
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
@@ -53,12 +50,9 @@ fn startup(
     );
     layer_settings.layer_id = 1;
     let layer_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
-        &mut commands,
-        layer_entity,
-        layer_settings
-    );
-    
+    let mut layer_builder =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, layer_settings);
+
     let mut random = thread_rng();
 
     for _ in 0..10000 {
@@ -71,7 +65,8 @@ fn startup(
             Tile {
                 texture_index: 0,
                 ..Default::default()
-            }.into(),
+            }
+            .into(),
             true,
         );
 
@@ -81,7 +76,7 @@ fn startup(
                 .insert(GPUAnimated::new(0, 13, 0.95));
         }
     }
-    
+
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 }
 

@@ -31,19 +31,20 @@ fn startup(
             Vec2::new(96.0, 256.0),
         ),
     );
-    layer_builder.set_all(TileBundle {
-        tile: Tile {
-            texture_index: 1,
+    layer_builder.set_all(
+        TileBundle {
+            tile: Tile {
+                texture_index: 1,
+                ..Default::default()
+            },
             ..Default::default()
         },
-        ..Default::default()
-    }, true);
+        true,
+    );
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
-    commands
-        .entity(layer_entity)
-        .insert(LastUpdate::default());
+    commands.entity(layer_entity).insert(LastUpdate::default());
 }
 
 fn remove_tiles(

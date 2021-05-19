@@ -13,21 +13,21 @@ fn startup(
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-    
+
     let layer_entity = commands.spawn().id();
     let mut layer_builder = LayerBuilder::new(
         &mut commands,
-        layer_entity,    
+        layer_entity,
         LayerSettings::new(
             UVec2::new(2, 2),
             UVec2::new(8, 8),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
-    
+
     layer_builder.set_all(TileBundle::default(), true);
-    
+
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 }
 

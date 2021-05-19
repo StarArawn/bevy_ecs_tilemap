@@ -24,21 +24,19 @@ fn startup(
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
-        &mut commands,
-        layer_entity,
-        map_settings.clone()
-    );
+    let mut layer_builder =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, map_settings.clone());
     layer_builder.set_all(Tile::default().into(), true);
-    
+
     map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
 
     for z in 0..2 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
         let layer_entity = commands.spawn().id();
-        let mut layer_builder = LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, new_settings);
-        
+        let mut layer_builder =
+            LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, new_settings);
+
         let mut random = thread_rng();
 
         for _ in 0..100 {
@@ -49,7 +47,8 @@ fn startup(
                 Tile {
                     texture_index: z + 1,
                     ..Default::default()
-                }.into(),
+                }
+                .into(),
                 true,
             );
         }

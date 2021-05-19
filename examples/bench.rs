@@ -31,7 +31,7 @@ fn startup(
             UVec2::new(128, 128),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
 
     layer_builder.set_all(Tile::default().into(), true);

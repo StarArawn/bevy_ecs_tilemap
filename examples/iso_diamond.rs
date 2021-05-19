@@ -26,24 +26,27 @@ fn startup(
     // Layer 0
     let layer_0_entity = commands.spawn().id();
     let mut layer_0 = LayerBuilder::new(&mut commands, layer_0_entity, map_settings.clone());
-    layer_0.set_all(TileBundle {
-        tile: Tile {
-            texture_index: 10,
+    layer_0.set_all(
+        TileBundle {
+            tile: Tile {
+                texture_index: 10,
+                ..Default::default()
+            },
             ..Default::default()
         },
-        ..Default::default()
-    }, true);
+        true,
+    );
 
     map_query.create_layer(&mut commands, layer_0, material_handle.clone());
-
 
     // Make 2 layers on "top" of the base map.
     for z in 0..5 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
         let layer_entity = commands.spawn().id();
-        let mut layer_builder = LayerBuilder::new(&mut commands, layer_entity, new_settings.clone());
-        
+        let mut layer_builder =
+            LayerBuilder::new(&mut commands, layer_entity, new_settings.clone());
+
         let mut random = thread_rng();
 
         for _ in 0..1000 {
@@ -61,7 +64,7 @@ fn startup(
                 true,
             );
         }
-        
+
         map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
     }
 }

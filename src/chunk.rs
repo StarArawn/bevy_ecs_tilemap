@@ -1,4 +1,10 @@
-use crate::{TilemapMeshType, morton_index, morton_pos, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::TilemapData, tile::{self, GPUAnimated, Tile}};
+use crate::{
+    morton_index, morton_pos,
+    prelude::{SquareChunkMesher, TilemapChunkMesher},
+    render::TilemapData,
+    tile::{self, GPUAnimated, Tile},
+    TilemapMeshType,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -140,14 +146,8 @@ impl Chunk {
         mesher: Box<dyn TilemapChunkMesher>,
         cull: bool,
     ) -> Self {
-        let tile_size_x = (1
-            << (chunk_size.x as f32)
-                .log2()
-                .ceil() as i32) as usize;
-        let tile_size_y = (1
-            << (chunk_size.y as f32)
-                .log2()
-                .ceil() as i32) as usize;
+        let tile_size_x = (1 << (chunk_size.x as f32).log2().ceil() as i32) as usize;
+        let tile_size_y = (1 << (chunk_size.y as f32).log2().ceil() as i32) as usize;
         let tile_count = tile_size_x * tile_size_y;
         let tiles = vec![None; tile_count];
         let settings = ChunkSettings {
@@ -170,11 +170,8 @@ impl Chunk {
         }
     }
 
-    pub(crate) fn build_tiles<F>(
-        &mut self,
-        chunk_entity: Entity,
-        mut f: F,
-    ) where
+    pub(crate) fn build_tiles<F>(&mut self, chunk_entity: Entity, mut f: F)
+    where
         F: FnMut(UVec2, Entity) -> Option<Entity>,
     {
         for x in 0..self.settings.size.x {
@@ -200,7 +197,8 @@ impl Chunk {
     }
 
     pub fn for_each_tile_entity<F>(&self, mut f: F)
-        where F: FnMut((UVec2, &Option<Entity>)),
+    where
+        F: FnMut((UVec2, &Option<Entity>)),
     {
         self.tiles.iter().enumerate().for_each(|(index, entity)| {
             let chunk_tile_pos = morton_pos(index);
@@ -220,10 +218,7 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
-    mut changed_chunks: Query<
-        (&mut Chunk, &Visible),
-        Or<(Changed<Visible>, Changed<Chunk>)>,
-    >,
+    mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
 ) {
     let threaded_meshes = Mutex::new(meshes);
 
@@ -278,7 +273,7 @@ pub(crate) fn update_chunk_visibility(
                 chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
                 chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
             );
-            
+
             let bounds = Vec4::new(
                 global_transform.translation.x,
                 global_transform.translation.x + bounds_size.x,

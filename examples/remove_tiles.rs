@@ -19,7 +19,7 @@ fn startup(
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-    
+
     let layer_entity = commands.spawn().id();
     let mut layer_builder = LayerBuilder::new(
         &mut commands,
@@ -29,14 +29,13 @@ fn startup(
             UVec2::new(8, 8),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
     layer_builder.set_all(TileBundle::default(), true);
-    
+
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
-    commands.entity(layer_entity)
-        .insert(LastUpdate::default());
+    commands.entity(layer_entity).insert(LastUpdate::default());
 }
 
 fn remove_tiles(
@@ -56,7 +55,7 @@ fn remove_tiles(
             // Note you can also call map.remove_tile() instead.
             if tile_entity.is_ok() {
                 commands.entity(tile_entity.unwrap()).insert(RemoveTile);
-            }            
+            }
 
             last_update.value = current_time;
         }

@@ -33,7 +33,7 @@ fn startup(
             UVec2::new(64, 64),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
         // True here refers to tile visibility.

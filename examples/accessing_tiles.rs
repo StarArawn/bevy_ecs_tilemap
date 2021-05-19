@@ -27,7 +27,7 @@ fn startup(
     // can no longer be accessed.
     // Layer builder accepts a generic bundle that must implement the `TileBundleTrait`.
     // This is used internally to access the tile in the bundle to attach the chunk correctly.
-    
+
     // Layer Entity
     let layer_entity = commands.spawn().id();
 
@@ -40,15 +40,24 @@ fn startup(
             UVec2::new(32, 32),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
 
     // We can easily fill the entire map by using set_all
     layer_builder.set_all(Tile::default().into(), true);
 
     // You can also fill in a portion of the map
-    layer_builder.fill(UVec2::new(0, 0), UVec2::new(10, 10), Tile { texture_index: 1, ..Default::default() }.into(), true);
-    
+    layer_builder.fill(
+        UVec2::new(0, 0),
+        UVec2::new(10, 10),
+        Tile {
+            texture_index: 1,
+            ..Default::default()
+        }
+        .into(),
+        true,
+    );
+
     let neighbors = layer_builder.get_tile_neighbors(UVec2::new(0, 0));
 
     // We can access tiles like normal using:
@@ -61,7 +70,11 @@ fn startup(
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors: Vec<IVec2> = layer_builder.get_tile_neighbors(UVec2::new(x, y)).iter().map(|(pos, _)| *pos).collect();
+            let neighbors: Vec<IVec2> = layer_builder
+                .get_tile_neighbors(UVec2::new(x, y))
+                .iter()
+                .map(|(pos, _)| *pos)
+                .collect();
             for pos in neighbors.iter() {
                 // We can set specific tiles like this:
                 let _ = layer_builder.set_tile(
@@ -69,14 +82,15 @@ fn startup(
                     Tile {
                         texture_index: color,
                         ..Default::default()
-                    }.into(),
+                    }
+                    .into(),
                     true,
                 );
             }
         }
     }
 
-    // Once create_layer is called you can no longer access the tiles in this system. 
+    // Once create_layer is called you can no longer access the tiles in this system.
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
     commands

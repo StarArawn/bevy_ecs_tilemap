@@ -1,7 +1,10 @@
-use crate::{TilemapMeshType, chunk::{Chunk}, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}};
-use bevy::{
-    prelude::*,
+use crate::{
+    chunk::Chunk,
+    morton_index,
+    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
+    TilemapMeshType,
 };
+use bevy::prelude::*;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
 #[derive(Bundle, Default)]
@@ -37,12 +40,7 @@ pub struct LayerSettings {
 }
 
 impl LayerSettings {
-    pub fn new(
-        map_size: UVec2,
-        chunk_size: UVec2,
-        tile_size: Vec2,
-        texture_size: Vec2,
-    ) -> Self {
+    pub fn new(map_size: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2) -> Self {
         Self {
             map_size,
             chunk_size,

@@ -1,5 +1,14 @@
-use bevy::{prelude::*, render::{mesh::{Indices, VertexAttributeValues}, pipeline::PrimitiveTopology}};
-use crate::{Chunk, Layer, LayerBundle, LayerSettings, MapTileError, VisibleTile, chunk::ChunkBundle, morton_index, render::TilemapData, tile::TileBundleTrait};
+use crate::{
+    chunk::ChunkBundle, morton_index, render::TilemapData, tile::TileBundleTrait, Chunk, Layer,
+    LayerBundle, LayerSettings, MapTileError, VisibleTile,
+};
+use bevy::{
+    prelude::*,
+    render::{
+        mesh::{Indices, VertexAttributeValues},
+        pipeline::PrimitiveTopology,
+    },
+};
 
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
@@ -8,7 +17,10 @@ pub struct LayerBuilder<T> {
     pub(crate) layer_entity: Entity,
 }
 
-impl<T> LayerBuilder<T> where T: TileBundleTrait {
+impl<T> LayerBuilder<T>
+where
+    T: TileBundleTrait,
+{
     /// Creates the layer builder using the layer settings.
     pub fn new(commands: &mut Commands, layer_entity: Entity, settings: LayerSettings) -> Self {
         let tile_size_x = (1
@@ -22,20 +34,27 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
         let tile_count = tile_size_x * tile_size_y;
         Self {
             settings,
-            tiles: (0..tile_count).map(|_| {
-                //let mut tile_entity = None;
-                // commands.entity(layer_entity).with_children(|child_builder| {
-                // Commented out because child tiles cut performance in half.
-                let tile_entity = Some(commands.spawn().id());
-                // });
-                (tile_entity.unwrap(), None)
-            }).collect(),
+            tiles: (0..tile_count)
+                .map(|_| {
+                    //let mut tile_entity = None;
+                    // commands.entity(layer_entity).with_children(|child_builder| {
+                    // Commented out because child tiles cut performance in half.
+                    let tile_entity = Some(commands.spawn().id());
+                    // });
+                    (tile_entity.unwrap(), None)
+                })
+                .collect(),
             layer_entity,
         }
     }
 
     /// Sets a tile's data at the given position.
-    pub fn set_tile(&mut self, tile_pos: UVec2, tile: T, visible: bool) -> Result<(), MapTileError> {
+    pub fn set_tile(
+        &mut self,
+        tile_pos: UVec2,
+        tile: T,
+        visible: bool,
+    ) -> Result<(), MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             self.tiles[morton_tile_index].1 = Some((tile, visible));
@@ -61,7 +80,7 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(&tile.0);
             } else {
-                return Err(MapTileError::NonExistent)
+                return Err(MapTileError::NonExistent);
             }
         }
         Err(MapTileError::OutOfBounds)
@@ -78,7 +97,7 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
                 return Some((tile.0, bundle));
             }
         }
-        
+
         None
     }
 
@@ -89,7 +108,7 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(&mut tile.0);
             } else {
-                return Err(MapTileError::NonExistent)
+                return Err(MapTileError::NonExistent);
             }
         }
         Err(MapTileError::OutOfBounds)
@@ -97,7 +116,10 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
 
     /// Loops through each tile entity and tile bundle in the builder.
     /// Note: The boolean is for visibility.
-    pub fn for_each_tiles<F>(&mut self, mut f: F) where F: FnMut(Entity, &Option<(T, bool)>) {
+    pub fn for_each_tiles<F>(&mut self, mut f: F)
+    where
+        F: FnMut(Entity, &Option<(T, bool)>),
+    {
         self.tiles.iter().for_each(|tile| {
             f(tile.0, &tile.1);
         });
@@ -105,7 +127,10 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
 
     /// Mutably loops through each tile entity and tile bundle in the builder.
     /// Note: The boolean is for visibility.
-    pub fn for_each_tiles_mut<F>(&mut self, mut f: F) where F: FnMut(Entity, &mut Option<(T, bool)>) {
+    pub fn for_each_tiles_mut<F>(&mut self, mut f: F)
+    where
+        F: FnMut(Entity, &mut Option<(T, bool)>),
+    {
         self.tiles.iter_mut().for_each(|tile| {
             f(tile.0, &mut tile.1);
         });
@@ -142,7 +167,10 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
     /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
-    pub fn get_tile_neighbors(&self, tile_pos: UVec2) -> [(IVec2,  Option<(bevy::prelude::Entity, &T)>); 8] {
+    pub fn get_tile_neighbors(
+        &self,
+        tile_pos: UVec2,
+    ) -> [(IVec2, Option<(bevy::prelude::Entity, &T)>); 8] {
         let n = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 + 1);
         let s = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 - 1);
         let w = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32);
@@ -164,15 +192,22 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
     }
 
     /// Creates a layer bundle from the layer builder.
-    pub fn build(&mut self, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, material: Handle<ColorMaterial>) -> LayerBundle {
-        let mut layer = Layer::new(self.settings.clone()); 
+    pub fn build(
+        &mut self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        material: Handle<ColorMaterial>,
+    ) -> LayerBundle {
+        let mut layer = Layer::new(self.settings.clone());
         let mut j = 0;
         for x in 0..layer.settings.map_size.x {
             for y in 0..layer.settings.map_size.y {
                 let mut chunk_entity = None;
-                commands.entity(self.layer_entity).with_children(|child_builder| {
-                    chunk_entity = Some(child_builder.spawn().id());
-                });
+                commands
+                    .entity(self.layer_entity)
+                    .with_children(|child_builder| {
+                        chunk_entity = Some(child_builder.spawn().id());
+                    });
                 let chunk_entity = chunk_entity.unwrap();
 
                 let chunk_pos = UVec2::new(x, y);
@@ -200,16 +235,18 @@ impl<T> LayerBuilder<T> where T: TileBundleTrait {
                     let morton_tile_index = morton_index(tile_pos);
                     let tile_entity = self.tiles[morton_tile_index].0;
                     i += 1;
-                    if let Some((mut tile_bundle, visible)) = self.tiles[morton_tile_index].1.take() {
+                    if let Some((mut tile_bundle, visible)) = self.tiles[morton_tile_index].1.take()
+                    {
                         let tile = tile_bundle.get_tile_mut();
                         tile.chunk = chunk_entity;
-        
-                        commands.entity(tile_entity)
+
+                        commands
+                            .entity(tile_entity)
                             .insert_bundle(tile_bundle)
                             .insert(tile_pos);
 
                         if visible {
-                            commands.entity(tile_entity).insert(VisibleTile);  
+                            commands.entity(tile_entity).insert(VisibleTile);
                         }
                         Some(tile_entity)
                     } else {

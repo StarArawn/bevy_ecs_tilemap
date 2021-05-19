@@ -28,9 +28,9 @@ fn startup(
             UVec2::new(16, 16),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
-        )
+        ),
     );
-    
+
     let mut i = 0;
     for x in 0..map_size.x {
         for y in 0..map_size.y {
@@ -41,7 +41,8 @@ fn startup(
                 Tile {
                     texture_index: 0,
                     ..Default::default()
-                }.into(),
+                }
+                .into(),
                 i % 2 == 0 || i % 7 == 0,
             );
             i += 1;
@@ -50,9 +51,7 @@ fn startup(
 
     map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
 
-    commands
-        .entity(layer_entity)
-        .insert(LastUpdate(0.0));
+    commands.entity(layer_entity).insert(LastUpdate(0.0));
 }
 
 pub struct LastUpdate(f64);

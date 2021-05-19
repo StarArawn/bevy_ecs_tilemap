@@ -24,15 +24,14 @@ fn startup(
 
     let mut ground_layer = None;
 
-    commands.spawn()
-        .insert(
-            Transform::from_xyz(-128.0, -128.0, 0.0),
-        ).insert(
-            GlobalTransform::default(),
-        ).with_children(|child_builder| { 
+    commands
+        .spawn()
+        .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
+        .insert(GlobalTransform::default())
+        .with_children(|child_builder| {
             ground_layer = Some(child_builder.spawn().id());
         });
-    
+
     let mut layer_builder = LayerBuilder::new(&mut commands, ground_layer.unwrap(), layer_settings);
 
     let mut random = thread_rng();
@@ -40,11 +39,7 @@ fn startup(
     for _ in 0..100 {
         let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = layer_builder.set_tile(
-            position,
-            TileBundle::default(),
-            true,
-        );
+        let _ = layer_builder.set_tile(position, TileBundle::default(), true);
     }
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);

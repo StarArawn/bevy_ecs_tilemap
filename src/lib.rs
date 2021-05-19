@@ -17,7 +17,7 @@
 //! ```
 //! let texture_handle = asset_server.load("tiles.png");
 //! let material_handle = materials.add(ColorMaterial::texture(texture_handle));
-//! 
+//!
 //! let layer_entity = commands.spawn().id();
 //! let mut layer_builder = LayerBuilder::new(
 //!     &mut commands,
@@ -29,26 +29,24 @@
 //!         Vec2::new(96.0, 256.0),
 //!     )
 //! );
-//! 
+//!
 //! layer_builder.set_all(TileBundle::default(), true);
-//! 
+//!
 //! map_query.create_layer(&mut commands, layer_builder, material_handle);
 //! ```
 
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
-use layer::{
-    update_chunk_hashmap_for_added_tiles,
-};
+use layer::update_chunk_hashmap_for_added_tiles;
 use render::pipeline::add_tile_map_graph;
 
 mod chunk;
 mod layer;
+mod layer_builder;
+mod map_query;
 mod mesher;
 mod render;
 mod tile;
-mod map_query;
-mod layer_builder;
 
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
@@ -73,7 +71,7 @@ pub enum HexType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IsoType {
     Diamond,
-    Staggered
+    Staggered,
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
@@ -96,7 +94,7 @@ impl Plugin for TilemapPlugin {
                 TilemapStage,
                 update_chunk_hashmap_for_added_tiles
                     .system()
-                    .label("hash_update_for_tiles")
+                    .label("hash_update_for_tiles"),
             )
             .add_system_to_stage(
                 TilemapStage,
@@ -128,12 +126,14 @@ pub fn morton_pos(index: usize) -> UVec2 {
 
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
-    pub use crate::map_query::MapQuery;
-    pub use crate::layer_builder::{LayerBuilder};
     pub use crate::chunk::{Chunk, ChunkSettings};
     pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+    pub use crate::layer_builder::LayerBuilder;
+    pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
-    pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile, TileBundle, TileBundleTrait};
+    pub use crate::tile::{
+        GPUAnimated, RemoveTile, Tile, TileBundle, TileBundleTrait, VisibleTile,
+    };
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
 }
