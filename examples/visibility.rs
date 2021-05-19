@@ -61,7 +61,7 @@ fn remove_tiles(
             let position = UVec2::new(random.gen_range(0..32), random.gen_range(0..32));
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
-            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0) {
+            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u32) {
                 if visibility_query.get(tile_entity).is_ok() {
                     commands
                         .entity(tile_entity)
@@ -73,7 +73,7 @@ fn remove_tiles(
                 }
             }
 
-            map_query.notify_chunk_for_tile(position, 0);
+            map_query.notify_chunk_for_tile(position, 0u32);
 
             last_update.value = current_time;
         }

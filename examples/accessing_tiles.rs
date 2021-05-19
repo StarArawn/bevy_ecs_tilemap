@@ -104,7 +104,7 @@ fn update_map(
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     // First we get the neighboring entities for the given tile.
-                    let neighbors = map_query.get_tile_neighbors(UVec2::new(x, y), 0);
+                    let neighbors = map_query.get_tile_neighbors(UVec2::new(x, y), 0u32);
                     for (pos, neighbor) in neighbors.iter() {
                         // If the tile exists we will have an entity.
                         if let Some(neighbor) = neighbor {
@@ -117,7 +117,7 @@ fn update_map(
                                 };
                                 // Finally after mutating the tile we can tell the internal systems to "remesh" the tilemap.
                                 // This sends the new tile data to the gpu.
-                                map_query.notify_chunk_for_tile(pos.as_u32(), 0);
+                                map_query.notify_chunk_for_tile(pos.as_u32(), 0u32);
                             }
                         }
                     }

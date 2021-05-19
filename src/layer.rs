@@ -55,6 +55,10 @@ impl LayerSettings {
             mesher: Box::new(SquareChunkMesher),
         }
     }
+
+    pub fn set_layer_id<T: Into<u32>>(&mut self, id: T) {
+        self.layer_id = id.into();
+    }
 }
 
 impl Clone for LayerSettings {

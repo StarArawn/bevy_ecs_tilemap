@@ -71,7 +71,7 @@ fn update(
             for (entity, pos) in tile_query.iter() {
                 // Get neighbor count.
                 let neighbor_count = map_query
-                    .get_tile_neighbors(*pos, 0)
+                    .get_tile_neighbors(*pos, 0u32)
                     .iter()
                     .filter(|x| {
                         if let Some(entity) = x.1 {
@@ -94,12 +94,12 @@ fn update(
                     commands
                         .entity(entity)
                         .insert(bevy_ecs_tilemap::prelude::VisibleTile);
-                    map_query.notify_chunk_for_tile(*pos, 0);
+                    map_query.notify_chunk_for_tile(*pos, 0u32);
                 } else if !is_alive && was_alive {
                     commands
                         .entity(entity)
                         .remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
-                    map_query.notify_chunk_for_tile(*pos, 0);
+                    map_query.notify_chunk_for_tile(*pos, 0u32);
                 }
             }
 

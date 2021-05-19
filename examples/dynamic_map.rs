@@ -52,10 +52,10 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
                 texture_index: 0,
                 ..Default::default()
             },
-            0,
+            0u32,
             true,
         );
-        map_query.notify_chunk_for_tile(position, 0);
+        map_query.notify_chunk_for_tile(position, 0u32);
     }
 }
 
@@ -68,7 +68,7 @@ fn update_map(
     let current_time = time.seconds_since_startup();
     for mut last_update in query.iter_mut() {
         if (current_time - last_update.value) > 1.0 {
-            map_query.despawn_layer_tiles(&mut commands, 0);
+            map_query.despawn_layer_tiles(&mut commands, 0u32);
             build_map(&mut map_query, &mut commands);
             last_update.value = current_time;
         }

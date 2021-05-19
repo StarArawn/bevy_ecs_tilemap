@@ -51,7 +51,7 @@ fn remove_tiles(
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
             let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map_query.get_tile_entity(position, 0);
+            let tile_entity = map_query.get_tile_entity(position, 0u32);
 
             // Note you can also call map.remove_tile() instead.
             if tile_entity.is_ok() {
