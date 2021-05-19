@@ -190,7 +190,6 @@ where
         material: Handle<ColorMaterial>,
     ) -> LayerBundle {
         let mut layer = Layer::new(self.settings.clone());
-        let mut j = 0;
         for x in 0..layer.settings.map_size.x {
             for y in 0..layer.settings.map_size.y {
                 let mut chunk_entity = None;
@@ -221,11 +220,9 @@ where
                     self.settings.cull,
                 );
 
-                let mut i = 0;
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
                     let morton_tile_index = morton_index(tile_pos);
                     let tile_entity = self.tiles[morton_tile_index].0;
-                    i += 1;
                     if let Some((mut tile_bundle, visible)) = self.tiles[morton_tile_index].1.take()
                     {
                         let tile = tile_bundle.get_tile_mut();
@@ -244,7 +241,6 @@ where
                         None
                     }
                 });
-                j += i;
 
                 let index = morton_index(chunk_pos);
                 layer.chunks[index] = Some(chunk_entity);
@@ -271,8 +267,6 @@ where
                     ..Default::default()
                 });
             }
-
-            dbg!(j);
         }
 
         LayerBundle {
