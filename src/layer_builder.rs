@@ -1,7 +1,4 @@
-use crate::{
-    chunk::ChunkBundle, morton_index, render::TilemapData, tile::TileBundleTrait, Chunk, Layer,
-    LayerBundle, LayerSettings, MapTileError, VisibleTile,
-};
+use crate::{Chunk, Layer, LayerBundle, LayerSettings, MapTileError, VisibleTile, chunk::ChunkBundle, morton_index, render::TilemapData, round_to_power_of_two, tile::TileBundleTrait};
 use bevy::{
     prelude::*,
     render::{
@@ -23,14 +20,8 @@ where
 {
     /// Creates the layer builder using the layer settings.
     pub fn new(commands: &mut Commands, layer_entity: Entity, settings: LayerSettings) -> Self {
-        let tile_size_x = (1
-            << ((settings.map_size.x * settings.chunk_size.x) as f32)
-                .log2()
-                .ceil() as i32) as usize;
-        let tile_size_y = (1
-            << ((settings.map_size.y * settings.chunk_size.y) as f32)
-                .log2()
-                .ceil() as i32) as usize;
+        let tile_size_x = round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
+        let tile_size_y = round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
         let tile_count = tile_size_x * tile_size_y;
         Self {
             settings,

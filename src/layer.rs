@@ -1,9 +1,4 @@
-use crate::{
-    chunk::Chunk,
-    morton_index,
-    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
-    TilemapMeshType,
-};
+use crate::{TilemapMeshType, chunk::Chunk, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, round_to_power_of_two};
 use bevy::prelude::*;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
@@ -117,8 +112,8 @@ impl Layer {
     ///
     /// - `settings`: The map settings struct.
     pub fn new(settings: LayerSettings) -> Self {
-        let map_size_x = (1 << (settings.map_size.x as f32).log2().ceil() as i32) as usize;
-        let map_size_y = (1 << (settings.map_size.y as f32).log2().ceil() as i32) as usize;
+        let map_size_x = round_to_power_of_two(settings.map_size.x as f32);
+        let map_size_y = round_to_power_of_two(settings.map_size.y as f32);
         let map_size = map_size_x * map_size_y;
         Self {
             settings,

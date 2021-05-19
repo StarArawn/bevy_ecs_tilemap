@@ -119,7 +119,7 @@ pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
 }
 
 // TODO: Hide this.
-pub fn morton_pos(index: usize) -> UVec2 {
+fn morton_pos(index: usize) -> UVec2 {
     let [x, y]: [u32; 2] = morton_encoding::morton_decode(index as u64);
     UVec2::new(x, y)
 }
@@ -136,4 +136,8 @@ pub mod prelude {
     };
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
+}
+
+pub(crate) fn round_to_power_of_two(value: f32) -> usize {
+    1 << value.log2().ceil() as usize
 }

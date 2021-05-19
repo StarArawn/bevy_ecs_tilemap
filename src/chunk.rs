@@ -1,10 +1,4 @@
-use crate::{
-    morton_index, morton_pos,
-    prelude::{SquareChunkMesher, TilemapChunkMesher},
-    render::TilemapData,
-    tile::{self, GPUAnimated, Tile},
-    TilemapMeshType,
-};
+use crate::{TilemapMeshType, morton_index, morton_pos, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::TilemapData, round_to_power_of_two, tile::{self, GPUAnimated, Tile}};
 use bevy::{
     prelude::*,
     render::{
@@ -146,8 +140,8 @@ impl Chunk {
         mesher: Box<dyn TilemapChunkMesher>,
         cull: bool,
     ) -> Self {
-        let tile_size_x = (1 << (chunk_size.x as f32).log2().ceil() as i32) as usize;
-        let tile_size_y = (1 << (chunk_size.y as f32).log2().ceil() as i32) as usize;
+        let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
+        let tile_size_y = round_to_power_of_two(chunk_size.y as f32);
         let tile_count = tile_size_x * tile_size_y;
         let tiles = vec![None; tile_count];
         let settings = ChunkSettings {
