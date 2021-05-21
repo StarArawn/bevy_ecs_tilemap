@@ -54,17 +54,17 @@ struct LastUpdate {
 // it's faster to do it this way:
 fn random(
     time: ResMut<Time>,
-    mut query: Query<(&UVec2, &mut Tile, &mut LastUpdate)>,
+    mut query: Query<(&mut Tile, &TileParent, &mut LastUpdate)>,
     mut chunk_query: Query<&mut Chunk>,
 ) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
     let mut chunks = HashSet::new();
-    for (_, mut tile, mut last_update) in query.iter_mut() {
+    for (mut tile, tile_parent, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.05 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
-            chunks.insert(tile.chunk);
+            chunks.insert(tile_parent.0);
         }
     }
 

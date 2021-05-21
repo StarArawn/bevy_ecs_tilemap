@@ -86,3 +86,5 @@ impl TileBundleTrait for TileBundle {
         &mut self.tile
     }
 }
+
+pub struct TileParent(pub Entity);

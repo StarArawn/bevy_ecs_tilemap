@@ -132,7 +132,13 @@ pub mod prelude {
     pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
     pub use crate::tile::{
-        GPUAnimated, RemoveTile, Tile, TileBundle, TileBundleTrait, VisibleTile,
+        GPUAnimated,
+        RemoveTile,
+        Tile,
+        TileBundle,
+        TileBundleTrait,
+        TileParent,
+        VisibleTile,
     };
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
