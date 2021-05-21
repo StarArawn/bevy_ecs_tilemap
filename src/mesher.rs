@@ -113,8 +113,8 @@ impl TilemapChunkMesher for SquareChunkMesher {
                 }
             }
         }
-        mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(positions));
-        mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(textures));
+        mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(positions));
+        mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(textures));
         mesh.set_indices(Some(Indices::U32(indices)));
 
         (chunk.mesh_handle, mesh)

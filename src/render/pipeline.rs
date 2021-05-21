@@ -3,7 +3,7 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         pipeline::{
-            BlendFactor, BlendOperation, BlendState, ColorTargetState, ColorWrite, CompareFunction,
+            BlendFactor, BlendOperation, BlendState, ColorTargetState, BlendComponent, ColorWrite, CompareFunction,
             DepthBiasState, DepthStencilState, PipelineDescriptor, RenderPipeline,
             StencilFaceState, StencilState,
         },
@@ -28,16 +28,18 @@ macro_rules! create_chunk_pipeline {
             PipelineDescriptor {
                 color_target_states: vec![ColorTargetState {
                     format: TextureFormat::default(),
-                    color_blend: BlendState {
-                        src_factor: BlendFactor::SrcAlpha,
-                        dst_factor: BlendFactor::OneMinusSrcAlpha,
-                        operation: BlendOperation::Add,
-                    },
-                    alpha_blend: BlendState {
-                        src_factor: BlendFactor::One,
-                        dst_factor: BlendFactor::One,
-                        operation: BlendOperation::Add,
-                    },
+                    blend: Some(BlendState {
+                        color: BlendComponent {
+                            src_factor: BlendFactor::SrcAlpha,
+                            dst_factor: BlendFactor::OneMinusSrcAlpha,
+                            operation: BlendOperation::Add,
+                        },
+                        alpha: BlendComponent {
+                            src_factor: BlendFactor::One,
+                            dst_factor: BlendFactor::One,
+                            operation: BlendOperation::Add,
+                        },
+                    }),
                     write_mask: ColorWrite::ALL,
                 }],
                 depth_stencil: Some(DepthStencilState {
@@ -55,7 +57,6 @@ macro_rules! create_chunk_pipeline {
                         slope_scale: 0.0,
                         clamp: 0.0,
                     },
-                    clamp_depth: false,
                 }),
                 ..PipelineDescriptor::new(ShaderStages {
                     vertex: shaders.add(Shader::from_glsl(
