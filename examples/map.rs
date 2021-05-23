@@ -26,7 +26,7 @@ fn startup(
         ),
     );
 
-    layer_builder.set_all(TileBundle::default(), true);
+    layer_builder.set_all(TileBundle::default());
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 }

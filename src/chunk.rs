@@ -1,4 +1,11 @@
-use crate::{TilemapMeshType, morton_index, morton_pos, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::TilemapData, round_to_power_of_two, tile::{self, GPUAnimated, Tile}};
+use crate::{
+    morton_index, morton_pos,
+    prelude::{SquareChunkMesher, TilemapChunkMesher},
+    render::TilemapData,
+    round_to_power_of_two,
+    tile::{GPUAnimated, Tile},
+    TilemapMeshType,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -211,7 +218,7 @@ impl Chunk {
 pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
+    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
     mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
 ) {
     let threaded_meshes = Mutex::new(meshes);

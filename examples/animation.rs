@@ -34,7 +34,7 @@ fn startup(
     let mut layer_builder =
         LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, layer_settings.clone());
 
-    layer_builder.set_all(Tile::default().into(), true);
+    layer_builder.set_all(Tile::default().into());
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
@@ -67,7 +67,6 @@ fn startup(
                 ..Default::default()
             }
             .into(),
-            true,
         );
 
         if let Ok(entity) = layer_builder.get_tile_entity(position) {

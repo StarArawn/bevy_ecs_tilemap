@@ -26,7 +26,7 @@ fn startup(
 
     let mut layer_builder =
         LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, map_settings.clone());
-    layer_builder.set_all(Tile::default().into(), true);
+    layer_builder.set_all(Tile::default().into());
 
     map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
 
@@ -49,7 +49,6 @@ fn startup(
                     ..Default::default()
                 }
                 .into(),
-                true,
             );
         }
 

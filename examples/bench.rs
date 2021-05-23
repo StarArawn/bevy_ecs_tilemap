@@ -10,7 +10,7 @@ fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
+    mut meshes: ResMut<Assets<Mesh>>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle {
         transform: Transform::from_xyz(12800.0, 12800.0, 1000.0 - 0.1),
@@ -22,21 +22,18 @@ fn startup(
 
     // Create map with (10 * 128) ^ 2 tiles or 1,638,400 tiles.
     // Be patient when running this example as meshing does not run on multiple CPU's yet..
-    let layer_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
+    LayerBuilder::<TileBundle>::new_batch(
         &mut commands,
-        layer_entity,
         LayerSettings::new(
             UVec2::new(10, 10),
             UVec2::new(128, 128),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
         ),
+        &mut meshes,
+        material_handle,
+        |_| TileBundle::default(),
     );
-
-    layer_builder.set_all(Tile::default().into(), true);
-
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
 }
 
 fn main() {

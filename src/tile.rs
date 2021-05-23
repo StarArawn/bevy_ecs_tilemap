@@ -3,23 +3,23 @@ use bevy::prelude::*;
 /// A component that represents the basic tile information.
 #[derive(Debug, Clone, Copy)]
 pub struct Tile {
-    /// The chunk entity which is this tiles parent entity.
-    pub chunk: Entity,
     /// The texture index in the atlas or array.
     pub texture_index: u32,
     /// Flip tile along the x axis.
     pub flip_x: bool,
     /// Flip tile along the Y axis.
     pub flip_y: bool,
+    /// Visibility, if false will still process tile events, but will not render the tile.
+    pub visible: bool,
 }
 
 impl Default for Tile {
     fn default() -> Self {
         Self {
-            chunk: Entity::new(0),
             texture_index: 0,
             flip_x: false,
             flip_y: false,
+            visible: true,
         }
     }
 }
@@ -32,11 +32,6 @@ impl Into<TileBundle> for Tile {
         }
     }
 }
-
-/// Allows the tile to be meshed and rendered.
-/// Tiles without this tag will be ignored by the meshing and rendering systems.
-#[derive(Debug, Copy, Clone)]
-pub struct VisibleTile;
 
 /// A tag that allows you to remove a tile from the world
 pub struct RemoveTile;
@@ -60,10 +55,9 @@ impl GPUAnimated {
     }
 }
 
-/// This trait allows you to create your own entity bundles which
-/// allow the layer_builder to access the tile component.
 pub trait TileBundleTrait: Bundle + Clone {
-    fn get_tile_mut(&mut self) -> &mut Tile;
+    fn get_tile_pos_mut(&mut self) -> &mut UVec2;
+    fn get_tile_parent(&mut self) -> &mut TileParent;
 }
 
 /// The standard tile bundle.
@@ -71,18 +65,41 @@ pub trait TileBundleTrait: Bundle + Clone {
 pub struct TileBundle {
     /// Tile component.
     pub tile: Tile,
+    /// The position in the tilemap grid.
+    pub position: UVec2,
+    /// The parent chunk.
+    pub parent: TileParent,
 }
 
 impl Default for TileBundle {
     fn default() -> Self {
         Self {
             tile: Tile::default(),
+            position: UVec2::default(),
+            parent: TileParent(Entity::new(0)),
         }
     }
 }
 
 impl TileBundleTrait for TileBundle {
-    fn get_tile_mut(&mut self) -> &mut Tile {
-        &mut self.tile
+    fn get_tile_pos_mut(&mut self) -> &mut UVec2 {
+        &mut self.position
+    }
+
+    fn get_tile_parent(&mut self) -> &mut TileParent {
+        &mut self.parent
     }
 }
+
+impl TileBundle {
+    pub fn new(tile: Tile, position: UVec2, chunk: Entity) -> Self {
+        Self {
+            tile,
+            position,
+            parent: TileParent(chunk),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct TileParent(pub Entity);

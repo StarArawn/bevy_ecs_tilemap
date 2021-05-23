@@ -1,4 +1,11 @@
-use crate::{Chunk, Layer, LayerBundle, LayerSettings, MapTileError, VisibleTile, chunk::ChunkBundle, morton_index, render::TilemapData, round_to_power_of_two, tile::TileBundleTrait};
+use crate::{
+    chunk::ChunkBundle,
+    morton_index,
+    render::TilemapData,
+    round_to_power_of_two,
+    tile::{TileBundleTrait, TileParent},
+    Chunk, Layer, LayerBundle, LayerSettings, MapTileError,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -10,7 +17,7 @@ use bevy::{
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
-    pub(crate) tiles: Vec<(Entity, Option<(T, bool)>)>,
+    pub(crate) tiles: Vec<(Entity, Option<T>)>,
     pub(crate) layer_entity: Entity,
 }
 
@@ -20,18 +27,16 @@ where
 {
     /// Creates the layer builder using the layer settings.
     pub fn new(commands: &mut Commands, layer_entity: Entity, settings: LayerSettings) -> Self {
-        let tile_size_x = round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
-        let tile_size_y = round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
+        let tile_size_x =
+            round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
+        let tile_size_y =
+            round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
         let tile_count = tile_size_x * tile_size_y;
         Self {
             settings,
             tiles: (0..tile_count)
                 .map(|_| {
-                    //let mut tile_entity = None;
-                    // commands.entity(layer_entity).with_children(|child_builder| {
-                    // Commented out because child tiles cut performance in half.
                     let tile_entity = Some(commands.spawn().id());
-                    // });
                     (tile_entity.unwrap(), None)
                 })
                 .collect(),
@@ -39,16 +44,129 @@ where
         }
     }
 
+    /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
+    /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
+    pub fn new_batch<F: 'static + FnMut(UVec2) -> T>(
+        commands: &mut Commands,
+        settings: LayerSettings,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        material_handle: Handle<ColorMaterial>,
+        mut f: F,
+    ) -> Entity {
+        let layer_entity = commands.spawn().id();
+
+        let size_x = settings.map_size.x * settings.chunk_size.x;
+        let size_y = settings.map_size.y * settings.chunk_size.y;
+
+        let mut layer = Layer::new(settings.clone());
+        for x in 0..layer.settings.map_size.x {
+            for y in 0..layer.settings.map_size.y {
+                let mut chunk_entity = None;
+                commands
+                    .entity(layer_entity)
+                    .with_children(|child_builder| {
+                        chunk_entity = Some(child_builder.spawn().id());
+                    });
+                let chunk_entity = chunk_entity.unwrap();
+
+                let chunk_pos = UVec2::new(x, y);
+                let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
+                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
+                mesh.set_indices(Some(Indices::U32(vec![])));
+                let mesh_handle = meshes.add(mesh);
+                let chunk = Chunk::new(
+                    layer_entity,
+                    chunk_pos,
+                    settings.chunk_size,
+                    settings.tile_size,
+                    settings.texture_size,
+                    settings.tile_spacing,
+                    mesh_handle.clone(),
+                    settings.layer_id,
+                    settings.mesh_type,
+                    dyn_clone::clone_box(&*settings.mesher),
+                    settings.cull,
+                );
+
+                let index = morton_index(chunk_pos);
+                layer.chunks[index] = Some(chunk_entity);
+
+                let transform = Transform::from_xyz(
+                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x,
+                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y,
+                    0.0,
+                );
+
+                let tilemap_data = TilemapData::from(&chunk.settings);
+
+                commands.entity(chunk_entity).insert_bundle(ChunkBundle {
+                    chunk,
+                    mesh: mesh_handle,
+                    material: material_handle.clone(),
+                    transform,
+                    tilemap_data,
+                    render_pipeline: settings.mesh_type.into(),
+                    ..Default::default()
+                });
+            }
+        }
+
+        let ref_layer = &layer;
+        let chunk_size = settings.chunk_size;
+        let bundles: Vec<T> = (0..size_x)
+            .flat_map(|x| (0..size_y).map(move |y| (x, y)))
+            .map(move |(x, y)| {
+                let tile_pos = UVec2::new(x, y);
+                let chunk_pos = UVec2::new(x / chunk_size.x, y / chunk_size.y);
+                let mut tile_bundle = f(tile_pos);
+                let tile_parent = tile_bundle.get_tile_parent();
+                *tile_parent = TileParent(ref_layer.get_chunk(chunk_pos).unwrap());
+                let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
+                *tile_bundle_pos = tile_pos;
+                tile_bundle
+            })
+            .collect();
+
+        // let mut bundles = Vec::with_capacity((size_x * size_y) as usize);
+        // for x in 0..size_x {
+        //     for y in 0..size_y {
+        //         let tile_pos = UVec2::new(x, y);
+        //         let chunk_pos = UVec2::new(x / settings.chunk_size.x, y / settings.chunk_size.y);
+        //         let mut tile_bundle = f(tile_pos);
+        //         let tile_parent = tile_bundle.get_tile_parent();
+        //         *tile_parent = TileParent(layer.get_chunk(chunk_pos).unwrap());
+        //         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
+        //         *tile_bundle_pos = tile_pos;
+        //         bundles.push(tile_bundle);
+        //     }
+        // }
+        commands.spawn_batch(bundles);
+
+        let layer_bundle = LayerBundle {
+            layer,
+            transform: Transform::from_xyz(0.0, 0.0, settings.layer_id as f32),
+            ..LayerBundle::default()
+        };
+
+        let mut layer = layer_bundle.layer;
+        let mut transform = layer_bundle.transform;
+        layer.settings.layer_id = layer.settings.layer_id;
+        transform.translation.z = layer.settings.layer_id as f32;
+        commands.entity(layer_entity).insert_bundle(LayerBundle {
+            layer,
+            transform,
+            ..layer_bundle
+        });
+
+        layer_entity
+    }
+
     /// Sets a tile's data at the given position.
-    pub fn set_tile(
-        &mut self,
-        tile_pos: UVec2,
-        tile: T,
-        visible: bool,
-    ) -> Result<(), MapTileError> {
+    pub fn set_tile(&mut self, tile_pos: UVec2, tile: T) -> Result<(), MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
-            self.tiles[morton_tile_index].1 = Some((tile, visible));
+            self.tiles[morton_tile_index].1 = Some(tile);
             return Ok(());
         }
         Err(MapTileError::OutOfBounds)
@@ -69,7 +187,7 @@ where
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
-                return Ok(&tile.0);
+                return Ok(&tile);
             } else {
                 return Err(MapTileError::NonExistent);
             }
@@ -77,14 +195,14 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    fn get_tile_i(&self, tile_pos: IVec2) -> Option<(bevy::prelude::Entity, &T)> {
+    fn get_tile_i32(&self, tile_pos: IVec2) -> Option<(bevy::prelude::Entity, &T)> {
         if tile_pos.x < 0 || tile_pos.y < 0 {
             return None;
         }
         let morton_tile_index = morton_index(tile_pos.as_u32());
         if morton_tile_index < self.tiles.capacity() {
             let tile = &self.tiles[morton_tile_index];
-            if let Some((bundle, _)) = &tile.1 {
+            if let Some(bundle) = &tile.1 {
                 return Some((tile.0, bundle));
             }
         }
@@ -97,7 +215,7 @@ where
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
-                return Ok(&mut tile.0);
+                return Ok(tile);
             } else {
                 return Err(MapTileError::NonExistent);
             }
@@ -109,7 +227,7 @@ where
     /// Note: The boolean is for visibility.
     pub fn for_each_tiles<F>(&mut self, mut f: F)
     where
-        F: FnMut(Entity, &Option<(T, bool)>),
+        F: FnMut(Entity, &Option<T>),
     {
         self.tiles.iter().for_each(|tile| {
             f(tile.0, &tile.1);
@@ -120,7 +238,7 @@ where
     /// Note: The boolean is for visibility.
     pub fn for_each_tiles_mut<F>(&mut self, mut f: F)
     where
-        F: FnMut(Entity, &mut Option<(T, bool)>),
+        F: FnMut(Entity, &mut Option<T>),
     {
         self.tiles.iter_mut().for_each(|tile| {
             f(tile.0, &mut tile.1);
@@ -128,19 +246,19 @@ where
     }
 
     /// Fills a section of the map with tiles.
-    pub fn fill(&mut self, start: UVec2, end: UVec2, tile: T, visible: bool) {
+    pub fn fill(&mut self, start: UVec2, end: UVec2, tile: T) {
         for x in start.x..end.x {
             for y in start.y..end.y {
                 // Ignore fill errors.
-                let _ = self.set_tile(UVec2::new(x, y), tile.clone(), visible);
+                let _ = self.set_tile(UVec2::new(x, y), tile.clone());
             }
         }
     }
 
     /// Sets all of the tiles in the layer builder.
-    pub fn set_all(&mut self, tile: T, visible: bool) {
+    pub fn set_all(&mut self, tile: T) {
         for tile_option in self.tiles.iter_mut() {
-            *tile_option = (tile_option.0, Some((tile.clone(), visible)));
+            *tile_option = (tile_option.0, Some(tile.clone()));
         }
     }
 
@@ -171,14 +289,14 @@ where
         let sw = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32 - 1);
         let se = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32 - 1);
         [
-            (n, self.get_tile_i(n)),
-            (s, self.get_tile_i(s)),
-            (w, self.get_tile_i(w)),
-            (e, self.get_tile_i(e)),
-            (nw, self.get_tile_i(nw)),
-            (ne, self.get_tile_i(ne)),
-            (sw, self.get_tile_i(sw)),
-            (se, self.get_tile_i(se)),
+            (n, self.get_tile_i32(n)),
+            (s, self.get_tile_i32(s)),
+            (w, self.get_tile_i32(w)),
+            (e, self.get_tile_i32(e)),
+            (nw, self.get_tile_i32(nw)),
+            (ne, self.get_tile_i32(ne)),
+            (sw, self.get_tile_i32(sw)),
+            (se, self.get_tile_i32(se)),
         ]
     }
 
@@ -223,19 +341,13 @@ where
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
                     let morton_tile_index = morton_index(tile_pos);
                     let tile_entity = self.tiles[morton_tile_index].0;
-                    if let Some((mut tile_bundle, visible)) = self.tiles[morton_tile_index].1.take()
-                    {
-                        let tile = tile_bundle.get_tile_mut();
-                        tile.chunk = chunk_entity;
+                    if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
+                        let tile_parent = tile_bundle.get_tile_parent();
+                        *tile_parent = TileParent(chunk_entity);
+                        let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
+                        *tile_bundle_pos = tile_pos;
+                        commands.entity(tile_entity).insert_bundle(tile_bundle);
 
-                        commands
-                            .entity(tile_entity)
-                            .insert_bundle(tile_bundle)
-                            .insert(tile_pos);
-
-                        if visible {
-                            commands.entity(tile_entity).insert(VisibleTile);
-                        }
                         Some(tile_entity)
                     } else {
                         None

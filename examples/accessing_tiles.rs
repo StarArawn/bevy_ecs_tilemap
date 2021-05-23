@@ -44,7 +44,7 @@ fn startup(
     );
 
     // We can easily fill the entire map by using set_all
-    layer_builder.set_all(Tile::default().into(), true);
+    layer_builder.set_all(Tile::default().into());
 
     // You can also fill in a portion of the map
     layer_builder.fill(
@@ -55,7 +55,6 @@ fn startup(
             ..Default::default()
         }
         .into(),
-        true,
     );
 
     let neighbors = layer_builder.get_tile_neighbors(UVec2::new(0, 0));
@@ -84,7 +83,6 @@ fn startup(
                         ..Default::default()
                     }
                     .into(),
-                    true,
                 );
             }
         }

@@ -1,4 +1,11 @@
-use crate::{TilemapMeshType, chunk::Chunk, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, round_to_power_of_two};
+use crate::{
+    chunk::Chunk,
+    morton_index,
+    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
+    round_to_power_of_two,
+    tile::TileParent,
+    TilemapMeshType,
+};
 use bevy::prelude::*;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
@@ -137,13 +144,13 @@ impl Layer {
 // Adds new tiles to the chunk hash map.
 pub(crate) fn update_chunk_hashmap_for_added_tiles(
     mut chunk_query: Query<&mut Chunk>,
-    tile_query: Query<(Entity, &Tile, &UVec2), Added<Tile>>,
+    tile_query: Query<(Entity, &UVec2, &TileParent), Added<Tile>>,
 ) {
     if tile_query.iter().count() > 0 {
         log::info!("Updating tile cache.");
     }
-    for (tile_entity, new_tile, tile_pos) in tile_query.iter() {
-        if let Ok(mut chunk) = chunk_query.get_mut(new_tile.chunk) {
+    for (tile_entity, tile_pos, tile_parent) in tile_query.iter() {
+        if let Ok(mut chunk) = chunk_query.get_mut(tile_parent.0) {
             let tile_pos = chunk.to_chunk_pos(*tile_pos);
             chunk.tiles[morton_index(tile_pos)] = Some(tile_entity);
         }

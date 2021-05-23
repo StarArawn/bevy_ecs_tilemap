@@ -31,16 +31,13 @@ fn startup(
             Vec2::new(96.0, 256.0),
         ),
     );
-    layer_builder.set_all(
-        TileBundle {
-            tile: Tile {
-                texture_index: 1,
-                ..Default::default()
-            },
+    layer_builder.set_all(TileBundle {
+        tile: Tile {
+            texture_index: 1,
             ..Default::default()
         },
-        true,
-    );
+        ..Default::default()
+    });
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
@@ -48,10 +45,9 @@ fn startup(
 }
 
 fn remove_tiles(
-    mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
-    visibility_query: Query<&bevy_ecs_tilemap::prelude::VisibleTile>,
+    mut tile_query: Query<&mut Tile>,
     mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
@@ -63,14 +59,12 @@ fn remove_tiles(
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
             if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u32) {
-                if visibility_query.get(tile_entity).is_ok() {
-                    commands
-                        .entity(tile_entity)
-                        .remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
-                } else {
-                    commands
-                        .entity(tile_entity)
-                        .insert(bevy_ecs_tilemap::prelude::VisibleTile);
+                if let Ok(mut tile) = tile_query.get_mut(tile_entity) {
+                    if tile.visible {
+                        tile.visible = false;
+                    } else {
+                        tile.visible = true;
+                    }
                 }
             }
 
@@ -83,7 +77,7 @@ fn remove_tiles(
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(log::LevelFilter::Trace)
         .init();
 
     App::build()

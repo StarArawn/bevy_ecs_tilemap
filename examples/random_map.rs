@@ -25,7 +25,7 @@ fn startup(
 
     // Chunk sizes of 64x64 seem optimal for meshing updates.
     let map_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::new(
+    let mut layer_builder = LayerBuilder::<TileBundle>::new(
         &mut commands,
         map_entity,
         LayerSettings::new(
@@ -37,7 +37,7 @@ fn startup(
     );
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
         // True here refers to tile visibility.
-        *tile_data = Some((TileBundle::default(), true));
+        *tile_data = Some(TileBundle::default());
         // Be careful here as this entity can sometimes not have any tile data.
         commands.entity(tile_entity).insert(LastUpdate::default());
     });
@@ -54,17 +54,17 @@ struct LastUpdate {
 // it's faster to do it this way:
 fn random(
     time: ResMut<Time>,
-    mut query: Query<(&UVec2, &mut Tile, &mut LastUpdate)>,
+    mut query: Query<(&mut Tile, &TileParent, &mut LastUpdate)>,
     mut chunk_query: Query<&mut Chunk>,
 ) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
     let mut chunks = HashSet::new();
-    for (_, mut tile, mut last_update) in query.iter_mut() {
+    for (mut tile, tile_parent, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.05 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
-            chunks.insert(tile.chunk);
+            chunks.insert(tile_parent.0);
         }
     }
 

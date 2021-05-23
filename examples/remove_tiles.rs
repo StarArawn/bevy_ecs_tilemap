@@ -31,7 +31,7 @@ fn startup(
             Vec2::new(96.0, 256.0),
         ),
     );
-    layer_builder.set_all(TileBundle::default(), true);
+    layer_builder.set_all(TileBundle::default());
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 

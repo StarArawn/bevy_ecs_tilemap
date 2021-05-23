@@ -40,10 +40,10 @@ fn startup(
                 position,
                 Tile {
                     texture_index: 0,
+                    visible: i % 2 == 0 || i % 7 == 0,
                     ..Default::default()
                 }
                 .into(),
-                i % 2 == 0 || i % 7 == 0,
             );
             i += 1;
         }
@@ -60,26 +60,27 @@ fn update(
     mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
-    visible: Query<&bevy_ecs_tilemap::prelude::VisibleTile>,
-    tile_query: Query<(Entity, &UVec2), With<Tile>>,
+    tile_query: Query<(Entity, &Tile, &UVec2)>,
     mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
     if let Ok(mut last_update) = last_update_query.single_mut() {
         if current_time - last_update.0 > 0.1 {
-            for (entity, pos) in tile_query.iter() {
+            for (entity, tile, pos) in tile_query.iter() {
                 // Get neighbor count.
                 let neighbor_count = map_query
                     .get_tile_neighbors(*pos, 0u32)
                     .iter()
                     .filter(|x| {
                         if let Some(entity) = x.1 {
-                            return visible.get(entity).is_ok();
+                            if let Ok((_, tile, _)) = tile_query.get(entity) {
+                                return tile.visible;
+                            }
                         }
                         return false;
                     })
                     .count();
-                let was_alive = visible.get(entity).is_ok();
+                let was_alive = tile.visible;
 
                 let is_alive = match (was_alive, neighbor_count) {
                     (true, x) if x < 2 => false,
@@ -90,14 +91,16 @@ fn update(
                 };
 
                 if is_alive && !was_alive {
-                    commands
-                        .entity(entity)
-                        .insert(bevy_ecs_tilemap::prelude::VisibleTile);
+                    commands.entity(entity).insert(Tile {
+                        visible: true,
+                        ..*tile
+                    });
                     map_query.notify_chunk_for_tile(*pos, 0u32);
                 } else if !is_alive && was_alive {
-                    commands
-                        .entity(entity)
-                        .remove::<bevy_ecs_tilemap::prelude::VisibleTile>();
+                    commands.entity(entity).insert(Tile {
+                        visible: false,
+                        ..*tile
+                    });
                     map_query.notify_chunk_for_tile(*pos, 0u32);
                 }
             }
