@@ -34,7 +34,6 @@ fn startup(
             },
             ..Default::default()
         },
-        true,
     );
 
     map_query.create_layer(&mut commands, layer_0, material_handle.clone());
@@ -61,7 +60,6 @@ fn startup(
                     },
                     ..Default::default()
                 },
-                true,
             );
         }
 

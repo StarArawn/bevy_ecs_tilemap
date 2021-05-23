@@ -20,11 +20,9 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut i = 0;
-
     // Create map with (10 * 128) ^ 2 tiles or 1,638,400 tiles.
     // Be patient when running this example as meshing does not run on multiple CPU's yet..
-    LayerBuilder::<TileBundle>::new_and_build(
+    LayerBuilder::<TileBundle>::new_batch(
         &mut commands,
         LayerSettings::new(
             UVec2::new(10, 10),
@@ -34,13 +32,8 @@ fn startup(
         ),
         &mut meshes,
         material_handle,
-        |commands, _| {
-            i += 1;
-            commands
-                .spawn()
-                .insert_bundle(TileBundle::default())
-                .insert(VisibleTile)
-                .id()
+        |_| {
+            TileBundle::default()
         }
     );
 }

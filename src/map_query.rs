@@ -58,7 +58,6 @@ impl<'a> MapQuery<'a> {
         tile_pos: UVec2,
         tile: Tile,
         layer_id: T,
-        visible: bool,
     ) -> Result<Entity, MapTileError> {
         let layer_id: u32 = layer_id.into();
         if let Some((_, layer)) = self
@@ -81,14 +80,9 @@ impl<'a> MapQuery<'a> {
                     } else {
                         let mut tile_commands = commands.spawn();
                         tile_commands
-                            .insert(Tile {
-                                chunk: chunk_entity,
-                                ..tile
-                            })
+                            .insert(tile)
+                            .insert(TileParent(chunk_entity))
                             .insert(tile_pos);
-                        if visible {
-                            tile_commands.insert(VisibleTile);
-                        }
                         let tile_entity = tile_commands.id();
                         chunk.tiles[morton_index(chunk_local_tile_pos)] = Some(tile_entity);
                         return Ok(tile_entity);

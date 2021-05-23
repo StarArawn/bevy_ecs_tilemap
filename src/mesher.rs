@@ -18,7 +18,7 @@ pub(crate) trait TilemapChunkMesher: Component + DynClone + std::fmt::Debug {
         &self,
         chunk: ChunkSettings,
         chunk_tiles: &Vec<Option<Entity>>,
-        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<VisibleTile>>,
+        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
     ) -> (Handle<Mesh>, Mesh);
 
     fn should_cull(&self) -> bool;
@@ -32,7 +32,7 @@ impl TilemapChunkMesher for SquareChunkMesher {
         &self,
         chunk: ChunkSettings,
         chunk_tiles: &Vec<Option<Entity>>,
-        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<VisibleTile>>,
+        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
     ) -> (Handle<Mesh>, Mesh) {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         let size = ((chunk.size.x * chunk.size.y) * 4) as usize;
@@ -45,6 +45,8 @@ impl TilemapChunkMesher for SquareChunkMesher {
         for tile_entity in chunk_tiles.iter() {
             if let Some(tile_entity) = tile_entity {
                 if let Ok((tile_position, tile, gpu_animated)) = tile_query.get(*tile_entity) {
+                    if !tile.visible { continue; }
+
                     let tile_pos = Vec2::new(
                         (tile_position.x - (chunk.position.x * chunk.size.x)) as f32,
                         (tile_position.y - (chunk.position.y * chunk.size.y)) as f32,

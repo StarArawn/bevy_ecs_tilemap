@@ -50,7 +50,7 @@ mod tile;
 
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
-pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
+pub use crate::tile::{GPUAnimated, RemoveTile, Tile};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -138,7 +138,6 @@ pub mod prelude {
         TileBundle,
         TileBundleTrait,
         TileParent,
-        VisibleTile,
     };
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};

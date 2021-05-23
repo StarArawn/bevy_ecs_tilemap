@@ -25,7 +25,7 @@ fn startup(
 
     // Chunk sizes of 64x64 seem optimal for meshing updates.
     let map_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::new(
+    let mut layer_builder = LayerBuilder::<TileBundle>::new(
         &mut commands,
         map_entity,
         LayerSettings::new(
@@ -37,7 +37,7 @@ fn startup(
     );
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
         // True here refers to tile visibility.
-        *tile_data = Some((TileBundle::default(), true));
+        *tile_data = Some(TileBundle::default());
         // Be careful here as this entity can sometimes not have any tile data.
         commands.entity(tile_entity).insert(LastUpdate::default());
     });

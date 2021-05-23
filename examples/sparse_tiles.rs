@@ -39,7 +39,7 @@ fn startup(
     for _ in 0..100 {
         let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = layer_builder.set_tile(position, TileBundle::default(), true);
+        let _ = layer_builder.set_tile(position, TileBundle::default());
     }
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);

@@ -51,7 +51,6 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
                 ..Default::default()
             },
             0u32,
-            true,
         );
         map_query.notify_chunk_for_tile(position, 0u32);
     }
