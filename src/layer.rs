@@ -1,4 +1,11 @@
-use crate::{TilemapMeshType, chunk::Chunk, morton_index, prelude::{SquareChunkMesher, Tile, TilemapChunkMesher}, round_to_power_of_two, tile::TileParent};
+use crate::{
+    chunk::Chunk,
+    morton_index,
+    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
+    round_to_power_of_two,
+    tile::TileParent,
+    TilemapMeshType,
+};
 use bevy::prelude::*;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.

@@ -1,4 +1,11 @@
-use crate::{TilemapMeshType, morton_index, morton_pos, prelude::{SquareChunkMesher, TilemapChunkMesher}, render::TilemapData, round_to_power_of_two, tile::{GPUAnimated, Tile}};
+use crate::{
+    morton_index, morton_pos,
+    prelude::{SquareChunkMesher, TilemapChunkMesher},
+    render::TilemapData,
+    round_to_power_of_two,
+    tile::{GPUAnimated, Tile},
+    TilemapMeshType,
+};
 use bevy::{
     prelude::*,
     render::{

@@ -26,15 +26,13 @@ fn startup(
     // Layer 0
     let layer_0_entity = commands.spawn().id();
     let mut layer_0 = LayerBuilder::new(&mut commands, layer_0_entity, map_settings.clone());
-    layer_0.set_all(
-        TileBundle {
-            tile: Tile {
-                texture_index: 10,
-                ..Default::default()
-            },
+    layer_0.set_all(TileBundle {
+        tile: Tile {
+            texture_index: 10,
             ..Default::default()
         },
-    );
+        ..Default::default()
+    });
 
     map_query.create_layer(&mut commands, layer_0, material_handle.clone());
 

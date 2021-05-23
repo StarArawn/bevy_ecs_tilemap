@@ -31,15 +31,13 @@ fn startup(
             Vec2::new(96.0, 256.0),
         ),
     );
-    layer_builder.set_all(
-        TileBundle {
-            tile: Tile {
-                texture_index: 1,
-                ..Default::default()
-            },
+    layer_builder.set_all(TileBundle {
+        tile: Tile {
+            texture_index: 1,
             ..Default::default()
         },
-    );
+        ..Default::default()
+    });
 
     map_query.create_layer(&mut commands, layer_builder, material_handle);
 
@@ -47,7 +45,6 @@ fn startup(
 }
 
 fn remove_tiles(
-    mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
     mut tile_query: Query<&mut Tile>,

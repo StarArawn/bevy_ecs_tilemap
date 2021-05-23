@@ -1,4 +1,11 @@
-use crate::{Chunk, Layer, LayerBundle, LayerSettings, MapTileError, chunk::ChunkBundle, morton_index, render::TilemapData, round_to_power_of_two, tile::{TileBundleTrait, TileParent}};
+use crate::{
+    chunk::ChunkBundle,
+    morton_index,
+    render::TilemapData,
+    round_to_power_of_two,
+    tile::{TileBundleTrait, TileParent},
+    Chunk, Layer, LayerBundle, LayerSettings, MapTileError,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -20,8 +27,10 @@ where
 {
     /// Creates the layer builder using the layer settings.
     pub fn new(commands: &mut Commands, layer_entity: Entity, settings: LayerSettings) -> Self {
-        let tile_size_x = round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
-        let tile_size_y = round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
+        let tile_size_x =
+            round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
+        let tile_size_y =
+            round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
         let tile_count = tile_size_x * tile_size_y;
         Self {
             settings,
@@ -35,7 +44,7 @@ where
         }
     }
 
-    /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles. 
+    /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
     pub fn new_batch<F: 'static + FnMut(UVec2) -> T>(
         commands: &mut Commands,
@@ -84,12 +93,8 @@ where
                 layer.chunks[index] = Some(chunk_entity);
 
                 let transform = Transform::from_xyz(
-                    chunk_pos.x as f32
-                        * settings.chunk_size.x as f32
-                        * settings.tile_size.x,
-                    chunk_pos.y as f32
-                        * settings.chunk_size.y as f32
-                        * settings.tile_size.y,
+                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x,
+                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y,
                     0.0,
                 );
 
@@ -148,23 +153,17 @@ where
         let mut transform = layer_bundle.transform;
         layer.settings.layer_id = layer.settings.layer_id;
         transform.translation.z = layer.settings.layer_id as f32;
-        commands
-            .entity(layer_entity)
-            .insert_bundle(LayerBundle {
-                layer,
-                transform,
-                ..layer_bundle
-            });
+        commands.entity(layer_entity).insert_bundle(LayerBundle {
+            layer,
+            transform,
+            ..layer_bundle
+        });
 
         layer_entity
     }
 
     /// Sets a tile's data at the given position.
-    pub fn set_tile(
-        &mut self,
-        tile_pos: UVec2,
-        tile: T,
-    ) -> Result<(), MapTileError> {
+    pub fn set_tile(&mut self, tile_pos: UVec2, tile: T) -> Result<(), MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             self.tiles[morton_tile_index].1 = Some(tile);
@@ -347,9 +346,7 @@ where
                         *tile_parent = TileParent(chunk_entity);
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
-                        commands
-                            .entity(tile_entity)
-                            .insert_bundle(tile_bundle);
+                        commands.entity(tile_entity).insert_bundle(tile_bundle);
 
                         Some(tile_entity)
                     } else {

@@ -45,7 +45,9 @@ impl TilemapChunkMesher for SquareChunkMesher {
         for tile_entity in chunk_tiles.iter() {
             if let Some(tile_entity) = tile_entity {
                 if let Ok((tile_position, tile, gpu_animated)) = tile_query.get(*tile_entity) {
-                    if !tile.visible { continue; }
+                    if !tile.visible {
+                        continue;
+                    }
 
                     let tile_pos = Vec2::new(
                         (tile_position.x - (chunk.position.x * chunk.size.x)) as f32,
