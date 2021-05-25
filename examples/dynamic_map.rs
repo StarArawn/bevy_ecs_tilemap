@@ -43,7 +43,7 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
     for _ in 0..100 {
         let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = map_query.add_tile(
+        let _ = map_query.set_tile(
             commands,
             position,
             Tile {

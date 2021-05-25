@@ -60,7 +60,7 @@ fn update_damage(
 
 
 ## Known Issues
- - Currently if you despawn a ton of tiles during startup chunks might not update correctly. Seems to be an ordering issue with the systems.
+ - Hex tile maps ignore proper chunk hex based positioning.
 
 ## Asset credits
  - Field of green by GuttyKreum(https://guttykreum.itch.io/)

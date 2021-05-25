@@ -28,8 +28,7 @@ vec2 project_iso(vec2 pos, float tile_width, float tile_height) {
 
 void main() {
     vec2 uv = vec2(0.0);
-    vec4 world_position = Model * vec4(vec3(Vertex_Position.xy, 0.0), 1.0);
-    vec2 center = project_iso(world_position.xy, tile_size.x, tile_size.y);
+    vec2 center = project_iso(Vertex_Position.xy, tile_size.x, tile_size.y);
 
     vec2 start = vec2(
         center.x - tile_size.x / 2.0,
@@ -44,7 +43,7 @@ void main() {
         vec2(end.x, start.y)
     );
 
-    world_position.xy = positions[gl_VertexIndex % 4];
+    vec4 world_position = Model * vec4(vec3(positions[gl_VertexIndex % 4], 0.0), 1.0);
 
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
 

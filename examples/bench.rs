@@ -32,7 +32,7 @@ fn startup(
         ),
         &mut meshes,
         material_handle,
-        |_| TileBundle::default(),
+        |_| Some(TileBundle::default()),
     );
 }
 

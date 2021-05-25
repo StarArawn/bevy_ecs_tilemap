@@ -1,11 +1,4 @@
-use crate::{
-    chunk::ChunkBundle,
-    morton_index,
-    render::TilemapData,
-    round_to_power_of_two,
-    tile::{TileBundleTrait, TileParent},
-    Chunk, Layer, LayerBundle, LayerSettings, MapTileError,
-};
+use crate::{Chunk, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilemapMeshType, chunk::ChunkBundle, morton_index, render::TilemapData, round_to_power_of_two, tile::{TileBundleTrait, TileParent}};
 use bevy::{
     prelude::*,
     render::{
@@ -46,7 +39,7 @@ where
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
-    pub fn new_batch<F: 'static + FnMut(UVec2) -> T>(
+    pub fn new_batch<F: 'static + FnMut(UVec2) -> Option<T>>(
         commands: &mut Commands,
         settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
@@ -92,11 +85,7 @@ where
                 let index = morton_index(chunk_pos);
                 layer.chunks[index] = Some(chunk_entity);
 
-                let transform = Transform::from_xyz(
-                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x,
-                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y,
-                    0.0,
-                );
+                let transform = Self::get_chunk_coords(chunk_pos, &settings);
 
                 let tilemap_data = TilemapData::from(&chunk.settings);
 
@@ -116,15 +105,19 @@ where
         let chunk_size = settings.chunk_size;
         let bundles: Vec<T> = (0..size_x)
             .flat_map(|x| (0..size_y).map(move |y| (x, y)))
-            .map(move |(x, y)| {
+            .filter_map(move |(x, y)| {
                 let tile_pos = UVec2::new(x, y);
                 let chunk_pos = UVec2::new(x / chunk_size.x, y / chunk_size.y);
-                let mut tile_bundle = f(tile_pos);
-                let tile_parent = tile_bundle.get_tile_parent();
-                *tile_parent = TileParent(ref_layer.get_chunk(chunk_pos).unwrap());
-                let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
-                *tile_bundle_pos = tile_pos;
-                tile_bundle
+                if let Some(mut tile_bundle) = f(tile_pos) {
+                    let tile_parent = tile_bundle.get_tile_parent();
+                    *tile_parent = TileParent(ref_layer.get_chunk(chunk_pos).unwrap());
+                    let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
+                    *tile_bundle_pos = tile_pos;
+                    
+                    Some(tile_bundle)
+                } else {
+                    None
+                }
             })
             .collect();
 
@@ -356,16 +349,8 @@ where
 
                 let index = morton_index(chunk_pos);
                 layer.chunks[index] = Some(chunk_entity);
-
-                let transform = Transform::from_xyz(
-                    chunk_pos.x as f32
-                        * self.settings.chunk_size.x as f32
-                        * self.settings.tile_size.x,
-                    chunk_pos.y as f32
-                        * self.settings.chunk_size.y as f32
-                        * self.settings.tile_size.y,
-                    0.0,
-                );
+               
+                let transform = Self::get_chunk_coords(chunk_pos, &self.settings);
 
                 let tilemap_data = TilemapData::from(&chunk.settings);
 
@@ -387,4 +372,53 @@ where
             ..LayerBundle::default()
         }
     }
+
+    fn project_iso_diamond(x: f32, y: f32, chunk_pixel_width: f32, chunk_pixel_height: f32) -> Vec2 {
+        let new_x = (x - y) * chunk_pixel_width / 2.0;
+        let new_y = (x + y) * chunk_pixel_height / 2.0;
+        Vec2::new(new_x, -new_y)
+    }
+
+    fn project_iso_staggered(x: f32, y: f32, chunk_pixel_width: f32, chunk_pixel_height: f32) -> Vec2 {
+        let new_x = (x - y) * chunk_pixel_width / 2.0;
+        let new_y = (x + y) * chunk_pixel_height / 2.0;
+        Vec2::new(new_x, -new_y)
+    }
+
+    fn get_chunk_coords(chunk_pos: UVec2, settings: &LayerSettings) -> Transform {
+        let chunk_pos = match settings.mesh_type {
+            TilemapMeshType::Hexagon(_) | TilemapMeshType::Square => {
+                let chunk_pos_x = chunk_pos.x as f32
+                    * settings.chunk_size.x as f32
+                    * settings.tile_size.x;
+                let chunk_pos_y = chunk_pos.y as f32
+                    * settings.chunk_size.y as f32
+                    * settings.tile_size.y;
+                Vec2::new(chunk_pos_x, chunk_pos_y)
+            }
+            TilemapMeshType::Isometric(IsoType::Diamond) => {
+                Self::project_iso_diamond(
+                    chunk_pos.x as f32,
+                    chunk_pos.y as f32,
+                    settings.chunk_size.x as f32 * settings.tile_size.x,
+                    settings.chunk_size.y as f32 * settings.tile_size.y,
+                )
+            },
+            TilemapMeshType::Isometric(IsoType::Staggered) => {
+                Self::project_iso_staggered(
+                    chunk_pos.x as f32,
+                    chunk_pos.y as f32,
+                    settings.chunk_size.x as f32 * settings.tile_size.x,
+                    settings.chunk_size.y as f32 * settings.tile_size.y,
+                )
+            },
+        };
+
+        Transform::from_xyz(
+            chunk_pos.x,
+            chunk_pos.y,
+            0.0,
+        )
+    }
+    
 }

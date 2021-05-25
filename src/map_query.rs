@@ -16,6 +16,7 @@ pub struct MapQuery<'a> {
 }
 
 impl<'a> MapQuery<'a> {
+    /// Creates a new tilemap layer.
     pub fn create_layer(
         &mut self,
         commands: &mut Commands,
@@ -36,11 +37,11 @@ impl<'a> MapQuery<'a> {
             });
     }
 
-    /// Adds a new tile for a given layer.
-    /// Returns an error if the tile exists or is out of bounds.
+    /// Adds or sets a new tile for a given layer.
+    /// Returns an error if the tile is out of bounds.
     /// It's important to know that the new tile wont exist until bevy flushes
     /// the commands during a hard sync point(between stages).
-    /// In order for you to update a tile that exists please follow this example:
+    /// A better option for updating existing tiles would be the following:
     /// ```rust
     /// ...
     /// mut my_tile_query: Query<&mut Tile>,
@@ -52,7 +53,7 @@ impl<'a> MapQuery<'a> {
     ///   tile.texture_index = 10;
     /// }
     /// ```
-    pub fn add_tile<T: Into<u32>>(
+    pub fn set_tile<T: Into<u32>>(
         &mut self,
         commands: &mut Commands,
         tile_pos: UVec2,
@@ -75,18 +76,18 @@ impl<'a> MapQuery<'a> {
                     let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
                     // If the tile exists throw error.
-                    if let Some(_) = chunk.tiles[morton_index(chunk_local_tile_pos)] {
-                        return Err(MapTileError::AlreadyExists);
-                    } else {
-                        let mut tile_commands = commands.spawn();
-                        tile_commands
-                            .insert(tile)
-                            .insert(TileParent(chunk_entity))
-                            .insert(tile_pos);
-                        let tile_entity = tile_commands.id();
-                        chunk.tiles[morton_index(chunk_local_tile_pos)] = Some(tile_entity);
-                        return Ok(tile_entity);
+                    if let Some(existing) = chunk.tiles[morton_index(chunk_local_tile_pos)] {
+                        commands.entity(existing).despawn_recursive();
                     }
+
+                    let mut tile_commands = commands.spawn();
+                    tile_commands
+                        .insert(tile)
+                        .insert(TileParent(chunk_entity))
+                        .insert(tile_pos);
+                    let tile_entity = tile_commands.id();
+                    chunk.tiles[morton_index(chunk_local_tile_pos)] = Some(tile_entity);
+                    return Ok(tile_entity);
                 }
             }
         }
