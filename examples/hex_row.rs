@@ -68,7 +68,6 @@ fn startup(
         .into(),
     );
 
-
     map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
 
     for z in 0..2 {

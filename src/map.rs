@@ -33,24 +33,22 @@ impl Map {
     }
 
     /// Adds multiple layers to the map.
-    pub fn add_layers<I: Into<u16>>(&mut self, commands: &mut Commands, layers: IntoIter<(I, Entity)>) {
-        let layers: Vec<(u16, Entity)> = layers.map(|(id, entity)| {
-            (id.into(), entity)
-        }).collect();
+    pub fn add_layers<I: Into<u16>>(
+        &mut self,
+        commands: &mut Commands,
+        layers: IntoIter<(I, Entity)>,
+    ) {
+        let layers: Vec<(u16, Entity)> = layers.map(|(id, entity)| (id.into(), entity)).collect();
         let entities: Vec<Entity> = layers.iter().map(|(_, entity)| *entity).collect();
         self.layers.extend(layers);
-        commands
-            .entity(self.map_entity)
-            .push_children(&entities);
+        commands.entity(self.map_entity).push_children(&entities);
     }
 
     /// Removes the layer from the map and despawns the layer entity.
     /// Note: Does not despawn the tile entities. Please use MapQuery instead.
     pub fn remove_layer<I: Into<u16>>(&mut self, commands: &mut Commands, layer_id: I) {
         if let Some(layer_entity) = self.layers.remove(&layer_id.into()) {
-            commands
-                .entity(layer_entity)
-                .despawn_recursive();
+            commands.entity(layer_entity).despawn_recursive();
         }
     }
 

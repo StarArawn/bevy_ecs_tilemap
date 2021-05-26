@@ -288,18 +288,20 @@ impl<'a> MapQuery<'a> {
         }
     }
 
-
     pub fn depsawn_map<T: Into<u16>>(&mut self, commands: &mut Commands, map_id: T) {
         let map_id: u16 = map_id.into();
-        
+
         let layer_ids: Option<Vec<u16>> = if let Some((_, map)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id) {
+            .find(|(_, map)| map.id == map_id)
+        {
             Some(map.layers.keys().map(|layer_id| *layer_id).collect())
-        } else { None };
-        
+        } else {
+            None
+        };
+
         if let Some(layer_ids) = layer_ids {
             for layer_id in layer_ids.iter() {
                 self.depsawn_layer(commands, map_id, *layer_id);
@@ -310,7 +312,8 @@ impl<'a> MapQuery<'a> {
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id) {
+            .find(|(_, map)| map.id == map_id)
+        {
             commands.entity(entity).despawn_recursive();
         }
     }
