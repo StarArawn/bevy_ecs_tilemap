@@ -192,7 +192,7 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Gets a reference to the tile data using the a tile position.
+    /// Gets a reference to the tile data using a tile position.
     pub fn get_tile(&self, tile_pos: UVec2) -> Result<&T, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
