@@ -20,21 +20,36 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let layer_entity = commands.spawn().id();
-    let layer_builder = LayerBuilder::<TileBundle>::new(
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let (layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
-        layer_entity,
         LayerSettings::new(
             UVec2::new(2, 2).into(),
             UVec2::new(8, 8).into(),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
         ),
+        0u16,
+        0u16,
     );
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     commands.entity(layer_entity).insert(LastUpdate::default());
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
@@ -50,9 +65,10 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
                 texture_index: 0,
                 ..Default::default()
             },
-            0u32,
+            0u16,
+            0u16,
         );
-        map_query.notify_chunk_for_tile(position, 0u32);
+        map_query.notify_chunk_for_tile(position, 0u16, 0u16);
     }
 }
 
@@ -65,7 +81,7 @@ fn update_map(
     let current_time = time.seconds_since_startup();
     for mut last_update in query.iter_mut() {
         if (current_time - last_update.value) > 1.0 {
-            map_query.despawn_layer_tiles(&mut commands, 0u32);
+            map_query.despawn_layer_tiles(&mut commands, 0u16, 0u16);
             build_map(&mut map_query, &mut commands);
             last_update.value = current_time;
         }

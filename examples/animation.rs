@@ -30,28 +30,25 @@ fn startup(
         Vec2::new(96.0, 256.0),
     );
 
-    let layer_entity = commands.spawn().id();
-    let mut layer_builder =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, layer_settings.clone());
+    let (mut layer_builder, layer_0_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16);
 
     layer_builder.set_all(Tile::default().into());
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     let texture_handle = asset_server.load("flower_sheet.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = map_size / 2;
-    let mut layer_settings = LayerSettings::new(
+    let layer_settings = LayerSettings::new(
         map_size,
         UVec2::new(32, 32),
         Vec2::new(32.0, 32.0),
         Vec2::new(32.0, 448.0),
     );
-    layer_settings.layer_id = 1;
-    let layer_entity = commands.spawn().id();
-    let mut layer_builder =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_entity, layer_settings);
+    let (mut layer_builder, layer_1_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16);
 
     let mut random = thread_rng();
 
@@ -76,7 +73,23 @@ fn startup(
         }
     }
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_0_entity);
+    map.add_layer(&mut commands, 1u16, layer_1_entity);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-5120.0, -5120.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {

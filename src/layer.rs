@@ -30,7 +30,9 @@ pub struct LayerSettings {
     /// Size in pixels of the tilemap texture.
     pub texture_size: Vec2,
     /// The layer id associated with this map.
-    pub layer_id: u32,
+    pub layer_id: u16,
+    /// The map id associated with this map.
+    pub map_id: u16,
     /// The meshing algorithm used for the tilemap.
     pub mesh_type: TilemapMeshType,
     /// Cull the chunks in the map when they are off screen.
@@ -49,6 +51,7 @@ impl LayerSettings {
             tile_size,
             texture_size,
             layer_id: 0,
+            map_id: 0,
             cull: true,
             mesh_type: TilemapMeshType::Square,
             tile_spacing: Vec2::ZERO,
@@ -56,8 +59,26 @@ impl LayerSettings {
         }
     }
 
-    pub fn set_layer_id<T: Into<u32>>(&mut self, id: T) {
+    pub fn set_layer_id<T: Into<u16>>(&mut self, id: T) {
         self.layer_id = id.into();
+    }
+
+    pub fn set_map_id<T: Into<u16>>(&mut self, id: T) {
+        self.map_id = id.into();
+    }
+
+    pub fn get_pixel_center(&self) -> Vec2 {
+        Vec2::new(
+            ((self.map_size.x * self.chunk_size.x) as f32 * self.tile_size.x) / 2.0,
+            ((self.map_size.y * self.chunk_size.y) as f32 * self.tile_size.y) / 2.0,
+        )
+    }
+
+    pub fn get_center(&self) -> UVec2 {
+        UVec2::new(
+            (self.map_size.x * self.chunk_size.x) / 2,
+            (self.map_size.y * self.chunk_size.y) / 2,
+        )
     }
 }
 
@@ -69,6 +90,7 @@ impl Clone for LayerSettings {
             tile_size: self.tile_size,
             texture_size: self.texture_size,
             layer_id: self.layer_id,
+            map_id: self.map_id,
             mesh_type: self.mesh_type,
             tile_spacing: self.tile_spacing,
             cull: self.cull,
@@ -93,6 +115,7 @@ impl Default for Layer {
                 tile_size: Vec2::default(),
                 texture_size: Vec2::default(),
                 layer_id: 0,
+                map_id: 0,
                 mesh_type: TilemapMeshType::Square,
                 tile_spacing: Vec2::default(),
                 cull: true,
@@ -150,7 +173,7 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
         log::info!("Updating tile cache.");
     }
     for (tile_entity, tile_pos, tile_parent) in tile_query.iter() {
-        if let Ok(mut chunk) = chunk_query.get_mut(tile_parent.0) {
+        if let Ok(mut chunk) = chunk_query.get_mut(tile_parent.chunk) {
             let tile_pos = chunk.to_chunk_pos(*tile_pos);
             chunk.tiles[morton_index(tile_pos)] = Some(tile_entity);
         }

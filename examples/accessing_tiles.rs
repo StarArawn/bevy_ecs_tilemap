@@ -3,7 +3,7 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-struct CurrentColor(u32);
+struct CurrentColor(u16);
 struct LastUpdate(f64);
 
 fn startup(
@@ -12,10 +12,7 @@ fn startup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut map_query: MapQuery,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(1024.0, 1024.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
@@ -28,19 +25,17 @@ fn startup(
     // Layer builder accepts a generic bundle that must implement the `TileBundleTrait`.
     // This is used internally to access the tile in the bundle to attach the chunk correctly.
 
-    // Layer Entity
-    let layer_entity = commands.spawn().id();
-
     // Create the layer builder
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
+    let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
-        layer_entity,
         LayerSettings::new(
             UVec2::new(4, 4),
             UVec2::new(32, 32),
             Vec2::new(16.0, 16.0),
             Vec2::new(96.0, 256.0),
         ),
+        0u16,
+        0u16,
     );
 
     // We can easily fill the entire map by using set_all
@@ -89,12 +84,27 @@ fn startup(
     }
 
     // Once create_layer is called you can no longer access the tiles in this system.
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     commands
         .entity(layer_entity)
         .insert(CurrentColor(1))
         .insert(LastUpdate(0.0));
+
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-1024.0, -1024.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 // Should run after the commands from startup have been processed.
@@ -116,7 +126,7 @@ fn update_map(
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     // First we get the neighboring entities for the given tile.
-                    let neighbors = map_query.get_tile_neighbors(UVec2::new(x, y), 0u32);
+                    let neighbors = map_query.get_tile_neighbors(UVec2::new(x, y), 0u16, 0u16);
                     for (pos, neighbor) in neighbors.iter() {
                         // If the tile exists we will have an entity.
                         if let Some(neighbor) = neighbor {
@@ -129,7 +139,7 @@ fn update_map(
                                 };
                                 // Finally after mutating the tile we can tell the internal systems to "remesh" the tilemap.
                                 // This sends the new tile data to the gpu.
-                                map_query.notify_chunk_for_tile(pos.as_u32(), 0u32);
+                                map_query.notify_chunk_for_tile(pos.as_u32(), 0u16, 0u16);
                             }
                         }
                     }

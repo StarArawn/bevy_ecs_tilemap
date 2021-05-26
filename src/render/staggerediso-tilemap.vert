@@ -29,7 +29,8 @@ vec2 project_iso(vec2 pos, float tile_width, float tile_height) {
 void main() {
     vec2 uv = vec2(0.0);
     vec4 world_pos = Model * vec4(Vertex_Position.xy, 0.0, 1.0);
-    vec2 position = world_pos.xy;
+    vec4 world_translation = Model * vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 position = Vertex_Position.xy;
     
     vec2 positions[4] = vec2[4](
         vec2(position.x, position.y),
@@ -48,7 +49,8 @@ void main() {
         position.x -= offset;
     }
     position.y -= world_pos.y * (tile_size.y / 2.0);
-
+    position.x += world_translation.x;
+    
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
 
     float current_animation_frame = fract(time * Vertex_Position.z) * frames;

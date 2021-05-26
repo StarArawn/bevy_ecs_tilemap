@@ -20,17 +20,22 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let layer_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::new(
-        &mut commands,
-        layer_entity,
-        LayerSettings::new(
-            UVec2::new(4, 4),
-            UVec2::new(8, 8),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
-        ),
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
+        UVec2::new(4, 4),
+        UVec2::new(8, 8),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
     );
+    let center = layer_settings.get_pixel_center();
+
+    let (mut layer_builder, layer_entity) =
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
     layer_builder.set_all(TileBundle {
         tile: Tile {
             texture_index: 1,
@@ -39,9 +44,17 @@ fn startup(
         ..Default::default()
     });
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     commands.entity(layer_entity).insert(LastUpdate::default());
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn remove_tiles(
@@ -58,7 +71,7 @@ fn remove_tiles(
             let position = UVec2::new(random.gen_range(0..32), random.gen_range(0..32));
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
-            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u32) {
+            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u16, 0u16) {
                 if let Ok(mut tile) = tile_query.get_mut(tile_entity) {
                     if tile.visible {
                         tile.visible = false;
@@ -68,7 +81,7 @@ fn remove_tiles(
                 }
             }
 
-            map_query.notify_chunk_for_tile(position, 0u32);
+            map_query.notify_chunk_for_tile(position, 0u16, 0u16);
 
             last_update.value = current_time;
         }
