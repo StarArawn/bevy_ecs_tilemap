@@ -20,7 +20,7 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let mut map_settings = LayerSettings::new(
-        UVec2::new(1, 1),
+        UVec2::new(2, 2),
         UVec2::new(64, 64),
         Vec2::new(17.0, 15.0),
         Vec2::new(102.0, 15.0),
@@ -31,7 +31,42 @@ fn startup(
         LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
-    layer_builder.set_all(Tile::default().into());
+    layer_builder.fill(
+        UVec2::new(0, 0),
+        UVec2::new(64, 64),
+        Tile {
+            texture_index: 0,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_builder.fill(
+        UVec2::new(64, 0),
+        UVec2::new(128, 64),
+        Tile {
+            texture_index: 1,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_builder.fill(
+        UVec2::new(0, 64),
+        UVec2::new(64, 128),
+        Tile {
+            texture_index: 2,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_builder.fill(
+        UVec2::new(64, 64),
+        UVec2::new(128, 128),
+        Tile {
+            texture_index: 3,
+            ..Default::default()
+        }
+        .into(),
+    );
 
     map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
 
@@ -45,7 +80,7 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..100 {
-            let position = UVec2::new(random.gen_range(0..64), random.gen_range(0..64));
+            let position = UVec2::new(random.gen_range(0..128), random.gen_range(0..128));
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
                 position,
@@ -65,7 +100,7 @@ fn startup(
     commands
         .entity(map_entity)
         .insert(map)
-        .insert(Transform::from_xyz(-24.0, -48.0, 0.0))
+        .insert(Transform::from_xyz(-48.0, -24.0, 0.0))
         .insert(GlobalTransform::default());
 }
 
