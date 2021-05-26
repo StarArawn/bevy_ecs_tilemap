@@ -445,6 +445,13 @@ where
                     + chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
+            TilemapMeshType::Hexagon(crate::HexType::RowOdd) | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
+                let chunk_pos_x =
+                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x;
+                let chunk_pos_y =
+                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * (0.75 * settings.tile_size.y).floor();
+                Vec2::new(chunk_pos_x, chunk_pos_y)
+            }
             TilemapMeshType::Hexagon(_) => {
                 let chunk_pos_x =
                     chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x;
