@@ -60,7 +60,7 @@ fn update_damage(
 
 
 ## Known Issues
- - Hex tile maps ignore proper chunk hex based positioning. As a work around use only 1 chunk.
+ - None(Please report any issues!)
 
 ## Asset credits
  - Field of green by GuttyKreum(https://guttykreum.itch.io/)
