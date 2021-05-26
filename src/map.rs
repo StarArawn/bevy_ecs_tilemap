@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::{collections::HashMap, slice::Iter, vec::IntoIter};
+use std::{collections::HashMap, vec::IntoIter};
 
 /// A simple component used to keep track of layer entities.
 #[derive(Clone)]
@@ -70,6 +70,6 @@ impl Map {
 
     /// Despawns a map. Better to call `map_query.despawn_map` as it will despawn layers/tiles as well.
     pub fn despawn(&self, commands: &mut Commands) {
-
+        commands.entity(self.map_entity).despawn_recursive();
     }
 }
