@@ -63,9 +63,9 @@ where
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
         material_handle: Handle<ColorMaterial>,
-        mut f: F,
         map_id: I,
         layer_id: I,
+        mut f: F,
     ) -> Entity {
         let layer_entity = commands.spawn().id();
 

@@ -29,9 +29,9 @@ fn startup(
         ),
         &mut meshes,
         material_handle,
+        0u16,
+        0u16,
         |_| Some(TileBundle::default()),
-        0u16,
-        0u16,
     );
 
     // Create map entity and component:
