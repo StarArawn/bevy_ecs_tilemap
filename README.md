@@ -12,7 +12,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
  - [x] Support for isometric and hexagon rendering.
  - [x] Built in animation support  – see [`animation` example](examples/animation.rs).
  - [ ] Texture array support.
- - [x] Layers and add/remove tiles..
+ - [x] Layers and add/remove tiles.
 
 
 ## Screenshots
@@ -23,7 +23,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
 Quite simple there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
 
 ### Why Use This Instead of X?
-Because each tile is an entity of its own editing tiles is super easy and convenient. This allows you tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That’s easy with this plugin:
+Because each tile is an entity of its own editing tiles is super easy and convenient. This allows you to tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That’s easy with this plugin:
 
 ```rust
 struct Damage {
