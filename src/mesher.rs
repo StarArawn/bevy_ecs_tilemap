@@ -2,39 +2,22 @@ use std::array::IntoIter;
 
 use crate::{chunk::ChunkSettings, prelude::*, tile::GPUAnimated};
 use bevy::{
-    ecs::component::Component,
     prelude::*,
-    render::{
-        mesh::{Indices, VertexAttributeValues},
-        pipeline::PrimitiveTopology,
-    },
+    render::mesh::{Indices, VertexAttributeValues},
 };
-use dyn_clone::DynClone;
 
-// TODO: Drop DynClone from here.
+#[derive(Debug, Default, Clone, Copy)]
+pub(crate) struct ChunkMesher;
 
-pub(crate) trait TilemapChunkMesher: Component + DynClone + std::fmt::Debug {
-    fn mesh(
+impl ChunkMesher {
+    pub fn mesh(
         &self,
         chunk: ChunkSettings,
         chunk_tiles: &Vec<Option<Entity>>,
         tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
-    ) -> (Handle<Mesh>, Mesh);
-
-    fn should_cull(&self) -> bool;
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct SquareChunkMesher;
-
-impl TilemapChunkMesher for SquareChunkMesher {
-    fn mesh(
-        &self,
-        chunk: ChunkSettings,
-        chunk_tiles: &Vec<Option<Entity>>,
-        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
-    ) -> (Handle<Mesh>, Mesh) {
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+        meshes: &mut ResMut<Assets<Mesh>>,
+    ) {
+        let mesh = meshes.get_mut(chunk.mesh_handle).unwrap();
         let size = ((chunk.size.x * chunk.size.y) * 4) as usize;
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(size);
         let mut textures: Vec<[i32; 4]> = Vec::with_capacity(size);
@@ -120,11 +103,5 @@ impl TilemapChunkMesher for SquareChunkMesher {
         mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(positions));
         mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(textures));
         mesh.set_indices(Some(Indices::U32(indices)));
-
-        (chunk.mesh_handle, mesh)
-    }
-
-    fn should_cull(&self) -> bool {
-        true
     }
 }

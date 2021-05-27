@@ -1,7 +1,7 @@
 use crate::{
     chunk::Chunk,
     morton_index,
-    prelude::{SquareChunkMesher, Tile, TilemapChunkMesher},
+    prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
     tile::TileParent,
     TilemapMeshType,
@@ -20,6 +20,7 @@ pub struct LayerBundle {
 }
 
 /// Various settings used to define the tilemap.
+#[derive(Debug, Default, Copy, Clone)]
 pub struct LayerSettings {
     /// Size of the tilemap in chunks
     pub map_size: UVec2,
@@ -40,7 +41,7 @@ pub struct LayerSettings {
     /// Spacing around each tile in the atlas
     /// Note: This is ignored in array mode.
     pub tile_spacing: Vec2,
-    pub(crate) mesher: Box<dyn TilemapChunkMesher>,
+    pub(crate) mesher: ChunkMesher,
 }
 
 impl LayerSettings {
@@ -55,7 +56,7 @@ impl LayerSettings {
             cull: true,
             mesh_type: TilemapMeshType::Square,
             tile_spacing: Vec2::ZERO,
-            mesher: Box::new(SquareChunkMesher),
+            mesher: ChunkMesher,
         }
     }
 
@@ -82,48 +83,12 @@ impl LayerSettings {
     }
 }
 
-impl Clone for LayerSettings {
-    fn clone(&self) -> Self {
-        Self {
-            map_size: self.map_size,
-            chunk_size: self.chunk_size,
-            tile_size: self.tile_size,
-            texture_size: self.texture_size,
-            layer_id: self.layer_id,
-            map_id: self.map_id,
-            mesh_type: self.mesh_type,
-            tile_spacing: self.tile_spacing,
-            cull: self.cull,
-            mesher: dyn_clone::clone_box(&*self.mesher),
-        }
-    }
-}
-
 /// A component which keeps information and a cache of tile/chunk entities for convenience.
+#[derive(Default)]
 pub struct Layer {
     /// The map information for the tilemap entity.
     pub settings: LayerSettings,
     pub(crate) chunks: Vec<Option<Entity>>,
-}
-
-impl Default for Layer {
-    fn default() -> Self {
-        Self {
-            settings: LayerSettings {
-                map_size: UVec2::default(),
-                chunk_size: UVec2::default(),
-                tile_size: Vec2::default(),
-                texture_size: Vec2::default(),
-                layer_id: 0,
-                map_id: 0,
-                mesh_type: TilemapMeshType::Square,
-                tile_spacing: Vec2::default(),
-                cull: true,
-                mesher: Box::new(SquareChunkMesher),
-            },
-            chunks: Vec::new(),
-        }
-    }
 }
 
 /// General errors that are returned by bevy_ecs_tilemap.
