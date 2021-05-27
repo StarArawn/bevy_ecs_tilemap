@@ -1,16 +1,17 @@
 use bevy::{
-    core::Byteable,
     prelude::*,
     reflect::TypeUuid,
     render::renderer::{RenderResource, RenderResources},
 };
+
+use bytemuck::{Pod, Zeroable};
 
 use crate::prelude::ChunkSettings;
 
 pub(crate) mod pipeline;
 
 // Used to transfer info to the GPU for tile building.
-#[derive(Debug, Default, Clone, TypeUuid, Reflect, RenderResources, RenderResource)]
+#[derive(Debug, Default, Copy, Clone, TypeUuid, Reflect, RenderResources, RenderResource, Pod, Zeroable)]
 #[render_resources(from_self)]
 #[uuid = "7233c597-ccfa-411f-bd59-9af349432ada"]
 #[repr(C)]
@@ -20,8 +21,6 @@ pub(crate) struct TilemapData {
     pub(crate) spacing: Vec2,
     pub(crate) time: f32,
 }
-
-unsafe impl Byteable for TilemapData {}
 
 impl From<&ChunkSettings> for TilemapData {
     fn from(settings: &ChunkSettings) -> Self {

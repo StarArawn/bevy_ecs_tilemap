@@ -88,8 +88,8 @@ where
 
                 let chunk_pos = UVec2::new(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
+                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
+                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let chunk = Chunk::new(
@@ -330,8 +330,8 @@ where
 
                 let chunk_pos = UVec2::new(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
+                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
+                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let mut chunk = Chunk::new(

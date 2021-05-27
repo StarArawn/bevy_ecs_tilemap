@@ -13,11 +13,12 @@ exclude = [
 ]
 
 [dependencies]
-bevy = "0.5"
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "052094757aee671c66190b63a640900f15ee300d" }
 dyn-clone = "1.0"
 futures-util = "0.3"
 morton-encoding = "2.0"
 log = "0.4"
+bytemuck = "1.0"
 
 [dev-dependencies]
 rand = "0.8"
