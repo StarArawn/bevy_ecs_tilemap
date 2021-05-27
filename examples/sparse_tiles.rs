@@ -7,54 +7,53 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
         UVec2::new(2, 2),
         UVec2::new(8, 8),
         Vec2::new(16.0, 16.0),
         Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
-        &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        false,
     );
+
+    let center = layer_settings.get_pixel_center();
+
+    let (mut layer_builder, ground_layer) =
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, ground_layer);
 
     let mut random = thread_rng();
 
     for _ in 0..100 {
         let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
-        let _ = map.add_tile(
-            &mut commands,
-            position,
-            Tile {
-                texture_index: 0,
-                ..Default::default()
-            },
-            true,
-        );
+        let _ = layer_builder.set_tile(position, TileBundle::default());
     }
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    });
+
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(log::LevelFilter::Warn)
         .init();
 
     App::build()

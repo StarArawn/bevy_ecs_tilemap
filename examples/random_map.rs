@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
@@ -10,44 +12,48 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(2560.0, 2560.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    // Chunk sizes of 64x64 seem optimal for meshing updates.
-    let mut map = Map::new(MapSettings::new(
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
         UVec2::new(10, 10),
         UVec2::new(64, 64),
         Vec2::new(16.0, 16.0),
         Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
-        &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        true,
     );
 
-    for entity in map.get_all_tiles().iter() {
-        if let Some(entity) = entity {
-            commands.entity(*entity).insert(LastUpdate::default());
-        }
-    }
+    let center = layer_settings.get_pixel_center();
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
+    // Chunk sizes of 64x64 seem optimal for meshing updates.
+    let (mut layer_builder, layer_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
+    layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
+        // True here refers to tile visibility.
+        *tile_data = Some(TileBundle::default());
+        // Be careful here as this entity can sometimes not have any tile data.
+        commands.entity(tile_entity).insert(LastUpdate::default());
     });
+
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 #[derive(Default)]
@@ -55,43 +61,34 @@ struct LastUpdate {
     value: f64,
 }
 
-// Worst case lookup
+// In this example it's better not to use the default `MapQuery` SystemParam as
+// it's faster to do it this way:
 fn random(
-    mut commands: Commands,
     time: ResMut<Time>,
-    mut query: Query<(&UVec2, &mut Tile, &mut LastUpdate)>,
-    map_query: Query<&Map>,
+    mut query: Query<(&mut Tile, &TileParent, &mut LastUpdate)>,
+    mut chunk_query: Query<&mut Chunk>,
 ) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
-    let mut did_update = false;
-    for (_, mut tile, mut last_update) in query.iter_mut() {
-        // if (current_time - last_update.value) > 0.1 {
-        tile.texture_index = random.gen_range(0..6);
-        last_update.value = current_time;
-        did_update = true;
-        // }
+    let mut chunks = HashSet::new();
+    for (mut tile, tile_parent, mut last_update) in query.iter_mut() {
+        if (current_time - last_update.value) > 0.05 {
+            tile.texture_index = random.gen_range(0..6);
+            last_update.value = current_time;
+            chunks.insert(tile_parent.chunk);
+        }
     }
 
-    // Smarter way to update..
-    if did_update {
-        if let Ok(map) = map_query.single() {
-            for x in 0..map.settings.map_size.x {
-                for y in 0..map.settings.map_size.y {
-                    // Update first tile in each chunk at least until we get an notify_chunk
-                    map.notify(
-                        &mut commands,
-                        UVec2::new(x * map.settings.chunk_size.x, y * map.settings.chunk_size.y),
-                    );
-                }
-            }
+    for chunk_entity in chunks.drain() {
+        if let Ok(mut chunk) = chunk_query.get_mut(chunk_entity) {
+            chunk.needs_remesh = true;
         }
     }
 }
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(log::LevelFilter::Warn)
         .init();
 
     App::build()

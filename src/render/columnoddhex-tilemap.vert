@@ -22,8 +22,7 @@ layout(set = 2, binding = 1) uniform TilemapData {
 
 void main() {
     vec2 uv = vec2(0.0);
-    vec4 world_pos = Model * vec4(Vertex_Position.xy, 0.0, 1.0);
-    vec2 position = world_pos.xy;
+    vec2 position = Vertex_Position.xy;
     
     vec2 positions[4] = vec2[4](
         vec2(position.x, position.y),
@@ -36,12 +35,14 @@ void main() {
     position.xy *= tile_size;
 
     float offset = floor(0.25 * tile_size.y);
-    if (int(world_pos.x) % 2 == 0) {
+    if (int(Vertex_Position.x) % 2 == 0) {
         position.y += offset;
     } else {
         position.y -= offset;
     }
-    position.x -= world_pos.x * ceil(0.25 * tile_size.x);
+    position.x -= Vertex_Position.x * ceil(0.25 * tile_size.x);
+    
+    vec4 world_pos = Model * vec4(position.xy, 0.0, 1.0);
 
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
 
@@ -96,5 +97,5 @@ void main() {
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
     // v_Uv += 1e-5;
-    gl_Position = ViewProj * vec4(position.xy, world_pos.zw);
+    gl_Position = ViewProj * world_pos;
 }

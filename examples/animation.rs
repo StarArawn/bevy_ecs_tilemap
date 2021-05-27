@@ -10,8 +10,8 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle {
         transform: Transform::from_xyz(1042.0, 1024.0, 1000.0 - 0.1),
@@ -23,48 +23,32 @@ fn startup(
 
     let map_size = UVec2::new(20, 20);
 
-    let map_settings = MapSettings::new(
+    let layer_settings = LayerSettings::new(
         map_size,
         UVec2::new(32, 32),
         Vec2::new(16.0, 16.0),
         Vec2::new(96.0, 256.0),
-        0,
     );
 
-    let mut map = Map::new(map_settings.clone());
-    let map_entity = commands.spawn().id();
-    map.build(
-        &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        true,
-    );
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    });
+    let (mut layer_builder, layer_0_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16);
+
+    layer_builder.set_all(Tile::default().into());
+
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     let texture_handle = asset_server.load("flower_sheet.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = map_size / 2;
-    let map_settings = MapSettings::new(
+    let layer_settings = LayerSettings::new(
         map_size,
         UVec2::new(32, 32),
         Vec2::new(32.0, 32.0),
         Vec2::new(32.0, 448.0),
-        1,
     );
-    let mut map = Map::new(map_settings);
-    let map_entity = commands.spawn().id();
-    map.build(
-        &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        false,
-    );
+    let (mut layer_builder, layer_1_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16);
 
     let mut random = thread_rng();
 
@@ -73,27 +57,39 @@ fn startup(
             random.gen_range(0..map_size.x * 32),
             random.gen_range(0..map_size.y * 32),
         );
-        let entity = map.add_tile(
-            &mut commands,
+        let _ = layer_builder.set_tile(
             position,
             Tile {
                 texture_index: 0,
                 ..Default::default()
-            },
-            true,
+            }
+            .into(),
         );
 
-        if let Ok(entity) = entity {
+        if let Ok(entity) = layer_builder.get_tile_entity(position) {
             commands
                 .entity(entity)
                 .insert(GPUAnimated::new(0, 13, 0.95));
         }
     }
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        transform: Transform::from_xyz(0.0, 0.0, 1.0),
-        ..Default::default()
-    });
+
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_0_entity);
+    map.add_layer(&mut commands, 1u16, layer_1_entity);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-5120.0, -5120.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {

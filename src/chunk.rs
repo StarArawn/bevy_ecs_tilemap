@@ -1,8 +1,9 @@
 use crate::{
-    morton_index,
+    morton_index, morton_pos,
     prelude::{SquareChunkMesher, TilemapChunkMesher},
     render::TilemapData,
-    tile::{self, GPUAnimated, Tile},
+    round_to_power_of_two,
+    tile::{GPUAnimated, Tile},
     TilemapMeshType,
 };
 use bevy::{
@@ -14,9 +15,6 @@ use bevy::{
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
-
-/// A tag that causes a specific chunk to be "re-meshed" when re-meshing is started the tag is removed.
-pub struct RemeshChunk;
 
 #[derive(Bundle)]
 pub(crate) struct ChunkBundle {
@@ -64,7 +62,7 @@ pub struct ChunkSettings {
     /// The size of the texture in pixels.
     pub texture_size: Vec2,
     /// What map layer the chunk lives in.
-    pub layer_id: u32,
+    pub layer_id: u16,
     /// How much spacing between each tile in the atlas.
     pub spacing: Vec2,
     /// Cull the chunks in the map when they are off screen.
@@ -97,6 +95,8 @@ pub struct Chunk {
     pub map_entity: Entity,
     /// Chunk specific settings.
     pub settings: ChunkSettings,
+    /// Tells internal systems that this chunk should be remeshed(send new data to the GPU)
+    pub needs_remesh: bool,
     pub(crate) tiles: Vec<Option<Entity>>,
 }
 
@@ -104,8 +104,9 @@ impl Clone for Chunk {
     fn clone(&self) -> Chunk {
         Chunk {
             map_entity: self.map_entity,
-            tiles: self.tiles.clone(),
+            needs_remesh: self.needs_remesh,
             settings: self.settings.clone(),
+            tiles: self.tiles.clone(),
         }
     }
 }
@@ -114,7 +115,7 @@ impl Default for Chunk {
     fn default() -> Self {
         Self {
             map_entity: Entity::new(0),
-            tiles: Vec::new(),
+            needs_remesh: true,
             settings: ChunkSettings {
                 position: Default::default(),
                 size: Default::default(),
@@ -127,6 +128,7 @@ impl Default for Chunk {
                 mesh_type: TilemapMeshType::Square,
                 mesher: Box::new(SquareChunkMesher),
             },
+            tiles: Vec::new(),
         }
     }
 }
@@ -140,12 +142,15 @@ impl Chunk {
         texture_size: Vec2,
         tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
-        layer_id: u32,
+        layer_id: u16,
         mesh_type: TilemapMeshType,
         mesher: Box<dyn TilemapChunkMesher>,
         cull: bool,
     ) -> Self {
-        let tiles = vec![None; chunk_size.x as usize * chunk_size.y as usize];
+        let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
+        let tile_size_y = round_to_power_of_two(chunk_size.y as f32);
+        let tile_count = tile_size_x * tile_size_y;
+        let tiles = vec![None; tile_count];
         let settings = ChunkSettings {
             position,
             size: chunk_size,
@@ -160,19 +165,15 @@ impl Chunk {
         };
         Self {
             map_entity,
-            tiles,
+            needs_remesh: true,
             settings,
+            tiles,
         }
     }
 
-    pub(crate) fn build_tiles<F>(
-        &mut self,
-        commands: &mut Commands,
-        chunk_entity: Entity,
-        map_tiles: &mut Vec<Option<Entity>>,
-        mut f: F,
-    ) where
-        F: FnMut(UVec2) -> Tile,
+    pub(crate) fn build_tiles<F>(&mut self, chunk_entity: Entity, mut f: F)
+    where
+        F: FnMut(UVec2, Entity) -> Option<Entity>,
     {
         for x in 0..self.settings.size.x {
             for y in 0..self.settings.size.y {
@@ -180,23 +181,30 @@ impl Chunk {
                     (self.settings.position.x * self.settings.size.x) + x,
                     (self.settings.position.y * self.settings.size.y) + y,
                 );
-                let mut tile = f(tile_pos);
-                tile.chunk = chunk_entity;
-                let tile_entity = commands
-                    .spawn()
-                    .insert(tile)
-                    .insert(tile::VisibleTile)
-                    .insert(tile_pos)
-                    .id();
-                let morton_i = morton_index(UVec2::new(x, y));
-                self.tiles[morton_i] = Some(tile_entity);
-                map_tiles[morton_index(tile_pos)] = Some(tile_entity);
+                if let Some(tile_entity) = f(tile_pos, chunk_entity) {
+                    let morton_i = morton_index(UVec2::new(x, y));
+                    self.tiles[morton_i] = Some(tile_entity);
+                }
             }
         }
     }
 
     pub fn get_tile_entity(&self, position: UVec2) -> Option<Entity> {
-        self.tiles[morton_index(position)]
+        let morton_tile_index = morton_index(position);
+        if morton_tile_index < self.tiles.capacity() {
+            return self.tiles[morton_tile_index];
+        }
+        None
+    }
+
+    pub fn for_each_tile_entity<F>(&self, mut f: F)
+    where
+        F: FnMut((UVec2, &Option<Entity>)),
+    {
+        self.tiles.iter().enumerate().for_each(|(index, entity)| {
+            let chunk_tile_pos = morton_pos(index);
+            f((chunk_tile_pos, entity));
+        });
     }
 
     pub fn to_chunk_pos(&self, position: UVec2) -> UVec2 {
@@ -208,20 +216,15 @@ impl Chunk {
 }
 
 pub(crate) fn update_chunk_mesh(
-    commands: Commands,
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>), With<tile::VisibleTile>>,
-    changed_chunks: Query<
-        (Entity, &Chunk, &Visible),
-        Or<(Changed<Visible>, With<RemeshChunk>, Added<Chunk>)>,
-    >,
+    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
+    mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
 ) {
-    let threaded_commands = Mutex::new(commands);
     let threaded_meshes = Mutex::new(meshes);
 
-    changed_chunks.par_for_each(&task_pool, 10, |(chunk_entity, chunk, visible)| {
-        if visible.is_visible {
+    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visible)| {
+        if visible.is_visible && chunk.needs_remesh {
             log::trace!(
                 "Re-meshing chunk at: {:?} layer id of: {}",
                 chunk.settings.position,
@@ -238,8 +241,7 @@ pub(crate) fn update_chunk_mesh(
                 *mesh = new_mesh;
             }
 
-            let mut commands = threaded_commands.lock().unwrap();
-            commands.entity(chunk_entity).remove::<RemeshChunk>();
+            chunk.needs_remesh = false;
         }
     });
 }
@@ -272,7 +274,7 @@ pub(crate) fn update_chunk_visibility(
                 chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
                 chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
             );
-            
+
             let bounds = Vec4::new(
                 global_transform.translation.x,
                 global_transform.translation.x + bounds_size.x,

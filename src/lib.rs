@@ -18,37 +18,64 @@
 //! let texture_handle = asset_server.load("tiles.png");
 //! let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 //!
-//! let mut map = Map::new(
-//!     UVec2::new(2, 2),
-//!     UVec2::new(8, 8),
-//!     Vec2::new(16.0, 16.0),
-//!     Vec2::new(96.0, 256.0),
-//!     0
-//! );
+//! // Create map entity and component:
 //! let map_entity = commands.spawn().id();
-//! map.build(&mut commands, &mut meshes, material_handle, map_entity, true);
-//! commands.entity(map_entity).insert_bundle(MapBundle {
-//!     map,
-//!    ..Default::default()
-//! });
+//! let mut map = Map::new(0u16, map_entity);
+//!
+//! // Creates a new layer builder with a layer entity.
+//! let (mut layer_builder, _) = LayerBuilder::new(
+//!     &mut commands,
+//!     LayerSettings::new(
+//!         UVec2::new(2, 2),
+//!         UVec2::new(8, 8),
+//!         Vec2::new(16.0, 16.0),
+//!         Vec2::new(96.0, 256.0),
+//!     ),
+//!     0u16,
+//!     0u16,
+//! );
+//!
+//! layer_builder.set_all(TileBundle::default());
+//!
+//! // Builds the layer.
+//! // Note: Once this is called you can no longer edit the layer until a hard sync in bevy.
+//! let layer_entity = map_query.build_layer(&mut commands, layer_builder, material_handle);
+//!
+//! // Required to keep track of layers for a map internally.
+//! map.add_layer(&mut commands, 0u16, layer_entity);
+//!
+//! // Spawn Map
+//! // Required in order to use map_query to retrieve layers/tiles.
+//! commands.entity(map_entity)
+//!     .insert(map)
+//!     .insert(Transform::from_xyz(
+//!         -128.0,
+//!         -128.0,
+//!         0.0
+//!     ))
+//!     .insert(GlobalTransform::default());
 //! ```
 
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
-use map::{
-    update_chunk_hashmap_for_added_tiles, update_chunk_hashmap_for_removed_tiles, update_tiles,
-};
+use layer::update_chunk_hashmap_for_added_tiles;
 use render::pipeline::add_tile_map_graph;
 
 mod chunk;
+mod layer;
+mod layer_builder;
 mod map;
+mod map_query;
 mod mesher;
 mod render;
 mod tile;
 
 pub use crate::chunk::{Chunk, ChunkSettings};
-pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
-pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
+pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+pub use crate::layer_builder::LayerBuilder;
+pub use crate::map::Map;
+pub use crate::map_query::MapQuery;
+pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -69,7 +96,7 @@ pub enum HexType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IsoType {
     Diamond,
-    Staggered
+    Staggered,
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
@@ -90,20 +117,9 @@ impl Plugin for TilemapPlugin {
             .add_system_to_stage(TilemapStage, update_chunk_time.system())
             .add_system_to_stage(
                 TilemapStage,
-                update_tiles.system().label("update_tile_data"),
-            )
-            .add_system_to_stage(
-                TilemapStage,
                 update_chunk_hashmap_for_added_tiles
                     .system()
-                    .label("hash_update_for_tiles")
-                    .after("update_tile_data"),
-            )
-            .add_system_to_stage(
-                TilemapStage,
-                update_chunk_hashmap_for_removed_tiles
-                    .system()
-                    .label("hash_update_for_tiles_removal"),
+                    .label("hash_update_for_tiles"),
             )
             .add_system_to_stage(
                 TilemapStage,
@@ -116,7 +132,6 @@ impl Plugin for TilemapPlugin {
                 update_chunk_mesh
                     .system()
                     .after("hash_update_for_tiles")
-                    .after("hash_update_for_tiles_removal")
                     .after("update_chunk_visibility"),
             );
         let world = app.world_mut();
@@ -129,7 +144,7 @@ pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
 }
 
 // TODO: Hide this.
-pub fn morton_pos(index: usize) -> UVec2 {
+fn morton_pos(index: usize) -> UVec2 {
     let [x, y]: [u32; 2] = morton_encoding::morton_decode(index as u64);
     UVec2::new(x, y)
 }
@@ -137,9 +152,16 @@ pub fn morton_pos(index: usize) -> UVec2 {
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
     pub use crate::chunk::{Chunk, ChunkSettings};
-    pub use crate::map::{Map, MapBundle, MapSettings, MapTileError};
+    pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+    pub use crate::layer_builder::LayerBuilder;
+    pub use crate::map::Map;
+    pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
-    pub use crate::tile::{GPUAnimated, RemoveTile, Tile, VisibleTile};
+    pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
+}
+
+pub(crate) fn round_to_power_of_two(value: f32) -> usize {
+    1 << value.log2().ceil() as usize
 }

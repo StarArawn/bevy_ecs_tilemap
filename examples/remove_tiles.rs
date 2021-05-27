@@ -12,61 +12,65 @@ struct LastUpdate {
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let mut map = Map::new(MapSettings::new(
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
         UVec2::new(2, 2),
         UVec2::new(8, 8),
         Vec2::new(16.0, 16.0),
         Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
-        &mut commands,
-        &mut meshes,
-        material_handle,
-        map_entity,
-        true,
     );
 
+    let center = layer_settings.get_pixel_center();
+
+    let (mut layer_builder, layer_entity) =
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
+    layer_builder.set_all(TileBundle::default());
+
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    commands.entity(layer_entity).insert(LastUpdate::default());
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
     commands
         .entity(map_entity)
-        .insert_bundle(MapBundle {
-            map,
-            ..Default::default()
-        })
-        .insert(LastUpdate::default());
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn remove_tiles(
     mut commands: Commands,
     time: Res<Time>,
-    mut map_query: Query<(&Map, &mut LastUpdate)>,
+    mut last_update_query: Query<&mut LastUpdate>,
+    mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    for (map, mut last_update) in map_query.iter_mut() {
+    for mut last_update in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = IVec2::new(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map.get_tile(position);
+            let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+            let tile_entity = map_query.get_tile_entity(position, 0u16, 0u16);
 
-            // Note you can also call map.remove_tile() instead.
-            if tile_entity.is_some() {
-                commands.entity(tile_entity.unwrap()).insert(RemoveTile);
+            if tile_entity.is_ok() {
+                let _ = map_query.despawn_tile(&mut commands, position, 0u16, 0u16);
             }
 
-            map.notify(
-                &mut commands,
-                UVec2::new(position.x as u32, position.y as u32),
-            );
+            map_query.notify_chunk_for_tile(position, 0u16, 0u16);
 
             last_update.value = current_time;
         }

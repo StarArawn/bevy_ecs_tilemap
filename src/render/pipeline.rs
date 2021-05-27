@@ -165,7 +165,7 @@ impl Into<RenderPipelines> for TilemapMeshType {
                         STAGGERED_ISO_PIPELINE.typed(),
                     )])
                 }
-            }
+            },
             TilemapMeshType::Hexagon(hex_type) => match hex_type {
                 crate::HexType::Column => {
                     RenderPipelines::from_pipelines(vec![RenderPipeline::new(
@@ -204,25 +204,19 @@ pub(crate) fn add_tile_map_graph(world: &mut World) {
     world.resource_scope(|world, mut pipelines: Mut<Assets<PipelineDescriptor>>| {
         world.resource_scope(|world, mut shaders: Mut<Assets<Shader>>| {
             let mut graph = world.get_resource_mut::<RenderGraph>().unwrap();
-            pipelines.set_untracked(
-                SQUARE_PIPELINE,
-                create_square_pipeline(&mut shaders)
-            );
+            pipelines.set_untracked(SQUARE_PIPELINE, create_square_pipeline(&mut shaders));
 
             pipelines.set_untracked(
                 DIAMOND_ISO_PIPELINE,
-                create_iso_diamond_pipeline(&mut shaders)
+                create_iso_diamond_pipeline(&mut shaders),
             );
 
             pipelines.set_untracked(
                 STAGGERED_ISO_PIPELINE,
-                create_iso_staggered_pipeline(&mut shaders)
+                create_iso_staggered_pipeline(&mut shaders),
             );
 
-            pipelines.set_untracked(
-                ROW_HEX_PIPELINE,
-                create_hex_row_pipeline(&mut shaders)
-            );
+            pipelines.set_untracked(ROW_HEX_PIPELINE, create_hex_row_pipeline(&mut shaders));
 
             pipelines.set_untracked(
                 ROW_ODD_HEX_PIPELINE,

@@ -9,39 +9,45 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(12800.0, 12800.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map with (10 * 128) ^ 2 tiles or 1,638,400 tiles.
     // Be patient when running this example as meshing does not run on multiple CPU's yet..
-    let mut map = Map::new(MapSettings::new(
-        UVec2::new(10, 10),
-        UVec2::new(128, 128),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
-        0,
-    ));
-    let map_entity = commands.spawn().id();
-    map.build(
+    let layer_entity = LayerBuilder::<TileBundle>::new_batch(
         &mut commands,
+        LayerSettings::new(
+            UVec2::new(10, 10),
+            UVec2::new(128, 128),
+            Vec2::new(16.0, 16.0),
+            Vec2::new(96.0, 256.0),
+        ),
         &mut meshes,
         material_handle,
-        map_entity,
-        true,
+        0u16,
+        0u16,
+        |_| Some(TileBundle::default()),
     );
 
-    commands.entity(map_entity).insert_bundle(MapBundle {
-        map,
-        ..Default::default()
-    });
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-10240.0, -10240.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {
