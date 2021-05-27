@@ -62,7 +62,7 @@ pub struct ChunkSettings {
     /// The size of the texture in pixels.
     pub texture_size: Vec2,
     /// What map layer the chunk lives in.
-    pub layer_id: u32,
+    pub layer_id: u16,
     /// How much spacing between each tile in the atlas.
     pub spacing: Vec2,
     /// Cull the chunks in the map when they are off screen.
@@ -142,7 +142,7 @@ impl Chunk {
         texture_size: Vec2,
         tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
-        layer_id: u32,
+        layer_id: u16,
         mesh_type: TilemapMeshType,
         mesher: Box<dyn TilemapChunkMesher>,
         cull: bool,

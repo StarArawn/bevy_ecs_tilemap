@@ -18,21 +18,42 @@
 //! let texture_handle = asset_server.load("tiles.png");
 //! let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 //!
-//! let layer_entity = commands.spawn().id();
-//! let mut layer_builder = LayerBuilder::new(
+//! // Create map entity and component:
+//! let map_entity = commands.spawn().id();
+//! let mut map = Map::new(0u16, map_entity);
+//!
+//! // Creates a new layer builder with a layer entity.
+//! let (mut layer_builder, _) = LayerBuilder::new(
 //!     &mut commands,
-//!     layer_entity,    
 //!     LayerSettings::new(
 //!         UVec2::new(2, 2),
 //!         UVec2::new(8, 8),
 //!         Vec2::new(16.0, 16.0),
 //!         Vec2::new(96.0, 256.0),
-//!     )
+//!     ),
+//!     0u16,
+//!     0u16,
 //! );
 //!
-//! layer_builder.set_all(TileBundle::default(), true);
+//! layer_builder.set_all(TileBundle::default());
 //!
-//! map_query.create_layer(&mut commands, layer_builder, material_handle);
+//! // Builds the layer.
+//! // Note: Once this is called you can no longer edit the layer until a hard sync in bevy.
+//! let layer_entity = map_query.build_layer(&mut commands, layer_builder, material_handle);
+//!
+//! // Required to keep track of layers for a map internally.
+//! map.add_layer(&mut commands, 0u16, layer_entity);
+//!
+//! // Spawn Map
+//! // Required in order to use map_query to retrieve layers/tiles.
+//! commands.entity(map_entity)
+//!     .insert(map)
+//!     .insert(Transform::from_xyz(
+//!         -128.0,
+//!         -128.0,
+//!         0.0
+//!     ))
+//!     .insert(GlobalTransform::default());
 //! ```
 
 use bevy::prelude::*;
@@ -43,6 +64,7 @@ use render::pipeline::add_tile_map_graph;
 mod chunk;
 mod layer;
 mod layer_builder;
+mod map;
 mod map_query;
 mod mesher;
 mod render;
@@ -50,7 +72,10 @@ mod tile;
 
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
-pub use crate::tile::{GPUAnimated, RemoveTile, Tile};
+pub use crate::layer_builder::LayerBuilder;
+pub use crate::map::Map;
+pub use crate::map_query::MapQuery;
+pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -129,9 +154,10 @@ pub mod prelude {
     pub use crate::chunk::{Chunk, ChunkSettings};
     pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
     pub use crate::layer_builder::LayerBuilder;
+    pub use crate::map::Map;
     pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
-    pub use crate::tile::{GPUAnimated, RemoveTile, Tile, TileBundle, TileBundleTrait, TileParent};
+    pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
 }

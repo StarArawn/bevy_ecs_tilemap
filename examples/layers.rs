@@ -15,6 +15,10 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
     let map_settings = LayerSettings::new(
         UVec2::new(2, 2),
         UVec2::new(8, 8),
@@ -23,19 +27,22 @@ fn startup(
     );
 
     // Layer 0
-    let layer_0_entity = commands.spawn().id();
-    let mut layer_0 = LayerBuilder::new(&mut commands, layer_0_entity, map_settings.clone());
+    let (mut layer_0, layer_0_entity) =
+        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+
+    // Required to keep track of layers for a map internally.
+    map.add_layer(&mut commands, 0u16, layer_0_entity);
 
     layer_0.set_all(TileBundle::default());
 
-    map_query.create_layer(&mut commands, layer_0, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_0, material_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
-        let layer_entity = commands.spawn().id();
         let mut new_settings = map_settings.clone();
-        new_settings.layer_id = z + 1;
-        let mut layer_builder = LayerBuilder::new(&mut commands, layer_entity, new_settings);
+        new_settings.set_layer_id(z + 1);
+        let (mut layer_builder, layer_entity) =
+            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1);
 
         let mut random = thread_rng();
 
@@ -54,8 +61,19 @@ fn startup(
             );
         }
 
-        map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
+        map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+
+        // Required to keep track of layers for a map internally.
+        map.add_layer(&mut commands, 0u16, layer_entity);
     }
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {

@@ -51,7 +51,7 @@ fn update_damage(
  - layers - An example of how you can use multiple map entities/components for "layers".
  - map - The simplest example of how to create a tile map.
  - random_map - A bench of editing all of the tiles every 100 ms.
- - remove_tiles - An example showing how you can remove tiles by using map.remove_tile or by applying the RemoveTile tag component.
+ - remove_tiles - An example showing how you can remove tiles by using map_query
  - sparse_tiles - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
  - visibility - An example showcasing visibility of tiles and chunks.
 
@@ -60,7 +60,7 @@ fn update_damage(
 
 
 ## Known Issues
- - Currently if you despawn a ton of tiles during startup chunks might not update correctly. Seems to be an ordering issue with the systems.
+ - None(Please report any issues!)
 
 ## Asset credits
  - Field of green by GuttyKreum(https://guttykreum.itch.io/)

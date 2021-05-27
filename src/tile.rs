@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Debug, Clone, Copy)]
 pub struct Tile {
     /// The texture index in the atlas or array.
-    pub texture_index: u32,
+    pub texture_index: u16,
     /// Flip tile along the x axis.
     pub flip_x: bool,
     /// Flip tile along the Y axis.
@@ -32,10 +32,6 @@ impl Into<TileBundle> for Tile {
         }
     }
 }
-
-/// A tag that allows you to remove a tile from the world
-pub struct RemoveTile;
-
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
@@ -55,8 +51,11 @@ impl GPUAnimated {
     }
 }
 
-pub trait TileBundleTrait: Bundle + Clone {
+/// This trait is used to allow the layer builder to access specific information inside of the bundle.
+pub trait TileBundleTrait: Bundle + Clone + Sized {
+    /// Gets the tile position from inside of the bundle.
     fn get_tile_pos_mut(&mut self) -> &mut UVec2;
+    /// Gets the tile parent component from inside the bundle.
     fn get_tile_parent(&mut self) -> &mut TileParent;
 }
 
@@ -76,7 +75,7 @@ impl Default for TileBundle {
         Self {
             tile: Tile::default(),
             position: UVec2::default(),
-            parent: TileParent(Entity::new(0)),
+            parent: TileParent::default(),
         }
     }
 }
@@ -92,14 +91,32 @@ impl TileBundleTrait for TileBundle {
 }
 
 impl TileBundle {
-    pub fn new(tile: Tile, position: UVec2, chunk: Entity) -> Self {
+    pub fn new(tile: Tile, position: UVec2) -> Self {
         Self {
             tile,
             position,
-            parent: TileParent(chunk),
+            parent: TileParent::default(),
         }
     }
 }
 
+/// A component containing the tiles parent information.
 #[derive(Clone)]
-pub struct TileParent(pub Entity);
+pub struct TileParent {
+    /// The rendering chunk that the tile is attached to.
+    pub chunk: Entity,
+    /// The layer id the tile is under.
+    pub layer_id: u16,
+    /// The map id the tile is under.
+    pub map_id: u16,
+}
+
+impl Default for TileParent {
+    fn default() -> Self {
+        Self {
+            chunk: Entity::new(0),
+            layer_id: 0,
+            map_id: 0,
+        }
+    }
+}

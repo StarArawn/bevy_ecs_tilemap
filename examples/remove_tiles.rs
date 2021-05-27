@@ -20,29 +20,43 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let layer_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::new(
-        &mut commands,
-        layer_entity,
-        LayerSettings::new(
-            UVec2::new(2, 2),
-            UVec2::new(8, 8),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
-        ),
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
+        UVec2::new(2, 2),
+        UVec2::new(8, 8),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
     );
+
+    let center = layer_settings.get_pixel_center();
+
+    let (mut layer_builder, layer_entity) =
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
     layer_builder.set_all(TileBundle::default());
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
 
     commands.entity(layer_entity).insert(LastUpdate::default());
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn remove_tiles(
     mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
-    map_query: MapQuery,
+    mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
     for mut last_update in last_update_query.iter_mut() {
@@ -50,12 +64,13 @@ fn remove_tiles(
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
             let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map_query.get_tile_entity(position, 0u32);
+            let tile_entity = map_query.get_tile_entity(position, 0u16, 0u16);
 
-            // Note you can also call map.remove_tile() instead.
             if tile_entity.is_ok() {
-                commands.entity(tile_entity.unwrap()).insert(RemoveTile);
+                let _ = map_query.despawn_tile(&mut commands, position, 0u16, 0u16);
             }
+
+            map_query.notify_chunk_for_tile(position, 0u16, 0u16);
 
             last_update.value = current_time;
         }

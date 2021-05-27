@@ -15,26 +15,29 @@ fn startup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut map_query: MapQuery,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(2560.0, 2560.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    // Chunk sizes of 64x64 seem optimal for meshing updates.
+    // Create map entity and component:
     let map_entity = commands.spawn().id();
-    let mut layer_builder = LayerBuilder::<TileBundle>::new(
-        &mut commands,
-        map_entity,
-        LayerSettings::new(
-            UVec2::new(10, 10),
-            UVec2::new(64, 64),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
-        ),
+    let mut map = Map::new(0u16, map_entity);
+
+    let layer_settings = LayerSettings::new(
+        UVec2::new(10, 10),
+        UVec2::new(64, 64),
+        Vec2::new(16.0, 16.0),
+        Vec2::new(96.0, 256.0),
     );
+
+    let center = layer_settings.get_pixel_center();
+
+    // Chunk sizes of 64x64 seem optimal for meshing updates.
+    let (mut layer_builder, layer_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_entity);
+
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
         // True here refers to tile visibility.
         *tile_data = Some(TileBundle::default());
@@ -42,7 +45,15 @@ fn startup(
         commands.entity(tile_entity).insert(LastUpdate::default());
     });
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 #[derive(Default)]
@@ -64,7 +75,7 @@ fn random(
         if (current_time - last_update.value) > 0.05 {
             tile.texture_index = random.gen_range(0..6);
             last_update.value = current_time;
-            chunks.insert(tile_parent.0);
+            chunks.insert(tile_parent.chunk);
         }
     }
 

@@ -15,6 +15,10 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
     let layer_settings = LayerSettings::new(
         UVec2::new(2, 2),
         UVec2::new(8, 8),
@@ -22,17 +26,11 @@ fn startup(
         Vec2::new(96.0, 256.0),
     );
 
-    let mut ground_layer = None;
+    let center = layer_settings.get_pixel_center();
 
-    commands
-        .spawn()
-        .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
-        .insert(GlobalTransform::default())
-        .with_children(|child_builder| {
-            ground_layer = Some(child_builder.spawn().id());
-        });
-
-    let mut layer_builder = LayerBuilder::new(&mut commands, ground_layer.unwrap(), layer_settings);
+    let (mut layer_builder, ground_layer) =
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, ground_layer);
 
     let mut random = thread_rng();
 
@@ -42,7 +40,15 @@ fn startup(
         let _ = layer_builder.set_tile(position, TileBundle::default());
     }
 
-    map_query.create_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, material_handle);
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {

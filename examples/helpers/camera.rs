@@ -28,12 +28,16 @@ pub fn movement(
 
         if keyboard_input.pressed(KeyCode::Z) {
             let scale = scale + 0.1;
-            transform.scale = Vec3::new(scale, scale, scale);
+            transform.scale = Vec3::splat(scale);
         }
 
-        if keyboard_input.pressed(KeyCode::X) && scale > 1.1 {
+        if keyboard_input.pressed(KeyCode::X) {
             let scale = scale - 0.1;
-            transform.scale = Vec3::new(scale, scale, scale);
+            transform.scale = Vec3::splat(scale);
+        }
+
+        if transform.scale.x < 1.0 {
+            transform.scale = Vec3::splat(1.0)
         }
 
         transform.translation += time.delta_seconds() * direction * 500.;

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
-
 mod helpers;
 
 fn startup(
@@ -12,37 +11,76 @@ fn startup(
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let texture_handle = asset_server.load("iso.png");
+    let texture_handle = asset_server.load("iso_color.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
+    // Create map entity and component:
+    let map_entity = commands.spawn().id();
+    let mut map = Map::new(0u16, map_entity);
+
     let mut map_settings = LayerSettings::new(
-        UVec2::new(4, 4),
+        UVec2::new(2, 2),
         UVec2::new(32, 32),
         Vec2::new(64.0, 32.0),
-        Vec2::new(640.0, 1024.0),
+        Vec2::new(384.0, 32.0),
     );
     map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
 
     // Layer 0
-    let layer_0_entity = commands.spawn().id();
-    let mut layer_0 = LayerBuilder::new(&mut commands, layer_0_entity, map_settings.clone());
-    layer_0.set_all(TileBundle {
-        tile: Tile {
-            texture_index: 10,
-            ..Default::default()
-        },
-        ..Default::default()
-    });
+    let (mut layer_0, layer_0_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+    map.add_layer(&mut commands, 0u16, layer_0_entity);
 
-    map_query.create_layer(&mut commands, layer_0, material_handle.clone());
+    layer_0.fill(
+        UVec2::new(0, 0),
+        UVec2::new(32, 32),
+        Tile {
+            texture_index: 0,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_0.fill(
+        UVec2::new(32, 0),
+        UVec2::new(64, 32),
+        Tile {
+            texture_index: 1,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_0.fill(
+        UVec2::new(0, 32),
+        UVec2::new(32, 64),
+        Tile {
+            texture_index: 2,
+            ..Default::default()
+        }
+        .into(),
+    );
+    layer_0.fill(
+        UVec2::new(32, 32),
+        UVec2::new(64, 64),
+        Tile {
+            texture_index: 3,
+            ..Default::default()
+        }
+        .into(),
+    );
+
+    map_query.build_layer(&mut commands, layer_0, material_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..5 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
-        let layer_entity = commands.spawn().id();
-        let mut layer_builder =
-            LayerBuilder::new(&mut commands, layer_entity, new_settings.clone());
+        let (mut layer_builder, layer_entity) = LayerBuilder::new(
+            &mut commands,
+            new_settings.clone(),
+            0u16,
+            new_settings.layer_id,
+        );
+        map.add_layer(&mut commands, new_settings.layer_id, layer_entity);
 
         let mut random = thread_rng();
 
@@ -53,7 +91,7 @@ fn startup(
                 position,
                 TileBundle {
                     tile: Tile {
-                        texture_index: 10 + z + 1,
+                        texture_index: 0 + z + 1,
                         ..Default::default()
                     },
                     ..Default::default()
@@ -61,8 +99,16 @@ fn startup(
             );
         }
 
-        map_query.create_layer(&mut commands, layer_builder, material_handle.clone());
+        map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
     }
+
+    // Spawn Map
+    // Required in order to use map_query to retrieve layers/tiles.
+    commands
+        .entity(map_entity)
+        .insert(map)
+        .insert(Transform::from_xyz(0.0, 1024.0, 0.0))
+        .insert(GlobalTransform::default());
 }
 
 fn main() {
