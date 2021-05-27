@@ -1,29 +1,29 @@
-# bevy_ecs_tilemap
-A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile.
+# `bevy_ecs_tilemap`
+A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS friendly as it makes tiles entities.
 
 ## Features
- - A tile per entity
+ - A tile per entity.
  - Fast rendering using a chunked approach.
  - Layers and sparse tile maps.
- - GPU powered animations
- - Isometric and Hexagonal tile maps
+ - GPU powered animations.
+ - Isometric and Hexagonal tile maps.
 
 ## Upcoming Features
- - ~~Support for isometric and hexagon rendering~~ done
- - ~~Built in animation support.~~ done see animation example
- - Texture array support
- - ~~Layers and add/remove tiles. (High Priority)~~ done
+ - [x] Support for isometric and hexagon rendering.
+ - [x] Built in animation support  – see [`animation` example](examples/animation.rs).
+ - [ ] Texture array support.
+ - [x] Layers and add/remove tiles.
 
 
 ## Screenshots
 ![iso](screenshots/iso.png)
 ![hex](screenshots/hex.png)
 
-### How this works?
+### How Does This Work?
 Quite simple there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
 
-### Why use this over another bevy tile map plugin?
-Because each tile is an entity of its own editing tiles is super easy, and convenient. This allows you tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That's easy with this plugin:
+### Why Use This Instead of X?
+Because each tile is an entity of its own editing tiles is super easy and convenient. This allows you to tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That’s easy with this plugin:
 
 ```rust
 struct Damage {
@@ -40,27 +40,30 @@ fn update_damage(
 ```
 
 ## Examples
- - accessing_tiles - An example showing how one can access tiles from the map object by using tile map coordinates.
- - animation - Basic cpu animation example.
- - bench - A stress test of the map rendering system. Takes a while to load.
- - dynamic_map - A random map that is only partial filled with tiles that changes every so often.
- - game_of_life - A game of life simulator.
- - hex_column - A map that is meshed using "pointy" hexagons.
- - hex_row - A map that is meshed using flat hexagons.
- - iso - An isometric meshed map.
- - layers - An example of how you can use multiple map entities/components for "layers".
- - map - The simplest example of how to create a tile map.
- - random_map - A bench of editing all of the tiles every 100 ms.
- - remove_tiles - An example showing how you can remove tiles by using map_query
- - sparse_tiles - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
- - visibility - An example showcasing visibility of tiles and chunks.
+ - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
+ - [`animation`](examples/animation.rs) – Basic CPU animation example.
+ - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
+ - [`dynamic_map`](examples/dynamic_map.rs) - A random map that is only partial filled with tiles that changes every so often.
+ - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
+ - [`hex_column`](examples/hex_column.rs) - A map that is meshed using “pointy” hexagons.
+ - [`hex_row`](examples/hex_row.rs) - A map that is meshed using flat hexagons.
+ - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
+ - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
+ - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
+ - [`map`](examples/map.rs) - The simplest example of how to create a tile map.
+ - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
+ - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
+ - [`sparse_tiles`](examples/sparse_tiles.rs) - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
+ - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
-### Running examples
-`cargo run --release --example map`
+### Running Examples
 
+```
+cargo run --release --example map
+```
 
 ## Known Issues
- - None(Please report any issues!)
+ - None – please report any issues!
 
 ## Asset credits
- - Field of green by GuttyKreum(https://guttykreum.itch.io/)
+ - Field of green by [GuttyKreum](https://guttykreum.itch.io/).
