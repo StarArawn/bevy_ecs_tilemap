@@ -11,9 +11,13 @@ fn startup(
 
     let handle: Handle<LdtkMap> = asset_server.load("map.ldtk");
 
-    commands.spawn()
+    let map_entity = commands.spawn().id();
+
+    commands.entity(map_entity)
         .insert_bundle(LdtkMapBundle {
             ldtk_map: handle,
+            map: Map::new(0u16, map_entity),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..Default::default()
         });
 }
