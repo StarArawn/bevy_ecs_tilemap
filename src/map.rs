@@ -9,6 +9,16 @@ pub struct Map {
     pub(crate) layers: HashMap<u16, Entity>,
 }
 
+impl Default for Map {
+    fn default() -> Self {
+        Self {
+            map_entity: Entity::new(0),
+            id: 0,
+            layers: HashMap::new(),
+        }
+    }
+}
+
 impl Map {
     /// Creates a new map component
     pub fn new<T: Into<u16>>(id: T, map_entity: Entity) -> Self {
@@ -69,5 +79,9 @@ impl Map {
     /// Despawns a map. Better to call `map_query.despawn_map` as it will despawn layers/tiles as well.
     pub fn despawn(&self, commands: &mut Commands) {
         commands.entity(self.map_entity).despawn_recursive();
+    }
+
+    pub fn get_layers(&self) -> Vec<(u16, Entity)> {
+        self.layers.iter().map(|(key, value)| (*key, *value)).collect()
     }
 }
