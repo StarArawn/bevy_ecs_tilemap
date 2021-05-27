@@ -1,6 +1,6 @@
 use crate::{
     morton_index, morton_pos,
-    prelude::{SquareChunkMesher, TilemapChunkMesher},
+    prelude::ChunkMesher,
     render::TilemapData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
@@ -51,7 +51,7 @@ impl Default for ChunkBundle {
 }
 
 /// Chunk specific settings.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ChunkSettings {
     /// The specific location x,y of the chunk in the tile map in chunk coords.
     pub position: UVec2,
@@ -68,25 +68,8 @@ pub struct ChunkSettings {
     /// Cull the chunks in the map when they are off screen.
     pub cull: bool,
     pub mesh_type: TilemapMeshType,
-    pub(crate) mesher: Box<dyn TilemapChunkMesher>,
+    pub(crate) mesher: ChunkMesher,
     pub(crate) mesh_handle: Handle<Mesh>,
-}
-
-impl Clone for ChunkSettings {
-    fn clone(&self) -> Self {
-        Self {
-            position: self.position,
-            size: self.size,
-            tile_size: self.tile_size,
-            texture_size: self.texture_size,
-            layer_id: self.layer_id,
-            spacing: self.spacing,
-            mesh_handle: self.mesh_handle.clone(),
-            mesh_type: self.mesh_type.clone(),
-            cull: self.cull,
-            mesher: dyn_clone::clone_box(&*self.mesher),
-        }
-    }
 }
 
 /// A component that stores information about a specific chunk in the tile map.
@@ -126,7 +109,7 @@ impl Default for Chunk {
                 spacing: Vec2::ZERO,
                 cull: true,
                 mesh_type: TilemapMeshType::Square,
-                mesher: Box::new(SquareChunkMesher),
+                mesher: ChunkMesher,
             },
             tiles: Vec::new(),
         }
@@ -144,7 +127,7 @@ impl Chunk {
         mesh_handle: Handle<Mesh>,
         layer_id: u16,
         mesh_type: TilemapMeshType,
-        mesher: Box<dyn TilemapChunkMesher>,
+        mesher: ChunkMesher,
         cull: bool,
     ) -> Self {
         let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
@@ -231,15 +214,13 @@ pub(crate) fn update_chunk_mesh(
                 chunk.settings.layer_id
             );
 
-            let (mesh_handle, new_mesh) =
-                chunk
-                    .settings
-                    .mesher
-                    .mesh(chunk.settings.clone(), &chunk.tiles, &tile_query);
             let mut meshes = threaded_meshes.lock().unwrap();
-            if let Some(mesh) = meshes.get_mut(mesh_handle) {
-                *mesh = new_mesh;
-            }
+            chunk.settings.mesher.mesh(
+                chunk.settings.clone(),
+                &chunk.tiles,
+                &tile_query,
+                &mut meshes,
+            );
 
             chunk.needs_remesh = false;
         }
