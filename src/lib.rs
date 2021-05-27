@@ -107,6 +107,12 @@ pub enum TilemapMeshType {
     Isometric(IsoType),
 }
 
+impl Default for TilemapMeshType {
+    fn default() -> Self {
+        Self::Square
+    }
+}
+
 /// The tilemap stage which runs before post update.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, StageLabel)]
 pub struct TilemapStage;
@@ -156,7 +162,7 @@ pub mod prelude {
     pub use crate::layer_builder::LayerBuilder;
     pub use crate::map::Map;
     pub use crate::map_query::MapQuery;
-    pub(crate) use crate::mesher::{SquareChunkMesher, TilemapChunkMesher};
+    pub(crate) use crate::mesher::ChunkMesher;
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
