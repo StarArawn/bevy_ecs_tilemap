@@ -102,7 +102,7 @@ where
                     mesh_handle.clone(),
                     settings.layer_id,
                     settings.mesh_type,
-                    dyn_clone::clone_box(&*settings.mesher),
+                    settings.mesher,
                     settings.cull,
                 );
 
@@ -344,7 +344,7 @@ where
                     mesh_handle.clone(),
                     self.settings.layer_id,
                     self.settings.mesh_type,
-                    dyn_clone::clone_box(&*self.settings.mesher),
+                    self.settings.mesher,
                     self.settings.cull,
                 );
 
@@ -445,16 +445,20 @@ where
                     + chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
-            TilemapMeshType::Hexagon(crate::HexType::RowOdd) | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
+            TilemapMeshType::Hexagon(crate::HexType::RowOdd)
+            | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
                 let chunk_pos_x =
                     chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x;
-                let chunk_pos_y =
-                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * (0.75 * settings.tile_size.y).floor();
+                let chunk_pos_y = chunk_pos.y as f32
+                    * settings.chunk_size.y as f32
+                    * (0.75 * settings.tile_size.y).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
-            TilemapMeshType::Hexagon(crate::HexType::ColumnOdd) | TilemapMeshType::Hexagon(crate::HexType::ColumnEven) => {
-                let chunk_pos_x =
-                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * (0.75 * settings.tile_size.x).floor();
+            TilemapMeshType::Hexagon(crate::HexType::ColumnOdd)
+            | TilemapMeshType::Hexagon(crate::HexType::ColumnEven) => {
+                let chunk_pos_x = chunk_pos.x as f32
+                    * settings.chunk_size.x as f32
+                    * (0.75 * settings.tile_size.x).floor();
                 let chunk_pos_y =
                     chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
                 Vec2::new(chunk_pos_x, chunk_pos_y)

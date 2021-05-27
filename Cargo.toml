@@ -19,7 +19,6 @@ ldtk = ["anyhow", "ldtk_rust", "serde_json"]
 [dependencies]
 anyhow = { version = "1.0", optional = true }
 bevy = "0.5"
-dyn-clone = "1.0"
 futures-util = "0.3"
 ldtk_rust = { version = "0.5", optional = true }
 morton-encoding = "2.0"
