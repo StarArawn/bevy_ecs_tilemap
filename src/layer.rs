@@ -109,10 +109,10 @@ impl Layer {
     pub fn new(settings: LayerSettings) -> Self {
         let map_size_x = round_to_power_of_two(settings.map_size.x as f32);
         let map_size_y = round_to_power_of_two(settings.map_size.y as f32);
-        let map_size = map_size_x * map_size_y;
+        let map_size = map_size_x.max(map_size_y);
         Self {
             settings,
-            chunks: vec![None; map_size],
+            chunks: vec![None; map_size * map_size],
         }
     }
 
