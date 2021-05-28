@@ -132,8 +132,8 @@ impl Chunk {
     ) -> Self {
         let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
         let tile_size_y = round_to_power_of_two(chunk_size.y as f32);
-        let tile_count = tile_size_x * tile_size_y;
-        let tiles = vec![None; tile_count];
+        let tile_count = tile_size_x.max(tile_size_y);
+        let tiles = vec![None; tile_count * tile_count];
         let settings = ChunkSettings {
             position,
             size: chunk_size,

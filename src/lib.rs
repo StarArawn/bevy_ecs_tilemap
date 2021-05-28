@@ -149,7 +149,7 @@ impl Plugin for TilemapPlugin {
 }
 
 pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
-    morton_encoding::morton_encode([tile_pos.x as u64, tile_pos.y as u64]) as usize
+    morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
 }
 
 // TODO: Hide this.
