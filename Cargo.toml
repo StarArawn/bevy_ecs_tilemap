@@ -13,7 +13,7 @@ exclude = [
 ]
 
 [features]
-default = ["ldtk"]
+default = []
 ldtk = ["anyhow", "ldtk_rust", "serde_json"]
 
 [dependencies]
