@@ -50,6 +50,7 @@ fn update_damage(
  - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
  - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
  - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
+ - [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a LDTK map which requires the ldtk feature. Use: `cargo run --example ldtk --features ldtk`
  - [`map`](examples/map.rs) - The simplest example of how to create a tile map.
  - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
