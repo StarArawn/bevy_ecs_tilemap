@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use crate::prelude::*;
 
 use bevy::{asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset}, prelude::*};
@@ -60,36 +60,43 @@ pub fn process_loaded_tile_maps(
         &Handle<LdtkMap>,
         &mut Map,
     )>,
+    new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
     layer_query: Query<&Layer>,
     chunk_query: Query<&Chunk>,
 ) {
-    let mut changed_maps = HashSet::<Handle<LdtkMap>>::default();
+    let mut changed_maps = Vec::<Handle<LdtkMap>>::default();
     for event in map_events.iter() {
         match event {
             AssetEvent::Created { handle } => {
                 log::info!("Map added!");
-                changed_maps.insert(handle.clone());
+                changed_maps.push(handle.clone());
             }
             AssetEvent::Modified { handle } => {
                 log::info!("Map changed!");
-                changed_maps.insert(handle.clone());
+                changed_maps.push(handle.clone());
             }
             AssetEvent::Removed { handle } => {
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps.remove(handle);
+                changed_maps = changed_maps.into_iter().filter(|changed_handle| changed_handle == handle).collect();
             }
         }
     }
-    
+
+    // If we have new map entities add them to the changed_maps list.
+    for new_map_handle in new_maps.iter() {
+        dbg!("New Map ADded!");
+        changed_maps.push(new_map_handle.clone());
+    }
+
     for changed_map in changed_maps.iter() {
         for (_, map_handle, mut map) in query.iter_mut() {
+            dbg!("Got here!");
             // only deal with currently changed map
             if map_handle != changed_map {
                 continue;
             }
-
             if let Some(ldtk_map) = maps.get(map_handle) {
                 // Despawn all tiles/chunks/layers.
                 for (layer_id, layer_entity) in map.get_layers() {
@@ -178,7 +185,6 @@ pub fn process_loaded_tile_maps(
                     }
 
                     let material_handle = materials.add(ColorMaterial::texture(texture));
-
                     let layer_bundle = layer_builder.build(&mut commands, &mut meshes, material_handle);
                     let mut layer = layer_bundle.layer;
                     let mut transform = Transform::from_xyz(0.0, -ldtk_map.project.levels[0].px_hei as f32, layer_bundle.transform.translation.z);
