@@ -70,6 +70,9 @@ mod mesher;
 mod render;
 mod tile;
 
+#[cfg(feature = "ldtk")]
+mod ldtk;
+
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
@@ -146,7 +149,7 @@ impl Plugin for TilemapPlugin {
 }
 
 pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
-    morton_encoding::morton_encode([tile_pos.x as u64, tile_pos.y as u64]) as usize
+    morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
 }
 
 // TODO: Hide this.
@@ -166,6 +169,9 @@ pub mod prelude {
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
+
+    #[cfg(feature = "ldtk")]
+    pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {

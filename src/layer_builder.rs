@@ -37,13 +37,14 @@ where
             round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
         let tile_size_y =
             round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
-        let tile_count = tile_size_x * tile_size_y;
+        let tile_count = tile_size_x.max(tile_size_y);
+
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
         (
             Self {
                 settings,
-                tiles: (0..tile_count)
+                tiles: (0..tile_count * tile_count)
                     .map(|_| {
                         let tile_entity = Some(commands.spawn().id());
                         (tile_entity.unwrap(), None)

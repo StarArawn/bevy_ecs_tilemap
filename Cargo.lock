@@ -354,13 +354,16 @@ dependencies = [
 name = "bevy_ecs_tilemap"
 version = "0.4.0"
 dependencies = [
+ "anyhow",
  "bevy",
  "bytemuck",
  "env_logger 0.8.3",
  "futures-util",
+ "ldtk_rust",
  "log",
  "morton-encoding",
  "rand 0.8.3",
+ "serde_json",
 ]
 
 [[package]]
@@ -2025,6 +2028,16 @@ name = "lazycell"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
+
+[[package]]
+name = "ldtk_rust"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7135094ff34d3ccd8d30a2aaf555a51828a41a0d4c7977ae4d2165ca21c3809c"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "libc"
