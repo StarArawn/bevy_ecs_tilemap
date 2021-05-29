@@ -86,13 +86,11 @@ pub fn process_loaded_tile_maps(
 
     // If we have new map entities add them to the changed_maps list.
     for new_map_handle in new_maps.iter() {
-        dbg!("New Map ADded!");
         changed_maps.push(new_map_handle.clone());
     }
 
     for changed_map in changed_maps.iter() {
         for (_, map_handle, mut map) in query.iter_mut() {
-            dbg!("Got here!");
             // only deal with currently changed map
             if map_handle != changed_map {
                 continue;
