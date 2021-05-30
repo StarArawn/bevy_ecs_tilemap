@@ -18,7 +18,7 @@ ldtk = ["anyhow", "ldtk_rust", "serde_json"]
 
 [dependencies]
 anyhow = { version = "1.0", optional = true }
-bevy = { git="https://github.com/bevyengine/bevy", rev="052094757aee671c66190b63a640900f15ee300d" }
+bevy = { git="https://github.com/bevyengine/bevy", rev="052094757aee671c66190b63a640900f15ee300d", default-features = false }
 bytemuck = "1.5"
 ldtk_rust = { version = "0.5", optional = true }
 morton-encoding = "2.0"
@@ -26,5 +26,6 @@ log = "0.4"
 serde_json = { version = "1.0", optional = true }
 
 [dev-dependencies]
+bevy = { git="https://github.com/bevyengine/bevy", rev="052094757aee671c66190b63a640900f15ee300d", default-features = true }
 rand = "0.8"
 env_logger = "0.8"
