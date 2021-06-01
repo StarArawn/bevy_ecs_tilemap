@@ -66,7 +66,7 @@ fn startup(
             .into(),
         );
 
-        if let Ok(entity) = layer_builder.get_tile_entity(position) {
+        if let Ok(entity) = layer_builder.get_tile_entity(&mut commands, position) {
             commands
                 .entity(entity)
                 .insert(GPUAnimated::new(0, 13, 0.95));
