@@ -21,7 +21,7 @@ impl Default for Map {
 
 impl Map {
     /// Creates a new map component
-    pub fn new<T: Into<u16>>(id: T, map_entity: Entity) -> Self {
+    pub fn new<M: Into<u16>>(id: M, map_entity: Entity) -> Self {
         Self {
             map_entity,
             id: id.into(),
@@ -30,10 +30,10 @@ impl Map {
     }
 
     /// Creates a new layer.
-    pub fn add_layer<T: Into<u16>>(
+    pub fn add_layer<L: Into<u16>>(
         &mut self,
         commands: &mut Commands,
-        layer_id: T,
+        layer_id: L,
         layer_entity: Entity,
     ) {
         commands
@@ -43,10 +43,10 @@ impl Map {
     }
 
     /// Adds multiple layers to the map.
-    pub fn add_layers<I: Into<u16>>(
+    pub fn add_layers<L: Into<u16>>(
         &mut self,
         commands: &mut Commands,
-        layers: IntoIter<(I, Entity)>,
+        layers: IntoIter<(L, Entity)>,
     ) {
         let layers: Vec<(u16, Entity)> = layers.map(|(id, entity)| (id.into(), entity)).collect();
         let entities: Vec<Entity> = layers.iter().map(|(_, entity)| *entity).collect();
@@ -56,7 +56,7 @@ impl Map {
 
     /// Removes the layer from the map and despawns the layer entity.
     /// Note: Does not despawn the tile entities. Please use MapQuery instead.
-    pub fn remove_layer<I: Into<u16>>(&mut self, commands: &mut Commands, layer_id: I) {
+    pub fn remove_layer<L: Into<u16>>(&mut self, commands: &mut Commands, layer_id: L) {
         if let Some(layer_entity) = self.layers.remove(&layer_id.into()) {
             commands.entity(layer_entity).despawn_recursive();
         }
@@ -64,7 +64,7 @@ impl Map {
 
     /// Removes the layers from the map and despawns the layer entities.
     /// Note: Does not despawn the tile entities. Please use MapQuery instead.
-    pub fn remove_layers<I: Into<u16>>(&mut self, commands: &mut Commands, layers: IntoIter<I>) {
+    pub fn remove_layers<L: Into<u16>>(&mut self, commands: &mut Commands, layers: IntoIter<L>) {
         layers.for_each(|id| {
             let id: u16 = id.into();
             self.remove_layer(commands, id);
@@ -72,7 +72,7 @@ impl Map {
     }
 
     /// Retrieves the entity for a given layer id.
-    pub fn get_layer_entity<T: Into<u16>>(&self, layer_id: T) -> Option<&Entity> {
+    pub fn get_layer_entity<L: Into<u16>>(&self, layer_id: L) -> Option<&Entity> {
         self.layers.get(&layer_id.into())
     }
 
@@ -82,6 +82,9 @@ impl Map {
     }
 
     pub fn get_layers(&self) -> Vec<(u16, Entity)> {
-        self.layers.iter().map(|(key, value)| (*key, *value)).collect()
+        self.layers
+            .iter()
+            .map(|(key, value)| (*key, *value))
+            .collect()
     }
 }

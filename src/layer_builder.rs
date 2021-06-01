@@ -26,11 +26,11 @@ where
     T: TileBundleTrait,
 {
     /// Creates the layer builder using the layer settings.
-    pub fn new<I: Into<u16>>(
+    pub fn new<M: Into<u16>, L: Into<u16>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
-        map_id: I,
-        layer_id: I,
+        map_id: M,
+        layer_id: L,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
         let tile_size_x =
@@ -58,13 +58,13 @@ where
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
-    pub fn new_batch<I: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
+    pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
         material_handle: Handle<ColorMaterial>,
-        map_id: I,
-        layer_id: I,
+        map_id: M,
+        layer_id: L,
         mut f: F,
     ) -> Entity {
         let layer_entity = commands.spawn().id();
