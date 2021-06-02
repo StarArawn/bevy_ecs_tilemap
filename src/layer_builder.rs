@@ -93,16 +93,9 @@ where
                 let mesh_handle = meshes.add(mesh);
                 let chunk = Chunk::new(
                     layer_entity,
+                    settings.clone(),
                     chunk_pos,
-                    settings.chunk_size,
-                    settings.tile_size,
-                    settings.texture_size,
-                    settings.tile_spacing,
                     mesh_handle.clone(),
-                    settings.layer_id,
-                    settings.mesh_type,
-                    settings.mesher,
-                    settings.cull,
                 );
 
                 let index = morton_index(chunk_pos);
@@ -110,7 +103,7 @@ where
 
                 let transform = Self::get_chunk_coords(chunk_pos, &settings);
 
-                let tilemap_data = TilemapData::from(&chunk.settings);
+                let tilemap_data = TilemapData::from(&chunk);
 
                 commands.entity(chunk_entity).insert_bundle(ChunkBundle {
                     chunk,
@@ -344,16 +337,9 @@ where
                 let mesh_handle = meshes.add(mesh);
                 let mut chunk = Chunk::new(
                     self.layer_entity,
+                    self.settings.clone(),
                     chunk_pos,
-                    self.settings.chunk_size,
-                    self.settings.tile_size,
-                    self.settings.texture_size,
-                    self.settings.tile_spacing,
                     mesh_handle.clone(),
-                    self.settings.layer_id,
-                    self.settings.mesh_type,
-                    self.settings.mesher,
-                    self.settings.cull,
                 );
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
@@ -385,7 +371,7 @@ where
 
                 let transform = Self::get_chunk_coords(chunk_pos, &self.settings);
 
-                let tilemap_data = TilemapData::from(&chunk.settings);
+                let tilemap_data = TilemapData::from(&chunk);
 
                 commands.entity(chunk_entity).insert_bundle(ChunkBundle {
                     chunk,
@@ -478,13 +464,13 @@ where
             TilemapMeshType::Isometric(IsoType::Diamond) => Self::project_iso_diamond(
                 chunk_pos.x as f32,
                 chunk_pos.y as f32,
-                settings.chunk_size.x as f32 * settings.tile_size.x,
-                settings.chunk_size.y as f32 * settings.tile_size.y,
+                settings.chunk_size.x as f32 * settings.grid_size.x,
+                settings.chunk_size.y as f32 * settings.grid_size.y,
             ),
             TilemapMeshType::Isometric(IsoType::Staggered) => Self::project_iso_staggered(
                 chunk_pos.x as f32,
                 chunk_pos.y as f32,
-                settings.chunk_size.x as f32 * settings.tile_size.x,
+                settings.chunk_size.x as f32 * settings.grid_size.x,
                 settings.chunk_size.y as f32,
             ),
         };
