@@ -171,6 +171,7 @@ pub fn process_loaded_tile_maps(
                                 tileset.images[0].height as f32,
                             ), // TODO: support multiple tileset images?
                         );
+                        map_settings.grid_size = Vec2::new(tiled_map.map.tile_width as f32, tiled_map.map.tile_height as f32);
                         map_settings.set_layer_id(layer.layer_index as u16);
 
                         map_settings.mesh_type = match tiled_map.map.orientation {
