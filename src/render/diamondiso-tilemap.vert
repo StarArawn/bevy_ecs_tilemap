@@ -18,6 +18,7 @@ layout(set = 2, binding = 0) uniform Transform {
 layout(set = 2, binding = 1) uniform TilemapData {
     vec2 texture_size;
     vec2 tile_size;
+    vec2 grid_size;
     vec2 spacing;
     float time;
 };
@@ -30,7 +31,7 @@ vec2 project_iso(vec2 pos, float tile_width, float tile_height) {
 
 void main() {
     vec2 uv = vec2(0.0);
-    vec2 center = project_iso(Vertex_Position.xy, tile_size.x, tile_size.y);
+    vec2 center = project_iso(Vertex_Position.xy, grid_size.x, grid_size.y);
 
     vec2 start = vec2(
         center.x - tile_size.x / 2.0,

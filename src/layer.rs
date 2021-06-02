@@ -30,6 +30,8 @@ pub struct LayerSettings {
     pub chunk_size: ChunkSize,
     /// Size in pixels of each tile.
     pub tile_size: TileSize,
+    /// Size in pixels of the grid(default is tile_size)
+    pub grid_size: Vec2,
     /// Size in pixels of the tilemap texture.
     pub texture_size: TextureSize,
     /// The layer id associated with this map.
@@ -57,6 +59,7 @@ impl LayerSettings {
             map_size,
             chunk_size,
             tile_size,
+            grid_size: tile_size.into(),
             texture_size,
             layer_id: 0,
             map_id: 0,

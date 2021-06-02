@@ -71,7 +71,10 @@ mod neighbors;
 mod render;
 mod tile;
 
-pub use crate::chunk::{Chunk, ChunkSettings};
+#[cfg(feature = "ldtk")]
+mod ldtk;
+
+pub use crate::chunk::Chunk;
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
@@ -159,8 +162,8 @@ fn morton_pos(index: usize) -> UVec2 {
 
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
-    pub use crate::chunk::{Chunk, ChunkSettings};
-    pub use crate::layer::{Layer, LayerBundle, LayerId, LayerSettings, MapTileError};
+    pub use crate::chunk::Chunk;
+    pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
     pub use crate::layer_builder::LayerBuilder;
     pub use crate::map::{Map, MapId};
     pub use crate::map_query::MapQuery;
@@ -185,6 +188,18 @@ pub struct MapSize(pub u32, pub u32);
 /// The size of each chunk, in tiles
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ChunkSize(pub u32, pub u32);
+
+impl From<Vec2> for ChunkSize {
+    fn from(vec: Vec2) -> Self {
+        ChunkSize(vec.x as u32, vec.y as u32)
+    }
+}
+
+impl Into<Vec2> for ChunkSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
+    }
+}
 
 /// The size of each tile, in pixels
 #[derive(Default, Clone, Copy, PartialEq, Debug)]

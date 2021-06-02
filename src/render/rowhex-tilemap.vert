@@ -18,10 +18,10 @@ layout(set = 2, binding = 0) uniform Transform {
 layout(set = 2, binding = 1) uniform TilemapData {
     vec2 texture_size;
     vec2 tile_size;
+    vec2 grid_size;
     vec2 spacing;
     float time;
 };
-
 void main() {
     vec2 uv = vec2(0.0);
     vec2 position = Vertex_Position.xy;
