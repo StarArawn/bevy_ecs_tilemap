@@ -1,4 +1,4 @@
-use crate::{LayerSettings, TilemapMeshType, morton_index, morton_pos, prelude::ChunkMesher, render::TilemapData, round_to_power_of_two, tile::{GPUAnimated, Tile}};
+use crate::{LayerSettings, TilemapMeshType, morton_index, morton_pos, render::TilemapData, round_to_power_of_two, tile::{GPUAnimated, Tile}};
 use bevy::{
     prelude::*,
     render::{

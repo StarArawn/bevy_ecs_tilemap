@@ -9,7 +9,7 @@ fn startup(
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let handle: Handle<TiledMap> = asset_server.load("iso_map.tmx");
+    let handle: Handle<TiledMap> = asset_server.load("map.tmx");
 
     let map_entity = commands.spawn().id();
 
@@ -31,7 +31,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Iso diamond Map"),
+            title: String::from("Tiled map editor example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
