@@ -18,6 +18,8 @@ layout(set = 2, binding = 1) uniform TilemapData {
     vec2 tile_size;
     vec2 grid_size;
     vec2 spacing;
+    vec2 chunk_pos;
+    vec2 map_size;
     float time;
 };
 
@@ -30,6 +32,7 @@ vec2 project_iso(vec2 pos, float tile_width, float tile_height) {
 void main() {
     vec2 uv = vec2(0.0);
     vec2 center = project_iso(Vertex_Position.xy, grid_size.x, grid_size.y);
+    vec2 z_center = project_iso(chunk_pos + Vertex_Position.xy, grid_size.x, grid_size.y);
 
     vec2 start = vec2(
         center.x - tile_size.x / 2.0,
@@ -44,7 +47,7 @@ void main() {
         vec2(end.x, start.y)
     );
 
-    vec4 world_position = Model * vec4(vec3(positions[gl_VertexIndex % 4], 0.0), 1.0);
+    vec4 world_position = Model * vec4(vec3(positions[gl_VertexIndex % 4], 1.0 - (z_center.y / map_size.y)), 1.0);
 
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
 

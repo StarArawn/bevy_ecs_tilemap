@@ -19,6 +19,8 @@ pub(crate) struct TilemapData {
     pub(crate) tile_size: Vec2,
     pub(crate) grid_size: Vec2,
     pub(crate) spacing: Vec2,
+    pub(crate) chunk_pos: Vec2,
+    pub(crate) map_size: Vec2,
     pub(crate) time: f32,
 }
 
@@ -31,6 +33,8 @@ impl From<&Chunk> for TilemapData {
             tile_size: chunk.settings.tile_size,
             grid_size: chunk.settings.grid_size,
             spacing: chunk.settings.tile_spacing,
+            chunk_pos: chunk.position.as_f32() * chunk.settings.chunk_size.as_f32(),
+            map_size: chunk.settings.map_size.as_f32() * chunk.settings.chunk_size.as_f32() * chunk.settings.grid_size,
             time: 0.0,
         }
     }
