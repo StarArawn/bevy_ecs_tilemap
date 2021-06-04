@@ -20,8 +20,11 @@ layout(set = 2, binding = 1) uniform TilemapData {
     vec2 tile_size;
     vec2 grid_size;
     vec2 spacing;
+    vec2 chunk_pos;
+    vec2 map_size;
     float time;
 };
+
 void main() {
     vec2 uv = vec2(0.0);
     vec2 position = Vertex_Position.xy;

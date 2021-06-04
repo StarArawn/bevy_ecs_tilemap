@@ -185,6 +185,18 @@ pub(crate) fn round_to_power_of_two(value: f32) -> usize {
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct MapSize(pub u32, pub u32);
 
+impl From<Vec2> for MapSize {
+    fn from(vec: Vec2) -> Self {
+        MapSize(vec.x as u32, vec.y as u32)
+    }
+}
+
+impl Into<Vec2> for MapSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
+    }
+}
+
 /// The size of each chunk, in tiles
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ChunkSize(pub u32, pub u32);
@@ -267,5 +279,11 @@ pub struct ChunkPos(pub u32, pub u32);
 impl Into<UVec2> for ChunkPos {
     fn into(self) -> UVec2 {
         UVec2::new(self.0, self.1)
+    }
+}
+
+impl Into<Vec2> for ChunkPos {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
     }
 }

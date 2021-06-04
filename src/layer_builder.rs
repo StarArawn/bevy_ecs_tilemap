@@ -173,7 +173,7 @@ where
         let mut layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
         layer.settings.layer_id = layer.settings.layer_id;
-        transform.translation.z = layer.settings.layer_id as f32;
+        transform.translation.z = 0.0; //layer.settings.layer_id as f32;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
             transform,

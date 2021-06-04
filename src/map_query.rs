@@ -2,6 +2,7 @@ use crate::layer::LayerId;
 use crate::map::Map;
 use crate::{morton_index, prelude::*};
 use bevy::ecs::system::SystemParam;
+use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
@@ -368,4 +369,66 @@ impl<'a> MapQuery<'a> {
             }
         }
     }
+
+    /// Gets the tiles z position for a given pixel position.
+    /// This is a bit difficult to explain, but for isometric rendering this
+    /// allows you to get a z position within the 2D isometric tilemap.
+    /// Z positions are calculated as follows:
+    /// 1. Snap pixel position to tile coords.
+    /// 2. Use tile Y position to calculate z-index.
+    /// 3. Z-index is scaled to be 0-1.
+    /// 4. Add expected layer id to Z-index
+    /// Note the layer_id in this case is past in by the user as pixel_position.z
+    /// The user needs to handle what layer the sprite exists in within their own code.
+    /// The primary use case for this function is to allow users to calculate
+    /// a sprites z-index so it appears correctly either behind or in front
+    /// of a given isometric tile. To see an example of this checkout:
+    /// `examples/helpers/movement.rs`
+    pub fn get_zindex_for_pixel_pos<M: Into<u16>, L: Into<u16>>(
+        &self,
+        pixel_position: Vec3,
+        map_id: M,
+        layer_id: L,
+    ) -> f32 {
+        let map_id = map_id.into();
+        let layer_id = layer_id.into();
+        if let Some((_, map)) = self
+            .map_query_set
+            .q1()
+            .iter()
+            .find(|(_, map)| map.id == map_id)
+        {
+            if let Some(layer_entity) = map.get_layer_entity(layer_id) {
+                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                    let grid_size = layer.settings.grid_size;
+                    let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
+                    let map_size: Vec2 = layer_size_in_tiles * grid_size;
+                    let map_pos = unproject_iso(pixel_position.xy(), grid_size.x, grid_size.y);
+                    let center = project_iso(
+                        Vec2::new(map_pos.x, map_pos.y - 2.0),
+                        grid_size.x,
+                        grid_size.y,
+                    );
+
+                    return pixel_position.z + (1.0 - (center.y / map_size.y));
+                }
+            }
+        }
+
+        0.0
+    }
+}
+
+pub fn unproject_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
+    let half_width = tile_width / 2.0;
+    let half_height = tile_height / 2.0;
+    let x = ((pos.x / half_width) + (-(pos.y) / half_height)) / 2.0;
+    let y = ((-(pos.y) / half_height) - (pos.x / half_width)) / 2.0;
+    Vec2::new(x.round(), y.round())
+}
+
+fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
+    let x = (pos.x - pos.y) * tile_width / 2.0;
+    let y = (pos.x + pos.y) * tile_height / 2.0;
+    return Vec2::new(x, -y);
 }
