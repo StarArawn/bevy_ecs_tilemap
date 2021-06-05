@@ -29,6 +29,7 @@ fn startup(
         ),
         0u16,
         0u16,
+        None,
     );
 
     layer_builder.set_all(TileBundle::default());

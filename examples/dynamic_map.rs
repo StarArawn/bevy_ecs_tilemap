@@ -34,6 +34,7 @@ fn startup(
         ),
         0u16,
         0u16,
+        None,
     );
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);
