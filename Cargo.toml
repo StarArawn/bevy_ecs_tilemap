@@ -20,8 +20,8 @@ log = "0.4"
 [dev-dependencies]
 anyhow = { version = "1.0" }
 bevy = { version = "0.5", default-features = true }
-ldtk_rust = { version = "0.5"}
+ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
-serde_json = { version = "1.0"}
+serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }

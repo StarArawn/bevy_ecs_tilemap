@@ -178,11 +178,9 @@ pub fn process_loaded_tile_maps(
                             tiled::Orientation::Hexagonal => {
                                 TilemapMeshType::Hexagon(HexType::Row) // TODO: Support hex for real.
                             }
-                            tiled::Orientation::Isometric => {
-                                TilemapMeshType::Isometric(IsoType::Diamond)
-                            }
+                            tiled::Orientation::Isometric => TilemapMeshType::Isometric(IsoType::Diamond),
+                            tiled::Orientation::Staggered => TilemapMeshType::Isometric(IsoType::Staggered),
                             tiled::Orientation::Orthogonal => TilemapMeshType::Square,
-                            _ => panic!("Unknown tile map orientation!"),
                         };
 
                         let material = materials.add(ColorMaterial::texture(

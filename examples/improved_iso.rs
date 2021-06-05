@@ -23,10 +23,10 @@ fn startup(
     let mut map_settings = LayerSettings::new(
         MapSize(2, 2),
         ChunkSize(32, 32),
-        TileSize(42.0, 49.0),
-        TextureSize(420.0, 1176.0),
+        TileSize(64.0, 64.0),
+        TextureSize(384.0, 64.0),
     );
-    map_settings.grid_size = Vec2::new(42.0, 49.0 / 2.0);
+    map_settings.grid_size = Vec2::new(64.0, 64.0 / 2.0);
     map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
 
     // Layer 0
