@@ -169,10 +169,6 @@ pub fn process_loaded_tile_maps(
 
                         let material = materials.add(ColorMaterial::texture(tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone()));
                 
-                        let tiled_map_data = tiled_map.map.clone();
-                        let layer_data = layer.clone();
-                        let tileset_data = tileset.clone();
-
                         let layer_entity = LayerBuilder::<TileBundle>::new_batch(
                             &mut commands,
                             map_settings.clone(),
@@ -182,29 +178,29 @@ pub fn process_loaded_tile_maps(
                             0u16,
                             None,
                             move |mut tile_pos| {
-                                if tile_pos.x >= tiled_map_data.width || tile_pos.y >= tiled_map_data.height {
+                                if tile_pos.x >= tiled_map.map.width || tile_pos.y >= tiled_map.map.height {
                                     return None;
                                 }
                 
-                                if tiled_map_data.orientation == tiled::Orientation::Orthogonal {
-                                    tile_pos.y = (tiled_map_data.height - 1) as u32 - tile_pos.y;
+                                if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
+                                    tile_pos.y = (tiled_map.map.height - 1) as u32 - tile_pos.y;
                                 }
                 
                                 let x = tile_pos.x as usize;
                                 let y = tile_pos.y as usize;
                 
-                                let map_tile = match &layer_data.tiles {
+                                let map_tile = match &layer.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],
                                     _ => panic!("Infinite maps not supported"),
                                 };
                                 
-                                if map_tile.gid < tileset_data.first_gid
-                                || map_tile.gid >= tileset_data.first_gid + tileset_data.tilecount.unwrap()
+                                if map_tile.gid < tileset.first_gid
+                                || map_tile.gid >= tileset.first_gid + tileset.tilecount.unwrap()
                                 {
                                     return None;
                                 }
                 
-                                let tile_id = map_tile.gid - tileset_data.first_gid;
+                                let tile_id = map_tile.gid - tileset.first_gid;
                 
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
