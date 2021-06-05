@@ -117,7 +117,7 @@ fn startup(
     let x_pos = 8.0;
     let y_pos = 8.0;
     // TODO: Replace this with like a "get_z_map_position" or something.
-    let center = project_iso(Vec2::new(x_pos, y_pos), 42.0, 24.0);
+    let center = project_iso(Vec2::new(x_pos, y_pos), 64.0, 32.0);
     dbg!(center);
     let sprite_pos = Transform::from_xyz(center.x, center.y, 1.0 + (1.0 - (center.y / 10000.0)));
     dbg!(sprite_pos);
