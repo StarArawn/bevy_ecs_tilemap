@@ -13,7 +13,7 @@ exclude = [
 ]
 
 [features]
-default = []
+default = ["tiled_map"]
 ldtk = ["anyhow", "ldtk_rust", "serde_json"]
 tiled_map = ["anyhow", "tiled"]
 
