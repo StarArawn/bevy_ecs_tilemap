@@ -73,12 +73,21 @@ mod tile;
 #[cfg(feature = "ldtk")]
 mod ldtk;
 
+#[cfg(feature = "tiled_map")]
+mod tiled;
+
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
 pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
+
+#[cfg(feature = "ldtk")]
+pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+
+#[cfg(feature = "tiled_map")]
+pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -172,6 +181,9 @@ pub mod prelude {
 
     #[cfg(feature = "ldtk")]
     pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+
+    #[cfg(feature = "tiled_map")]
+    pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
