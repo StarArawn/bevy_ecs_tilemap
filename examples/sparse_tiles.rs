@@ -29,7 +29,7 @@ fn startup(
     let center = layer_settings.get_pixel_center();
 
     let (mut layer_builder, ground_layer) =
-        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
+        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16, None);
     map.add_layer(&mut commands, 0u16, ground_layer);
 
     let mut random = thread_rng();

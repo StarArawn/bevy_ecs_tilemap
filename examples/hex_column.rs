@@ -28,7 +28,7 @@ fn startup(
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
     let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
     layer_builder.fill(
@@ -74,7 +74,7 @@ fn startup(
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
         let (mut layer_builder, layer_entity) =
-            LayerBuilder::<TileBundle>::new(&mut commands, new_settings, 0u16, 0u16);
+            LayerBuilder::<TileBundle>::new(&mut commands, new_settings, 0u16, 0u16, None);
         map.add_layer(&mut commands, z, layer_entity);
 
         let mut random = thread_rng();
