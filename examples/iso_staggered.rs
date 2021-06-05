@@ -28,7 +28,7 @@ fn startup(
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
     map.add_layer(&mut commands, 0u16, layer_0_entity);
 
     layer_0.fill(
@@ -79,6 +79,7 @@ fn startup(
             new_settings.clone(),
             0u16,
             new_settings.layer_id,
+            None,
         );
         map.add_layer(&mut commands, new_settings.layer_id, layer_entity);
 

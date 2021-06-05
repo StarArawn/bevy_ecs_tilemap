@@ -31,7 +31,7 @@ fn startup(
     );
 
     let (mut layer_builder, layer_0_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16, None);
 
     layer_builder.set_all(Tile::default().into());
 
@@ -48,7 +48,7 @@ fn startup(
         Vec2::new(32.0, 448.0),
     );
     let (mut layer_builder, layer_1_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16, None);
 
     let mut random = thread_rng();
 

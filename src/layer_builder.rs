@@ -19,6 +19,7 @@ pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
     pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
+    pub(crate) pipeline: RenderPipelines,
 }
 
 impl<T> LayerBuilder<T>
@@ -26,11 +27,14 @@ where
     T: TileBundleTrait,
 {
     /// Creates the layer builder using the layer settings.
+    /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
+    /// which will be used for rendering each chunk entity.
     pub fn new<M: Into<u16>, L: Into<u16>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         map_id: M,
         layer_id: L,
+        pipeline: Option<RenderPipelines>,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
         let tile_size_x =
@@ -41,6 +45,8 @@ where
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
+
+        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
         (
             Self {
                 settings,
@@ -50,6 +56,7 @@ where
                     })
                     .collect(),
                 layer_entity,
+                pipeline,
             },
             layer_entity,
         )
@@ -57,6 +64,8 @@ where
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
+    /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
+    /// which will be used for rendering each chunk entity.
     pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
@@ -64,12 +73,15 @@ where
         material_handle: Handle<ColorMaterial>,
         map_id: M,
         layer_id: L,
+        pipeline: Option<RenderPipelines>,
         mut f: F,
     ) -> Entity {
         let layer_entity = commands.spawn().id();
 
         let size_x = settings.map_size.x * settings.chunk_size.x;
         let size_y = settings.map_size.y * settings.chunk_size.y;
+
+        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
@@ -118,7 +130,7 @@ where
                     material: material_handle.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: settings.mesh_type.into(),
+                    render_pipeline: pipeline.clone(),
                     ..Default::default()
                 });
             }
@@ -393,7 +405,7 @@ where
                     material: material.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: self.settings.mesh_type.into(),
+                    render_pipeline: self.pipeline.clone(),
                     ..Default::default()
                 });
             }

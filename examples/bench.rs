@@ -31,6 +31,7 @@ fn startup(
         material_handle,
         0u16,
         0u16,
+        None,
         |_| Some(TileBundle::default()),
     );
 

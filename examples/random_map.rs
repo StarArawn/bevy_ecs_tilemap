@@ -35,7 +35,7 @@ fn startup(
 
     // Chunk sizes of 64x64 seem optimal for meshing updates.
     let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16, None);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
