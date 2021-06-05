@@ -180,6 +180,7 @@ pub fn process_loaded_tile_maps(
                             material,
                             0u16,
                             0u16,
+                            None,
                             move |mut tile_pos| {
                                 if tile_pos.x >= tiled_map_data.width || tile_pos.y >= tiled_map_data.height {
                                     return None;
