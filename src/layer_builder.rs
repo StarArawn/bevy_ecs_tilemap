@@ -69,7 +69,7 @@ where
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
     /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
     /// which will be used for rendering each chunk entity.
-    pub fn new_batch<F: 'static + FnMut(TilePos) -> Option<T>>(
+    pub fn new_batch<F: FnMut(TilePos) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
