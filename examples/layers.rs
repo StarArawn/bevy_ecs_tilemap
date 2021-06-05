@@ -28,7 +28,7 @@ fn startup(
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
-        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
 
     // Required to keep track of layers for a map internally.
     map.add_layer(&mut commands, 0u16, layer_0_entity);
@@ -42,7 +42,7 @@ fn startup(
         let mut new_settings = map_settings.clone();
         new_settings.set_layer_id(z + 1);
         let (mut layer_builder, layer_entity) =
-            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1);
+            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1, None);
 
         let mut random = thread_rng();
 

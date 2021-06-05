@@ -158,6 +158,7 @@ pub fn process_loaded_tile_maps(
                         settings,
                         map.id,
                         layer_id as u16,
+                        None,
                     );
 
                     let tileset_width_in_tiles = (tileset.px_wid / default_grid_size) as u32;
