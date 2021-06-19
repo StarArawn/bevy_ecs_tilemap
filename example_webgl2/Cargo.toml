@@ -1,0 +1,47 @@
+[package]
+name = "bevy_app"
+version = "0.1.0"
+authors = []
+edition = "2018"
+repository = "https://github.com/mrk-its/bevy_webgl2_app_template"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = [
+  "bevy/bevy_gltf",
+  "bevy/bevy_winit",
+  "bevy/render",
+  "bevy/png",
+]
+
+native = [
+  "bevy/bevy_wgpu",
+]
+
+web = [
+  "bevy_webgl2"
+]
+
+[dependencies]
+bevy = {version="0.5.0", default-features=false}
+bevy_webgl2 = {version="0.5.0", optional=true}
+bevy_ecs_tilemap = {path="../", features=["tiled_map"]}
+env_logger = "0.8"
+log = "0.4"
+
+winit = {version = "0.24.0"}
+rand = "0.7"
+getrandom = {version="0.1", features=["wasm-bindgen"]}
+
+# [patch.'https://github.com/bevyengine/bevy']
+# bevy = {git = "https://github.com/bevyengine/bevy//", rev="841755aaf23acfd55b375c37390daeb302c5b30b", default-features=false}
+
+# [patch.'https://github.com/mrk-its/bevy_webgl2']
+# bevy_webgl2 = {git = "https://github.com/mrk-its/bevy_webgl2//", rev="035236b8d7ec52b8e9e20399662e89c73e4521f6", default-features=false}
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+# lto = true
+# opt-level = 's'

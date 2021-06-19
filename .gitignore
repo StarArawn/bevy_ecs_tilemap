@@ -9,3 +9,4 @@
 # Added by cargo
 
 /target
+/example_webgl2/target
