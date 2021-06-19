@@ -72,6 +72,7 @@ macro_rules! create_chunk_pipeline {
     };
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 create_chunk_pipeline!(
     SQUARE_PIPELINE,
     8094008129742001941,
@@ -79,6 +80,16 @@ create_chunk_pipeline!(
     "square-tilemap.vert",
     "square-tilemap.frag"
 );
+
+#[cfg(target_arch = "wasm32")]
+create_chunk_pipeline!(
+    SQUARE_PIPELINE,
+    8094008129742001941,
+    create_square_pipeline,
+    "square-tilemap.es.vert",
+    "square-tilemap.es.frag"
+);
+
 
 create_chunk_pipeline!(
     DIAMOND_ISO_PIPELINE,
