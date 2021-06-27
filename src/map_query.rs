@@ -222,7 +222,7 @@ impl<'a> MapQuery<'a> {
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Depsawns all of the tiles in a layer.
+    /// Despawns all of the tiles in a layer.
     /// Note: Doesn't despawn the layer.
     pub fn despawn_layer_tiles<M: Into<u16>, L: Into<u16>>(
         &mut self,
@@ -267,7 +267,7 @@ impl<'a> MapQuery<'a> {
     }
 
     /// Despawns a layer completely including all tiles.
-    pub fn depsawn_layer<M: Into<u16>, L: Into<u16>>(
+    pub fn despawn_layer<M: Into<u16>, L: Into<u16>>(
         &mut self,
         commands: &mut Commands,
         map_id: M,
@@ -298,7 +298,8 @@ impl<'a> MapQuery<'a> {
         }
     }
 
-    pub fn depsawn_map<M: Into<u16>>(&mut self, commands: &mut Commands, map_id: M) {
+    /// Despawn an entire map including all layers/tiles.
+    pub fn despawn<M: Into<u16>>(&mut self, commands: &mut Commands, map_id: M) {
         let map_id: u16 = map_id.into();
 
         let layer_ids: Option<Vec<u16>> = if let Some((_, map)) = self
@@ -449,7 +450,7 @@ impl<'a> MapQuery<'a> {
     /// 1. Snap pixel position to tile coords.
     /// 2. Use tile Y position to calculate z-index.
     /// 3. Z-index is scaled to be 0-1.
-    /// 4. Add expected layer id to Z-index 
+    /// 4. Add expected layer id to Z-index
     /// Note the layer_id in this case is past in by the user as pixel_position.z
     /// The user needs to handle what layer the sprite exists in within their own code.
     /// The primary use case for this function is to allow users to calculate
@@ -475,8 +476,12 @@ impl<'a> MapQuery<'a> {
                     let grid_size = layer.settings.grid_size;
                     let map_size = layer.get_layer_size_in_tiles().as_f32() * grid_size;
                     let map_pos = unproject_iso(pixel_position.xy(), grid_size.x, grid_size.y);
-                    let center = project_iso(Vec2::new(map_pos.x, map_pos.y - 2.0), grid_size.x, grid_size.y);
-                    
+                    let center = project_iso(
+                        Vec2::new(map_pos.x, map_pos.y - 2.0),
+                        grid_size.x,
+                        grid_size.y,
+                    );
+
                     return pixel_position.z + (1.0 - (center.y / map_size.y));
                 }
             }
