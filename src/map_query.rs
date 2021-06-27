@@ -315,7 +315,7 @@ impl<'a> MapQuery<'a> {
 
         if let Some(layer_ids) = layer_ids {
             for layer_id in layer_ids.iter() {
-                self.depsawn_layer(commands, map_id, *layer_id);
+                self.despawn_layer(commands, map_id, *layer_id);
             }
         }
 
