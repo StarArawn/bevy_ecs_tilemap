@@ -221,7 +221,7 @@ impl<'a> MapQuery<'a> {
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Depsawns all of the tiles in a layer.
+    /// Despawns all of the tiles in a layer.
     /// Note: Doesn't despawn the layer.
     pub fn despawn_layer_tiles<M: Into<u16>, L: Into<u16>>(
         &mut self,
@@ -266,7 +266,7 @@ impl<'a> MapQuery<'a> {
     }
 
     /// Despawns a layer completely including all tiles.
-    pub fn depsawn_layer<M: Into<u16>, L: Into<u16>>(
+    pub fn despawn_layer<M: Into<u16>, L: Into<u16>>(
         &mut self,
         commands: &mut Commands,
         map_id: M,
@@ -297,7 +297,8 @@ impl<'a> MapQuery<'a> {
         }
     }
 
-    pub fn depsawn_map<M: Into<u16>>(&mut self, commands: &mut Commands, map_id: M) {
+    /// Despawn an entire map including all layers/tiles.
+    pub fn despawn<M: Into<u16>>(&mut self, commands: &mut Commands, map_id: M) {
         let map_id: u16 = map_id.into();
 
         let layer_ids: Option<Vec<u16>> = if let Some((_, map)) = self
