@@ -7,10 +7,7 @@ homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license-file = "LICENSE"
 edition = "2018"
-exclude = [
-    "assets/*",
-    "screenshots/*",
-]
+exclude = ["assets/*", "screenshots/*"]
 
 [features]
 default = []
@@ -18,16 +15,16 @@ ldtk = ["anyhow", "ldtk_rust", "serde_json"]
 tiled_map = ["anyhow", "tiled"]
 
 [dependencies]
-anyhow = { version = "1.0", optional = true }
-bevy = { git="https://github.com/bevyengine/bevy", rev="052094757aee671c66190b63a640900f15ee300d", default-features = false }
+anyhow = { version="1.0", optional=true }
+bevy = { git="https://github.com/bevyengine/bevy", rev="11485deccaf30ebd252355d3f0fb3c99a666847b", default-features=false }
 bytemuck = "1.5"
-ldtk_rust = { version = "0.5", optional = true }
+ldtk_rust = { version="0.5", optional=true }
 morton-encoding = "2.0"
 log = "0.4"
-serde_json = { version = "1.0", optional = true }
-tiled = { version = "0.9", default-features = false, optional = true }
+serde_json = { version="1.0", optional=true }
+tiled = { version="0.9", default-features=false, optional=true }
 
 [dev-dependencies]
-bevy = { git="https://github.com/bevyengine/bevy", rev="052094757aee671c66190b63a640900f15ee300d", default-features = true }
+bevy = { git="https://github.com/bevyengine/bevy", rev="11485deccaf30ebd252355d3f0fb3c99a666847b", default-features=true }
 rand = "0.8"
 env_logger = "0.8"
