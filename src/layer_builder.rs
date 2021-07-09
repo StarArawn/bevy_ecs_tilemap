@@ -17,8 +17,9 @@ use bevy::{
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
-    pub(crate) tiles: Vec<(Entity, Option<T>)>,
+    pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
+    pub(crate) pipeline: RenderPipelines,
 }
 
 impl<T> LayerBuilder<T>
@@ -26,11 +27,14 @@ where
     T: TileBundleTrait,
 {
     /// Creates the layer builder using the layer settings.
-    pub fn new<I: Into<u16>>(
+    /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
+    /// which will be used for rendering each chunk entity.
+    pub fn new<M: Into<u16>, L: Into<u16>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
-        map_id: I,
-        layer_id: I,
+        map_id: M,
+        layer_id: L,
+        pipeline: Option<RenderPipelines>,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
         let tile_size_x =
@@ -41,16 +45,18 @@ where
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
+
+        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
         (
             Self {
                 settings,
                 tiles: (0..tile_count * tile_count)
                     .map(|_| {
-                        let tile_entity = Some(commands.spawn().id());
-                        (tile_entity.unwrap(), None)
+                        (None, None)
                     })
                     .collect(),
                 layer_entity,
+                pipeline,
             },
             layer_entity,
         )
@@ -58,19 +64,24 @@ where
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
-    pub fn new_batch<I: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
+    /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
+    /// which will be used for rendering each chunk entity.
+    pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
         material_handle: Handle<ColorMaterial>,
-        map_id: I,
-        layer_id: I,
+        map_id: M,
+        layer_id: L,
+        pipeline: Option<RenderPipelines>,
         mut f: F,
     ) -> Entity {
         let layer_entity = commands.spawn().id();
 
         let size_x = settings.map_size.x * settings.chunk_size.x;
         let size_y = settings.map_size.y * settings.chunk_size.y;
+
+        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
@@ -119,7 +130,7 @@ where
                     material: material_handle.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: settings.mesh_type.into(),
+                    render_pipeline: pipeline.clone(),
                     ..Default::default()
                 });
             }
@@ -182,11 +193,20 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Returns a tile entity.
-    pub fn get_tile_entity(&mut self, tile_pos: UVec2) -> Result<Entity, MapTileError> {
+    /// Returns an existing tile entity or spawns a new one. 
+    pub fn get_tile_entity(&mut self, commands: &mut Commands, tile_pos: UVec2) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
-            return Ok(self.tiles[morton_tile_index].0);
+            let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
+                let tile_entity = self.tiles[morton_tile_index].0;
+                tile_entity
+            } else {
+                let tile_entity = Some(commands.spawn().id());
+                self.tiles[morton_tile_index].0 = tile_entity;
+                tile_entity
+            };
+
+            return Ok(tile_entity.unwrap());
         }
 
         Err(MapTileError::OutOfBounds)
@@ -205,7 +225,7 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    fn get_tile_i32(&self, tile_pos: IVec2) -> Option<(bevy::prelude::Entity, &T)> {
+    fn get_tile_i32(&self, tile_pos: IVec2) -> Option<(Option<bevy::prelude::Entity>, &T)> {
         if tile_pos.x < 0 || tile_pos.y < 0 {
             return None;
         }
@@ -237,7 +257,7 @@ where
     /// Note: The boolean is for visibility.
     pub fn for_each_tiles<F>(&mut self, mut f: F)
     where
-        F: FnMut(Entity, &Option<T>),
+        F: FnMut(Option<Entity>, &Option<T>),
     {
         self.tiles.iter().for_each(|tile| {
             f(tile.0, &tile.1);
@@ -248,10 +268,10 @@ where
     /// Note: The boolean is for visibility.
     pub fn for_each_tiles_mut<F>(&mut self, mut f: F)
     where
-        F: FnMut(Entity, &mut Option<T>),
+        F: FnMut(&mut Option<Entity>, &mut Option<T>),
     {
         self.tiles.iter_mut().for_each(|tile| {
-            f(tile.0, &mut tile.1);
+            f(&mut tile.0, &mut tile.1);
         });
     }
 
@@ -289,7 +309,7 @@ where
     pub fn get_tile_neighbors(
         &self,
         tile_pos: UVec2,
-    ) -> [(IVec2, Option<(bevy::prelude::Entity, &T)>); 8] {
+    ) -> [(IVec2, Option<(Option<bevy::prelude::Entity>, &T)>); 8] {
         let n = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 + 1);
         let s = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 - 1);
         let w = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32);
@@ -350,8 +370,13 @@ where
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
                     let morton_tile_index = morton_index(tile_pos);
-                    let tile_entity = self.tiles[morton_tile_index].0;
+                    
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
+                        let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
+                            Some(entity)
+                        } else {
+                            Some(commands.spawn().id())
+                        };
                         let tile_parent = tile_bundle.get_tile_parent();
                         *tile_parent = TileParent {
                             chunk: chunk_entity,
@@ -360,12 +385,11 @@ where
                         };
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
-                        commands.entity(tile_entity).insert_bundle(tile_bundle);
+                        commands.entity(tile_entity.unwrap()).insert_bundle(tile_bundle);
 
-                        Some(tile_entity)
-                    } else {
-                        None
+                        return tile_entity;
                     }
+                    None
                 });
 
                 let index = morton_index(chunk_pos);
@@ -381,7 +405,7 @@ where
                     material: material.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: self.settings.mesh_type.into(),
+                    render_pipeline: self.pipeline.clone(),
                     ..Default::default()
                 });
             }

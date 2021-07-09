@@ -60,11 +60,11 @@ impl LayerSettings {
         }
     }
 
-    pub fn set_layer_id<T: Into<u16>>(&mut self, id: T) {
+    pub fn set_layer_id<L: Into<u16>>(&mut self, id: L) {
         self.layer_id = id.into();
     }
 
-    pub fn set_map_id<T: Into<u16>>(&mut self, id: T) {
+    pub fn set_map_id<M: Into<u16>>(&mut self, id: M) {
         self.map_id = id.into();
     }
 

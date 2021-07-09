@@ -36,6 +36,7 @@ fn startup(
         ),
         0u16,
         0u16,
+        None,
     );
 
     // We can easily fill the entire map by using set_all
