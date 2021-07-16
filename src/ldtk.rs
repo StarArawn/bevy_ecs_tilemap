@@ -172,7 +172,7 @@ pub fn process_loaded_tile_maps(
                             (tile.px[1] / default_grid_size) as u32
                         );
 
-                        pos.y = map_tile_count_y - pos.y;
+                        pos.y = map_tile_count_y - pos.y - 1;
 
                         layer_builder.set_tile(
                             pos,
