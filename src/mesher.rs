@@ -21,6 +21,7 @@ impl ChunkMesher {
         let size = ((chunk.size.x * chunk.size.y) * 4) as usize;
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(size);
         let mut textures: Vec<[i32; 4]> = Vec::with_capacity(size);
+        let mut colors: Vec<[f32; 4]> = Vec::with_capacity(size);
         let mut indices: Vec<u32> =
             Vec::with_capacity(((chunk.size.x * chunk.size.y) * 6) as usize);
 
@@ -55,6 +56,33 @@ impl ChunkMesher {
                         // X + 1, Y
                         //[tile_pos.x + 1.0, tile_pos.y, animation_speed],
                         [tile_pos.x, tile_pos.y, animation_speed],
+                    ]));
+
+                    colors.extend(IntoIter::new([
+                        [
+                            tile.color.r(),
+                            tile.color.g(),
+                            tile.color.b(),
+                            tile.color.a(),
+                        ],
+                        [
+                            tile.color.r(),
+                            tile.color.g(),
+                            tile.color.b(),
+                            tile.color.a(),
+                        ],
+                        [
+                            tile.color.r(),
+                            tile.color.g(),
+                            tile.color.b(),
+                            tile.color.a(),
+                        ],
+                        [
+                            tile.color.r(),
+                            tile.color.g(),
+                            tile.color.b(),
+                            tile.color.a(),
+                        ],
                     ]));
 
                     let tile_flip_bits = match (tile.flip_x, tile.flip_y) {
@@ -102,6 +130,7 @@ impl ChunkMesher {
         }
         mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(positions));
         mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(textures));
+        mesh.set_attribute("Vertex_Color", VertexAttributeValues::Float4(colors));
         mesh.set_indices(Some(Indices::U32(indices)));
     }
 }

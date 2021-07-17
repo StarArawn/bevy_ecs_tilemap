@@ -77,7 +77,7 @@ create_chunk_pipeline!(
     8094008129742001941,
     create_square_pipeline,
     "square-tilemap.vert",
-    "square-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -85,7 +85,7 @@ create_chunk_pipeline!(
     5716002228110903793,
     create_iso_diamond_pipeline,
     "diamondiso-tilemap.vert",
-    "iso-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -93,7 +93,7 @@ create_chunk_pipeline!(
     6571326172373592468,
     create_iso_staggered_pipeline,
     "staggerediso-tilemap.vert",
-    "iso-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -101,7 +101,7 @@ create_chunk_pipeline!(
     5336568075571462317,
     create_hex_column_even_pipeline,
     "columnevenhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -109,7 +109,7 @@ create_chunk_pipeline!(
     11472021184100190415,
     create_hex_column_odd_pipeline,
     "columnoddhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -117,7 +117,7 @@ create_chunk_pipeline!(
     12158158650956014109,
     create_hex_column_pipeline,
     "columnhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -125,7 +125,7 @@ create_chunk_pipeline!(
     14433932828806852042,
     create_hex_row_even_pipeline,
     "rowevenhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -133,7 +133,7 @@ create_chunk_pipeline!(
     14864388685772956547,
     create_hex_row_odd_pipeline,
     "rowoddhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 create_chunk_pipeline!(
@@ -141,7 +141,7 @@ create_chunk_pipeline!(
     15900471900964169180,
     create_hex_row_pipeline,
     "rowhex-tilemap.vert",
-    "hex-tilemap.frag"
+    "tilemap.frag"
 );
 
 pub mod node {
