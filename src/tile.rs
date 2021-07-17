@@ -11,6 +11,7 @@ pub struct Tile {
     pub flip_y: bool,
     /// Visibility, if false will still process tile events, but will not render the tile.
     pub visible: bool,
+    pub color: Color,
 }
 
 impl Default for Tile {
@@ -20,6 +21,7 @@ impl Default for Tile {
             flip_x: false,
             flip_y: false,
             visible: true,
+            color: Color::WHITE,
         }
     }
 }
