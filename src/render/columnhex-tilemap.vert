@@ -2,8 +2,10 @@
 
 layout(location = 0) in vec3 Vertex_Position;
 layout(location = 1) in ivec4 Vertex_Texture;
+layout(location = 2) in vec4 Vertex_Color;
 
 layout(location = 0) out vec2 v_Uv;
+layout(location = 1) out vec4 v_color;
 
 layout(set = 0, binding = 0) uniform CameraViewProj {
     mat4 ViewProj;
@@ -47,10 +49,12 @@ void main() {
 
     int texture_index = int(current_animation_frame);
     
-    int columns = int(floor(texture_size.x / tile_size.x));
+    vec2 slot_size = tile_size + spacing * 2.0;
 
-    float sprite_sheet_x = floor(mod(float(texture_index), float(columns)) * (tile_size.x + spacing.x + spacing.x) + spacing.x);
-    float sprite_sheet_y = floor((texture_index / columns)) * (tile_size.y + spacing.y + spacing.y) + spacing.y;
+    int columns = int(floor(texture_size.x / slot_size.x));
+
+    float sprite_sheet_x = floor(mod(float(texture_index), float(columns)) * slot_size.x + spacing.x);
+    float sprite_sheet_y = floor((texture_index / columns)) * slot_size.y + spacing.y;
 
     float start_u = sprite_sheet_x / texture_size.x;
     float end_u = (sprite_sheet_x + tile_size.x) / texture_size.x;
@@ -92,5 +96,6 @@ void main() {
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
     // v_Uv += 1e-5;
+    v_color = Vertex_Color;
     gl_Position = ViewProj * world_pos;
 }

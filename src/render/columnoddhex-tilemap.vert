@@ -2,8 +2,10 @@
 
 layout(location = 0) in vec3 Vertex_Position;
 layout(location = 1) in ivec4 Vertex_Texture;
+layout(location = 2) in vec4 Vertex_Color;
 
 layout(location = 0) out vec2 v_Uv;
+layout(location = 1) out vec4 v_color;
 
 layout(set = 0, binding = 0) uniform CameraViewProj {
     mat4 ViewProj;
@@ -97,5 +99,6 @@ void main() {
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
     // v_Uv += 1e-5;
+    v_color = Vertex_Color;
     gl_Position = ViewProj * world_pos;
 }
