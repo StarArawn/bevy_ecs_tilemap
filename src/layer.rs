@@ -60,6 +60,27 @@ impl LayerSettings {
         }
     }
 
+    pub fn new_with_map_type(
+        map_size: UVec2,
+        chunk_size: UVec2,
+        tile_size: Vec2,
+        texture_size: Vec2,
+        mesh_type: TilemapMeshType,
+    ) -> Self {
+        Self {
+            map_size,
+            chunk_size,
+            tile_size,
+            texture_size,
+            layer_id: 0,
+            map_id: 0,
+            cull: true,
+            mesh_type,
+            tile_spacing: Vec2::ZERO,
+            mesher: ChunkMesher,
+        }
+    }
+
     pub fn set_layer_id<L: Into<u16>>(&mut self, id: L) {
         self.layer_id = id.into();
     }
