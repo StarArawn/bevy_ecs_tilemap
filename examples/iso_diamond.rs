@@ -18,13 +18,13 @@ fn startup(
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
-    let mut map_settings = LayerSettings::new(
+    let map_settings = LayerSettings::new_with_map_type(
         UVec2::new(2, 2),
         UVec2::new(32, 32),
         Vec2::new(64.0, 32.0),
         Vec2::new(384.0, 32.0),
+        TilemapMeshType::Isometric(IsoType::Diamond)
     );
-    map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
