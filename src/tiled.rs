@@ -1,8 +1,11 @@
-use std::{collections::{HashMap}, io::BufReader};
 use crate::prelude::*;
+use std::{collections::HashMap, io::BufReader};
 
-use bevy::{asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset}, prelude::*};
 use bevy::reflect::TypeUuid;
+use bevy::{
+    asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
+    prelude::*,
+};
 
 #[derive(TypeUuid)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
@@ -10,7 +13,6 @@ pub struct TiledMap {
     pub map: tiled::Map,
     pub tilesets: HashMap<u32, Handle<Texture>>,
 }
-
 
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
@@ -30,9 +32,7 @@ impl AssetLoader for TiledLoader {
     ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
         Box::pin(async move {
             let root_dir = load_context.path().parent().unwrap();
-            let map = tiled::parse(
-                BufReader::new(bytes),
-            )?;
+            let map = tiled::parse(BufReader::new(bytes))?;
 
             let mut dependencies = Vec::new();
             for tileset in &map.tilesets {
@@ -44,12 +44,17 @@ impl AssetLoader for TiledLoader {
 
             let loaded_asset = LoadedAsset::new(TiledMap {
                 map,
-                tilesets: dependencies.iter().map(|dep| {
-                    let texture: Handle<Texture> = load_context.get_handle(dep.1.clone());
-                    (dep.0, texture)
-                }).collect()
+                tilesets: dependencies
+                    .iter()
+                    .map(|dep| {
+                        let texture: Handle<Texture> = load_context.get_handle(dep.1.clone());
+                        (dep.0, texture)
+                    })
+                    .collect(),
             });
-            load_context.set_default_asset(loaded_asset.with_dependencies(dependencies.iter().map(|x| x.1.clone()).collect()));
+            load_context.set_default_asset(
+                loaded_asset.with_dependencies(dependencies.iter().map(|x| x.1.clone()).collect()),
+            );
             Ok(())
         })
     }
@@ -66,11 +71,7 @@ pub fn process_loaded_tile_maps(
     maps: Res<Assets<TiledMap>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut query: Query<(
-        Entity,
-        &Handle<TiledMap>,
-        &mut Map,
-    )>,
+    mut query: Query<(Entity, &Handle<TiledMap>, &mut Map)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
     layer_query: Query<&Layer>,
     chunk_query: Query<&Chunk>,
@@ -90,7 +91,10 @@ pub fn process_loaded_tile_maps(
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps = changed_maps.into_iter().filter(|changed_handle| changed_handle == handle).collect();
+                changed_maps = changed_maps
+                    .into_iter()
+                    .filter(|changed_handle| changed_handle == handle)
+                    .collect();
             }
         }
     }
@@ -138,12 +142,12 @@ pub fn process_loaded_tile_maps(
                     for layer in tiled_map.map.layers.iter() {
                         let tile_width = tileset.tile_width as f32;
                         let tile_height = tileset.tile_height as f32;
-                
+
                         let _tile_space = tileset.spacing as f32; // TODO: re-add tile spacing.. :p
-                
+
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
-                
+
                         let mut map_settings = LayerSettings::new(
                             UVec2::new(
                                 (tiled_map.map.width as f32 / 64.0).ceil() as u32,
@@ -157,18 +161,22 @@ pub fn process_loaded_tile_maps(
                             ), // TODO: support multiple tileset images?
                         );
                         map_settings.set_layer_id(layer.layer_index as u16);
-                
+
                         map_settings.mesh_type = match tiled_map.map.orientation {
                             tiled::Orientation::Hexagonal => {
                                 TilemapMeshType::Hexagon(HexType::Row) // TODO: Support hex for real.
                             }
-                            tiled::Orientation::Isometric => TilemapMeshType::Isometric(IsoType::Diamond),
+                            tiled::Orientation::Isometric => {
+                                TilemapMeshType::Isometric(IsoType::Diamond)
+                            }
                             tiled::Orientation::Orthogonal => TilemapMeshType::Square,
                             _ => panic!("Unknown tile map orientation!"),
                         };
 
-                        let material = materials.add(ColorMaterial::texture(tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone()));
-                
+                        let material = materials.add(ColorMaterial::texture(
+                            tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone(),
+                        ));
+
                         let tiled_map_data = tiled_map.map.clone();
                         let layer_data = layer.clone();
                         let tileset_data = tileset.clone();
@@ -179,40 +187,43 @@ pub fn process_loaded_tile_maps(
                             &mut meshes,
                             material,
                             0u16,
-                            0u16,
+                            layer.layer_index as u16,
                             None,
                             move |mut tile_pos| {
-                                if tile_pos.x >= tiled_map_data.width || tile_pos.y >= tiled_map_data.height {
+                                if tile_pos.x >= tiled_map_data.width
+                                    || tile_pos.y >= tiled_map_data.height
+                                {
                                     return None;
                                 }
-                
+
                                 if tiled_map_data.orientation == tiled::Orientation::Orthogonal {
                                     tile_pos.y = (tiled_map_data.height - 1) as u32 - tile_pos.y;
                                 }
-                
+
                                 let x = tile_pos.x as usize;
                                 let y = tile_pos.y as usize;
-                
+
                                 let map_tile = match &layer_data.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],
                                     _ => panic!("Infinite maps not supported"),
                                 };
-                                
+
                                 if map_tile.gid < tileset_data.first_gid
-                                || map_tile.gid >= tileset_data.first_gid + tileset_data.tilecount.unwrap()
+                                    || map_tile.gid
+                                        >= tileset_data.first_gid + tileset_data.tilecount.unwrap()
                                 {
                                     return None;
                                 }
-                
+
                                 let tile_id = map_tile.gid - tileset_data.first_gid;
-                
+
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
                                     flip_x: map_tile.flip_h || map_tile.flip_d,
                                     flip_y: map_tile.flip_v || map_tile.flip_d,
                                     ..Default::default()
                                 };
-                
+
                                 // let mut animation = None;
                                 // if let Some(tile) = tileset.tiles.iter().find(|tile| tile.id == tile_id) {
                                 //     if let Some(animations) = tile.animation.clone() {
@@ -229,14 +240,14 @@ pub fn process_loaded_tile_maps(
                                 //         });
                                 //     }
                                 // }
-                                
+
                                 Some(TileBundle {
                                     tile,
                                     ..Default::default()
                                 })
                             },
                         );
-                                        
+
                         commands.entity(layer_entity).insert(Transform::from_xyz(
                             offset_x,
                             -offset_y,
@@ -245,7 +256,6 @@ pub fn process_loaded_tile_maps(
                         map.add_layer(&mut commands, layer.layer_index as u16, layer_entity);
                     }
                 }
-
             }
         }
     }
@@ -257,8 +267,7 @@ pub struct TiledMapPlugin;
 
 impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app
-            .add_asset::<TiledMap>()
+        app.add_asset::<TiledMap>()
             .add_asset_loader(TiledLoader)
             .add_system(process_loaded_tile_maps.system());
     }
