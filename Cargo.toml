@@ -16,7 +16,7 @@ tiled_map = ["anyhow", "tiled"]
 
 [dependencies]
 anyhow = { version="1.0", optional=true }
-bevy = { git="https://github.com/bevyengine/bevy", rev="11485deccaf30ebd252355d3f0fb3c99a666847b", default-features=false }
+bevy = { git="https://github.com/bevyengine/bevy", rev="43d99bb583866c1adb4aa88f19b88637df0a7f33", default-features=false }
 bytemuck = "1.5"
 ldtk_rust = { version="0.5", optional=true }
 morton-encoding = "2.0"
@@ -25,6 +25,6 @@ serde_json = { version="1.0", optional=true }
 tiled = { version="0.9", default-features=false, optional=true }
 
 [dev-dependencies]
-bevy = { git="https://github.com/bevyengine/bevy", rev="11485deccaf30ebd252355d3f0fb3c99a666847b", default-features=true }
+bevy = { git="https://github.com/bevyengine/bevy", rev="43d99bb583866c1adb4aa88f19b88637df0a7f33", default-features=true }
 rand = "0.8"
 env_logger = "0.8"

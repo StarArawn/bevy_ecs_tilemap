@@ -131,7 +131,7 @@ fn main() {
         .filter_level(log::LevelFilter::Error)
         .init();
 
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
