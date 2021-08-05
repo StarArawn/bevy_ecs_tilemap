@@ -77,7 +77,8 @@ cargo run --release --example map
 - `tiled_map` - Enabled tiled map editor loading.
 
 ## Known Issues
- - None – please report any issues!
+ - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
+ - Besides the above no known issues.
 
 ## Asset credits
  - Field of green by [GuttyKreum](https://guttykreum.itch.io/).
