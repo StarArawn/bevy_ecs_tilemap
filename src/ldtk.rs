@@ -11,6 +11,10 @@ pub struct LdtkMap {
     pub tilesets: HashMap<i64, Handle<Texture>>,
 }
 
+#[derive(Default)]
+pub struct LdtkMapConfig {
+    pub selected_level: usize,
+}
 
 #[derive(Default, Bundle)]
 pub struct LdtkMapBundle {
@@ -18,6 +22,7 @@ pub struct LdtkMapBundle {
     pub map: Map,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
+    pub ldtk_map_config: LdtkMapConfig,
 }
 
 pub struct LdtkLoader;
@@ -58,6 +63,7 @@ pub fn process_loaded_tile_maps(
     mut query: Query<(
         Entity,
         &Handle<LdtkMap>,
+        &LdtkMapConfig,
         &mut Map,
     )>,
     new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
@@ -90,7 +96,7 @@ pub fn process_loaded_tile_maps(
     }
 
     for changed_map in changed_maps.iter() {
-        for (_, map_handle, mut map) in query.iter_mut() {
+        for (_, map_handle, map_config, mut map) in query.iter_mut() {
             // only deal with currently changed map
             if map_handle != changed_map {
                 continue;
@@ -129,22 +135,23 @@ pub fn process_loaded_tile_maps(
                 });
 
                 let default_grid_size = ldtk_map.project.default_grid_size;
+                let level = &ldtk_map.project.levels[map_config.selected_level];
 
-                let map_tile_count_x = (ldtk_map.project.levels[0].px_wid / default_grid_size) as u32;
-                let map_tile_count_y = (ldtk_map.project.levels[0].px_hei / default_grid_size) as u32;
+                let map_tile_count_x = (level.px_wid / default_grid_size) as u32;
+                let map_tile_count_y = (level.px_hei / default_grid_size) as u32;
 
                 let map_size = UVec2::new(
                     (map_tile_count_x as f32 / 32.0).ceil() as u32,
                     (map_tile_count_y as f32 / 32.0).ceil() as u32,
                 );
 
-                for (layer_id, layer) in ldtk_map.project.levels[0].layer_instances.as_ref().unwrap().iter().rev().enumerate() {
+                for (layer_id, layer) in level.layer_instances.as_ref().unwrap().iter().rev().enumerate() {
                     let (texture, tileset) = if let Some(uid) = layer.tileset_def_uid {
                         tilesets.get(&uid).unwrap().clone()
                     } else {
                         continue;
                     };
-                    
+
                     let mut settings = LayerSettings::new(
                         map_size,
                         UVec2::new(32, 32),
@@ -186,7 +193,7 @@ pub fn process_loaded_tile_maps(
                     let material_handle = materials.add(ColorMaterial::texture(texture));
                     let layer_bundle = layer_builder.build(&mut commands, &mut meshes, material_handle);
                     let mut layer = layer_bundle.layer;
-                    let mut transform = Transform::from_xyz(0.0, -ldtk_map.project.levels[0].px_hei as f32, layer_bundle.transform.translation.z);
+                    let mut transform = Transform::from_xyz(0.0, -level.px_hei as f32, layer_bundle.transform.translation.z);
                     layer.settings.layer_id = layer.settings.layer_id;
                     transform.translation.z = layer.settings.layer_id as f32;
                     map.add_layer(&mut commands, layer.settings.layer_id, layer_entity);
