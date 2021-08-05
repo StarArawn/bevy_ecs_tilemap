@@ -219,8 +219,9 @@ pub fn process_loaded_tile_maps(
 
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
-                                    flip_x: map_tile.flip_h || map_tile.flip_d,
-                                    flip_y: map_tile.flip_v || map_tile.flip_d,
+                                    flip_x: map_tile.flip_h,
+                                    flip_y: map_tile.flip_v, 
+                                    flip_d: map_tile.flip_d,
                                     ..Default::default()
                                 };
 
