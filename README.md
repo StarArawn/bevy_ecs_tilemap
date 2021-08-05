@@ -63,7 +63,7 @@ fn update_damage(
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
  - [`sparse_tiles`](examples/sparse_tiles.rs) - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
  - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map which requires the `tiled_map` feature. Use: `cargo run --example tiled --features tiled_map`
-  - [`tiled_rotate`](examples/tiled_rotate.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation.requires the `tiled_map` feature. Use: `cargo run --example tiled_rotate --features tiled_map`
+ - [`tiled_rotate`](examples/tiled_rotate.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation.requires the `tiled_map` feature. Use: `cargo run --example tiled_rotate --features tiled_map`
  - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
 ### Running Examples
