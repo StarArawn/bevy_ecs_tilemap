@@ -1,6 +1,6 @@
 use std::array::IntoIter;
 
-use crate::{chunk::ChunkSettings, prelude::*, tile::GPUAnimated};
+use crate::{chunk::ChunkSettings, prelude::*};
 use bevy::{
     prelude::*,
     render::mesh::{Indices, VertexAttributeValues},

@@ -61,16 +61,11 @@ fn startup(
             position,
             Tile {
                 texture_index: 0,
+                animated: Some(GPUAnimated::new(0, 13, 0.95)),
                 ..Default::default()
             }
             .into(),
         );
-
-        if let Ok(entity) = layer_builder.get_tile_entity(&mut commands, position) {
-            commands
-                .entity(entity)
-                .insert(GPUAnimated::new(0, 13, 0.95));
-        }
     }
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);
