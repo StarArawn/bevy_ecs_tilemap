@@ -46,15 +46,15 @@ where
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
 
-        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
+        let pipeline = if pipeline.is_some() {
+            pipeline.unwrap()
+        } else {
+            settings.mesh_type.into()
+        };
         (
             Self {
                 settings,
-                tiles: (0..tile_count * tile_count)
-                    .map(|_| {
-                        (None, None)
-                    })
-                    .collect(),
+                tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
                 layer_entity,
                 pipeline,
             },
@@ -81,7 +81,11 @@ where
         let size_x = settings.map_size.x * settings.chunk_size.x;
         let size_y = settings.map_size.y * settings.chunk_size.y;
 
-        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
+        let pipeline = if pipeline.is_some() {
+            pipeline.unwrap()
+        } else {
+            settings.mesh_type.into()
+        };
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
@@ -193,8 +197,12 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Returns an existing tile entity or spawns a new one. 
-    pub fn get_tile_entity(&mut self, commands: &mut Commands, tile_pos: UVec2) -> Result<Entity, MapTileError> {
+    /// Returns an existing tile entity or spawns a new one.
+    pub fn get_tile_entity(
+        &mut self,
+        commands: &mut Commands,
+        tile_pos: UVec2,
+    ) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
@@ -370,7 +378,7 @@ where
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
                     let morton_tile_index = morton_index(tile_pos);
-                    
+
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
                         let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
                             Some(entity)
@@ -385,7 +393,9 @@ where
                         };
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
-                        commands.entity(tile_entity.unwrap()).insert_bundle(tile_bundle);
+                        commands
+                            .entity(tile_entity.unwrap())
+                            .insert_bundle(tile_bundle);
 
                         return tile_entity;
                     }

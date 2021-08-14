@@ -16,7 +16,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
 
 ## Upcoming Features
  - [x] Support for isometric and hexagon rendering.
- - [x] Built in animation support  – see [`animation` example](examples/animation.rs).
+ - [x] Built in animation support  – see [`animation` example](examples/animation.rs) and [`tiled_animation` example](examples/tiled_animation.rs).
  - [ ] Texture array support.
  - [x] Layers and add/remove tiles.
 
@@ -45,6 +45,10 @@ fn update_damage(
 }
 ```
 
+## A note on animations and using tiled map editor maps
+
+Animations are run on the GPU (thus offloading the CPU from the animation work). Currently animations are limited to looping frames from `first` tile id to `last` tile id, with a `speed` set for the complete animation (not per individual frame). This approach is less flexible than taken e.g., by the Tiled - tiled map editor (where an animation is captured as a vector of `(frame id, frame duration)`). In the case of loading a Tiled file, the first frame is used to set the `first` tile id. Also the animation `speed` is calculated from the duration of the first frame. Similarly, the `last` tile id is set from the last frame id (all intermediate frames are ignored by the reader). While not perfect, the limitations can be mitigated when designing the Tiled map (and accompanying tile sheet).S
+
 ## Examples
  - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
  - [`animation`](examples/animation.rs) – Basic CPU animation example.
@@ -62,6 +66,7 @@ fn update_damage(
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
  - [`sparse_tiles`](examples/sparse_tiles.rs) - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
  - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map which requires the `tiled_map` feature. Use: `cargo run --example tiled --features tiled_map`
+ - [`tiled`](examples/tiled_animation.rs) - An example of loading and rendering of a tiled map editor map with animation which requires the `tiled_map` feature. Use: `cargo run --example tiled_animation --features tiled_map`
  - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
 ### Running Examples

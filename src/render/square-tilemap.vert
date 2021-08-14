@@ -36,12 +36,18 @@ void main() {
     position = positions[gl_VertexIndex % 4];
     position.xy *= tile_size;
 
-    float frames = float(Vertex_Texture.w - Vertex_Texture.z);
+    // Vertex_Texture.w, is the `last` tile index
+    // Vertex_Textper.z, is the `first` tile index
+    // compute the number of frames for the animation
+    float frames = float(1 + Vertex_Texture.w - Vertex_Texture.z);
 
-    float current_animation_frame = fract(time * Vertex_Position.z) * frames;
+    // Vertex_Position.z is the `speed` of the animation
+    // Compute the offset in the animation range and add the first tile index
+    // `fract` returns the fraction part [0...1.) (including 0. and excluding 1.), so we can let time grow beyond the time of the animation
+    float current_animation_frame = fract(time * Vertex_Position.z) * frames + Vertex_Texture.z;
 
-    current_animation_frame = clamp(current_animation_frame, float(Vertex_Texture.z), float(Vertex_Texture.w));
-
+    // we cast the `current_animation_frame` to an `int` (performs floor/truncation of fraction part)
+    // the result is always in range of the animation (including `first` and `last` frames)
     int texture_index = int(current_animation_frame);
     
     int columns = int(texture_size.x) / int(tile_size.x);

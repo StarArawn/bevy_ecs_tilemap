@@ -217,29 +217,43 @@ pub fn process_loaded_tile_maps(
 
                                 let tile_id = map_tile.gid - tileset_data.first_gid;
 
+                                let mut animated = None;
+
+                                if let Some(tile) =
+                                    tileset_data.tiles.iter().find(|tile| tile.id == tile_id)
+                                {
+                                    if let Some(animations) = tile.animation.clone() {
+                                        let first = animations
+                                            .iter()
+                                            .next()
+                                            .expect("animation needs at least a start frame");
+                                        let last = animations
+                                            .iter()
+                                            .last()
+                                            .expect("animation needs at least an end frame");
+
+                                        let nr_frames: i32 =
+                                            1 + last.tile_id as i32 - first.tile_id as i32;
+
+                                        if nr_frames > 0 {
+                                            let gpu_animated = GPUAnimated::new(
+                                                first.tile_id,
+                                                last.tile_id,
+                                                // for now all frames inherit the speed of the first frame
+                                                (1000. / first.duration as f32) / nr_frames as f32,
+                                            );
+                                            animated = Some(gpu_animated);
+                                        }
+                                    }
+                                }
+
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
                                     flip_x: map_tile.flip_h || map_tile.flip_d,
                                     flip_y: map_tile.flip_v || map_tile.flip_d,
+                                    animated,
                                     ..Default::default()
                                 };
-
-                                // let mut animation = None;
-                                // if let Some(tile) = tileset.tiles.iter().find(|tile| tile.id == tile_id) {
-                                //     if let Some(animations) = tile.animation.clone() {
-                                //         animation = Some(Animation {
-                                //             frames: animations
-                                //                 .iter()
-                                //                 .map(|frame| Frame {
-                                //                     tile_id: frame.tile_id,
-                                //                     duration: (frame.duration as f64) / 1000.0,
-                                //                 })
-                                //                 .collect(),
-                                //             current_frame: 0,
-                                //             last_update: 0.0,
-                                //         });
-                                //     }
-                                // }
 
                                 Some(TileBundle {
                                     tile,

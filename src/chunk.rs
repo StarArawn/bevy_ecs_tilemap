@@ -201,7 +201,7 @@ impl Chunk {
 pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
+    tile_query: Query<(&UVec2, &Tile)>,
     mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
 ) {
     let threaded_meshes = Mutex::new(meshes);
