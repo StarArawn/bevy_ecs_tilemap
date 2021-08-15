@@ -39,7 +39,6 @@ impl ChunkMesher {
                     );
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = tile.animated {
-                            println!("animation: {:?}, {:?}", tile_pos, ani);
                             (ani.start as i32, ani.end as i32, ani.speed)
                         } else {
                             (tile.texture_index as i32, tile.texture_index as i32, 0.0)
