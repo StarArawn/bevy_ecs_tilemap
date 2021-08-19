@@ -84,7 +84,7 @@ pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
 
 #[cfg(feature = "ldtk")]
-pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapConfig, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
 
 #[cfg(feature = "tiled_map")]
 pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
@@ -180,7 +180,7 @@ pub mod prelude {
     pub use crate::{HexType, IsoType, TilemapMeshType};
 
     #[cfg(feature = "ldtk")]
-    pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+    pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapConfig, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
 
     #[cfg(feature = "tiled_map")]
     pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
