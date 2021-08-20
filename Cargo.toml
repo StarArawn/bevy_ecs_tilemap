@@ -1,16 +1,13 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.4.1"
+version = "0.4.0"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license-file = "LICENSE"
 edition = "2018"
-exclude = [
-    "assets/*",
-    "screenshots/*",
-]
+exclude = ["assets/*", "screenshots/*"]
 
 [features]
 default = []

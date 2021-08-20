@@ -27,11 +27,11 @@ void main() {
     vec2 position = Vertex_Position.xy;
     
     vec2 positions[4] = vec2[4](
-            vec2(position.x, position.y),
-            vec2(position.x, position.y + 1.0),
-            vec2(position.x + 1.0, position.y + 1.0),
-            vec2(position.x + 1.0, position.y)
-        ); 
+        vec2(position.x, position.y),
+        vec2(position.x, position.y + 1.0),
+        vec2(position.x + 1.0, position.y + 1.0),
+        vec2(position.x + 1.0, position.y)
+    ); 
 
     position = positions[gl_VertexIndex % 4];
     position.xy *= tile_size;
@@ -61,8 +61,8 @@ void main() {
         vec2(end_u, end_v),         // flip x
         vec2(start_u, start_v),     // flip y
         vec2(end_u, start_v),       // flip x y
-        vec2(end_u, start_v),
-        vec2(end_u, end_v),     // flip x   d
+        vec2(end_u, start_v),       // flip     d
+        vec2(end_u, end_v),         // flip x   d
         vec2(start_u, start_v),     // flip y   d
         vec2(start_u, end_v)
     };
