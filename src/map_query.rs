@@ -8,23 +8,35 @@ use bevy::prelude::*;
 /// Note: MapQuery doesn't directly change tile components. This is meant as a feature as you may
 /// have your own tile data attached to each tile and a standard tile query wouldn't pull that data in.
 #[derive(SystemParam)]
-pub struct MapQuery<'a> {
-    chunk_query_set: QuerySet<(
-        Query<'a, (Entity, &'static mut Chunk)>,
-        Query<'a, (Entity, &'static Chunk)>,
-    )>,
-    layer_query_set: QuerySet<(
-        Query<'a, (Entity, &'static mut Layer)>,
-        Query<'a, (Entity, &'static Layer)>,
-    )>,
-    map_query_set: QuerySet<(
-        Query<'a, (Entity, &'static mut Map)>,
-        Query<'a, (Entity, &'static Map)>,
-    )>,
-    meshes: ResMut<'a, Assets<Mesh>>,
+pub struct MapQuery<'w, 's> {
+    chunk_query_set: QuerySet<
+        'w,
+        's,
+        (
+            QueryState<(Entity, &'static mut Chunk)>,
+            QueryState<(Entity, &'static Chunk)>,
+        ),
+    >,
+    layer_query_set: QuerySet<
+        'w,
+        's,
+        (
+            QueryState<(Entity, &'static mut Layer)>,
+            QueryState<(Entity, &'static Layer)>,
+        ),
+    >,
+    map_query_set: QuerySet<
+        'w,
+        's,
+        (
+            QueryState<(Entity, &'static mut Map)>,
+            QueryState<(Entity, &'static Map)>,
+        ),
+    >,
+    meshes: ResMut<'w, Assets<Mesh>>,
 }
 
-impl<'a> MapQuery<'a> {
+impl<'w, 's> MapQuery<'w, 's> {
     /// Builds the tile map layer and returns the layer's entity.
     pub fn build_layer(
         &mut self,
@@ -86,8 +98,7 @@ impl<'a> MapQuery<'a> {
                         tile_pos.y / layer.settings.chunk_size.y,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) =
-                            self.chunk_query_set.q0_mut().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
                         {
                             let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
@@ -118,7 +129,7 @@ impl<'a> MapQuery<'a> {
     }
 
     pub fn get_layer<M: Into<u16>, L: Into<u16>>(
-        &self,
+        &mut self,
         map_id: M,
         layer_id: L,
     ) -> Option<(Entity, &Layer)> {
@@ -142,7 +153,7 @@ impl<'a> MapQuery<'a> {
 
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
     pub fn get_tile_entity<M: Into<u16>, L: Into<u16>>(
-        &self,
+        &mut self,
         tile_pos: UVec2,
         map_id: M,
         layer_id: L,
@@ -201,8 +212,7 @@ impl<'a> MapQuery<'a> {
                         tile_pos.y / layer.settings.chunk_size.y,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) =
-                            self.chunk_query_set.q0_mut().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
                         {
                             let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                             if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
@@ -248,7 +258,7 @@ impl<'a> MapQuery<'a> {
                             );
                             if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                 if let Ok((_, mut chunk)) =
-                                    self.chunk_query_set.q0_mut().get_mut(chunk_entity)
+                                    self.chunk_query_set.q0().get_mut(chunk_entity)
                                 {
                                     let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                                     if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
@@ -277,7 +287,7 @@ impl<'a> MapQuery<'a> {
         self.despawn_layer_tiles(commands, map_id, layer_id);
         if let Some((_, mut map)) = self
             .map_query_set
-            .q0_mut()
+            .q0()
             .iter_mut()
             .find(|(_, map)| map.id == map_id)
         {
@@ -343,7 +353,7 @@ impl<'a> MapQuery<'a> {
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
     pub fn get_tile_neighbors<M: Into<u16>, L: Into<u16>>(
-        &self,
+        &mut self,
         tile_pos: UVec2,
         map_id: M,
         layer_id: L,
@@ -370,7 +380,7 @@ impl<'a> MapQuery<'a> {
         ]
     }
 
-    fn get_tile_i(&self, tile_pos: IVec2, map_id: u16, layer_id: u16) -> Option<Entity> {
+    fn get_tile_i(&mut self, tile_pos: IVec2, map_id: u16, layer_id: u16) -> Option<Entity> {
         if tile_pos.x < 0 || tile_pos.y < 0 {
             return None;
         }
@@ -404,7 +414,7 @@ impl<'a> MapQuery<'a> {
 
     /// Let's the internal systems know to "remesh" the chunk.
     pub fn notify_chunk(&mut self, chunk_entity: Entity) {
-        if let Ok((_, mut chunk)) = self.chunk_query_set.q0_mut().get_mut(chunk_entity) {
+        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity) {
             chunk.needs_remesh = true;
         }
     }
@@ -431,8 +441,7 @@ impl<'a> MapQuery<'a> {
                         tile_pos.y / layer.settings.chunk_size.y,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) =
-                            self.chunk_query_set.q0_mut().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
                         {
                             chunk.needs_remesh = true;
                         }
