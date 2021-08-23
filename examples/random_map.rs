@@ -45,7 +45,9 @@ fn startup(
         if tile_entity.is_none() {
             *tile_entity = Some(commands.spawn().id());
         }
-        commands.entity(tile_entity.unwrap()).insert(LastUpdate::default());
+        commands
+            .entity(tile_entity.unwrap())
+            .insert(LastUpdate::default());
     });
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);
@@ -94,7 +96,7 @@ fn main() {
         .filter_level(log::LevelFilter::Warn)
         .init();
 
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,

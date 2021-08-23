@@ -3,23 +3,19 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let handle: Handle<TiledMap> = asset_server.load("map.tmx");
 
     let map_entity = commands.spawn().id();
 
-    commands.entity(map_entity)
-        .insert_bundle(TiledMapBundle {
-            tiled_map: handle,
-            map: Map::new(0u16, map_entity),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..Default::default()
-        });
+    commands.entity(map_entity).insert_bundle(TiledMapBundle {
+        tiled_map: handle,
+        map: Map::new(0u16, map_entity),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        ..Default::default()
+    });
 }
 
 fn main() {
@@ -27,7 +23,7 @@ fn main() {
         .filter_level(log::LevelFilter::Info)
         .init();
 
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,

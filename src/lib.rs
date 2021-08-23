@@ -84,10 +84,12 @@ pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
 
 #[cfg(feature = "ldtk")]
-pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+pub use crate::ldtk::{process_loaded_tile_maps, LdtkLoader, LdtkMap, LdtkMapBundle, LdtkPlugin};
 
 #[cfg(feature = "tiled_map")]
-pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
+pub use crate::tiled::{
+    process_loaded_tile_maps, TiledLoader, TiledMap, TiledMapBundle, TiledMapPlugin,
+};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -130,7 +132,7 @@ impl Default for TilemapMeshType {
 pub struct TilemapStage;
 
 impl Plugin for TilemapPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_stage_before(CoreStage::PostUpdate, TilemapStage, SystemStage::parallel())
             .add_system_to_stage(TilemapStage, update_chunk_time.system())
             .add_system_to_stage(
@@ -152,7 +154,7 @@ impl Plugin for TilemapPlugin {
                     .after("hash_update_for_tiles")
                     .after("update_chunk_visibility"),
             );
-        let world = app.world_mut();
+        let world = &mut app.world;
         add_tile_map_graph(world);
     }
 }
@@ -180,10 +182,14 @@ pub mod prelude {
     pub use crate::{HexType, IsoType, TilemapMeshType};
 
     #[cfg(feature = "ldtk")]
-    pub use crate::ldtk::{LdtkMap, LdtkLoader, LdtkMapBundle, LdtkPlugin, process_loaded_tile_maps};
+    pub use crate::ldtk::{
+        process_loaded_tile_maps, LdtkLoader, LdtkMap, LdtkMapBundle, LdtkPlugin,
+    };
 
     #[cfg(feature = "tiled_map")]
-    pub use crate::tiled::{TiledMap, TiledLoader, TiledMapBundle, TiledMapPlugin, process_loaded_tile_maps};
+    pub use crate::tiled::{
+        process_loaded_tile_maps, TiledLoader, TiledMap, TiledMapBundle, TiledMapPlugin,
+    };
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
