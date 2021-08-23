@@ -9,6 +9,7 @@ pub struct Tile {
     pub flip_x: bool,
     /// Flip tile along the Y axis.
     pub flip_y: bool,
+    pub flip_d: bool, // anti
     /// Visibility, if false will still process tile events, but will not render the tile.
     pub visible: bool,
     pub color: Color,
@@ -20,6 +21,7 @@ impl Default for Tile {
             texture_index: 0,
             flip_x: false,
             flip_y: false,
+            flip_d: false, // anti diagonal for rotation
             visible: true,
             color: Color::WHITE,
         }

@@ -13,6 +13,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
  - Layers and sparse tile maps.
  - GPU powered animations.
  - Isometric and Hexagonal tile maps.
+ - Initial support for Tiled file exports.
 
 ## Upcoming Features
  - [x] Support for isometric and hexagon rendering.
@@ -62,6 +63,7 @@ fn update_damage(
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
  - [`sparse_tiles`](examples/sparse_tiles.rs) - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
  - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map which requires the `tiled_map` feature. Use: `cargo run --example tiled --features tiled_map`
+ - [`tiled_rotate`](examples/tiled_rotate.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation.requires the `tiled_map` feature. Use: `cargo run --example tiled_rotate --features tiled_map`
  - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
 ### Running Examples
@@ -75,7 +77,8 @@ cargo run --release --example map
 - `tiled_map` - Enabled tiled map editor loading.
 
 ## Known Issues
- - None – please report any issues!
+ - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
+ - Besides the above no known issues.
 
 ## Asset credits
  - Field of green by [GuttyKreum](https://guttykreum.itch.io/).

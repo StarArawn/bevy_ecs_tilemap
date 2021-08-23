@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.7.1" orientation="orthogonal" renderorder="right-down" width="10" height="1" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+ <tileset firstgid="1" name="Dungeon" tilewidth="16" tileheight="16" tilecount="100" columns="10">
+  <image source="dungeon.png" trans="000000" width="160" height="160"/>
+ </tileset>
+ <layer id="1" name="Tile Layer 1" width="10" height="1">
+  <data encoding="csv">
+23,2147483671,1073741847,3221225495,23,2684354583,3221225495,1610612759,3758096407,536870935
+</data>
+ </layer>
+</map>

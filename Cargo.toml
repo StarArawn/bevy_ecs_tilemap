@@ -7,10 +7,7 @@ homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license-file = "LICENSE"
 edition = "2018"
-exclude = [
-    "assets/*",
-    "screenshots/*",
-]
+exclude = ["assets/*", "screenshots/*"]
 
 [features]
 default = []
@@ -29,4 +26,4 @@ tiled = { version = "0.9", default-features = false, optional = true }
 [dev-dependencies]
 bevy = { version = "0.5", default-features = true }
 rand = "0.8"
-env_logger = "0.8"
+env_logger = "0.9"

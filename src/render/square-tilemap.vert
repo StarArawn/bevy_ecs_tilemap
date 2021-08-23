@@ -31,7 +31,7 @@ void main() {
         vec2(position.x, position.y + 1.0),
         vec2(position.x + 1.0, position.y + 1.0),
         vec2(position.x + 1.0, position.y)
-    );
+    ); 
 
     position = positions[gl_VertexIndex % 4];
     position.xy *= tile_size;
@@ -55,37 +55,57 @@ void main() {
     float end_v = (sprite_sheet_y + tile_size.y) / texture_size.y;
 
     vec2 atlas_uvs[4];
-    
-    // Texture flipping..
-    if (Vertex_Texture.y == 0) {
-        atlas_uvs = vec2[4](
-            vec2(start_u, end_v),
-            vec2(start_u, start_v),
-            vec2(end_u, start_v),
-            vec2(end_u, end_v)
-        );
-    } else if (Vertex_Texture.y == 1) { // flip x
-        atlas_uvs = vec2[4](
-            vec2(end_u, end_v),
-            vec2(end_u, start_v),
-            vec2(start_u, start_v),
-            vec2(start_u, end_v)
-        );
-    } else if(Vertex_Texture.y == 2) { // flip y
-        atlas_uvs = vec2[4](
-            vec2(start_u, start_v),
-            vec2(start_u, end_v),
-            vec2(end_u, end_v),
-            vec2(end_u, start_v)
-        );
-    } else if(Vertex_Texture.y == 3) { // both
-        atlas_uvs = vec2[4](
-            vec2(end_u, start_v),
-            vec2(end_u, end_v),
-            vec2(start_u, end_v),
-            vec2(start_u, start_v)
-        );
-    }
+
+    vec2 x1[8] = { 
+        vec2(start_u, end_v),       // no flip/rotation
+        vec2(end_u, end_v),         // flip x
+        vec2(start_u, start_v),     // flip y
+        vec2(end_u, start_v),       // flip x y
+        vec2(end_u, start_v),       // flip     d
+        vec2(end_u, end_v),         // flip x   d
+        vec2(start_u, start_v),     // flip y   d
+        vec2(start_u, end_v)
+    };
+        
+    vec2 x2[8] = { 
+        vec2(start_u, start_v),
+        vec2(end_u, start_v),
+        vec2(start_u, end_v),
+        vec2(end_u, end_v),
+        vec2(start_u, start_v),
+        vec2(start_u, end_v),
+        vec2(end_u, start_v),
+        vec2(end_u, end_v)
+    };
+ 
+    vec2 x3[8] = { 
+        vec2(end_u, start_v),
+        vec2(start_u, start_v),
+        vec2(end_u, end_v),
+        vec2(start_u, end_v),
+        vec2(start_u, end_v),
+        vec2(start_u, start_v),
+        vec2(end_u, end_v),
+        vec2(end_u, start_v)
+    };
+
+    vec2 x4[8] = { 
+        vec2(end_u, end_v),
+        vec2(start_u, end_v),
+        vec2(end_u, start_v),
+        vec2(start_u, start_v),
+        vec2(end_u, end_v),
+        vec2(end_u, start_v),
+        vec2(start_u, end_v),
+        vec2(start_u, start_v),
+    };
+
+    atlas_uvs = vec2[4](
+        x1[Vertex_Texture.y],
+        x2[Vertex_Texture.y],
+        x3[Vertex_Texture.y],
+        x4[Vertex_Texture.y]
+    );
 
     v_Uv = atlas_uvs[gl_VertexIndex % 4];
     v_Uv += 1e-5;

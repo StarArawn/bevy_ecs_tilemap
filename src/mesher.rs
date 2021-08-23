@@ -85,16 +85,13 @@ impl ChunkMesher {
                         ],
                     ]));
 
-                    let tile_flip_bits = match (tile.flip_x, tile.flip_y) {
-                        // no flip
-                        (false, false) => 0,
-                        // flip x
-                        (true, false) => 1,
-                        // flip y
-                        (false, true) => 2,
-                        // flip both
-                        (true, true) => 3,
-                    };
+                    // flipping and rotation packed in bits
+                    // bit 0 : flip_x
+                    // bit 1 : flip_y
+                    // bit 2 : flip_d (anti diagonal)
+
+                    let tile_flip_bits =
+                        tile.flip_x as i32 | (tile.flip_y as i32) << 1 | (tile.flip_d as i32) << 2;
 
                     textures.extend(IntoIter::new([
                         [
