@@ -18,13 +18,13 @@ fn startup(
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
-    let mut map_settings = LayerSettings::new(
+    let map_settings = LayerSettings::new_with_map_type(
         UVec2::new(2, 2),
         UVec2::new(16, 32),
         Vec2::new(64.0, 32.0),
         Vec2::new(384.0, 32.0),
+        TilemapMeshType::Isometric(IsoType::Staggered)
     );
-    map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Staggered);
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
@@ -121,7 +121,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Iso diamond Map"),
+            title: String::from("Iso staggered Map"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)

@@ -19,13 +19,13 @@ fn startup(
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
-    let mut map_settings = LayerSettings::new(
+    let map_settings = LayerSettings::new_with_map_type(
         UVec2::new(2, 2),
         UVec2::new(64, 64),
         Vec2::new(17.0, 15.0),
         Vec2::new(102.0, 15.0),
+        TilemapMeshType::Hexagon(HexType::Column)
     );
-    map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
     let (mut layer_builder, layer_entity) =
         LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
