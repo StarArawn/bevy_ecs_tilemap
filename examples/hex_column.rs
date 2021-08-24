@@ -23,7 +23,7 @@ fn startup(
         UVec2::new(2, 2),
         UVec2::new(64, 64),
         Vec2::new(17.0, 15.0),
-        Vec2::new(102.0, 15.0),
+        Vec2::new(17.0, 105.0),
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
