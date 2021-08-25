@@ -1,3 +1,4 @@
+use crate::TilePos;
 use bevy::prelude::*;
 
 /// A component that represents the basic tile information.
@@ -58,34 +59,24 @@ impl GPUAnimated {
 /// This trait is used to allow the layer builder to access specific information inside of the bundle.
 pub trait TileBundleTrait: Bundle + Clone + Sized {
     /// Gets the tile position from inside of the bundle.
-    fn get_tile_pos_mut(&mut self) -> &mut UVec2;
+    fn get_tile_pos_mut(&mut self) -> &mut TilePos;
     /// Gets the tile parent component from inside the bundle.
     fn get_tile_parent(&mut self) -> &mut TileParent;
 }
 
 /// The standard tile bundle.
-#[derive(Bundle, Clone)]
+#[derive(Bundle, Clone, Default)]
 pub struct TileBundle {
     /// Tile component.
     pub tile: Tile,
     /// The position in the tilemap grid.
-    pub position: UVec2,
+    pub position: TilePos,
     /// The parent chunk.
     pub parent: TileParent,
 }
 
-impl Default for TileBundle {
-    fn default() -> Self {
-        Self {
-            tile: Tile::default(),
-            position: UVec2::default(),
-            parent: TileParent::default(),
-        }
-    }
-}
-
 impl TileBundleTrait for TileBundle {
-    fn get_tile_pos_mut(&mut self) -> &mut UVec2 {
+    fn get_tile_pos_mut(&mut self) -> &mut TilePos {
         &mut self.position
     }
 
@@ -95,7 +86,7 @@ impl TileBundleTrait for TileBundle {
 }
 
 impl TileBundle {
-    pub fn new(tile: Tile, position: UVec2) -> Self {
+    pub fn new(tile: Tile, position: TilePos) -> Self {
         Self {
             tile,
             position,

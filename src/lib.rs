@@ -26,9 +26,9 @@
 //! let (mut layer_builder, _) = LayerBuilder::new(
 //!     &mut commands,
 //!     LayerSettings::new(
-//!         UVec2::new(2, 2),
-//!         UVec2::new(8, 8),
-//!         Vec2::new(16.0, 16.0),
+//!         MapSize(2, 2),
+//!         ChunkSize(8, 8),
+//!         TileSize(16.0, 16.0),
 //!         Vec2::new(96.0, 256.0),
 //!     ),
 //!     0u16,
@@ -163,7 +163,8 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
+pub(crate) fn morton_index(tile_pos: impl Into<UVec2>) -> usize {
+    let tile_pos: UVec2 = tile_pos.into();
     morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
 }
 
@@ -197,7 +198,7 @@ pub mod prelude {
         TiledMapBundle, TiledMapPlugin,
     };
 
-    pub use crate::{ChunkSize, MapSize, TileSize};
+    pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TilePos, TileSize};
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
@@ -225,5 +226,42 @@ impl From<Vec2> for TileSize {
 impl Into<Vec2> for TileSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.0, self.1)
+    }
+}
+
+/// The position of a tile, in map coordinates
+///
+/// Coordinates start at (0, 0) from the bottom-left tile of the map.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct TilePos(pub u32, pub u32);
+
+impl Into<UVec2> for TilePos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
+    }
+}
+
+/// The position of a tile, in chunk coordinates
+///
+/// Coordinates start at (0, 0) from the bottom-left tile of the chunk.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct LocalTilePos(pub u32, pub u32);
+
+impl Into<UVec2> for LocalTilePos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
+    }
+}
+
+/// The position of a chunk within a map
+///
+/// Coordinates start at (0, 0) from the bottom-left chunk of the map.
+/// Note that these coordinates are measured in terms of chunks, not tiles.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct ChunkPos(pub u32, pub u32);
+
+impl Into<UVec2> for ChunkPos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
     }
 }

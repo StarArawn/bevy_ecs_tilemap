@@ -34,8 +34,8 @@ impl ChunkMesher {
                     }
 
                     let tile_pos = Vec2::new(
-                        (tile_position.x - (chunk.position.x * chunk.size.0)) as f32,
-                        (tile_position.y - (chunk.position.y * chunk.size.1)) as f32,
+                        (tile_position.x - (chunk.position.0 * chunk.size.0)) as f32,
+                        (tile_position.y - (chunk.position.1 * chunk.size.1)) as f32,
                     );
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = gpu_animated {

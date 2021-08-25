@@ -35,7 +35,7 @@ fn startup(
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+        let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
         let _ = layer_builder.set_tile(position, TileBundle::default());
     }

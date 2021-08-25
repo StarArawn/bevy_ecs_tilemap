@@ -53,7 +53,7 @@ fn startup(
     let mut random = thread_rng();
 
     for _ in 0..10000 {
-        let position = UVec2::new(
+        let position = TilePos(
             random.gen_range(0..map_size.0 * 32),
             random.gen_range(0..map_size.1 * 32),
         );

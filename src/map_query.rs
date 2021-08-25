@@ -66,7 +66,7 @@ impl<'a> MapQuery<'a> {
     pub fn set_tile<M: Into<u16> + Copy, L: Into<u16> + Copy>(
         &mut self,
         commands: &mut Commands,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
         tile: Tile,
         map_id: M,
         layer_id: L,
@@ -81,9 +81,9 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = UVec2::new(
-                        tile_pos.x / layer.settings.chunk_size.0,
-                        tile_pos.y / layer.settings.chunk_size.1,
+                    let chunk_pos = ChunkPos(
+                        tile_pos.0 / layer.settings.chunk_size.0,
+                        tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, mut chunk)) =
@@ -143,7 +143,7 @@ impl<'a> MapQuery<'a> {
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
     pub fn get_tile_entity<M: Into<u16>, L: Into<u16>>(
         &self,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
         map_id: M,
         layer_id: L,
     ) -> Result<Entity, MapTileError> {
@@ -157,9 +157,9 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = UVec2::new(
-                        tile_pos.x / layer.settings.chunk_size.0,
-                        tile_pos.y / layer.settings.chunk_size.1,
+                    let chunk_pos = ChunkPos(
+                        tile_pos.0 / layer.settings.chunk_size.0,
+                        tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, chunk)) = self.chunk_query_set.q1().get(chunk_entity) {
@@ -182,7 +182,7 @@ impl<'a> MapQuery<'a> {
     pub fn despawn_tile<M: Into<u16>, L: Into<u16>>(
         &mut self,
         commands: &mut Commands,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
         map_id: M,
         layer_id: L,
     ) -> Result<(), MapTileError> {
@@ -196,9 +196,9 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = UVec2::new(
-                        tile_pos.x / layer.settings.chunk_size.0,
-                        tile_pos.y / layer.settings.chunk_size.1,
+                    let chunk_pos = ChunkPos(
+                        tile_pos.0 / layer.settings.chunk_size.0,
+                        tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, mut chunk)) =
@@ -239,12 +239,12 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    for x in 0..layer.get_layer_size_in_tiles().x {
-                        for y in 0..layer.get_layer_size_in_tiles().y {
-                            let tile_pos = UVec2::new(x, y);
-                            let chunk_pos = UVec2::new(
-                                tile_pos.x / layer.settings.chunk_size.0,
-                                tile_pos.y / layer.settings.chunk_size.1,
+                    for x in 0..layer.get_layer_size_in_tiles().0 {
+                        for y in 0..layer.get_layer_size_in_tiles().1 {
+                            let tile_pos = TilePos(x, y);
+                            let chunk_pos = ChunkPos(
+                                tile_pos.0 / layer.settings.chunk_size.0,
+                                tile_pos.1 / layer.settings.chunk_size.1,
                             );
                             if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                 if let Ok((_, mut chunk)) =
@@ -285,7 +285,7 @@ impl<'a> MapQuery<'a> {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
                     for x in 0..layer.settings.map_size.0 {
                         for y in 0..layer.settings.map_size.1 {
-                            if let Some(chunk_entity) = layer.get_chunk(UVec2::new(x, y)) {
+                            if let Some(chunk_entity) = layer.get_chunk(ChunkPos(x, y)) {
                                 commands.entity(chunk_entity).despawn_recursive();
                             }
                         }
@@ -338,24 +338,24 @@ impl<'a> MapQuery<'a> {
     /// ## Example
     ///
     /// ```
-    /// let neighbors = map.get_tile_neighbors(UVec2::new(0, 0));
+    /// let neighbors = map.get_tile_neighbors(TilePos(0, 0));
     /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
     pub fn get_tile_neighbors<M: Into<u16>, L: Into<u16>>(
         &self,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
         map_id: M,
         layer_id: L,
-    ) -> [(IVec2, Option<Entity>); 8] {
-        let n = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 + 1);
-        let s = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 - 1);
-        let w = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32);
-        let e = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32);
-        let nw = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32 + 1);
-        let ne = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32 + 1);
-        let sw = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32 - 1);
-        let se = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32 - 1);
+    ) -> [(TilePos, Option<Entity>); 8] {
+        let n = TilePos(tile_pos.0, tile_pos.1 + 1);
+        let s = TilePos(tile_pos.0, tile_pos.1 - 1);
+        let w = TilePos(tile_pos.0 - 1, tile_pos.1);
+        let e = TilePos(tile_pos.0 + 1, tile_pos.1);
+        let nw = TilePos(tile_pos.0 - 1, tile_pos.1 + 1);
+        let ne = TilePos(tile_pos.0 + 1, tile_pos.1 + 1);
+        let sw = TilePos(tile_pos.0 - 1, tile_pos.1 - 1);
+        let se = TilePos(tile_pos.0 + 1, tile_pos.1 - 1);
         let layer_id: u16 = layer_id.into();
         let map_id: u16 = map_id.into();
         [
@@ -370,11 +370,10 @@ impl<'a> MapQuery<'a> {
         ]
     }
 
-    fn get_tile_i(&self, tile_pos: IVec2, map_id: u16, layer_id: u16) -> Option<Entity> {
-        if tile_pos.x < 0 || tile_pos.y < 0 {
+    fn get_tile_i(&self, tile_pos: TilePos, map_id: u16, layer_id: u16) -> Option<Entity> {
+        if tile_pos.0 < 0 || tile_pos.1 < 0 {
             return None;
         }
-        let tile_pos = tile_pos.as_u32();
         if let Some((_, map)) = self
             .map_query_set
             .q1()
@@ -383,9 +382,9 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = UVec2::new(
-                        tile_pos.x / layer.settings.chunk_size.0,
-                        tile_pos.y / layer.settings.chunk_size.1,
+                    let chunk_pos = ChunkPos(
+                        tile_pos.0 / layer.settings.chunk_size.0,
+                        tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, chunk)) = self.chunk_query_set.q1().get(chunk_entity) {
@@ -412,7 +411,7 @@ impl<'a> MapQuery<'a> {
     /// Let's the internal systems know to remesh the chunk for a given tile pos and layer_id.
     pub fn notify_chunk_for_tile<M: Into<u16>, L: Into<u16>>(
         &mut self,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
         map_id: M,
         layer_id: L,
     ) {
@@ -426,9 +425,9 @@ impl<'a> MapQuery<'a> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = UVec2::new(
-                        tile_pos.x / layer.settings.chunk_size.0,
-                        tile_pos.y / layer.settings.chunk_size.1,
+                    let chunk_pos = ChunkPos(
+                        tile_pos.0 / layer.settings.chunk_size.0,
+                        tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, mut chunk)) =

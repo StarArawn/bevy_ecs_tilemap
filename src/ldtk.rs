@@ -124,12 +124,12 @@ pub fn process_loaded_tile_maps(
                 // Despawn all tiles/chunks/layers.
                 for (layer_id, layer_entity) in map.get_layers() {
                     if let Ok(layer) = layer_query.get(layer_entity) {
-                        for x in 0..layer.get_layer_size_in_tiles().x {
-                            for y in 0..layer.get_layer_size_in_tiles().y {
-                                let tile_pos = UVec2::new(x, y);
-                                let chunk_pos = UVec2::new(
-                                    tile_pos.x / layer.settings.chunk_size.0,
-                                    tile_pos.y / layer.settings.chunk_size.1,
+                        for x in 0..layer.get_layer_size_in_tiles().0 {
+                            for y in 0..layer.get_layer_size_in_tiles().1 {
+                                let tile_pos = TilePos(x, y);
+                                let chunk_pos = ChunkPos(
+                                    tile_pos.0 / layer.settings.chunk_size.0,
+                                    tile_pos.1 / layer.settings.chunk_size.1,
                                 );
                                 if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                     if let Ok(chunk) = chunk_query.get(chunk_entity) {
@@ -206,12 +206,12 @@ pub fn process_loaded_tile_maps(
                         let tileset_x = (tile.src[0] / default_grid_size) as u32;
                         let tileset_y = (tile.src[1] / default_grid_size) as u32;
 
-                        let mut pos = UVec2::new(
+                        let mut pos = TilePos(
                             (tile.px[0] / default_grid_size) as u32,
                             (tile.px[1] / default_grid_size) as u32,
                         );
 
-                        pos.y = map_tile_count_y - pos.y - 1;
+                        pos.1 = map_tile_count_y - pos.1 - 1;
 
                         layer_builder
                             .set_tile(

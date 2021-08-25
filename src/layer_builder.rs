@@ -4,7 +4,8 @@ use crate::{
     render::TilemapData,
     round_to_power_of_two,
     tile::{TileBundleTrait, TileParent},
-    Chunk, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilemapMeshType,
+    Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,
+    TilemapMeshType,
 };
 use bevy::{
     prelude::*,
@@ -66,7 +67,7 @@ where
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
     /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
     /// which will be used for rendering each chunk entity.
-    pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(UVec2) -> Option<T>>(
+    pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(TilePos) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
@@ -101,7 +102,7 @@ where
                     });
                 let chunk_entity = chunk_entity.unwrap();
 
-                let chunk_pos = UVec2::new(x, y);
+                let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
                 mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
                 mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
@@ -147,8 +148,8 @@ where
         let bundles: Vec<T> = (0..size_x)
             .flat_map(|x| (0..size_y).map(move |y| (x, y)))
             .filter_map(move |(x, y)| {
-                let tile_pos = UVec2::new(x, y);
-                let chunk_pos = UVec2::new(x / chunk_size.0, y / chunk_size.1);
+                let tile_pos = TilePos(x, y);
+                let chunk_pos = ChunkPos(x / chunk_size.0, y / chunk_size.1);
                 if let Some(mut tile_bundle) = f(tile_pos) {
                     let tile_parent = tile_bundle.get_tile_parent();
                     *tile_parent = TileParent {
@@ -188,7 +189,7 @@ where
     }
 
     /// Sets a tile's data at the given position.
-    pub fn set_tile(&mut self, tile_pos: UVec2, tile: T) -> Result<(), MapTileError> {
+    pub fn set_tile(&mut self, tile_pos: TilePos, tile: T) -> Result<(), MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             self.tiles[morton_tile_index].1 = Some(tile);
@@ -201,7 +202,7 @@ where
     pub fn get_tile_entity(
         &mut self,
         commands: &mut Commands,
-        tile_pos: UVec2,
+        tile_pos: TilePos,
     ) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
@@ -221,7 +222,7 @@ where
     }
 
     /// Gets a reference to the tile data using a tile position.
-    pub fn get_tile(&self, tile_pos: UVec2) -> Result<&T, MapTileError> {
+    pub fn get_tile(&self, tile_pos: TilePos) -> Result<&T, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
@@ -233,11 +234,11 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    fn get_tile_i32(&self, tile_pos: IVec2) -> Option<(Option<bevy::prelude::Entity>, &T)> {
-        if tile_pos.x < 0 || tile_pos.y < 0 {
+    fn get_tile_i32(&self, tile_pos: TilePos) -> Option<(Option<bevy::prelude::Entity>, &T)> {
+        if tile_pos.0 < 0 || tile_pos.1 < 0 {
             return None;
         }
-        let morton_tile_index = morton_index(tile_pos.as_u32());
+        let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile = &self.tiles[morton_tile_index];
             if let Some(bundle) = &tile.1 {
@@ -249,7 +250,7 @@ where
     }
 
     /// Gets a mutable reference to the tile data using the a tile position.
-    pub fn get_tile_mut(&mut self, tile_pos: UVec2) -> Result<&mut T, MapTileError> {
+    pub fn get_tile_mut(&mut self, tile_pos: TilePos) -> Result<&mut T, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
@@ -284,11 +285,15 @@ where
     }
 
     /// Fills a section of the map with tiles.
-    pub fn fill(&mut self, start: UVec2, end: UVec2, tile: T) {
-        for x in start.x..end.x {
-            for y in start.y..end.y {
+    ///
+    /// All tiles within the rectangle defined by
+    /// the `[start`, `stop`) positions will be filled.
+    /// This includes the `start` position, but not the `stop` position
+    pub fn fill(&mut self, start: TilePos, end: TilePos, tile: T) {
+        for x in start.0..end.0 {
+            for y in start.1..end.1 {
                 // Ignore fill errors.
-                let _ = self.set_tile(UVec2::new(x, y), tile.clone());
+                let _ = self.set_tile(TilePos(x, y), tile.clone());
             }
         }
     }
@@ -310,22 +315,22 @@ where
     /// ## Example
     ///
     /// ```
-    /// let neighbors = map.get_tile_neighbors(UVec2::new(0, 0));
+    /// let neighbors = map.get_tile_neighbors(TilePos(0, 0));
     /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
     pub fn get_tile_neighbors(
         &self,
-        tile_pos: UVec2,
-    ) -> [(IVec2, Option<(Option<bevy::prelude::Entity>, &T)>); 8] {
-        let n = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 + 1);
-        let s = IVec2::new(tile_pos.x as i32, tile_pos.y as i32 - 1);
-        let w = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32);
-        let e = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32);
-        let nw = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32 + 1);
-        let ne = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32 + 1);
-        let sw = IVec2::new(tile_pos.x as i32 - 1, tile_pos.y as i32 - 1);
-        let se = IVec2::new(tile_pos.x as i32 + 1, tile_pos.y as i32 - 1);
+        tile_pos: TilePos,
+    ) -> [(TilePos, Option<(Option<bevy::prelude::Entity>, &T)>); 8] {
+        let n = TilePos(tile_pos.0, tile_pos.1 + 1);
+        let s = TilePos(tile_pos.0, tile_pos.1 - 1);
+        let w = TilePos(tile_pos.0 - 1, tile_pos.1);
+        let e = TilePos(tile_pos.0 + 1, tile_pos.1);
+        let nw = TilePos(tile_pos.0 - 1, tile_pos.1 + 1);
+        let ne = TilePos(tile_pos.0 + 1, tile_pos.1 + 1);
+        let sw = TilePos(tile_pos.0 - 1, tile_pos.1 - 1);
+        let se = TilePos(tile_pos.0 + 1, tile_pos.1 - 1);
         [
             (n, self.get_tile_i32(n)),
             (s, self.get_tile_i32(s)),
@@ -356,7 +361,7 @@ where
                     });
                 let chunk_entity = chunk_entity.unwrap();
 
-                let chunk_pos = UVec2::new(x, y);
+                let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
                 mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(vec![]));
                 mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(vec![]));
@@ -450,62 +455,62 @@ where
         Vec2::new(new_x, new_y)
     }
 
-    fn get_chunk_coords(chunk_pos: UVec2, settings: &LayerSettings) -> Transform {
+    fn get_chunk_coords(chunk_pos: ChunkPos, settings: &LayerSettings) -> Transform {
         let chunk_pos = match settings.mesh_type {
             TilemapMeshType::Square => {
                 let chunk_pos_x =
-                    chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
+                    chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
                 let chunk_pos_y =
-                    chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
+                    chunk_pos.1 as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::Row) => {
-                let chunk_pos_x = (chunk_pos.y as f32
+                let chunk_pos_x = (chunk_pos.1 as f32
                     * settings.chunk_size.0 as f32
                     * (0.5 * settings.tile_size.0).floor())
-                    + (chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0);
-                let chunk_pos_y = chunk_pos.y as f32
+                    + (chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0);
+                let chunk_pos_y = chunk_pos.1 as f32
                     * settings.chunk_size.1 as f32
                     * (0.75 * settings.tile_size.1).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::Column) => {
-                let chunk_pos_x = chunk_pos.x as f32
+                let chunk_pos_x = chunk_pos.0 as f32
                     * settings.chunk_size.0 as f32
                     * (0.75 * settings.tile_size.0).floor();
-                let chunk_pos_y = (chunk_pos.x as f32
+                let chunk_pos_y = (chunk_pos.0 as f32
                     * settings.chunk_size.1 as f32
                     * (0.5 * settings.tile_size.1).ceil())
-                    + chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
+                    + chunk_pos.1 as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::RowOdd)
             | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
                 let chunk_pos_x =
-                    chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
-                let chunk_pos_y = chunk_pos.y as f32
+                    chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
+                let chunk_pos_y = chunk_pos.1 as f32
                     * settings.chunk_size.1 as f32
                     * (0.75 * settings.tile_size.1).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::ColumnOdd)
             | TilemapMeshType::Hexagon(crate::HexType::ColumnEven) => {
-                let chunk_pos_x = chunk_pos.x as f32
+                let chunk_pos_x = chunk_pos.0 as f32
                     * settings.chunk_size.0 as f32
                     * (0.75 * settings.tile_size.0).floor();
                 let chunk_pos_y =
-                    chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
+                    chunk_pos.1 as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Isometric(IsoType::Diamond) => Self::project_iso_diamond(
-                chunk_pos.x as f32,
-                chunk_pos.y as f32,
+                chunk_pos.0 as f32,
+                chunk_pos.1 as f32,
                 settings.chunk_size.0 as f32 * settings.tile_size.0,
                 settings.chunk_size.1 as f32 * settings.tile_size.1,
             ),
             TilemapMeshType::Isometric(IsoType::Staggered) => Self::project_iso_staggered(
-                chunk_pos.x as f32,
-                chunk_pos.y as f32,
+                chunk_pos.0 as f32,
+                chunk_pos.1 as f32,
                 settings.chunk_size.0 as f32 * settings.tile_size.0,
                 settings.chunk_size.1 as f32,
             ),

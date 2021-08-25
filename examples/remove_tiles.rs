@@ -63,7 +63,7 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.5 {
             let mut random = thread_rng();
-            let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+            let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
             let tile_entity = map_query.get_tile_entity(position, 0u16, 0u16);
 
             if tile_entity.is_ok() {

@@ -17,7 +17,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_size = UVec2::new(5 * 16, 5 * 16);
+    let map_size = MapSize(5 * 16, 5 * 16);
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -37,12 +37,11 @@ fn startup(
     );
 
     let mut i = 0;
-    for x in 0..map_size.x {
-        for y in 0..map_size.y {
-            let position = UVec2::new(x, y);
+    for x in 0..map_size.0 {
+        for y in 0..map_size.1 {
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
-                position,
+                TilePos(x, y),
                 Tile {
                     texture_index: 0,
                     visible: i % 2 == 0 || i % 7 == 0,
@@ -76,7 +75,7 @@ fn update(
     mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
-    tile_query: Query<(Entity, &Tile, &UVec2)>,
+    tile_query: Query<(Entity, &Tile, &TilePos)>,
     mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();

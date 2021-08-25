@@ -68,7 +68,7 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
-            let position = UVec2::new(random.gen_range(0..32), random.gen_range(0..32));
+            let position = TilePos(random.gen_range(0..32), random.gen_range(0..32));
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
             if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u16, 0u16) {

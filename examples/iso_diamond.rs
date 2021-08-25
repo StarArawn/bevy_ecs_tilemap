@@ -32,8 +32,8 @@ fn startup(
     map.add_layer(&mut commands, 0u16, layer_0_entity);
 
     layer_0.fill(
-        UVec2::new(0, 0),
-        UVec2::new(32, 32),
+        TilePos(0, 0),
+        TilePos(32, 32),
         Tile {
             texture_index: 0,
             ..Default::default()
@@ -41,8 +41,8 @@ fn startup(
         .into(),
     );
     layer_0.fill(
-        UVec2::new(32, 0),
-        UVec2::new(64, 32),
+        TilePos(32, 0),
+        TilePos(64, 32),
         Tile {
             texture_index: 1,
             ..Default::default()
@@ -50,8 +50,8 @@ fn startup(
         .into(),
     );
     layer_0.fill(
-        UVec2::new(0, 32),
-        UVec2::new(32, 64),
+        TilePos(0, 32),
+        TilePos(32, 64),
         Tile {
             texture_index: 2,
             ..Default::default()
@@ -59,8 +59,8 @@ fn startup(
         .into(),
     );
     layer_0.fill(
-        UVec2::new(32, 32),
-        UVec2::new(64, 64),
+        TilePos(32, 32),
+        TilePos(64, 64),
         Tile {
             texture_index: 3,
             ..Default::default()
@@ -86,7 +86,7 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..1000 {
-            let position = UVec2::new(random.gen_range(0..128), random.gen_range(0..128));
+            let position = TilePos(random.gen_range(0..128), random.gen_range(0..128));
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
                 position,

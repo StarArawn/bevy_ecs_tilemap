@@ -114,12 +114,12 @@ pub fn process_loaded_tile_maps(
                 // Despawn all tiles/chunks/layers.
                 for (layer_id, layer_entity) in map.get_layers() {
                     if let Ok(layer) = layer_query.get(layer_entity) {
-                        for x in 0..layer.get_layer_size_in_tiles().x {
-                            for y in 0..layer.get_layer_size_in_tiles().y {
-                                let tile_pos = UVec2::new(x, y);
-                                let chunk_pos = UVec2::new(
-                                    tile_pos.x / layer.settings.chunk_size.0,
-                                    tile_pos.y / layer.settings.chunk_size.1,
+                        for x in 0..layer.get_layer_size_in_tiles().0 {
+                            for y in 0..layer.get_layer_size_in_tiles().1 {
+                                let tile_pos = TilePos(x, y);
+                                let chunk_pos = ChunkPos(
+                                    tile_pos.0 / layer.settings.chunk_size.0,
+                                    tile_pos.1 / layer.settings.chunk_size.1,
                                 );
                                 if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                     if let Ok(chunk) = chunk_query.get(chunk_entity) {
@@ -190,18 +190,18 @@ pub fn process_loaded_tile_maps(
                             layer.layer_index as u16,
                             None,
                             move |mut tile_pos| {
-                                if tile_pos.x >= tiled_map_data.width
-                                    || tile_pos.y >= tiled_map_data.height
+                                if tile_pos.0 >= tiled_map_data.width
+                                    || tile_pos.1 >= tiled_map_data.height
                                 {
                                     return None;
                                 }
 
                                 if tiled_map_data.orientation == tiled::Orientation::Orthogonal {
-                                    tile_pos.y = (tiled_map_data.height - 1) as u32 - tile_pos.y;
+                                    tile_pos.1 = (tiled_map_data.height - 1) as u32 - tile_pos.1;
                                 }
 
-                                let x = tile_pos.x as usize;
-                                let y = tile_pos.y as usize;
+                                let x = tile_pos.0 as usize;
+                                let y = tile_pos.1 as usize;
 
                                 let map_tile = match &layer_data.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],
