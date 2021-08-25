@@ -118,8 +118,8 @@ pub fn process_loaded_tile_maps(
                             for y in 0..layer.get_layer_size_in_tiles().y {
                                 let tile_pos = UVec2::new(x, y);
                                 let chunk_pos = UVec2::new(
-                                    tile_pos.x / layer.settings.chunk_size.x,
-                                    tile_pos.y / layer.settings.chunk_size.y,
+                                    tile_pos.x / layer.settings.chunk_size.0,
+                                    tile_pos.y / layer.settings.chunk_size.1,
                                 );
                                 if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                     if let Ok(chunk) = chunk_query.get(chunk_entity) {
@@ -149,12 +149,12 @@ pub fn process_loaded_tile_maps(
                         let offset_y = layer.offset_y;
 
                         let mut map_settings = LayerSettings::new(
-                            UVec2::new(
+                            MapSize(
                                 (tiled_map.map.width as f32 / 64.0).ceil() as u32,
                                 (tiled_map.map.height as f32 / 64.0).ceil() as u32,
                             ),
-                            UVec2::new(64, 64),
-                            Vec2::new(tile_width, tile_height),
+                            ChunkSize(64, 64),
+                            TileSize(tile_width, tile_height),
                             Vec2::new(
                                 tileset.images[0].width as f32,
                                 tileset.images[0].height as f32,
@@ -220,7 +220,7 @@ pub fn process_loaded_tile_maps(
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
                                     flip_x: map_tile.flip_h,
-                                    flip_y: map_tile.flip_v, 
+                                    flip_y: map_tile.flip_v,
                                     flip_d: map_tile.flip_d,
                                     ..Default::default()
                                 };

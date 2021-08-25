@@ -4,7 +4,7 @@ use crate::{
     render::TilemapData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
-    TilemapMeshType,
+    ChunkSize, TileSize, TilemapMeshType,
 };
 use bevy::{
     prelude::*,
@@ -55,10 +55,8 @@ impl Default for ChunkBundle {
 pub struct ChunkSettings {
     /// The specific location x,y of the chunk in the tile map in chunk coords.
     pub position: UVec2,
-    /// The size of the chunk.
-    pub size: UVec2,
-    /// The size of each tile in pixels.
-    pub tile_size: Vec2,
+    pub size: ChunkSize,
+    pub tile_size: TileSize,
     /// The size of the texture in pixels.
     pub texture_size: Vec2,
     /// What map layer the chunk lives in.
@@ -104,7 +102,7 @@ impl Default for Chunk {
                 size: Default::default(),
                 mesh_handle: Default::default(),
                 texture_size: Vec2::ZERO,
-                tile_size: Vec2::ZERO,
+                tile_size: TileSize::default(),
                 layer_id: 0,
                 spacing: Vec2::ZERO,
                 cull: true,
@@ -120,8 +118,8 @@ impl Chunk {
     pub(crate) fn new(
         map_entity: Entity,
         position: UVec2,
-        chunk_size: UVec2,
-        tile_size: Vec2,
+        chunk_size: ChunkSize,
+        tile_size: TileSize,
         texture_size: Vec2,
         tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
@@ -130,8 +128,8 @@ impl Chunk {
         mesher: ChunkMesher,
         cull: bool,
     ) -> Self {
-        let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
-        let tile_size_y = round_to_power_of_two(chunk_size.y as f32);
+        let tile_size_x = round_to_power_of_two(chunk_size.0 as f32);
+        let tile_size_y = round_to_power_of_two(chunk_size.1 as f32);
         let tile_count = tile_size_x.max(tile_size_y);
         let tiles = vec![None; tile_count * tile_count];
         let settings = ChunkSettings {
@@ -158,11 +156,11 @@ impl Chunk {
     where
         F: FnMut(UVec2, Entity) -> Option<Entity>,
     {
-        for x in 0..self.settings.size.x {
-            for y in 0..self.settings.size.y {
+        for x in 0..self.settings.size.0 {
+            for y in 0..self.settings.size.1 {
                 let tile_pos = UVec2::new(
-                    (self.settings.position.x * self.settings.size.x) + x,
-                    (self.settings.position.y * self.settings.size.y) + y,
+                    (self.settings.position.x * self.settings.size.0) + x,
+                    (self.settings.position.y * self.settings.size.1) + y,
                 );
                 if let Some(tile_entity) = f(tile_pos, chunk_entity) {
                     let morton_i = morton_index(UVec2::new(x, y));
@@ -192,8 +190,8 @@ impl Chunk {
 
     pub fn to_chunk_pos(&self, position: UVec2) -> UVec2 {
         UVec2::new(
-            position.x - (self.settings.position.x * self.settings.size.x),
-            position.y - (self.settings.position.y * self.settings.size.y),
+            position.x - (self.settings.position.x * self.settings.size.0),
+            position.y - (self.settings.position.y * self.settings.size.1),
         )
     }
 }
@@ -252,8 +250,8 @@ pub(crate) fn update_chunk_visibility(
             }
 
             let bounds_size = Vec2::new(
-                chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
-                chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
+                chunk.settings.size.0 as f32 * chunk.settings.tile_size.0,
+                chunk.settings.size.1 as f32 * chunk.settings.tile_size.1,
             );
 
             let bounds = Vec4::new(

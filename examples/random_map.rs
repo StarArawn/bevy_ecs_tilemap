@@ -25,9 +25,9 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let layer_settings = LayerSettings::new(
-        UVec2::new(10, 10),
-        UVec2::new(64, 64),
-        Vec2::new(16.0, 16.0),
+        MapSize(10, 10),
+        ChunkSize(64, 64),
+        TileSize(16.0, 16.0),
         Vec2::new(96.0, 256.0),
     );
 
@@ -45,7 +45,9 @@ fn startup(
         if tile_entity.is_none() {
             *tile_entity = Some(commands.spawn().id());
         }
-        commands.entity(tile_entity.unwrap()).insert(LastUpdate::default());
+        commands
+            .entity(tile_entity.unwrap())
+            .insert(LastUpdate::default());
     });
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);

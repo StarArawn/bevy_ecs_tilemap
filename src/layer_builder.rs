@@ -38,23 +38,23 @@ where
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
         let tile_size_x =
-            round_to_power_of_two((settings.map_size.x * settings.chunk_size.x) as f32);
+            round_to_power_of_two((settings.map_size.0 * settings.chunk_size.0) as f32);
         let tile_size_y =
-            round_to_power_of_two((settings.map_size.y * settings.chunk_size.y) as f32);
+            round_to_power_of_two((settings.map_size.1 * settings.chunk_size.1) as f32);
         let tile_count = tile_size_x.max(tile_size_y);
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
 
-        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
+        let pipeline = if pipeline.is_some() {
+            pipeline.unwrap()
+        } else {
+            settings.mesh_type.into()
+        };
         (
             Self {
                 settings,
-                tiles: (0..tile_count * tile_count)
-                    .map(|_| {
-                        (None, None)
-                    })
-                    .collect(),
+                tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
                 layer_entity,
                 pipeline,
             },
@@ -78,17 +78,21 @@ where
     ) -> Entity {
         let layer_entity = commands.spawn().id();
 
-        let size_x = settings.map_size.x * settings.chunk_size.x;
-        let size_y = settings.map_size.y * settings.chunk_size.y;
+        let size_x = settings.map_size.0 * settings.chunk_size.0;
+        let size_y = settings.map_size.1 * settings.chunk_size.1;
 
-        let pipeline = if pipeline.is_some() { pipeline.unwrap() } else { settings.mesh_type.into() };
+        let pipeline = if pipeline.is_some() {
+            pipeline.unwrap()
+        } else {
+            settings.mesh_type.into()
+        };
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
 
         let mut layer = Layer::new(settings.clone());
-        for x in 0..layer.settings.map_size.x {
-            for y in 0..layer.settings.map_size.y {
+        for x in 0..layer.settings.map_size.0 {
+            for y in 0..layer.settings.map_size.1 {
                 let mut chunk_entity = None;
                 commands
                     .entity(layer_entity)
@@ -144,7 +148,7 @@ where
             .flat_map(|x| (0..size_y).map(move |y| (x, y)))
             .filter_map(move |(x, y)| {
                 let tile_pos = UVec2::new(x, y);
-                let chunk_pos = UVec2::new(x / chunk_size.x, y / chunk_size.y);
+                let chunk_pos = UVec2::new(x / chunk_size.0, y / chunk_size.1);
                 if let Some(mut tile_bundle) = f(tile_pos) {
                     let tile_parent = tile_bundle.get_tile_parent();
                     *tile_parent = TileParent {
@@ -193,8 +197,12 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Returns an existing tile entity or spawns a new one. 
-    pub fn get_tile_entity(&mut self, commands: &mut Commands, tile_pos: UVec2) -> Result<Entity, MapTileError> {
+    /// Returns an existing tile entity or spawns a new one.
+    pub fn get_tile_entity(
+        &mut self,
+        commands: &mut Commands,
+        tile_pos: UVec2,
+    ) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
@@ -338,8 +346,8 @@ where
         material: Handle<ColorMaterial>,
     ) -> LayerBundle {
         let mut layer = Layer::new(self.settings.clone());
-        for x in 0..layer.settings.map_size.x {
-            for y in 0..layer.settings.map_size.y {
+        for x in 0..layer.settings.map_size.0 {
+            for y in 0..layer.settings.map_size.1 {
                 let mut chunk_entity = None;
                 commands
                     .entity(self.layer_entity)
@@ -370,7 +378,7 @@ where
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
                     let morton_tile_index = morton_index(tile_pos);
-                    
+
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
                         let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
                             Some(entity)
@@ -385,7 +393,9 @@ where
                         };
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
-                        commands.entity(tile_entity.unwrap()).insert_bundle(tile_bundle);
+                        commands
+                            .entity(tile_entity.unwrap())
+                            .insert_bundle(tile_bundle);
 
                         return tile_entity;
                     }
@@ -444,60 +454,60 @@ where
         let chunk_pos = match settings.mesh_type {
             TilemapMeshType::Square => {
                 let chunk_pos_x =
-                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x;
+                    chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
                 let chunk_pos_y =
-                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
+                    chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::Row) => {
                 let chunk_pos_x = (chunk_pos.y as f32
-                    * settings.chunk_size.x as f32
-                    * (0.5 * settings.tile_size.x).floor())
-                    + (chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x);
+                    * settings.chunk_size.0 as f32
+                    * (0.5 * settings.tile_size.0).floor())
+                    + (chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0);
                 let chunk_pos_y = chunk_pos.y as f32
-                    * settings.chunk_size.y as f32
-                    * (0.75 * settings.tile_size.y).floor();
+                    * settings.chunk_size.1 as f32
+                    * (0.75 * settings.tile_size.1).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::Column) => {
                 let chunk_pos_x = chunk_pos.x as f32
-                    * settings.chunk_size.x as f32
-                    * (0.75 * settings.tile_size.x).floor();
+                    * settings.chunk_size.0 as f32
+                    * (0.75 * settings.tile_size.0).floor();
                 let chunk_pos_y = (chunk_pos.x as f32
-                    * settings.chunk_size.y as f32
-                    * (0.5 * settings.tile_size.y).ceil())
-                    + chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
+                    * settings.chunk_size.1 as f32
+                    * (0.5 * settings.tile_size.1).ceil())
+                    + chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::RowOdd)
             | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
                 let chunk_pos_x =
-                    chunk_pos.x as f32 * settings.chunk_size.x as f32 * settings.tile_size.x;
+                    chunk_pos.x as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
                 let chunk_pos_y = chunk_pos.y as f32
-                    * settings.chunk_size.y as f32
-                    * (0.75 * settings.tile_size.y).floor();
+                    * settings.chunk_size.1 as f32
+                    * (0.75 * settings.tile_size.1).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::ColumnOdd)
             | TilemapMeshType::Hexagon(crate::HexType::ColumnEven) => {
                 let chunk_pos_x = chunk_pos.x as f32
-                    * settings.chunk_size.x as f32
-                    * (0.75 * settings.tile_size.x).floor();
+                    * settings.chunk_size.0 as f32
+                    * (0.75 * settings.tile_size.0).floor();
                 let chunk_pos_y =
-                    chunk_pos.y as f32 * settings.chunk_size.y as f32 * settings.tile_size.y;
+                    chunk_pos.y as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Isometric(IsoType::Diamond) => Self::project_iso_diamond(
                 chunk_pos.x as f32,
                 chunk_pos.y as f32,
-                settings.chunk_size.x as f32 * settings.tile_size.x,
-                settings.chunk_size.y as f32 * settings.tile_size.y,
+                settings.chunk_size.0 as f32 * settings.tile_size.0,
+                settings.chunk_size.1 as f32 * settings.tile_size.1,
             ),
             TilemapMeshType::Isometric(IsoType::Staggered) => Self::project_iso_staggered(
                 chunk_pos.x as f32,
                 chunk_pos.y as f32,
-                settings.chunk_size.x as f32 * settings.tile_size.x,
-                settings.chunk_size.y as f32,
+                settings.chunk_size.0 as f32 * settings.tile_size.0,
+                settings.chunk_size.1 as f32,
             ),
         };
 

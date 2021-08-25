@@ -26,9 +26,9 @@ fn startup(
     let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(5, 5),
-            UVec2::new(16, 16),
-            Vec2::new(16.0, 16.0),
+            MapSize(5, 5),
+            ChunkSize(16, 16),
+            TileSize(16.0, 16.0),
             Vec2::new(96.0, 256.0),
         ),
         0u16,

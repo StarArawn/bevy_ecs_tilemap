@@ -20,9 +20,9 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let mut map_settings = LayerSettings::new(
-        UVec2::new(2, 2),
-        UVec2::new(64, 64),
-        Vec2::new(17.0, 15.0),
+        MapSize(2, 2),
+        ChunkSize(64, 64),
+        TileSize(17.0, 15.0),
         Vec2::new(17.0, 105.0),
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);

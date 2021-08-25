@@ -18,12 +18,12 @@ impl ChunkMesher {
         meshes: &mut ResMut<Assets<Mesh>>,
     ) {
         let mesh = meshes.get_mut(chunk.mesh_handle).unwrap();
-        let size = ((chunk.size.x * chunk.size.y) * 4) as usize;
+        let size = ((chunk.size.0 * chunk.size.1) * 4) as usize;
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(size);
         let mut textures: Vec<[i32; 4]> = Vec::with_capacity(size);
         let mut colors: Vec<[f32; 4]> = Vec::with_capacity(size);
         let mut indices: Vec<u32> =
-            Vec::with_capacity(((chunk.size.x * chunk.size.y) * 6) as usize);
+            Vec::with_capacity(((chunk.size.0 * chunk.size.1) * 6) as usize);
 
         let mut i = 0;
         for tile_entity in chunk_tiles.iter() {
@@ -34,8 +34,8 @@ impl ChunkMesher {
                     }
 
                     let tile_pos = Vec2::new(
-                        (tile_position.x - (chunk.position.x * chunk.size.x)) as f32,
-                        (tile_position.y - (chunk.position.y * chunk.size.y)) as f32,
+                        (tile_position.x - (chunk.position.x * chunk.size.0)) as f32,
+                        (tile_position.y - (chunk.position.y * chunk.size.1)) as f32,
                     );
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = gpu_animated {

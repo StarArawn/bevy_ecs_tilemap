@@ -27,7 +27,7 @@ impl From<&ChunkSettings> for TilemapData {
     fn from(settings: &ChunkSettings) -> Self {
         Self {
             texture_size: settings.texture_size,
-            tile_size: settings.tile_size,
+            tile_size: settings.tile_size.into(),
             spacing: settings.spacing,
             time: 0.0,
         }

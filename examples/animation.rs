@@ -21,12 +21,12 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_size = UVec2::new(20, 20);
+    let map_size = MapSize(20, 20);
 
     let layer_settings = LayerSettings::new(
         map_size,
-        UVec2::new(32, 32),
-        Vec2::new(16.0, 16.0),
+        ChunkSize(32, 32),
+        TileSize(16.0, 16.0),
         Vec2::new(96.0, 256.0),
     );
 
@@ -40,11 +40,11 @@ fn startup(
     let texture_handle = asset_server.load("flower_sheet.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_size = map_size / 2;
+    let map_size = MapSize(map_size.0 / 2, map_size.1 / 2);
     let layer_settings = LayerSettings::new(
         map_size,
-        UVec2::new(32, 32),
-        Vec2::new(32.0, 32.0),
+        ChunkSize(32, 32),
+        TileSize(32.0, 32.0),
         Vec2::new(32.0, 448.0),
     );
     let (mut layer_builder, layer_1_entity) =
@@ -54,8 +54,8 @@ fn startup(
 
     for _ in 0..10000 {
         let position = UVec2::new(
-            random.gen_range(0..map_size.x * 32),
-            random.gen_range(0..map_size.y * 32),
+            random.gen_range(0..map_size.0 * 32),
+            random.gen_range(0..map_size.1 * 32),
         );
         let _ = layer_builder.set_tile(
             position,

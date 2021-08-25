@@ -4,7 +4,7 @@ use crate::{
     prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
     tile::TileParent,
-    TilemapMeshType,
+    ChunkSize, MapSize, TileSize, TilemapMeshType,
 };
 use bevy::prelude::*;
 
@@ -23,11 +23,11 @@ pub struct LayerBundle {
 #[derive(Debug, Default, Copy, Clone)]
 pub struct LayerSettings {
     /// Size of the tilemap in chunks
-    pub map_size: UVec2,
+    pub map_size: MapSize,
     /// Size in tiles of each chunk.
-    pub chunk_size: UVec2,
+    pub chunk_size: ChunkSize,
     /// Size in pixels of each tile.
-    pub tile_size: Vec2,
+    pub tile_size: TileSize,
     /// Size in pixels of the tilemap texture.
     pub texture_size: Vec2,
     /// The layer id associated with this map.
@@ -45,7 +45,12 @@ pub struct LayerSettings {
 }
 
 impl LayerSettings {
-    pub fn new(map_size: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2) -> Self {
+    pub fn new(
+        map_size: MapSize,
+        chunk_size: ChunkSize,
+        tile_size: TileSize,
+        texture_size: Vec2,
+    ) -> Self {
         Self {
             map_size,
             chunk_size,
@@ -70,15 +75,15 @@ impl LayerSettings {
 
     pub fn get_pixel_center(&self) -> Vec2 {
         Vec2::new(
-            ((self.map_size.x * self.chunk_size.x) as f32 * self.tile_size.x) / 2.0,
-            ((self.map_size.y * self.chunk_size.y) as f32 * self.tile_size.y) / 2.0,
+            ((self.map_size.0 * self.chunk_size.0) as f32 * self.tile_size.0) / 2.0,
+            ((self.map_size.1 * self.chunk_size.1) as f32 * self.tile_size.1) / 2.0,
         )
     }
 
     pub fn get_center(&self) -> UVec2 {
         UVec2::new(
-            (self.map_size.x * self.chunk_size.x) / 2,
-            (self.map_size.y * self.chunk_size.y) / 2,
+            (self.map_size.0 * self.chunk_size.0) / 2,
+            (self.map_size.1 * self.chunk_size.1) / 2,
         )
     }
 }
@@ -107,8 +112,8 @@ impl Layer {
     ///
     /// - `settings`: The map settings struct.
     pub fn new(settings: LayerSettings) -> Self {
-        let map_size_x = round_to_power_of_two(settings.map_size.x as f32);
-        let map_size_y = round_to_power_of_two(settings.map_size.y as f32);
+        let map_size_x = round_to_power_of_two(settings.map_size.0 as f32);
+        let map_size_y = round_to_power_of_two(settings.map_size.1 as f32);
         let map_size = map_size_x.max(map_size_y);
         Self {
             settings,
@@ -123,8 +128,8 @@ impl Layer {
     /// Gets the map's size in tiles just for convenience.
     pub fn get_layer_size_in_tiles(&self) -> UVec2 {
         UVec2::new(
-            self.settings.map_size.x * self.settings.chunk_size.x,
-            self.settings.map_size.y * self.settings.chunk_size.y,
+            self.settings.map_size.0 * self.settings.chunk_size.0,
+            self.settings.map_size.1 * self.settings.chunk_size.1,
         )
     }
 }

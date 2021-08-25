@@ -196,8 +196,34 @@ pub mod prelude {
         process_loaded_tile_maps as tiled_process_loaded_tile_maps, TiledLoader, TiledMap,
         TiledMapBundle, TiledMapPlugin,
     };
+
+    pub use crate::{ChunkSize, MapSize, TileSize};
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
     1 << value.log2().ceil() as usize
+}
+
+/// The size of the map, in chunks
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub struct MapSize(pub u32, pub u32);
+
+/// The size of each chunk, in tiles
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub struct ChunkSize(pub u32, pub u32);
+
+/// The size of each tile, in pixels
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
+pub struct TileSize(pub f32, pub f32);
+
+impl From<Vec2> for TileSize {
+    fn from(vec: Vec2) -> Self {
+        TileSize(vec.x, vec.y)
+    }
+}
+
+impl Into<Vec2> for TileSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0, self.1)
+    }
 }

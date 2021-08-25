@@ -19,9 +19,9 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let mut map_settings = LayerSettings::new(
-        UVec2::new(2, 2),
-        UVec2::new(32, 32),
-        Vec2::new(64.0, 32.0),
+        MapSize(2, 2),
+        ChunkSize(32, 32),
+        TileSize(64.0, 32.0),
         Vec2::new(384.0, 32.0),
     );
     map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
