@@ -1,5 +1,7 @@
 use crate::{
     chunk::ChunkBundle,
+    layer::LayerId,
+    map::MapId,
     morton_index,
     render::TilemapData,
     round_to_power_of_two,
@@ -30,11 +32,11 @@ where
     /// Creates the layer builder using the layer settings.
     /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
     /// which will be used for rendering each chunk entity.
-    pub fn new<M: Into<u16>, L: Into<u16>>(
+    pub fn new(
         commands: &mut Commands,
         mut settings: LayerSettings,
-        map_id: M,
-        layer_id: L,
+        map_id: impl MapId,
+        layer_id: impl LayerId,
         pipeline: Option<RenderPipelines>,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
@@ -67,13 +69,13 @@ where
     /// Note: Limited to T(Bundle + TileBundleTrait) for what gets spawned.
     /// The `pipeline` parameter allows you to pass in a custom RenderPipelines
     /// which will be used for rendering each chunk entity.
-    pub fn new_batch<M: Into<u16>, L: Into<u16>, F: 'static + FnMut(TilePos) -> Option<T>>(
+    pub fn new_batch<F: 'static + FnMut(TilePos) -> Option<T>>(
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
         material_handle: Handle<ColorMaterial>,
-        map_id: M,
-        layer_id: L,
+        map_id: impl MapId,
+        layer_id: impl LayerId,
         pipeline: Option<RenderPipelines>,
         mut f: F,
     ) -> Entity {
@@ -198,12 +200,8 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Returns an existing tile entity or spawns a new one.
-    pub fn get_tile_entity(
-        &mut self,
-        commands: &mut Commands,
-        tile_pos: TilePos,
-    ) -> Result<Entity, MapTileError> {
+    /// Returns an existing tile entity or spawns a new one. 
+    pub fn get_tile_entity(&mut self, commands: &mut Commands, tile_pos: UVec2) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {

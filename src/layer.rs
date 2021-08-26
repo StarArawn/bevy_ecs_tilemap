@@ -1,5 +1,6 @@
 use crate::{
     chunk::Chunk,
+    map::MapId,
     morton_index,
     prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
@@ -7,6 +8,7 @@ use crate::{
     ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::prelude::*;
+use std::hash::Hash;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
 #[derive(Bundle, Default)]
@@ -65,11 +67,11 @@ impl LayerSettings {
         }
     }
 
-    pub fn set_layer_id<L: Into<u16>>(&mut self, id: L) {
+    pub fn set_layer_id(&mut self, id: impl LayerId) {
         self.layer_id = id.into();
     }
 
-    pub fn set_map_id<M: Into<u16>>(&mut self, id: M) {
+    pub fn set_map_id(&mut self, id: impl MapId) {
         self.map_id = id.into();
     }
 
@@ -149,3 +151,11 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
         }
     }
 }
+
+/// A type that can be used to identify which layer a tile is on.
+///
+/// These are ultimately converted to u16; if you're using more than one type with this trait in your game,
+/// ensure that their u16 conversions do not unintentionally overlap.
+pub trait LayerId: Clone + Copy + PartialEq + Eq + Hash + Into<u16> {}
+
+impl LayerId for u16 {}
