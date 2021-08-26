@@ -221,6 +221,18 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
+    /// Returns an existing tile entity if it exists
+    pub fn look_up_tile_entity(&self, tile_pos: TilePos) -> Option<Entity> {
+        let morton_tile_index = morton_index(tile_pos);
+        if morton_tile_index < self.tiles.capacity() {
+            if self.tiles[morton_tile_index].0.is_some() {
+                return self.tiles[morton_tile_index].0;
+            }
+        }
+
+        None
+    }
+
     /// Gets a reference to the tile data using a tile position.
     pub fn get_tile(&self, tile_pos: TilePos) -> Result<&T, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
@@ -232,21 +244,6 @@ where
             }
         }
         Err(MapTileError::OutOfBounds)
-    }
-
-    fn get_tile_i32(&self, tile_pos: TilePos) -> Option<(Option<bevy::prelude::Entity>, &T)> {
-        if tile_pos.0 < 0 || tile_pos.1 < 0 {
-            return None;
-        }
-        let morton_tile_index = morton_index(tile_pos);
-        if morton_tile_index < self.tiles.capacity() {
-            let tile = &self.tiles[morton_tile_index];
-            if let Some(bundle) = &tile.1 {
-                return Some((tile.0, bundle));
-            }
-        }
-
-        None
     }
 
     /// Gets a mutable reference to the tile data using the a tile position.
@@ -303,44 +300,6 @@ where
         for tile_option in self.tiles.iter_mut() {
             *tile_option = (tile_option.0, Some(tile.clone()));
         }
-    }
-
-    /// Retrieves a list of neighbors in the following order:
-    /// N, S, W, E, NW, NE, SW, SE.
-    ///
-    /// The returned neighbors are tuples that have an tilemap coordinate and an Option<(bevy::prelude::Entity, &T)>.
-    ///
-    /// A value of None will be returned for tiles that don't exist.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// let neighbors = map.get_tile_neighbors(TilePos(0, 0));
-    /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
-    /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
-    /// ```
-    pub fn get_tile_neighbors(
-        &self,
-        tile_pos: TilePos,
-    ) -> [(TilePos, Option<(Option<bevy::prelude::Entity>, &T)>); 8] {
-        let n = TilePos(tile_pos.0, tile_pos.1 + 1);
-        let s = TilePos(tile_pos.0, tile_pos.1 - 1);
-        let w = TilePos(tile_pos.0 - 1, tile_pos.1);
-        let e = TilePos(tile_pos.0 + 1, tile_pos.1);
-        let nw = TilePos(tile_pos.0 - 1, tile_pos.1 + 1);
-        let ne = TilePos(tile_pos.0 + 1, tile_pos.1 + 1);
-        let sw = TilePos(tile_pos.0 - 1, tile_pos.1 - 1);
-        let se = TilePos(tile_pos.0 + 1, tile_pos.1 - 1);
-        [
-            (n, self.get_tile_i32(n)),
-            (s, self.get_tile_i32(s)),
-            (w, self.get_tile_i32(w)),
-            (e, self.get_tile_i32(e)),
-            (nw, self.get_tile_i32(nw)),
-            (ne, self.get_tile_i32(ne)),
-            (sw, self.get_tile_i32(sw)),
-            (se, self.get_tile_i32(se)),
-        ]
     }
 
     /// Creates a layer bundle from the layer builder.

@@ -86,13 +86,15 @@ fn update(
                 let neighbor_count = map_query
                     .get_tile_neighbors(*pos, 0u16, 0u16)
                     .iter()
-                    .filter(|x| {
-                        if let Some(entity) = x.1 {
-                            if let Ok((_, tile, _)) = tile_query.get(entity) {
-                                return tile.visible;
-                            }
+                    .filter(|&&neighboring_result| {
+                        if neighboring_result.is_ok() {
+                            let tile_component: &Tile = tile_query
+                                .get_component::<&Tile>(neighboring_result.unwrap())
+                                .unwrap();
+                            tile_component.visible
+                        } else {
+                            false
                         }
-                        return false;
                     })
                     .count();
                 let was_alive = tile.visible;

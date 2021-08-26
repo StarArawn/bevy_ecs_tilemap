@@ -141,7 +141,7 @@ impl<'a> MapQuery<'a> {
     }
 
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
-    pub fn get_tile_entity<M: Into<u16>, L: Into<u16>>(
+    pub fn get_tile_entity<M: Into<u16> + Copy, L: Into<u16> + Copy>(
         &self,
         tile_pos: TilePos,
         map_id: M,
@@ -328,87 +328,14 @@ impl<'a> MapQuery<'a> {
         }
     }
 
-    /// Retrieves a list of neighbor entities in the following order:
-    /// N, S, W, E, NW, NE, SW, SE.
-    ///
-    /// The returned neighbors are tuples that have an tilemap coordinate and an Option<Entity>.
-    ///
-    /// A value of None will be returned for tiles that don't exist.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// let neighbors = map.get_tile_neighbors(TilePos(0, 0));
-    /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
-    /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
-    /// ```
-    pub fn get_tile_neighbors<M: Into<u16>, L: Into<u16>>(
-        &self,
-        tile_pos: TilePos,
-        map_id: M,
-        layer_id: L,
-    ) -> [(TilePos, Option<Entity>); 8] {
-        let n = TilePos(tile_pos.0, tile_pos.1 + 1);
-        let s = TilePos(tile_pos.0, tile_pos.1 - 1);
-        let w = TilePos(tile_pos.0 - 1, tile_pos.1);
-        let e = TilePos(tile_pos.0 + 1, tile_pos.1);
-        let nw = TilePos(tile_pos.0 - 1, tile_pos.1 + 1);
-        let ne = TilePos(tile_pos.0 + 1, tile_pos.1 + 1);
-        let sw = TilePos(tile_pos.0 - 1, tile_pos.1 - 1);
-        let se = TilePos(tile_pos.0 + 1, tile_pos.1 - 1);
-        let layer_id: u16 = layer_id.into();
-        let map_id: u16 = map_id.into();
-        [
-            (n, self.get_tile_i(n, map_id, layer_id)),
-            (s, self.get_tile_i(s, map_id, layer_id)),
-            (w, self.get_tile_i(w, map_id, layer_id)),
-            (e, self.get_tile_i(e, map_id, layer_id)),
-            (nw, self.get_tile_i(nw, map_id, layer_id)),
-            (ne, self.get_tile_i(ne, map_id, layer_id)),
-            (sw, self.get_tile_i(sw, map_id, layer_id)),
-            (se, self.get_tile_i(se, map_id, layer_id)),
-        ]
-    }
-
-    fn get_tile_i(&self, tile_pos: TilePos, map_id: u16, layer_id: u16) -> Option<Entity> {
-        if tile_pos.0 < 0 || tile_pos.1 < 0 {
-            return None;
-        }
-        if let Some((_, map)) = self
-            .map_query_set
-            .q1()
-            .iter()
-            .find(|(_, map)| map.id == map_id)
-        {
-            if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    let chunk_pos = ChunkPos(
-                        tile_pos.0 / layer.settings.chunk_size.0,
-                        tile_pos.1 / layer.settings.chunk_size.1,
-                    );
-                    if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, chunk)) = self.chunk_query_set.q1().get(chunk_entity) {
-                            if let Some(tile) = chunk.get_tile_entity(chunk.to_chunk_pos(tile_pos))
-                            {
-                                return Some(tile);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        None
-    }
-
-    /// Let's the internal systems know to "remesh" the chunk.
+    /// Lets the internal systems know to "remesh" the chunk.
     pub fn notify_chunk(&mut self, chunk_entity: Entity) {
         if let Ok((_, mut chunk)) = self.chunk_query_set.q0_mut().get_mut(chunk_entity) {
             chunk.needs_remesh = true;
         }
     }
 
-    /// Let's the internal systems know to remesh the chunk for a given tile pos and layer_id.
+    /// Lets the internal systems know to remesh the chunk for a given tile pos and layer_id.
     pub fn notify_chunk_for_tile<M: Into<u16>, L: Into<u16>>(
         &mut self,
         tile_pos: TilePos,

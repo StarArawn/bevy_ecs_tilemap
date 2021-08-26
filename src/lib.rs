@@ -67,6 +67,7 @@ mod layer_builder;
 mod map;
 mod map_query;
 mod mesher;
+mod neighbors;
 mod render;
 mod tile;
 
@@ -199,6 +200,8 @@ pub mod prelude {
     };
 
     pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TilePos, TileSize};
+
+    pub use crate::neighbors::get_neighboring_pos;
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
