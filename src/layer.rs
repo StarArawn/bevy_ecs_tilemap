@@ -4,7 +4,7 @@ use crate::{
     prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
     tile::TileParent,
-    ChunkPos, ChunkSize, MapSize, TilePos, TileSize, TilemapMeshType,
+    ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::prelude::*;
 
@@ -29,7 +29,7 @@ pub struct LayerSettings {
     /// Size in pixels of each tile.
     pub tile_size: TileSize,
     /// Size in pixels of the tilemap texture.
-    pub texture_size: Vec2,
+    pub texture_size: TextureSize,
     /// The layer id associated with this map.
     pub layer_id: u16,
     /// The map id associated with this map.
@@ -49,7 +49,7 @@ impl LayerSettings {
         map_size: MapSize,
         chunk_size: ChunkSize,
         tile_size: TileSize,
-        texture_size: Vec2,
+        texture_size: TextureSize,
     ) -> Self {
         Self {
             map_size,

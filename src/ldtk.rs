@@ -188,7 +188,7 @@ pub fn process_loaded_tile_maps(
                         map_size,
                         ChunkSize(32, 32),
                         TileSize(tileset.tile_grid_size as f32, tileset.tile_grid_size as f32),
-                        Vec2::new(tileset.px_wid as f32, tileset.px_hei as f32),
+                        TextureSize(tileset.px_wid as f32, tileset.px_hei as f32),
                     );
                     settings.set_layer_id(layer_id as u16);
 

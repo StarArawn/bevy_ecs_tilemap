@@ -23,7 +23,7 @@ fn startup(
         MapSize(2, 2),
         ChunkSize(8, 8),
         TileSize(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
+        TextureSize(96.0, 256.0),
     );
 
     let center = layer_settings.get_pixel_center();

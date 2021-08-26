@@ -155,7 +155,7 @@ pub fn process_loaded_tile_maps(
                             ),
                             ChunkSize(64, 64),
                             TileSize(tile_width, tile_height),
-                            Vec2::new(
+                            TextureSize(
                                 tileset.images[0].width as f32,
                                 tileset.images[0].height as f32,
                             ), // TODO: support multiple tileset images?

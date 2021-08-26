@@ -4,7 +4,7 @@ use crate::{
     render::TilemapData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
-    ChunkPos, ChunkSize, LocalTilePos, TilePos, TileSize, TilemapMeshType,
+    ChunkPos, ChunkSize, LocalTilePos, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::{
     prelude::*,
@@ -57,7 +57,7 @@ pub struct ChunkSettings {
     pub size: ChunkSize,
     pub tile_size: TileSize,
     /// The size of the texture in pixels.
-    pub texture_size: Vec2,
+    pub texture_size: TextureSize,
     /// What map layer the chunk lives in.
     pub layer_id: u16,
     /// How much spacing between each tile in the atlas.
@@ -100,7 +100,7 @@ impl Default for Chunk {
                 position: Default::default(),
                 size: Default::default(),
                 mesh_handle: Default::default(),
-                texture_size: Vec2::ZERO,
+                texture_size: TextureSize(0.0, 0.0),
                 tile_size: TileSize::default(),
                 layer_id: 0,
                 spacing: Vec2::ZERO,
@@ -119,7 +119,7 @@ impl Chunk {
         position: ChunkPos,
         chunk_size: ChunkSize,
         tile_size: TileSize,
-        texture_size: Vec2,
+        texture_size: TextureSize,
         tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
         layer_id: u16,

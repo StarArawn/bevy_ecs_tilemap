@@ -23,7 +23,7 @@ fn startup(
         MapSize(2, 2),
         ChunkSize(64, 64),
         TileSize(15.0, 17.0),
-        Vec2::new(105.0, 17.0),
+        TextureSize(105.0, 17.0),
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Row);
 

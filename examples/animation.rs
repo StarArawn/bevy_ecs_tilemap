@@ -27,7 +27,7 @@ fn startup(
         map_size,
         ChunkSize(32, 32),
         TileSize(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
+        TextureSize(96.0, 256.0),
     );
 
     let (mut layer_builder, layer_0_entity) =
@@ -45,7 +45,7 @@ fn startup(
         map_size,
         ChunkSize(32, 32),
         TileSize(32.0, 32.0),
-        Vec2::new(32.0, 448.0),
+        TextureSize(32.0, 448.0),
     );
     let (mut layer_builder, layer_1_entity) =
         LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16, None);

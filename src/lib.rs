@@ -199,7 +199,7 @@ pub mod prelude {
         TiledMapBundle, TiledMapPlugin,
     };
 
-    pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TilePos, TileSize};
+    pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TextureSize, TilePos, TileSize};
 
     pub use crate::neighbors::get_neighboring_pos;
 }
@@ -227,6 +227,16 @@ impl From<Vec2> for TileSize {
 }
 
 impl Into<Vec2> for TileSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0, self.1)
+    }
+}
+
+/// The size of a texture in pixels
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
+pub struct TextureSize(pub f32, pub f32);
+
+impl Into<Vec2> for TextureSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.0, self.1)
     }

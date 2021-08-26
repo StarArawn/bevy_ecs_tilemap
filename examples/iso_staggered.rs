@@ -22,7 +22,7 @@ fn startup(
         MapSize(2, 2),
         ChunkSize(16, 32),
         TileSize(64.0, 32.0),
-        Vec2::new(384.0, 32.0),
+        TextureSize(384.0, 32.0),
     );
     map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Staggered);
 
