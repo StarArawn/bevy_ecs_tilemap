@@ -4,7 +4,7 @@ use crate::{
     render::TilemapData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
-    TilemapMeshType,
+    ChunkPos, ChunkSize, LocalTilePos, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::{
     prelude::*,
@@ -53,14 +53,11 @@ impl Default for ChunkBundle {
 /// Chunk specific settings.
 #[derive(Clone, Debug)]
 pub struct ChunkSettings {
-    /// The specific location x,y of the chunk in the tile map in chunk coords.
-    pub position: UVec2,
-    /// The size of the chunk.
-    pub size: UVec2,
-    /// The size of each tile in pixels.
-    pub tile_size: Vec2,
+    pub position: ChunkPos,
+    pub size: ChunkSize,
+    pub tile_size: TileSize,
     /// The size of the texture in pixels.
-    pub texture_size: Vec2,
+    pub texture_size: TextureSize,
     /// What map layer the chunk lives in.
     pub layer_id: u16,
     /// How much spacing between each tile in the atlas.
@@ -103,8 +100,8 @@ impl Default for Chunk {
                 position: Default::default(),
                 size: Default::default(),
                 mesh_handle: Default::default(),
-                texture_size: Vec2::ZERO,
-                tile_size: Vec2::ZERO,
+                texture_size: TextureSize(0.0, 0.0),
+                tile_size: TileSize::default(),
                 layer_id: 0,
                 spacing: Vec2::ZERO,
                 cull: true,
@@ -119,10 +116,10 @@ impl Default for Chunk {
 impl Chunk {
     pub(crate) fn new(
         map_entity: Entity,
-        position: UVec2,
-        chunk_size: UVec2,
-        tile_size: Vec2,
-        texture_size: Vec2,
+        position: ChunkPos,
+        chunk_size: ChunkSize,
+        tile_size: TileSize,
+        texture_size: TextureSize,
         tile_spacing: Vec2,
         mesh_handle: Handle<Mesh>,
         layer_id: u16,
@@ -130,8 +127,8 @@ impl Chunk {
         mesher: ChunkMesher,
         cull: bool,
     ) -> Self {
-        let tile_size_x = round_to_power_of_two(chunk_size.x as f32);
-        let tile_size_y = round_to_power_of_two(chunk_size.y as f32);
+        let tile_size_x = round_to_power_of_two(chunk_size.0 as f32);
+        let tile_size_y = round_to_power_of_two(chunk_size.1 as f32);
         let tile_count = tile_size_x.max(tile_size_y);
         let tiles = vec![None; tile_count * tile_count];
         let settings = ChunkSettings {
@@ -156,23 +153,23 @@ impl Chunk {
 
     pub(crate) fn build_tiles<F>(&mut self, chunk_entity: Entity, mut f: F)
     where
-        F: FnMut(UVec2, Entity) -> Option<Entity>,
+        F: FnMut(TilePos, Entity) -> Option<Entity>,
     {
-        for x in 0..self.settings.size.x {
-            for y in 0..self.settings.size.y {
-                let tile_pos = UVec2::new(
-                    (self.settings.position.x * self.settings.size.x) + x,
-                    (self.settings.position.y * self.settings.size.y) + y,
+        for x in 0..self.settings.size.0 {
+            for y in 0..self.settings.size.1 {
+                let tile_pos = TilePos(
+                    (self.settings.position.0 * self.settings.size.0) + x,
+                    (self.settings.position.1 * self.settings.size.1) + y,
                 );
                 if let Some(tile_entity) = f(tile_pos, chunk_entity) {
-                    let morton_i = morton_index(UVec2::new(x, y));
+                    let morton_i = morton_index(TilePos(x, y));
                     self.tiles[morton_i] = Some(tile_entity);
                 }
             }
         }
     }
 
-    pub fn get_tile_entity(&self, position: UVec2) -> Option<Entity> {
+    pub fn get_tile_entity(&self, position: LocalTilePos) -> Option<Entity> {
         let morton_tile_index = morton_index(position);
         if morton_tile_index < self.tiles.capacity() {
             return self.tiles[morton_tile_index];
@@ -190,10 +187,13 @@ impl Chunk {
         });
     }
 
-    pub fn to_chunk_pos(&self, position: UVec2) -> UVec2 {
-        UVec2::new(
-            position.x - (self.settings.position.x * self.settings.size.x),
-            position.y - (self.settings.position.y * self.settings.size.y),
+    /// Returns the local coordinates of a tile
+    ///
+    /// Coordinates are relative to the origin of the chunk that this method is called on
+    pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
+        LocalTilePos(
+            global_tile_position.0 - (self.settings.position.0 * self.settings.size.0),
+            global_tile_position.0 - (self.settings.position.1 * self.settings.size.1),
         )
     }
 }
@@ -252,8 +252,8 @@ pub(crate) fn update_chunk_visibility(
             }
 
             let bounds_size = Vec2::new(
-                chunk.settings.size.x as f32 * chunk.settings.tile_size.x,
-                chunk.settings.size.y as f32 * chunk.settings.tile_size.y,
+                chunk.settings.size.0 as f32 * chunk.settings.tile_size.0,
+                chunk.settings.size.1 as f32 * chunk.settings.tile_size.1,
             );
 
             let bounds = Vec4::new(

@@ -27,10 +27,10 @@ fn startup(
     let (layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(2, 2).into(),
-            UVec2::new(8, 8).into(),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(2, 2),
+            ChunkSize(2, 2),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 256.0),
         ),
         0u16,
         0u16,
@@ -57,7 +57,7 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+        let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
         let _ = map_query.set_tile(
             commands,

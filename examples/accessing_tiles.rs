@@ -29,10 +29,10 @@ fn startup(
     let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(4, 4),
-            UVec2::new(32, 32),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(4, 4),
+            ChunkSize(32, 32),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 256.0),
         ),
         0u16,
         0u16,
@@ -44,8 +44,8 @@ fn startup(
 
     // You can also fill in a portion of the map
     layer_builder.fill(
-        UVec2::new(0, 0),
-        UVec2::new(10, 10),
+        TilePos(0, 0),
+        TilePos(10, 10),
         Tile {
             texture_index: 1,
             ..Default::default()
@@ -53,27 +53,23 @@ fn startup(
         .into(),
     );
 
-    let neighbors = layer_builder.get_tile_neighbors(UVec2::new(0, 0));
+    let neighbors = layer_builder.get_tile_neighbors(TilePos(0, 0));
 
     // We can access tiles like normal using:
-    assert!(layer_builder.get_tile(UVec2::new(0, 0)).is_ok());
+    assert!(layer_builder.get_tile(TilePos(0, 0)).is_ok());
     assert!(neighbors.len() == 8);
-    assert!(neighbors.iter().filter(|n| n.1.is_some()).count() == 3); // Only 3 neighbors since negative is outside of map.
+    assert!(neighbors.iter().filter(|n| n.is_some()).count() == 3); // Only 3 neighbors since negative is outside of map.
 
     let mut color = 0;
     for x in (2..128).step_by(4) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors: Vec<IVec2> = layer_builder
-                .get_tile_neighbors(UVec2::new(x, y))
-                .iter()
-                .map(|(pos, _)| *pos)
-                .collect();
-            for pos in neighbors.iter() {
+            let neighbors = get_neighboring_pos(TilePos(x, y));
+            for &pos in neighbors.iter() {
                 // We can set specific tiles like this:
                 let _ = layer_builder.set_tile(
-                    UVec2::new(pos.x as u32, pos.y as u32),
+                    pos.expect("Tile position does not exist."),
                     Tile {
                         texture_index: color,
                         ..Default::default()
@@ -127,20 +123,29 @@ fn update_map(
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     // First we get the neighboring entities for the given tile.
-                    let neighbors = map_query.get_tile_neighbors(UVec2::new(x, y), 0u16, 0u16);
-                    for (pos, neighbor) in neighbors.iter() {
-                        // If the tile exists we will have an entity.
-                        if let Some(neighbor) = neighbor {
+                    let neighboring_tile_pos = get_neighboring_pos(TilePos(x, y));
+                    let neighboring_entities =
+                        map_query.get_tile_neighbors(TilePos(x, y), 0u16, 0u16);
+
+                    // Iterating over each neighbor
+                    for i in 0..8 {
+                        if neighboring_entities[i].is_ok() {
                             // We query tiles using a query coming from this system.
                             // This has the add advantage of being able to query "extra" data per tile.
-                            if let Ok(mut tile) = tile_query.get_mut(*neighbor) {
+                            if let Ok(mut tile) =
+                                tile_query.get_mut(neighboring_entities[i].unwrap())
+                            {
                                 *tile = Tile {
                                     texture_index: color,
                                     ..Default::default()
                                 };
                                 // Finally after mutating the tile we can tell the internal systems to "remesh" the tilemap.
                                 // This sends the new tile data to the gpu.
-                                map_query.notify_chunk_for_tile(pos.as_u32(), 0u16, 0u16);
+                                map_query.notify_chunk_for_tile(
+                                    neighboring_tile_pos[i].unwrap(),
+                                    0u16,
+                                    0u16,
+                                );
                             }
                         }
                     }

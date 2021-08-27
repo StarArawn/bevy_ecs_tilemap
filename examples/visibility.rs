@@ -25,10 +25,10 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let layer_settings = LayerSettings::new(
-        UVec2::new(4, 4),
-        UVec2::new(8, 8),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
+        MapSize(4, 4),
+        ChunkSize(8, 8),
+        TileSize(16.0, 16.0),
+        TextureSize(96.0, 256.0),
     );
     let center = layer_settings.get_pixel_center();
 
@@ -68,7 +68,7 @@ fn remove_tiles(
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
-            let position = UVec2::new(random.gen_range(0..32), random.gen_range(0..32));
+            let position = TilePos(random.gen_range(0..32), random.gen_range(0..32));
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
             if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u16, 0u16) {
