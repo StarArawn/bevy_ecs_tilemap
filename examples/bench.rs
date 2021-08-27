@@ -25,7 +25,7 @@ fn startup(
             MapSize(10, 10),
             ChunkSize(128, 128),
             TileSize(16.0, 16.0),
-            TextureSize(96.0, 256.0),
+            TextureSize(96.0, 16.0),
         ),
         &mut meshes,
         material_handle,

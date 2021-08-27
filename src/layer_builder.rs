@@ -233,6 +233,17 @@ where
         None
     }
 
+    pub(crate) fn get_tile_full(&self, tile_pos: TilePos) -> Option<(Option<Entity>, &T)> {
+        let morton_tile_index = morton_index(tile_pos);
+        if morton_tile_index < self.tiles.capacity() {
+            let tile = &self.tiles[morton_tile_index];
+            if let Some(bundle) = &tile.1 {
+                return Some((tile.0, bundle));
+            }
+        }
+        None
+    }
+
     /// Gets a reference to the tile data using a tile position.
     pub fn get_tile(&self, tile_pos: TilePos) -> Result<&T, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);

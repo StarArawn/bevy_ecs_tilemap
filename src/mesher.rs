@@ -14,7 +14,7 @@ impl ChunkMesher {
         &self,
         chunk: ChunkSettings,
         chunk_tiles: &Vec<Option<Entity>>,
-        tile_query: &Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
+        tile_query: &Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
         meshes: &mut ResMut<Assets<Mesh>>,
     ) {
         let mesh = meshes.get_mut(chunk.mesh_handle).unwrap();
@@ -34,8 +34,8 @@ impl ChunkMesher {
                     }
 
                     let tile_pos = Vec2::new(
-                        (tile_position.x - (chunk.position.0 * chunk.size.0)) as f32,
-                        (tile_position.y - (chunk.position.1 * chunk.size.1)) as f32,
+                        (tile_position.0 - (chunk.position.0 * chunk.size.0)) as f32,
+                        (tile_position.1 - (chunk.position.1 * chunk.size.1)) as f32,
                     );
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = gpu_animated {

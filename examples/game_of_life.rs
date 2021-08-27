@@ -29,7 +29,7 @@ fn startup(
             MapSize(5, 5),
             ChunkSize(16, 16),
             TileSize(16.0, 16.0),
-            TextureSize(96.0, 256.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,
@@ -89,7 +89,7 @@ fn update(
                     .filter(|&&neighboring_result| {
                         if neighboring_result.is_ok() {
                             let tile_component: &Tile = tile_query
-                                .get_component::<&Tile>(neighboring_result.unwrap())
+                                .get_component::<Tile>(neighboring_result.unwrap())
                                 .unwrap();
                             tile_component.visible
                         } else {

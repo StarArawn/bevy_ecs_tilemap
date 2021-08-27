@@ -24,18 +24,19 @@ fn startup(
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
-    let (layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
+    let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
             MapSize(2, 2),
-            ChunkSize(2, 2),
+            ChunkSize(8, 8),
             TileSize(16.0, 16.0),
-            TextureSize(96.0, 256.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,
         None,
     );
+    layer_builder.set_all(TileBundle::default());
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);
 

@@ -179,11 +179,11 @@ impl Chunk {
 
     pub fn for_each_tile_entity<F>(&self, mut f: F)
     where
-        F: FnMut((UVec2, &Option<Entity>)),
+        F: FnMut((TilePos, &Option<Entity>)),
     {
         self.tiles.iter().enumerate().for_each(|(index, entity)| {
             let chunk_tile_pos = morton_pos(index);
-            f((chunk_tile_pos, entity));
+            f((chunk_tile_pos.into(), entity));
         });
     }
 
@@ -193,7 +193,7 @@ impl Chunk {
     pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
         LocalTilePos(
             global_tile_position.0 - (self.settings.position.0 * self.settings.size.0),
-            global_tile_position.0 - (self.settings.position.1 * self.settings.size.1),
+            global_tile_position.1 - (self.settings.position.1 * self.settings.size.1),
         )
     }
 }
@@ -201,7 +201,7 @@ impl Chunk {
 pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
-    tile_query: Query<(&UVec2, &Tile, Option<&GPUAnimated>)>,
+    tile_query: Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
     mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
 ) {
     let threaded_meshes = Mutex::new(meshes);

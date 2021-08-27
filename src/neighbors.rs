@@ -13,13 +13,16 @@ impl<T: TileBundleTrait> LayerBuilder<T> {
     /// None will be returned if no valid entity is found at the appropriate coordinate,
     /// including if the tile is at the edge of the map.
     /// ```
-    pub fn get_tile_neighbors(&self, tile_pos: TilePos) -> [Option<Entity>; 8] {
+    pub fn get_tile_neighbors(&self, tile_pos: TilePos) -> Vec<Option<(Option<Entity>, &T)>> {
         let neighboring_tile_pos = get_neighboring_pos(tile_pos);
 
-        neighboring_tile_pos.map(|maybe_pos| match maybe_pos {
-            Some(pos) => self.look_up_tile_entity(pos),
-            None => None,
-        })
+        neighboring_tile_pos
+            .iter()
+            .map(|maybe_pos| match maybe_pos {
+                Some(pos) => self.get_tile_full(*pos),
+                None => None,
+            })
+            .collect::<Vec<_>>()
     }
 }
 
@@ -43,13 +46,16 @@ impl<'a> MapQuery<'a> {
         tile_pos: TilePos,
         map_id: M,
         layer_id: L,
-    ) -> [Result<Entity, MapTileError>; 8] {
+    ) -> Vec<Result<Entity, MapTileError>> {
         let neighboring_tile_pos = get_neighboring_pos(tile_pos);
 
-        neighboring_tile_pos.map(|maybe_pos| match maybe_pos {
-            Some(pos) => self.get_tile_entity(pos, map_id, layer_id),
-            _ => Err(MapTileError::OutOfBounds),
-        })
+        neighboring_tile_pos
+            .iter()
+            .map(|maybe_pos| match maybe_pos {
+                Some(pos) => self.get_tile_entity(*pos, map_id, layer_id),
+                _ => Err(MapTileError::OutOfBounds),
+            })
+            .collect::<Vec<_>>()
     }
 }
 

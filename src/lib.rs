@@ -254,6 +254,12 @@ impl Into<UVec2> for TilePos {
     }
 }
 
+impl Into<TilePos> for UVec2 {
+    fn into(self) -> TilePos {
+        TilePos(self.x, self.y)
+    }
+}
+
 /// The position of a tile, in chunk coordinates
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the chunk.

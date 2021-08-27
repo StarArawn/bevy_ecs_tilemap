@@ -27,7 +27,7 @@ fn startup(
         map_size,
         ChunkSize(32, 32),
         TileSize(16.0, 16.0),
-        TextureSize(96.0, 256.0),
+        TextureSize(96.0, 16.0),
     );
 
     let (mut layer_builder, layer_0_entity) =

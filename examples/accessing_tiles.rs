@@ -32,7 +32,7 @@ fn startup(
             MapSize(4, 4),
             ChunkSize(32, 32),
             TileSize(16.0, 16.0),
-            TextureSize(96.0, 256.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,
@@ -58,7 +58,8 @@ fn startup(
     // We can access tiles like normal using:
     assert!(layer_builder.get_tile(TilePos(0, 0)).is_ok());
     assert!(neighbors.len() == 8);
-    assert!(neighbors.iter().filter(|n| n.is_some()).count() == 3); // Only 3 neighbors since negative is outside of map.
+    let neighbor_count = neighbors.iter().filter(|n| n.is_some()).count();
+    assert!(neighbor_count == 3); // Only 3 neighbors since negative is outside of map.
 
     let mut color = 0;
     for x in (2..128).step_by(4) {
