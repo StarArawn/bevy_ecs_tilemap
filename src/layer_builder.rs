@@ -200,8 +200,12 @@ where
         Err(MapTileError::OutOfBounds)
     }
 
-    /// Returns an existing tile entity or spawns a new one. 
-    pub fn get_tile_entity(&mut self, commands: &mut Commands, tile_pos: UVec2) -> Result<Entity, MapTileError> {
+    /// Returns an existing tile entity or spawns a new one.
+    pub fn get_tile_entity(
+        &mut self,
+        commands: &mut Commands,
+        tile_pos: TilePos,
+    ) -> Result<Entity, MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
