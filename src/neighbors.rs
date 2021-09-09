@@ -63,9 +63,9 @@ impl<'a> MapQuery<'a> {
 /// Gets the positions of the neighbors of the specified position
 /// Order: N, S, W, E, NW, NE, SW, SE.
 ///
-/// Tile positions are bounded between 0 and u32::MAX, so None may be returned
+/// Tile positions are bounded between 0 and usize::MAX, so None may be returned
 pub fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
-    let north = if tile_pos.1 != u32::MAX {
+    let north = if tile_pos.1 != usize::MAX {
         Some(TilePos(tile_pos.0, tile_pos.1 + 1))
     } else {
         None
@@ -83,19 +83,19 @@ pub fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
         None
     };
 
-    let east = if tile_pos.0 != u32::MAX {
+    let east = if tile_pos.0 != usize::MAX {
         Some(TilePos(tile_pos.0 + 1, tile_pos.1))
     } else {
         None
     };
 
-    let northwest = if (tile_pos.0 != 0) & (tile_pos.1 != u32::MAX) {
+    let northwest = if (tile_pos.0 != 0) & (tile_pos.1 != usize::MAX) {
         Some(TilePos(tile_pos.0 - 1, tile_pos.1 + 1))
     } else {
         None
     };
 
-    let northeast = if (tile_pos.0 != u32::MAX) & (tile_pos.1 != u32::MAX) {
+    let northeast = if (tile_pos.0 != usize::MAX) & (tile_pos.1 != usize::MAX) {
         Some(TilePos(tile_pos.0 + 1, tile_pos.1 + 1))
     } else {
         None
@@ -107,7 +107,7 @@ pub fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
         None
     };
 
-    let southeast = if (tile_pos.0 != u32::MAX) & (tile_pos.1 != 0) {
+    let southeast = if (tile_pos.0 != usize::MAX) & (tile_pos.1 != 0) {
         Some(TilePos(tile_pos.0 + 1, tile_pos.1 - 1))
     } else {
         None

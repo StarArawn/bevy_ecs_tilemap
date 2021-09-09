@@ -162,12 +162,12 @@ pub fn process_loaded_tile_maps(
                 let default_grid_size = ldtk_map.project.default_grid_size;
                 let level = &ldtk_map.project.levels[map_config.selected_level];
 
-                let map_tile_count_x = (level.px_wid / default_grid_size) as u32;
-                let map_tile_count_y = (level.px_hei / default_grid_size) as u32;
+                let map_tile_count_x = (level.px_wid / default_grid_size) as usize;
+                let map_tile_count_y = (level.px_hei / default_grid_size) as usize;
 
                 let map_size = MapSize(
-                    (map_tile_count_x as f32 / 32.0).ceil() as u32,
-                    (map_tile_count_y as f32 / 32.0).ceil() as u32,
+                    (map_tile_count_x as f32 / 32.0).ceil() as usize,
+                    (map_tile_count_y as f32 / 32.0).ceil() as usize,
                 );
 
                 for (layer_id, layer) in level
@@ -200,15 +200,15 @@ pub fn process_loaded_tile_maps(
                         None,
                     );
 
-                    let tileset_width_in_tiles = (tileset.px_wid / default_grid_size) as u32;
+                    let tileset_width_in_tiles = (tileset.px_wid / default_grid_size) as usize;
 
                     for tile in layer.grid_tiles.iter() {
-                        let tileset_x = (tile.src[0] / default_grid_size) as u32;
-                        let tileset_y = (tile.src[1] / default_grid_size) as u32;
+                        let tileset_x = (tile.src[0] / default_grid_size) as usize;
+                        let tileset_y = (tile.src[1] / default_grid_size) as usize;
 
                         let mut pos = TilePos(
-                            (tile.px[0] / default_grid_size) as u32,
-                            (tile.px[1] / default_grid_size) as u32,
+                            (tile.px[0] / default_grid_size) as usize,
+                            (tile.px[1] / default_grid_size) as usize,
                         );
 
                         pos.1 = map_tile_count_y - pos.1 - 1;
