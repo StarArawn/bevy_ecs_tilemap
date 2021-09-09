@@ -150,8 +150,8 @@ pub fn process_loaded_tile_maps(
 
                         let mut map_settings = LayerSettings::new(
                             MapSize(
-                                (tiled_map.map.width as f32 / 64.0).ceil() as u32,
-                                (tiled_map.map.height as f32 / 64.0).ceil() as u32,
+                                (tiled_map.map.width as f32 / 64.0).ceil() as usize,
+                                (tiled_map.map.height as f32 / 64.0).ceil() as usize,
                             ),
                             ChunkSize(64, 64),
                             TileSize(tile_width, tile_height),
@@ -190,18 +190,18 @@ pub fn process_loaded_tile_maps(
                             layer.layer_index as u16,
                             None,
                             move |mut tile_pos| {
-                                if tile_pos.0 >= tiled_map_data.width
-                                    || tile_pos.1 >= tiled_map_data.height
+                                if tile_pos.0 >= tiled_map_data.width as usize
+                                    || tile_pos.1 >= tiled_map_data.height as usize
                                 {
                                     return None;
                                 }
 
                                 if tiled_map_data.orientation == tiled::Orientation::Orthogonal {
-                                    tile_pos.1 = (tiled_map_data.height - 1) as u32 - tile_pos.1;
+                                    tile_pos.1 = (tiled_map_data.height - 1) as usize - tile_pos.1;
                                 }
 
-                                let x = tile_pos.0 as usize;
-                                let y = tile_pos.1 as usize;
+                                let x = tile_pos.0;
+                                let y = tile_pos.1;
 
                                 let map_tile = match &layer_data.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],

@@ -210,11 +210,11 @@ pub(crate) fn round_to_power_of_two(value: f32) -> usize {
 
 /// The size of the map, in chunks
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-pub struct MapSize(pub u32, pub u32);
+pub struct MapSize(pub usize, pub usize);
 
 /// The size of each chunk, in tiles
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-pub struct ChunkSize(pub u32, pub u32);
+pub struct ChunkSize(pub usize, pub usize);
 
 /// The size of each tile, in pixels
 #[derive(Default, Clone, Copy, PartialEq, Debug)]
@@ -246,17 +246,17 @@ impl Into<Vec2> for TextureSize {
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the map.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub struct TilePos(pub u32, pub u32);
+pub struct TilePos(pub usize, pub usize);
 
 impl Into<UVec2> for TilePos {
     fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+        UVec2::new(self.0 as u32, self.1 as u32)
     }
 }
 
 impl Into<TilePos> for UVec2 {
     fn into(self) -> TilePos {
-        TilePos(self.x, self.y)
+        TilePos(self.x as usize, self.y as usize)
     }
 }
 
@@ -264,11 +264,11 @@ impl Into<TilePos> for UVec2 {
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the chunk.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub struct LocalTilePos(pub u32, pub u32);
+pub struct LocalTilePos(pub usize, pub usize);
 
 impl Into<UVec2> for LocalTilePos {
     fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+        UVec2::new(self.0 as u32, self.1 as u32)
     }
 }
 
@@ -277,10 +277,10 @@ impl Into<UVec2> for LocalTilePos {
 /// Coordinates start at (0, 0) from the bottom-left chunk of the map.
 /// Note that these coordinates are measured in terms of chunks, not tiles.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub struct ChunkPos(pub u32, pub u32);
+pub struct ChunkPos(pub usize, pub usize);
 
 impl Into<UVec2> for ChunkPos {
     fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+        UVec2::new(self.0 as u32, self.1 as u32)
     }
 }
