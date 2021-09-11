@@ -1,5 +1,6 @@
-use crate::layer::MapTileError;
+use crate::layer::{LayerId, MapTileError};
 use crate::layer_builder::LayerBuilder;
+use crate::map::MapId;
 use crate::map_query::MapQuery;
 use crate::tile::TileBundleTrait;
 use crate::TilePos;
@@ -41,11 +42,11 @@ impl<'a> MapQuery<'a> {
     /// assert!(neighbors[1].1.is_none()); // Outside of tile bounds.
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
-    pub fn get_tile_neighbors<M: Into<u16> + Copy, L: Into<u16> + Copy>(
+    pub fn get_tile_neighbors(
         &self,
         tile_pos: TilePos,
-        map_id: M,
-        layer_id: L,
+        map_id: impl MapId,
+        layer_id: impl LayerId,
     ) -> Vec<Result<Entity, MapTileError>> {
         let neighboring_tile_pos = get_neighboring_pos(tile_pos);
 
