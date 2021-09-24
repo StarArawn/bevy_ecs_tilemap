@@ -71,30 +71,12 @@ mod neighbors;
 mod render;
 mod tile;
 
-#[cfg(feature = "ldtk")]
-mod ldtk;
-
-#[cfg(feature = "tiled_map")]
-mod tiled;
-
 pub use crate::chunk::{Chunk, ChunkSettings};
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
 pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
-
-#[cfg(feature = "ldtk")]
-pub use crate::ldtk::{
-    process_loaded_tile_maps as ldtk_process_loaded_tile_maps, LdtkLoader, LdtkMap, LdtkMapBundle,
-    LdtkMapConfig, LdtkPlugin,
-};
-
-#[cfg(feature = "tiled_map")]
-pub use crate::tiled::{
-    process_loaded_tile_maps as tiled_process_loaded_tile_maps, TiledLoader, TiledMap,
-    TiledMapBundle, TiledMapPlugin,
-};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -186,18 +168,6 @@ pub mod prelude {
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
-
-    #[cfg(feature = "ldtk")]
-    pub use crate::ldtk::{
-        process_loaded_tile_maps as ldtk_process_loaded_tile_maps, LdtkLoader, LdtkMap,
-        LdtkMapBundle, LdtkMapConfig, LdtkPlugin,
-    };
-
-    #[cfg(feature = "tiled_map")]
-    pub use crate::tiled::{
-        process_loaded_tile_maps as tiled_process_loaded_tile_maps, TiledLoader, TiledMap,
-        TiledMapBundle, TiledMapPlugin,
-    };
 
     pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TextureSize, TilePos, TileSize};
 

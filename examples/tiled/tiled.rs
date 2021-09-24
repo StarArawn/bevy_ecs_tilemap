@@ -7,6 +7,17 @@ use bevy::{
     prelude::*,
 };
 
+#[derive(Default)]
+pub struct TiledMapPlugin;
+
+impl Plugin for TiledMapPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_asset::<TiledMap>()
+            .add_asset_loader(TiledLoader)
+            .add_system(process_loaded_tile_maps.system());
+    }
+}
+
 #[derive(TypeUuid)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
@@ -225,23 +236,6 @@ pub fn process_loaded_tile_maps(
                                     ..Default::default()
                                 };
 
-                                // let mut animation = None;
-                                // if let Some(tile) = tileset.tiles.iter().find(|tile| tile.id == tile_id) {
-                                //     if let Some(animations) = tile.animation.clone() {
-                                //         animation = Some(Animation {
-                                //             frames: animations
-                                //                 .iter()
-                                //                 .map(|frame| Frame {
-                                //                     tile_id: frame.tile_id,
-                                //                     duration: (frame.duration as f64) / 1000.0,
-                                //                 })
-                                //                 .collect(),
-                                //             current_frame: 0,
-                                //             last_update: 0.0,
-                                //         });
-                                //     }
-                                // }
-
                                 Some(TileBundle {
                                     tile,
                                     ..Default::default()
@@ -259,17 +253,5 @@ pub fn process_loaded_tile_maps(
                 }
             }
         }
-    }
-}
-
-/// Adds the default systems and pipelines used by bevy_ecs_tilemap::ldtk.
-#[derive(Default)]
-pub struct TiledMapPlugin;
-
-impl Plugin for TiledMapPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_asset::<TiledMap>()
-            .add_asset_loader(TiledLoader)
-            .add_system(process_loaded_tile_maps.system());
     }
 }

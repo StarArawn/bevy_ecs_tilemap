@@ -1,8 +1,8 @@
-// cargo run --release --example tiled_rotate --features tiled_map
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
+mod tiled;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
