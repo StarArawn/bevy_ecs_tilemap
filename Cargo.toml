@@ -9,6 +9,9 @@ license-file = "LICENSE"
 edition = "2018"
 exclude = ["assets/*", "screenshots/*"]
 
+[workspace]
+members = ["./", "tools/ci"]
+
 [features]
 default = []
 ldtk = ["anyhow", "ldtk_rust", "serde_json"]
