@@ -14,19 +14,17 @@ members = ["./", "tools/ci"]
 
 [features]
 default = []
-ldtk = ["anyhow", "ldtk_rust", "serde_json"]
-tiled_map = ["anyhow", "tiled"]
 
 [dependencies]
-anyhow = { version = "1.0", optional = true }
 bevy = { version = "0.5", default-features = false }
-ldtk_rust = { version = "0.5", optional = true }
 morton-encoding = "2.0"
 log = "0.4"
-serde_json = { version = "1.0", optional = true }
-tiled = { version = "0.9", default-features = false, optional = true }
 
 [dev-dependencies]
+anyhow = { version = "1.0" }
 bevy = { version = "0.5", default-features = true }
+ldtk_rust = { version = "0.5"}
 rand = "0.8"
 env_logger = "0.9"
+serde_json = { version = "1.0"}
+tiled = { version = "0.9", default-features = false }
