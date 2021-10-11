@@ -49,6 +49,7 @@ fn update_damage(
 ## Examples
  - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
  - [`animation`](examples/animation.rs) – Basic CPU animation example.
+ - [`atlas_spacing`](examples/atlas_spacing.rs) – Usage of atlas textures with multiple rows and spacing.
  - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
  - [`dynamic_map`](examples/dynamic_map.rs) - A random map that is only partial filled with tiles that changes every so often.
  - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
