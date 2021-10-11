@@ -7,6 +7,17 @@ use bevy::{
     prelude::*,
 };
 
+#[derive(Default)]
+pub struct LdtkPlugin;
+
+impl Plugin for LdtkPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_asset::<LdtkMap>()
+            .add_asset_loader(LdtkLoader)
+            .add_system(process_loaded_tile_maps.system());
+    }
+}
+
 #[derive(TypeUuid)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct LdtkMap {
@@ -246,17 +257,5 @@ pub fn process_loaded_tile_maps(
                 }
             }
         }
-    }
-}
-
-/// Adds the default systems and pipelines used by bevy_ecs_tilemap::ldtk.
-#[derive(Default)]
-pub struct LdtkPlugin;
-
-impl Plugin for LdtkPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_asset::<LdtkMap>()
-            .add_asset_loader(LdtkLoader)
-            .add_system(process_loaded_tile_maps.system());
     }
 }
