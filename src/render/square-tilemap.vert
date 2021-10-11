@@ -25,13 +25,13 @@ layout(set = 2, binding = 1) uniform TilemapData {
 void main() {
     vec2 uv = vec2(0.0);
     vec2 position = Vertex_Position.xy;
-    
+
     vec2 positions[4] = vec2[4](
         vec2(position.x, position.y),
         vec2(position.x, position.y + 1.0),
         vec2(position.x + 1.0, position.y + 1.0),
         vec2(position.x + 1.0, position.y)
-    ); 
+    );
 
     position = positions[gl_VertexIndex % 4];
     position.xy *= tile_size;
@@ -43,11 +43,11 @@ void main() {
     current_animation_frame = clamp(current_animation_frame, float(Vertex_Texture.z), float(Vertex_Texture.w));
 
     int texture_index = int(current_animation_frame);
-    
-    int columns = int(texture_size.x) / int(tile_size.x);
 
-    float sprite_sheet_x = floor(float(texture_index % columns)) * (tile_size.x + spacing.x) - spacing.x;
-    float sprite_sheet_y = floor((texture_index / columns)) * (tile_size.y + spacing.y) - spacing.y;
+    int columns = int((texture_size.x + spacing.x) / (tile_size.x + spacing.x));
+
+    float sprite_sheet_x = floor(float(texture_index % columns)) * (tile_size.x + spacing.x);
+    float sprite_sheet_y = floor(texture_index / columns) * (tile_size.y + spacing.y);
 
     float start_u = sprite_sheet_x / texture_size.x;
     float end_u = (sprite_sheet_x + tile_size.x) / texture_size.x;
@@ -56,7 +56,7 @@ void main() {
 
     vec2 atlas_uvs[4];
 
-    vec2 x1[8] = { 
+    vec2 x1[8] = {
         vec2(start_u, end_v),       // no flip/rotation
         vec2(end_u, end_v),         // flip x
         vec2(start_u, start_v),     // flip y
@@ -66,8 +66,8 @@ void main() {
         vec2(start_u, start_v),     // flip y   d
         vec2(start_u, end_v)
     };
-        
-    vec2 x2[8] = { 
+
+    vec2 x2[8] = {
         vec2(start_u, start_v),
         vec2(end_u, start_v),
         vec2(start_u, end_v),
@@ -77,8 +77,8 @@ void main() {
         vec2(end_u, start_v),
         vec2(end_u, end_v)
     };
- 
-    vec2 x3[8] = { 
+
+    vec2 x3[8] = {
         vec2(end_u, start_v),
         vec2(start_u, start_v),
         vec2(end_u, end_v),
@@ -89,7 +89,7 @@ void main() {
         vec2(end_u, start_v)
     };
 
-    vec2 x4[8] = { 
+    vec2 x4[8] = {
         vec2(end_u, end_v),
         vec2(start_u, end_v),
         vec2(end_u, start_v),
