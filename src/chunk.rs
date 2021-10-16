@@ -239,10 +239,10 @@ pub(crate) fn update_chunk_visibility(
         }
     }) {
         // Transform camera into world space.
-        let left = camera_transform.translation.x + (ortho.left * camera_transform.scale.x);
-        let right = camera_transform.translation.x + (ortho.right * camera_transform.scale.x);
-        let bottom = camera_transform.translation.y + (ortho.bottom * camera_transform.scale.y);
-        let top = camera_transform.translation.y + (ortho.top * camera_transform.scale.y);
+        let left = camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);
+        let right = camera_transform.translation.x + (ortho.right * ortho.scale * camera_transform.scale.x);
+        let bottom = camera_transform.translation.y + (ortho.bottom * ortho.scale * camera_transform.scale.y);
+        let top = camera_transform.translation.y + (ortho.top * ortho.scale * camera_transform.scale.y);
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
