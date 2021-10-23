@@ -9,3 +9,5 @@
 # Added by cargo
 
 /target
+
+.vscode
