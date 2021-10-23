@@ -1,9 +1,11 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_ecs_tilemap::MapQuery;
 
+#[allow(dead_code)]
 pub struct Player;
 
 // A simple camera system for moving and zooming the camera.
+#[allow(dead_code)]
 pub fn update(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -29,10 +31,10 @@ pub fn update(
             direction -= Vec3::new(0.0, 1.0, 0.0);
         }
 
-        
         transform.translation += time.delta_seconds() * direction * 50.;
 
-        let sprite_pos_z = map_query.get_zindex_for_pixel_pos(transform.translation.xy().extend(1.0), 0u16, 1u16);
+        let sprite_pos_z =
+            map_query.get_zindex_for_pixel_pos(transform.translation.xy().extend(1.0), 0u16, 1u16);
         transform.translation.z = sprite_pos_z;
     }
 }
