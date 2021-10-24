@@ -107,7 +107,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Re Example"),
+            title: String::from("Replace Material Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
