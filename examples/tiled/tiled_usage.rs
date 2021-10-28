@@ -1,6 +1,8 @@
+use crate::tiled::*;
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
+#[path = "../helpers/mod.rs"]
 mod helpers;
 mod tiled;
 
