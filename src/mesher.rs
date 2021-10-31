@@ -1,6 +1,6 @@
 use std::array::IntoIter;
 
-use crate::{chunk::ChunkSettings, prelude::*, tile::GPUAnimated};
+use crate::{prelude::*, tile::GPUAnimated};
 use bevy::{
     prelude::*,
     render::mesh::{Indices, VertexAttributeValues},
@@ -12,18 +12,19 @@ pub(crate) struct ChunkMesher;
 impl ChunkMesher {
     pub fn mesh(
         &self,
-        chunk: ChunkSettings,
+        chunk: &Chunk,
         chunk_tiles: &Vec<Option<Entity>>,
         tile_query: &Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
         meshes: &mut ResMut<Assets<Mesh>>,
     ) {
-        let mesh = meshes.get_mut(chunk.mesh_handle).unwrap();
-        let size = ((chunk.size.0 * chunk.size.1) * 4) as usize;
+        let mesh = meshes.get_mut(chunk.mesh_handle.clone()).unwrap();
+        let size = ((chunk.settings.chunk_size.0 * chunk.settings.chunk_size.1) * 4) as usize;
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(size);
         let mut textures: Vec<[i32; 4]> = Vec::with_capacity(size);
         let mut colors: Vec<[f32; 4]> = Vec::with_capacity(size);
-        let mut indices: Vec<u32> =
-            Vec::with_capacity(((chunk.size.0 * chunk.size.1) * 6) as usize);
+        let mut indices: Vec<u32> = Vec::with_capacity(
+            ((chunk.settings.chunk_size.0 * chunk.settings.chunk_size.1) * 6) as usize,
+        );
 
         let mut i = 0;
         for tile_entity in chunk_tiles.iter() {
@@ -34,8 +35,8 @@ impl ChunkMesher {
                     }
 
                     let tile_pos = Vec2::new(
-                        (tile_position.0 - (chunk.position.0 * chunk.size.0)) as f32,
-                        (tile_position.1 - (chunk.position.1 * chunk.size.1)) as f32,
+                        (tile_position.0 - (chunk.position.0 * chunk.settings.chunk_size.0)) as f32,
+                        (tile_position.1 - (chunk.position.1 * chunk.settings.chunk_size.1)) as f32,
                     );
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = gpu_animated {

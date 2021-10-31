@@ -5,7 +5,7 @@ use bevy::{
     render::renderer::{RenderResource, RenderResources},
 };
 
-use crate::prelude::ChunkSettings;
+use crate::Chunk;
 
 pub(crate) mod pipeline;
 
@@ -17,18 +17,27 @@ pub(crate) mod pipeline;
 pub(crate) struct TilemapData {
     pub(crate) texture_size: Vec2,
     pub(crate) tile_size: Vec2,
+    pub(crate) grid_size: Vec2,
     pub(crate) spacing: Vec2,
+    pub(crate) chunk_pos: Vec2,
+    pub(crate) map_size: Vec2,
     pub(crate) time: f32,
 }
 
 unsafe impl Byteable for TilemapData {}
 
-impl From<&ChunkSettings> for TilemapData {
-    fn from(settings: &ChunkSettings) -> Self {
+impl From<&Chunk> for TilemapData {
+    fn from(chunk: &Chunk) -> Self {
+        let chunk_pos: Vec2 = chunk.position.into();
+        let chunk_size: Vec2 = chunk.settings.chunk_size.into();
+        let map_size: Vec2 = chunk.settings.map_size.into();
         Self {
-            texture_size: settings.texture_size.into(),
-            tile_size: settings.tile_size.into(),
-            spacing: settings.spacing,
+            texture_size: chunk.settings.texture_size.into(),
+            tile_size: chunk.settings.tile_size.into(),
+            grid_size: chunk.settings.grid_size,
+            spacing: chunk.settings.tile_spacing,
+            chunk_pos: chunk_pos * chunk_size,
+            map_size: map_size * chunk_size * chunk.settings.grid_size,
             time: 0.0,
         }
     }

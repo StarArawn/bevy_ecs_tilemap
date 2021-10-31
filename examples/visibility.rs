@@ -90,7 +90,7 @@ fn remove_tiles(
 
 fn main() {
     env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Trace)
+        .filter_module("bevy_ecs_tilemap", log::LevelFilter::Trace)
         .init();
 
     App::build()

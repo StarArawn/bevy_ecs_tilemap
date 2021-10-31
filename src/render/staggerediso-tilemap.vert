@@ -18,7 +18,10 @@ layout(set = 2, binding = 0) uniform Transform {
 layout(set = 2, binding = 1) uniform TilemapData {
     vec2 texture_size;
     vec2 tile_size;
+    vec2 grid_size;
     vec2 spacing;
+    vec2 chunk_pos;
+    vec2 map_size;
     float time;
 };
 
@@ -44,13 +47,13 @@ void main() {
     position = positions[gl_VertexIndex % 4];
     position *= tile_size;
 
-    float offset = floor(0.25 * tile_size.x);
+    float offset = floor(0.25 * grid_size.x);
     if (int(world_pos.y) % 2 == 0) {
         position.x += offset;
     } else {
         position.x -= offset;
     }
-    position.y -= world_pos.y * (tile_size.y / 2.0);
+    position.y -= world_pos.y * (grid_size.y / 2.0);
     position.x += world_translation.x;
     
     float frames = float(Vertex_Texture.w - Vertex_Texture.z);
