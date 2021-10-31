@@ -25,3 +25,15 @@ rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
+
+[[example]]
+name = "ldtk"
+path = "examples/ldtk/ldtk_usage.rs"
+
+[[example]]
+name = "tiled"
+path = "examples/tiled/tiled_usage.rs"
+
+[[example]]
+name = "tiled_rotate"
+path = "examples/tiled/tiled_rotate.rs"

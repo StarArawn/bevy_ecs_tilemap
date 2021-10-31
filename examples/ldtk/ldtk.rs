@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use bevy_ecs_tilemap::prelude::*;
 use std::collections::HashMap;
 
 use bevy::reflect::TypeUuid;
