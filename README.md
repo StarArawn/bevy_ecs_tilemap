@@ -73,10 +73,6 @@ fn update_damage(
 cargo run --release --example map
 ```
 
-### Cargo Features
-- `ldtk` - Enables ldtk loading.
-- `tiled_map` - Enabled tiled map editor loading.
-
 ## Known Issues
  - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
  - Besides the above no known issues.
