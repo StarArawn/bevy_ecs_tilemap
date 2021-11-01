@@ -22,10 +22,10 @@ fn startup(
     let (mut layer_builder, _) = LayerBuilder::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(2, 2),
-            UVec2::new(8, 8),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(2, 2),
+            ChunkSize(8, 8),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,

@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{thread_rng, Rng};
 
 mod helpers;
 
 #[derive(Default, Component)]
-struct LastUpdate {
-    value: f64,
+struct DidUpdate {
+    value: bool,
+}
+
+struct Materials {
+    a: Handle<ColorMaterial>,
+    b: Handle<ColorMaterial>,
 }
 
 fn startup(
@@ -17,8 +21,15 @@ fn startup(
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
+    let texture_handle_a = asset_server.load("tiles.png");
+    let material_handle_a = materials.add(ColorMaterial::texture(texture_handle_a));
+    let texture_handle_b = asset_server.load("tiles2.png");
+    let material_handle_b = materials.add(ColorMaterial::texture(texture_handle_b));
+
+    let materials = Materials {
+        a: material_handle_a,
+        b: material_handle_b,
+    };
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -39,9 +50,11 @@ fn startup(
 
     layer_builder.set_all(TileBundle::default());
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, materials.a.clone());
 
-    commands.entity(layer_entity).insert(LastUpdate::default());
+    commands.entity(layer_entity).insert(DidUpdate::default());
+
+    commands.insert_resource(materials);
 
     // Spawn Map
     // Required in order to use map_query to retrieve layers/tiles.
@@ -52,27 +65,35 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
-fn remove_tiles(
-    mut commands: Commands,
+fn replace_material(
     time: Res<Time>,
-    mut last_update_query: Query<&mut LastUpdate>,
+    materials: Res<Materials>,
+    mut did_update_query: Query<&mut DidUpdate>,
     mut map_query: MapQuery,
+    mut material_query: Query<&mut Handle<ColorMaterial>>,
 ) {
     let current_time = time.seconds_since_startup();
-    for mut last_update in last_update_query.iter_mut() {
-        // Remove a tile every half second.
-        if (current_time - last_update.value) > 0.5 {
-            let mut random = thread_rng();
-            let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
-            let tile_entity = map_query.get_tile_entity(position, 0u16, 0u16);
-
-            if tile_entity.is_ok() {
-                let _ = map_query.despawn_tile(&mut commands, position, 0u16, 0u16);
+    for mut did_update in did_update_query.iter_mut() {
+        if did_update.value {
+            return;
+        }
+        // Replace the material after two seconds.
+        if current_time > 2.0 {
+            let layer = map_query.get_layer(0u16, 0u16);
+            if let Some((_, layer)) = layer {
+                // Replace the material in the first chunk.
+                let chunk = layer.get_chunk(ChunkPos::default());
+                if let Some(e) = chunk {
+                    // Get the chunk's ColorMaterial component.
+                    let material = material_query.get_component_mut::<Handle<ColorMaterial>>(e);
+                    if let Ok(mut m) = material {
+                        // Mutate the component to the new material.
+                        *m = materials.b.clone();
+                    }
+                }
             }
 
-            map_query.notify_chunk_for_tile(position, 0u16, 0u16);
-
-            last_update.value = current_time;
+            did_update.value = true;
         }
     }
 }
@@ -86,14 +107,14 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Remove Tiles Example"),
+            title: String::from("Replace Material Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup.system())
         .add_system(helpers::camera::movement.system())
-        .add_system(remove_tiles.system())
+        .add_system(replace_material.system())
         .add_system(helpers::texture::set_texture_filters_to_nearest.system())
         .run();
 }

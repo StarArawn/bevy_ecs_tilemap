@@ -25,10 +25,10 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let layer_settings = LayerSettings::new(
-        UVec2::new(10, 10),
-        UVec2::new(64, 64),
-        Vec2::new(16.0, 16.0),
-        Vec2::new(96.0, 256.0),
+        MapSize(10, 10),
+        ChunkSize(64, 64),
+        TileSize(16.0, 16.0),
+        TextureSize(96.0, 16.0),
     );
 
     let center = layer_settings.get_pixel_center();
@@ -61,7 +61,7 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }

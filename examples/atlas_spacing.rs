@@ -11,33 +11,40 @@ fn startup(
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let texture_handle = asset_server.load("tiles.png");
+    let texture_handle = asset_server.load("tiles_with_spacing.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
+    // Create the settings for the layer
+    let mut layer_settings = LayerSettings::new(
+        MapSize(2, 2),
+        ChunkSize(8, 8),
+        TileSize(16.0, 16.0),
+        TextureSize(50.0, 33.0),
+    );
+    layer_settings.tile_spacing = Vec2::new(1.0,1.0);
+
     // Creates a new layer builder with a layer entity.
     let (mut layer_builder, _) = LayerBuilder::new(
         &mut commands,
-        LayerSettings::new(
-            MapSize(2, 2),
-            ChunkSize(8, 8),
-            TileSize(16.0, 16.0),
-            TextureSize(96.0, 16.0),
-        ),
+        layer_settings,
         0u16,
         0u16,
         None,
     );
 
+    // Set the texture for the tile
+    // Note: the atlas is a 3x2, first row is 0..2 left to right
+    //       the selected index is the middle texture on the second row
     layer_builder.set_all(TileBundle {
         tile: Tile {
-            color: Color::rgba(1.0, 0.0, 0.0, 0.5), // Color tint.
-            ..Tile::default()
+            texture_index: 4u16,
+            ..Default::default()
         },
-        ..TileBundle::default()
+        ..Default::default()
     });
 
     // Builds the layer.

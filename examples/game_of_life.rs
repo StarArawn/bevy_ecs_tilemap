@@ -17,7 +17,7 @@ fn startup(
     let texture_handle = asset_server.load("tiles.png");
     let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
-    let map_size = UVec2::new(5 * 16, 5 * 16);
+    let map_size = MapSize(5 * 16, 5 * 16);
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -26,10 +26,10 @@ fn startup(
     let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(5, 5),
-            UVec2::new(16, 16),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(5, 5),
+            ChunkSize(16, 16),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,
@@ -37,12 +37,11 @@ fn startup(
     );
 
     let mut i = 0;
-    for x in 0..map_size.x {
-        for y in 0..map_size.y {
-            let position = UVec2::new(x, y);
+    for x in 0..map_size.0 {
+        for y in 0..map_size.1 {
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
-                position,
+                TilePos(x, y),
                 Tile {
                     texture_index: 0,
                     visible: i % 2 == 0 || i % 7 == 0,
@@ -70,59 +69,61 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
+#[derive(Component)]
 pub struct LastUpdate(f64);
 
 fn update(
     mut commands: Commands,
     time: Res<Time>,
     mut last_update_query: Query<&mut LastUpdate>,
-    tile_query: Query<(Entity, &Tile, &UVec2)>,
+    tile_query: Query<(Entity, &Tile, &TilePos)>,
     mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    if let Ok(mut last_update) = last_update_query.single_mut() {
-        if current_time - last_update.0 > 0.1 {
-            for (entity, tile, pos) in tile_query.iter() {
-                // Get neighbor count.
-                let neighbor_count = map_query
-                    .get_tile_neighbors(*pos, 0u16, 0u16)
-                    .iter()
-                    .filter(|x| {
-                        if let Some(entity) = x.1 {
-                            if let Ok((_, tile, _)) = tile_query.get(entity) {
-                                return tile.visible;
-                            }
-                        }
-                        return false;
-                    })
-                    .count();
-                let was_alive = tile.visible;
+    let mut last_update = last_update_query.single_mut();
+    if current_time - last_update.0 > 0.1 {
+        for (entity, tile, pos) in tile_query.iter() {
+            // Get neighbor count.
+            let neighbor_count = map_query
+                .get_tile_neighbors(*pos, 0u16, 0u16)
+                .iter()
+                .filter(|&&neighboring_result| {
+                    if neighboring_result.is_ok() {
+                        let tile_component: &Tile = tile_query
+                            .get_component::<Tile>(neighboring_result.unwrap())
+                            .unwrap();
+                        tile_component.visible
+                    } else {
+                        false
+                    }
+                })
+                .count();
+            let was_alive = tile.visible;
 
-                let is_alive = match (was_alive, neighbor_count) {
-                    (true, x) if x < 2 => false,
-                    (true, 2) | (true, 3) => true,
-                    (true, x) if x > 3 => false,
-                    (false, 3) => true,
-                    (otherwise, _) => otherwise,
-                };
+            let is_alive = match (was_alive, neighbor_count) {
+                (true, x) if x < 2 => false,
+                (true, 2) | (true, 3) => true,
+                (true, x) if x > 3 => false,
+                (false, 3) => true,
+                (otherwise, _) => otherwise,
+            };
 
-                if is_alive && !was_alive {
-                    commands.entity(entity).insert(Tile {
-                        visible: true,
-                        ..*tile
-                    });
-                    map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
-                } else if !is_alive && was_alive {
-                    commands.entity(entity).insert(Tile {
-                        visible: false,
-                        ..*tile
-                    });
-                    map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
-                }
+            if is_alive && !was_alive {
+                commands.entity(entity).insert(Tile {
+                    visible: true,
+                    ..*tile
+                });
+                map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
+            } else if !is_alive && was_alive {
+                commands.entity(entity).insert(Tile {
+                    visible: false,
+                    ..*tile
+                });
+                map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
             }
-
-            last_update.0 = current_time;
         }
+
+        last_update.0 = current_time;
     }
 }
 

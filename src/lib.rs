@@ -26,9 +26,9 @@
 //! let (mut layer_builder, _) = LayerBuilder::new(
 //!     &mut commands,
 //!     LayerSettings::new(
-//!         UVec2::new(2, 2),
-//!         UVec2::new(8, 8),
-//!         Vec2::new(16.0, 16.0),
+//!         MapSize(2, 2),
+//!         ChunkSize(8, 8),
+//!         TileSize(16.0, 16.0),
 //!         Vec2::new(96.0, 256.0),
 //!     ),
 //!     0u16,
@@ -67,29 +67,19 @@ mod layer_builder;
 mod map;
 mod map_query;
 mod mesher;
+mod neighbors;
 mod render;
 mod tile;
 
 #[cfg(feature = "ldtk")]
 mod ldtk;
 
-#[cfg(feature = "tiled_map")]
-mod tiled;
-
-pub use crate::chunk::{Chunk, ChunkSettings};
+pub use crate::chunk::Chunk;
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
 pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
-
-#[cfg(feature = "ldtk")]
-pub use crate::ldtk::{process_loaded_tile_maps, LdtkLoader, LdtkMap, LdtkMapBundle, LdtkPlugin};
-
-#[cfg(feature = "tiled_map")]
-pub use crate::tiled::{
-    process_loaded_tile_maps, TiledLoader, TiledMap, TiledMapBundle, TiledMapPlugin,
-};
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -159,7 +149,8 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-pub(crate) fn morton_index(tile_pos: UVec2) -> usize {
+pub(crate) fn morton_index(tile_pos: impl Into<UVec2>) -> usize {
+    let tile_pos: UVec2 = tile_pos.into();
     morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
 }
 
@@ -171,27 +162,128 @@ fn morton_pos(index: usize) -> UVec2 {
 
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
-    pub use crate::chunk::{Chunk, ChunkSettings};
+    pub use crate::chunk::Chunk;
     pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
     pub use crate::layer_builder::LayerBuilder;
-    pub use crate::map::Map;
+    pub use crate::map::{Map, MapId};
     pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::ChunkMesher;
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
 
-    #[cfg(feature = "ldtk")]
-    pub use crate::ldtk::{
-        process_loaded_tile_maps, LdtkLoader, LdtkMap, LdtkMapBundle, LdtkPlugin,
-    };
+    pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TextureSize, TilePos, TileSize};
 
-    #[cfg(feature = "tiled_map")]
-    pub use crate::tiled::{
-        process_loaded_tile_maps, TiledLoader, TiledMap, TiledMapBundle, TiledMapPlugin,
-    };
+    pub use crate::neighbors::get_neighboring_pos;
 }
 
 pub(crate) fn round_to_power_of_two(value: f32) -> usize {
     1 << value.log2().ceil() as usize
+}
+
+/// The size of the map, in chunks
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub struct MapSize(pub u32, pub u32);
+
+impl From<Vec2> for MapSize {
+    fn from(vec: Vec2) -> Self {
+        MapSize(vec.x as u32, vec.y as u32)
+    }
+}
+
+impl Into<Vec2> for MapSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
+    }
+}
+
+/// The size of each chunk, in tiles
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub struct ChunkSize(pub u32, pub u32);
+
+impl From<Vec2> for ChunkSize {
+    fn from(vec: Vec2) -> Self {
+        ChunkSize(vec.x as u32, vec.y as u32)
+    }
+}
+
+impl Into<Vec2> for ChunkSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
+    }
+}
+
+/// The size of each tile, in pixels
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
+pub struct TileSize(pub f32, pub f32);
+
+impl From<Vec2> for TileSize {
+    fn from(vec: Vec2) -> Self {
+        TileSize(vec.x, vec.y)
+    }
+}
+
+impl Into<Vec2> for TileSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0, self.1)
+    }
+}
+
+/// The size of a texture in pixels
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
+pub struct TextureSize(pub f32, pub f32);
+
+impl Into<Vec2> for TextureSize {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0, self.1)
+    }
+}
+
+/// The position of a tile, in map coordinates
+///
+/// Coordinates start at (0, 0) from the bottom-left tile of the map.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash, Component)]
+pub struct TilePos(pub u32, pub u32);
+
+impl Into<UVec2> for TilePos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
+    }
+}
+
+impl Into<TilePos> for UVec2 {
+    fn into(self) -> TilePos {
+        TilePos(self.x, self.y)
+    }
+}
+
+/// The position of a tile, in chunk coordinates
+///
+/// Coordinates start at (0, 0) from the bottom-left tile of the chunk.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct LocalTilePos(pub u32, pub u32);
+
+impl Into<UVec2> for LocalTilePos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
+    }
+}
+
+/// The position of a chunk within a map
+///
+/// Coordinates start at (0, 0) from the bottom-left chunk of the map.
+/// Note that these coordinates are measured in terms of chunks, not tiles.
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct ChunkPos(pub u32, pub u32);
+
+impl Into<UVec2> for ChunkPos {
+    fn into(self) -> UVec2 {
+        UVec2::new(self.0, self.1)
+    }
+}
+
+impl Into<Vec2> for ChunkPos {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.0 as f32, self.1 as f32)
+    }
 }

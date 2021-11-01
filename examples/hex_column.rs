@@ -20,10 +20,10 @@ fn startup(
     let mut map = Map::new(0u16, map_entity);
 
     let mut map_settings = LayerSettings::new(
-        UVec2::new(2, 2),
-        UVec2::new(64, 64),
-        Vec2::new(17.0, 15.0),
-        Vec2::new(102.0, 15.0),
+        MapSize(2, 2),
+        ChunkSize(64, 64),
+        TileSize(17.0, 15.0),
+        TextureSize(17.0, 105.0),
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
@@ -32,8 +32,8 @@ fn startup(
     map.add_layer(&mut commands, 0u16, layer_entity);
 
     layer_builder.fill(
-        UVec2::new(0, 0),
-        UVec2::new(64, 64),
+        TilePos(0, 0),
+        TilePos(64, 64),
         Tile {
             texture_index: 0,
             ..Default::default()
@@ -41,8 +41,8 @@ fn startup(
         .into(),
     );
     layer_builder.fill(
-        UVec2::new(64, 0),
-        UVec2::new(128, 64),
+        TilePos(64, 0),
+        TilePos(128, 64),
         Tile {
             texture_index: 1,
             ..Default::default()
@@ -50,8 +50,8 @@ fn startup(
         .into(),
     );
     layer_builder.fill(
-        UVec2::new(0, 64),
-        UVec2::new(64, 128),
+        TilePos(0, 64),
+        TilePos(64, 128),
         Tile {
             texture_index: 2,
             ..Default::default()
@@ -59,8 +59,8 @@ fn startup(
         .into(),
     );
     layer_builder.fill(
-        UVec2::new(64, 64),
-        UVec2::new(128, 128),
+        TilePos(64, 64),
+        TilePos(128, 128),
         Tile {
             texture_index: 3,
             ..Default::default()
@@ -80,7 +80,7 @@ fn startup(
         let mut random = thread_rng();
 
         for _ in 0..100 {
-            let position = UVec2::new(random.gen_range(0..128), random.gen_range(0..128));
+            let position = TilePos(random.gen_range(0..128), random.gen_range(0..128));
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
                 position,

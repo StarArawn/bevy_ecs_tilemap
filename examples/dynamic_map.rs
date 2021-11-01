@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }
@@ -24,18 +24,19 @@ fn startup(
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
-    let (layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
+    let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(2, 2).into(),
-            UVec2::new(8, 8).into(),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(2, 2),
+            ChunkSize(8, 8),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 16.0),
         ),
         0u16,
         0u16,
         None,
     );
+    layer_builder.set_all(TileBundle::default());
 
     map_query.build_layer(&mut commands, layer_builder, material_handle);
 
@@ -57,7 +58,7 @@ fn build_map(map_query: &mut MapQuery, commands: &mut Commands) {
     let mut random = thread_rng();
 
     for _ in 0..100 {
-        let position = UVec2::new(random.gen_range(0..16), random.gen_range(0..16));
+        let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
         // Ignore errors for demo sake.
         let _ = map_query.set_tile(
             commands,

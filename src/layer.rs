@@ -1,12 +1,14 @@
 use crate::{
     chunk::Chunk,
+    map::MapId,
     morton_index,
     prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
     tile::TileParent,
-    TilemapMeshType,
+    ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::prelude::*;
+use std::hash::Hash;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
 #[derive(Bundle, Default)]
@@ -23,13 +25,15 @@ pub struct LayerBundle {
 #[derive(Debug, Default, Copy, Clone)]
 pub struct LayerSettings {
     /// Size of the tilemap in chunks
-    pub map_size: UVec2,
+    pub map_size: MapSize,
     /// Size in tiles of each chunk.
-    pub chunk_size: UVec2,
+    pub chunk_size: ChunkSize,
     /// Size in pixels of each tile.
-    pub tile_size: Vec2,
+    pub tile_size: TileSize,
+    /// Size in pixels of the grid(default is tile_size)
+    pub grid_size: Vec2,
     /// Size in pixels of the tilemap texture.
-    pub texture_size: Vec2,
+    pub texture_size: TextureSize,
     /// The layer id associated with this map.
     pub layer_id: u16,
     /// The map id associated with this map.
@@ -45,11 +49,17 @@ pub struct LayerSettings {
 }
 
 impl LayerSettings {
-    pub fn new(map_size: UVec2, chunk_size: UVec2, tile_size: Vec2, texture_size: Vec2) -> Self {
+    pub fn new(
+        map_size: MapSize,
+        chunk_size: ChunkSize,
+        tile_size: TileSize,
+        texture_size: TextureSize,
+    ) -> Self {
         Self {
             map_size,
             chunk_size,
             tile_size,
+            grid_size: tile_size.into(),
             texture_size,
             layer_id: 0,
             map_id: 0,
@@ -60,31 +70,31 @@ impl LayerSettings {
         }
     }
 
-    pub fn set_layer_id<L: Into<u16>>(&mut self, id: L) {
+    pub fn set_layer_id(&mut self, id: impl LayerId) {
         self.layer_id = id.into();
     }
 
-    pub fn set_map_id<M: Into<u16>>(&mut self, id: M) {
+    pub fn set_map_id(&mut self, id: impl MapId) {
         self.map_id = id.into();
     }
 
     pub fn get_pixel_center(&self) -> Vec2 {
         Vec2::new(
-            ((self.map_size.x * self.chunk_size.x) as f32 * self.tile_size.x) / 2.0,
-            ((self.map_size.y * self.chunk_size.y) as f32 * self.tile_size.y) / 2.0,
+            ((self.map_size.0 * self.chunk_size.0) as f32 * self.tile_size.0) / 2.0,
+            ((self.map_size.1 * self.chunk_size.1) as f32 * self.tile_size.1) / 2.0,
         )
     }
 
-    pub fn get_center(&self) -> UVec2 {
-        UVec2::new(
-            (self.map_size.x * self.chunk_size.x) / 2,
-            (self.map_size.y * self.chunk_size.y) / 2,
+    pub fn get_center(&self) -> TilePos {
+        TilePos(
+            (self.map_size.0 * self.chunk_size.0) / 2,
+            (self.map_size.1 * self.chunk_size.1) / 2,
         )
     }
 }
 
 /// A component which keeps information and a cache of tile/chunk entities for convenience.
-#[derive(Default)]
+#[derive(Default, Component)]
 pub struct Layer {
     /// The map information for the tilemap entity.
     pub settings: LayerSettings,
@@ -107,8 +117,8 @@ impl Layer {
     ///
     /// - `settings`: The map settings struct.
     pub fn new(settings: LayerSettings) -> Self {
-        let map_size_x = round_to_power_of_two(settings.map_size.x as f32);
-        let map_size_y = round_to_power_of_two(settings.map_size.y as f32);
+        let map_size_x = round_to_power_of_two(settings.map_size.0 as f32);
+        let map_size_y = round_to_power_of_two(settings.map_size.1 as f32);
         let map_size = map_size_x.max(map_size_y);
         Self {
             settings,
@@ -116,15 +126,15 @@ impl Layer {
         }
     }
 
-    pub fn get_chunk(&self, chunk_pos: UVec2) -> Option<Entity> {
+    pub fn get_chunk(&self, chunk_pos: ChunkPos) -> Option<Entity> {
         self.chunks[morton_index(chunk_pos)]
     }
 
     /// Gets the map's size in tiles just for convenience.
-    pub fn get_layer_size_in_tiles(&self) -> UVec2 {
-        UVec2::new(
-            self.settings.map_size.x * self.settings.chunk_size.x,
-            self.settings.map_size.y * self.settings.chunk_size.y,
+    pub fn get_layer_size_in_tiles(&self) -> MapSize {
+        MapSize(
+            self.settings.map_size.0 * self.settings.chunk_size.0,
+            self.settings.map_size.1 * self.settings.chunk_size.1,
         )
     }
 }
@@ -132,7 +142,7 @@ impl Layer {
 // Adds new tiles to the chunk hash map.
 pub(crate) fn update_chunk_hashmap_for_added_tiles(
     mut chunk_query: Query<&mut Chunk>,
-    tile_query: Query<(Entity, &UVec2, &TileParent), Added<Tile>>,
+    tile_query: Query<(Entity, &TilePos, &TileParent), Added<Tile>>,
 ) {
     if tile_query.iter().count() > 0 {
         log::info!("Updating tile cache.");
@@ -144,3 +154,11 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
         }
     }
 }
+
+/// A type that can be used to identify which layer a tile is on.
+///
+/// These are ultimately converted to u16; if you're using more than one type with this trait in your game,
+/// ensure that their u16 conversions do not unintentionally overlap.
+pub trait LayerId: Clone + Copy + PartialEq + Eq + Hash + Into<u16> {}
+
+impl LayerId for u16 {}

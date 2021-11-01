@@ -22,10 +22,10 @@ fn startup(
     let layer_entity = LayerBuilder::<TileBundle>::new_batch(
         &mut commands,
         LayerSettings::new(
-            UVec2::new(10, 10),
-            UVec2::new(128, 128),
-            Vec2::new(16.0, 16.0),
-            Vec2::new(96.0, 256.0),
+            MapSize(10, 10),
+            ChunkSize(128, 128),
+            TileSize(16.0, 16.0),
+            TextureSize(96.0, 16.0),
         ),
         &mut meshes,
         material_handle,
