@@ -61,7 +61,7 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
-#[derive(Default, Component)]
+#[derive(Default)]
 struct LastUpdate {
     value: f64,
 }

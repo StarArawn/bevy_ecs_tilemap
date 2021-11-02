@@ -25,7 +25,7 @@ pub struct LdtkMap {
     pub tilesets: HashMap<i64, Handle<Texture>>,
 }
 
-#[derive(Default, Component)]
+#[derive(Default)]
 pub struct LdtkMapConfig {
     pub selected_level: usize,
 }

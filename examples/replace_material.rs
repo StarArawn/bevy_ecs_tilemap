@@ -3,7 +3,7 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-#[derive(Default, Component)]
+#[derive(Default)]
 struct DidUpdate {
     value: bool,
 }

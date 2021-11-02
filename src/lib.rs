@@ -57,7 +57,7 @@
 //! ```
 
 use bevy::prelude::*;
-use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
+use chunk::{update_chunk_mesh, update_chunk_time};
 use layer::update_chunk_hashmap_for_added_tiles;
 use render::pipeline::add_tile_map_graph;
 
@@ -131,21 +131,21 @@ impl Plugin for TilemapPlugin {
                     .system()
                     .label("hash_update_for_tiles"),
             )
-            .add_system_to_stage(
-                TilemapStage,
-                update_chunk_visibility
-                    .system()
-                    .label("update_chunk_visibility"),
-            )
+            // .add_system_to_stage(
+            //     TilemapStage,
+            //     update_chunk_visibility
+            //         .system()
+            //         .label("update_chunk_visibility"),
+            // )
             .add_system_to_stage(
                 TilemapStage,
                 update_chunk_mesh
                     .system()
-                    .after("hash_update_for_tiles")
-                    .after("update_chunk_visibility"),
+                    .after("hash_update_for_tiles"),
+                    // .after("update_chunk_visibility"),
             );
         let world = &mut app.world;
-        add_tile_map_graph(world);
+        // add_tile_map_graph(world);
     }
 }
 
@@ -242,7 +242,7 @@ impl Into<Vec2> for TextureSize {
 /// The position of a tile, in map coordinates
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the map.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash, Component)]
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct TilePos(pub u32, pub u32);
 
 impl Into<UVec2> for TilePos {

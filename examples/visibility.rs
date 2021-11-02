@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-#[derive(Default, Component)]
+#[derive(Default)]
 struct LastUpdate {
     value: f64,
 }

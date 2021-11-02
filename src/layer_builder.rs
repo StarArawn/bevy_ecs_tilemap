@@ -9,20 +9,13 @@ use crate::{
     Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,
     TilemapMeshType,
 };
-use bevy::{
-    prelude::*,
-    render::{
-        mesh::{Indices, VertexAttributeValues},
-        pipeline::PrimitiveTopology,
-    },
-};
+use bevy::{math::Vec2, prelude::{Assets, BuildChildren, Commands, Entity, Handle, ResMut, Transform}, render2::{mesh::{Indices, Mesh, VertexAttributeValues}, render_resource::PrimitiveTopology}, render2::texture::Image};
 
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
     pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
-    pub(crate) pipeline: RenderPipelines,
 }
 
 impl<T> LayerBuilder<T>
@@ -37,7 +30,6 @@ where
         mut settings: LayerSettings,
         map_id: impl MapId,
         layer_id: impl LayerId,
-        pipeline: Option<RenderPipelines>,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
         let tile_size_x =
@@ -49,17 +41,11 @@ where
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
 
-        let pipeline = if pipeline.is_some() {
-            pipeline.unwrap()
-        } else {
-            settings.mesh_type.into()
-        };
         (
             Self {
                 settings,
                 tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
                 layer_entity,
-                pipeline,
             },
             layer_entity,
         )
@@ -73,22 +59,15 @@ where
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
-        material_handle: Handle<ColorMaterial>,
+        material_handle: Handle<Image>,
         map_id: impl MapId,
         layer_id: impl LayerId,
-        pipeline: Option<RenderPipelines>,
         mut f: F,
     ) -> Entity {
         let layer_entity = commands.spawn().id();
 
         let size_x = settings.map_size.0 * settings.chunk_size.0;
         let size_y = settings.map_size.1 * settings.chunk_size.1;
-
-        let pipeline = if pipeline.is_some() {
-            pipeline.unwrap()
-        } else {
-            settings.mesh_type.into()
-        };
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
@@ -130,7 +109,6 @@ where
                     material: material_handle.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: pipeline.clone(),
                     ..Default::default()
                 });
             }
@@ -313,7 +291,7 @@ where
         &mut self,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
-        material: Handle<ColorMaterial>,
+        material: Handle<Image>,
     ) -> LayerBundle {
         let mut layer = Layer::new(self.settings.clone());
         for x in 0..layer.settings.map_size.0 {
@@ -378,7 +356,6 @@ where
                     material: material.clone(),
                     transform,
                     tilemap_data,
-                    render_pipeline: self.pipeline.clone(),
                     ..Default::default()
                 });
             }

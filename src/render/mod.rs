@@ -10,7 +10,7 @@ use crate::Chunk;
 pub(crate) mod pipeline;
 
 // Used to transfer info to the GPU for tile building.
-#[derive(Debug, Default, Copy, Clone, TypeUuid, Reflect, RenderResources, RenderResource, Pod, Zeroable, Component)]
+#[derive(Debug, Default, Copy, Clone, TypeUuid, Reflect, RenderResources, RenderResource, Pod, Zeroable)]
 #[render_resources(from_self)]
 #[uuid = "7233c597-ccfa-411f-bd59-9af349432ada"]
 #[repr(C)]

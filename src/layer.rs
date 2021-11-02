@@ -94,7 +94,7 @@ impl LayerSettings {
 }
 
 /// A component which keeps information and a cache of tile/chunk entities for convenience.
-#[derive(Default, Component)]
+#[derive(Default)]
 pub struct Layer {
     /// The map information for the tilemap entity.
     pub settings: LayerSettings,

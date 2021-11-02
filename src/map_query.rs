@@ -2,8 +2,10 @@ use crate::layer::LayerId;
 use crate::map::Map;
 use crate::{morton_index, prelude::*};
 use bevy::ecs::system::SystemParam;
-use bevy::math::Vec3Swizzles;
-use bevy::prelude::*;
+use bevy::math::{Vec2, Vec3, Vec3Swizzles};
+use bevy::prelude::{Assets, Commands, DespawnRecursiveExt, Entity, Handle, QuerySet, QueryState, ResMut};
+use bevy::render2::mesh::Mesh;
+use bevy::render2::texture::Image;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
 /// It's not required that you use this, but it does provide a convenience.
@@ -44,7 +46,7 @@ impl<'w, 's> MapQuery<'w, 's> {
         &mut self,
         commands: &mut Commands,
         mut layer_builder: LayerBuilder<impl TileBundleTrait>,
-        material_handle: Handle<ColorMaterial>,
+        material_handle: Handle<Image>,
     ) -> Entity {
         let layer_bundle = layer_builder.build(commands, &mut self.meshes, material_handle);
         let mut layer = layer_bundle.layer;

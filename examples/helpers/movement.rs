@@ -1,7 +1,6 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_ecs_tilemap::MapQuery;
 
-#[derive(Component)]
 #[allow(dead_code)]
 pub struct Player;
 

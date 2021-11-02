@@ -2,7 +2,7 @@ use crate::TilePos;
 use bevy::prelude::*;
 
 /// A component that represents the basic tile information.
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct Tile {
     /// The texture index in the atlas or array.
     pub texture_index: u16,
@@ -40,7 +40,7 @@ impl Into<TileBundle> for Tile {
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct GPUAnimated {
     /// The start frame index in the tilemap atlas/array.
     pub start: u32,
@@ -96,7 +96,7 @@ impl TileBundle {
 }
 
 /// A component containing the tiles parent information.
-#[derive(Clone, Component)]
+#[derive(Clone)]
 pub struct TileParent {
     /// The rendering chunk that the tile is attached to.
     pub chunk: Entity,
