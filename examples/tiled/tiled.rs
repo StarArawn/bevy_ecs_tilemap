@@ -1,11 +1,15 @@
+use bevy::math::Vec2;
+use bevy::prelude::{
+    AddAsset, Added, App, AssetEvent, Assets, Bundle, Commands, DespawnRecursiveExt, Entity,
+    EventReader, GlobalTransform, Handle, Plugin, Query, Res, ResMut, Transform,
+};
+use bevy::render2::mesh::Mesh;
+use bevy::render2::texture::Image;
 use bevy_ecs_tilemap::prelude::*;
 use std::{collections::HashMap, io::BufReader};
 
+use bevy::asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset};
 use bevy::reflect::TypeUuid;
-use bevy::{
-    asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
-    prelude::*,
-};
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -14,7 +18,7 @@ impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut App) {
         app.add_asset::<TiledMap>()
             .add_asset_loader(TiledLoader)
-            .add_system(process_loaded_tile_maps.system());
+            .add_system(process_loaded_tile_maps);
     }
 }
 
@@ -22,7 +26,7 @@ impl Plugin for TiledMapPlugin {
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,
-    pub tilesets: HashMap<u32, Handle<Texture>>,
+    pub tilesets: HashMap<u32, Handle<Image>>,
 }
 
 #[derive(Default, Bundle)]
@@ -58,7 +62,7 @@ impl AssetLoader for TiledLoader {
                 tilesets: dependencies
                     .iter()
                     .map(|dep| {
-                        let texture: Handle<Texture> = load_context.get_handle(dep.1.clone());
+                        let texture: Handle<Image> = load_context.get_handle(dep.1.clone());
                         (dep.0, texture)
                     })
                     .collect(),
@@ -81,7 +85,6 @@ pub fn process_loaded_tile_maps(
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut query: Query<(Entity, &Handle<TiledMap>, &mut Map)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
     layer_query: Query<&Layer>,
@@ -171,52 +174,60 @@ pub fn process_loaded_tile_maps(
                                 tileset.images[0].height as f32,
                             ), // TODO: support multiple tileset images?
                         );
-                        map_settings.grid_size = Vec2::new(tiled_map.map.tile_width as f32, tiled_map.map.tile_height as f32);
+                        map_settings.grid_size = Vec2::new(
+                            tiled_map.map.tile_width as f32,
+                            tiled_map.map.tile_height as f32,
+                        );
                         map_settings.set_layer_id(layer.layer_index as u16);
 
                         map_settings.mesh_type = match tiled_map.map.orientation {
                             tiled::Orientation::Hexagonal => {
                                 TilemapMeshType::Hexagon(HexType::Row) // TODO: Support hex for real.
                             }
-                            tiled::Orientation::Isometric => TilemapMeshType::Isometric(IsoType::Diamond),
-                            tiled::Orientation::Staggered => TilemapMeshType::Isometric(IsoType::Staggered),
+                            tiled::Orientation::Isometric => {
+                                TilemapMeshType::Isometric(IsoType::Diamond)
+                            }
+                            tiled::Orientation::Staggered => {
+                                TilemapMeshType::Isometric(IsoType::Staggered)
+                            }
                             tiled::Orientation::Orthogonal => TilemapMeshType::Square,
                         };
 
-                        let material = materials.add(ColorMaterial::texture(tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone()));                
                         let layer_entity = LayerBuilder::<TileBundle>::new_batch(
                             &mut commands,
                             map_settings.clone(),
                             &mut meshes,
-                            material,
+                            tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone(),
                             0u16,
                             layer.layer_index as u16,
-                            None,
                             move |mut tile_pos| {
-                                if tile_pos.0 >= tiled_map.map.width || tile_pos.1 >= tiled_map.map.height {
+                                if tile_pos.0 >= tiled_map.map.width
+                                    || tile_pos.1 >= tiled_map.map.height
+                                {
                                     return None;
                                 }
-                
+
                                 if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
                                     tile_pos.1 = (tiled_map.map.height - 1) as u32 - tile_pos.1;
                                 }
-                
+
                                 let x = tile_pos.0 as usize;
                                 let y = tile_pos.1 as usize;
-                
+
                                 let map_tile = match &layer.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],
                                     _ => panic!("Infinite maps not supported"),
                                 };
-                                
+
                                 if map_tile.gid < tileset.first_gid
-                                || map_tile.gid >= tileset.first_gid + tileset.tilecount.unwrap()
+                                    || map_tile.gid
+                                        >= tileset.first_gid + tileset.tilecount.unwrap()
                                 {
                                     return None;
                                 }
-                
+
                                 let tile_id = map_tile.gid - tileset.first_gid;
-                
+
                                 let tile = Tile {
                                     texture_index: tile_id as u16,
                                     flip_x: map_tile.flip_h,
