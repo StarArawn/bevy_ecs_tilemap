@@ -9,10 +9,7 @@ use bevy::{
     },
 };
 
-use crate::render2::pipeline::{
-    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, ISO_DIAMOND_SHADER_HANDLE,
-    SQUARE_SHADER_HANDLE,
-};
+use crate::render2::pipeline::{DrawTilemap, ISO_DIAMOND_SHADER_HANDLE, ISO_STAGGERED_SHADER_HANDLE, ImageBindGroups, MeshUniform, SQUARE_SHADER_HANDLE, TilemapPipeline};
 
 mod include_shader;
 mod pipeline;
@@ -37,6 +34,12 @@ impl Plugin for TilemapRenderPlugin {
             include_str!("shaders/tilemap.wgsl"),
         ));
         shaders.set_untracked(ISO_DIAMOND_SHADER_HANDLE, iso_diamond_shader);
+
+        let iso_staggered_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/staggered_iso.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(ISO_STAGGERED_SHADER_HANDLE, iso_staggered_shader);
 
         app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
         app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());

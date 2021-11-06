@@ -44,6 +44,9 @@ pub const SQUARE_SHADER_HANDLE: HandleUntyped =
 pub const ISO_DIAMOND_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
 
+pub const ISO_STAGGERED_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6571326172373592468);
+
 pub struct LayerId(u16);
 
 pub fn extract_tilemaps(
@@ -183,7 +186,7 @@ impl SpecializedPipeline for TilemapPipeline {
             TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
             TilemapMeshType::Isometric(iso_type) => match iso_type {
                 crate::IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
-                crate::IsoType::Staggered => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::IsoType::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },
             TilemapMeshType::Hexagon(hex_type) => match hex_type {
                 crate::HexType::Column => SQUARE_SHADER_HANDLE.typed::<Shader>(),
