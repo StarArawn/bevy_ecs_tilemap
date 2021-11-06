@@ -373,7 +373,6 @@ version = "0.4.0"
 dependencies = [
  "anyhow",
  "bevy",
- "bitflags",
  "bytemuck",
  "crevice",
  "env_logger 0.9.0",
@@ -381,6 +380,7 @@ dependencies = [
  "log",
  "morton-encoding",
  "rand",
+ "regex",
  "serde_json",
  "tiled",
 ]

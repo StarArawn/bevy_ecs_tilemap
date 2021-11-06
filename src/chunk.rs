@@ -151,7 +151,7 @@ pub(crate) fn update_chunk_mesh(
 ) {
     let threaded_meshes = Mutex::new(meshes);
 
-    changed_chunks.par_for_each_mut(&task_pool, 5, |((mut chunk, visible))| {
+    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visible)| {
         if chunk.needs_remesh && visible.is_visible {
             log::trace!(
                 "Re-meshing chunk at: {:?} layer id of: {}",

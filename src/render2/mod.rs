@@ -9,8 +9,12 @@ use bevy::{
     },
 };
 
-use crate::render2::pipeline::{DrawTilemap, ImageBindGroups, MeshUniform, TILEMAP_SHADER_HANDLE, TilemapPipeline};
+use crate::render2::pipeline::{
+    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, ISO_DIAMOND_SHADER_HANDLE,
+    SQUARE_SHADER_HANDLE,
+};
 
+mod include_shader;
 mod pipeline;
 mod tilemap_data;
 
@@ -22,8 +26,17 @@ pub struct TilemapRenderPlugin;
 impl Plugin for TilemapRenderPlugin {
     fn build(&self, app: &mut App) {
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
-        let pbr_shader = Shader::from_wgsl(include_str!("square.wgsl"));
-        shaders.set_untracked(TILEMAP_SHADER_HANDLE, pbr_shader);
+        let square_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/square.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(SQUARE_SHADER_HANDLE, square_shader);
+
+        let iso_diamond_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/diamond_iso.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(ISO_DIAMOND_SHADER_HANDLE, iso_diamond_shader);
 
         app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
         app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());

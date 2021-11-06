@@ -3,7 +3,7 @@ use bevy::{
     core_pipeline::{SetItemPipeline, Transparent2d},
     ecs::system::{
         lifetimeless::{Read, SQuery, SRes},
-        SystemParamItem, SystemState,
+        SystemParamItem,
     },
     math::Mat4,
     prelude::{
@@ -28,18 +28,21 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::{BevyDefault, Image},
-        view::{ExtractedView, Msaa, ViewUniformOffset, ViewUniforms},
+        view::{ExtractedView, ViewUniformOffset, ViewUniforms},
     },
     utils::HashMap,
 };
 use crevice::std140::AsStd140;
 
-use crate::Chunk;
+use crate::{Chunk, TilemapMeshType};
 
 use super::tilemap_data::TilemapUniformData;
 
-pub const TILEMAP_SHADER_HANDLE: HandleUntyped =
+pub const SQUARE_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
+
+pub const ISO_DIAMOND_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
 
 pub struct LayerId(u16);
 
@@ -61,6 +64,7 @@ pub fn extract_tilemaps(
             (
                 LayerId(chunk.settings.layer_id),
                 chunk.material.clone(),
+                chunk.settings.mesh_type.clone(),
                 mesh_handle.clone_weak(),
                 tilemap_uniform.clone(),
                 MeshUniform { transform },
@@ -171,37 +175,29 @@ impl FromWorld for TilemapPipeline {
     }
 }
 
-bitflags::bitflags! {
-    #[repr(transparent)]
-    // NOTE: Apparently quadro drivers support up to 64x MSAA.
-    /// MSAA uses the highest 6 bits for the MSAA sample count - 1 to support up to 64x MSAA.
-    pub struct TilemapPipelineKey: u32 {
-        const NONE               = 0;
-        const MSAA_RESERVED_BITS = TilemapPipelineKey::MSAA_MASK_BITS << TilemapPipelineKey::MSAA_SHIFT_BITS;
-    }
-}
-
-impl TilemapPipelineKey {
-    const MSAA_MASK_BITS: u32 = 0b111111;
-    const MSAA_SHIFT_BITS: u32 = 32 - 6;
-
-    pub fn from_msaa_samples(msaa_samples: u32) -> Self {
-        let msaa_bits = ((msaa_samples - 1) & Self::MSAA_MASK_BITS) << Self::MSAA_SHIFT_BITS;
-        TilemapPipelineKey::from_bits(msaa_bits).unwrap()
-    }
-
-    pub fn msaa_samples(&self) -> u32 {
-        ((self.bits >> Self::MSAA_SHIFT_BITS) & Self::MSAA_MASK_BITS) + 1
-    }
-}
-
 impl SpecializedPipeline for TilemapPipeline {
-    type Key = TilemapPipelineKey;
+    type Key = TilemapMeshType;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
+        let shader = match key {
+            TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+            TilemapMeshType::Isometric(iso_type) => match iso_type {
+                crate::IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
+                crate::IsoType::Staggered => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+            },
+            TilemapMeshType::Hexagon(hex_type) => match hex_type {
+                crate::HexType::Column => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::ColumnEven => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::ColumnOdd => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::Row => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::RowEven => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::RowOdd => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+            },
+        };
+
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: TILEMAP_SHADER_HANDLE.typed::<Shader>(),
+                shader: shader.clone(),
                 entry_point: "vertex".into(),
                 shader_defs: vec![],
                 buffers: vec![VertexBufferLayout {
@@ -230,7 +226,7 @@ impl SpecializedPipeline for TilemapPipeline {
                 }],
             },
             fragment: Some(FragmentState {
-                shader: TILEMAP_SHADER_HANDLE.typed::<Shader>(),
+                shader,
                 shader_defs: vec![],
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
@@ -267,7 +263,7 @@ impl SpecializedPipeline for TilemapPipeline {
             },
             depth_stencil: None,
             multisample: MultisampleState {
-                count: 1, //key.msaa_samples(),
+                count: 1,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
@@ -341,18 +337,22 @@ pub fn queue_meshes(
     tilemap_pipeline: Res<TilemapPipeline>,
     mut pipelines: ResMut<SpecializedPipelines<TilemapPipeline>>,
     mut pipeline_cache: ResMut<RenderPipelineCache>,
-    msaa: Res<Msaa>,
     view_uniforms: Res<ViewUniforms>,
     gpu_images: Res<RenderAssets<Image>>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     standard_tilemap_meshes: Query<
-        (Entity, &LayerId, &Handle<Image>, &MeshUniform),
+        (
+            Entity,
+            &LayerId,
+            &TilemapMeshType,
+            &Handle<Image>,
+            &MeshUniform,
+        ),
         With<Handle<Mesh>>,
     >,
     mut views: Query<(Entity, &ExtractedView, &mut RenderPhase<Transparent2d>)>,
 ) {
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        let msaa_key = TilemapPipelineKey::from_msaa_samples(msaa.samples);
         for (entity, _view, mut transparent_phase) in views.iter_mut() {
             let view_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
                 entries: &[BindGroupEntry {
@@ -372,7 +372,9 @@ pub fn queue_meshes(
                 .get_id::<DrawTilemap>()
                 .unwrap();
 
-            for (entity, layer_id, image, _mesh_uniform) in standard_tilemap_meshes.iter() {
+            for (entity, layer_id, tilemap_type, image, _mesh_uniform) in
+                standard_tilemap_meshes.iter()
+            {
                 image_bind_groups
                     .values
                     .entry(image.clone_weak())
@@ -395,8 +397,7 @@ pub fn queue_meshes(
                     });
 
                 let pipeline_id =
-                    pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, msaa_key);
-
+                    pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, *tilemap_type);
                 transparent_phase.add(Transparent2d {
                     entity,
                     draw_function: draw_tilemap,

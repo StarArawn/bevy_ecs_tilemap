@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{App, AssetServer, Commands, GlobalTransform, Res, ResMut, Transform},
+    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
     render2::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
     PipelinedDefaultPlugins,

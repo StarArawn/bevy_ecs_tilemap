@@ -82,7 +82,7 @@ pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent
 pub struct TilemapPlugin;
 
 /// Different hex coordinate systems. You can find out more at this link: https://www.redblobgames.com/grids/hexagons/
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HexType {
     RowEven,
     RowOdd,
@@ -93,14 +93,14 @@ pub enum HexType {
 }
 
 /// Different iso coordinate systems.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoType {
     Diamond,
     Staggered,
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapMeshType {
     Square,
     Hexagon(HexType),

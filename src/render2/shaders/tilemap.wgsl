@@ -27,6 +27,8 @@ struct TilemapData {
 [[group(2), binding(0)]]
 var<uniform> tilemap_data: TilemapData;
 
+#include 0
+
 struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
     [[location(0)]] uv: vec2<f32>;
@@ -40,21 +42,13 @@ fn vertex(
     [[location(2)]] color: vec4<f32>,
 ) -> VertexOutput {
     var out: VertexOutput;
-    var position = vertex_position.xy;
+    var animation_speed = vertex_position.z;
 
-    var positions: array<vec2<f32>, 4> = array<vec2<f32>, 4>(
-        vec2<f32>(position.x, position.y),
-        vec2<f32>(position.x, position.y + 1.0),
-        vec2<f32>(position.x + 1.0, position.y + 1.0),
-        vec2<f32>(position.x + 1.0, position.y)
-    );
-
-    position = positions[v_index % 4u];
-    position = position * tilemap_data.tile_size;
-
+    var mesh_data: Output = get_mesh(v_index, vertex_position);
+    
     var frames: f32 = f32(vertex_uv.w - vertex_uv.z);
 
-    var current_animation_frame = fract(tilemap_data.time * vertex_position.z) * frames;
+    var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
 
     current_animation_frame = clamp(current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
 
@@ -125,8 +119,7 @@ fn vertex(
 
     out.uv = atlas_uvs[v_index % 4u];
     out.uv = out.uv + 1e-5;
-
-    out.position = view.view_proj * mesh.model * vec4<f32>(position, 0.0, 1.0);
+    out.position = view.view_proj * mesh_data.world_position;
     return out;
 } 
 
