@@ -1,23 +1,28 @@
 use crate::{
     morton_index, morton_pos,
-    render::TilemapData,
+    render2::TilemapUniformData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
     ChunkPos, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
 };
-use bevy::{core::Time, prelude::{Assets, Bundle, Changed, Entity, GlobalTransform, Handle, Query, Res, ResMut, Transform}, render2::{
-        camera::{Camera, OrthographicProjection},
-    }, render2::{camera::CameraPlugin, mesh::Mesh, texture::Image}, tasks::AsyncComputeTaskPool};
+use bevy::{
+    core::Time,
+    prelude::{
+        Assets, Bundle, Changed, Entity, GlobalTransform, Handle, Query, Res, ResMut, Transform,
+    },
+    render2::camera::{Camera, OrthographicProjection},
+    render2::{camera::CameraPlugin, mesh::Mesh, texture::Image},
+    tasks::AsyncComputeTaskPool,
+};
 use std::sync::Mutex;
 
 #[derive(Bundle)]
 pub(crate) struct ChunkBundle {
     pub chunk: Chunk,
-    pub material: Handle<Image>,
     pub mesh: Handle<Mesh>,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    pub tilemap_data: TilemapData,
+    pub tilemap_data: TilemapUniformData,
 }
 
 impl Default for ChunkBundle {
@@ -25,10 +30,9 @@ impl Default for ChunkBundle {
         Self {
             chunk: Chunk::default(),
             mesh: Handle::default(),
-            material: Handle::default(),
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
-            tilemap_data: TilemapData::default(),
+            tilemap_data: TilemapUniformData::default(),
         }
     }
 }
@@ -44,6 +48,8 @@ pub struct Chunk {
     pub settings: LayerSettings,
     /// Tells internal systems that this chunk should be remeshed(send new data to the GPU)
     pub needs_remesh: bool,
+    /// Tells the renderer which image to use for the tilemap.
+    pub material: Handle<Image>,
     pub(crate) tiles: Vec<Option<Entity>>,
     pub(crate) mesh_handle: Handle<Mesh>,
 }
@@ -52,6 +58,7 @@ impl Default for Chunk {
     fn default() -> Self {
         Self {
             map_entity: Entity::new(0),
+            material: Default::default(),
             mesh_handle: Default::default(),
             needs_remesh: true,
             position: Default::default(),
@@ -67,6 +74,7 @@ impl Chunk {
         layer_settings: LayerSettings,
         position: ChunkPos,
         mesh_handle: Handle<Mesh>,
+        material: Handle<Image>,
     ) -> Self {
         let tile_size_x = round_to_power_of_two(layer_settings.chunk_size.0 as f32);
         let tile_size_y = round_to_power_of_two(layer_settings.chunk_size.1 as f32);
@@ -75,6 +83,7 @@ impl Chunk {
 
         Self {
             map_entity,
+            material,
             mesh_handle,
             needs_remesh: true,
             position,
@@ -227,7 +236,7 @@ pub(crate) fn update_chunk_mesh(
 //     }
 // }
 
-pub(crate) fn update_chunk_time(time: Res<Time>, mut query: Query<&mut TilemapData>) {
+pub(crate) fn update_chunk_time(time: Res<Time>, mut query: Query<&mut TilemapUniformData>) {
     for mut data in query.iter_mut() {
         data.time = time.seconds_since_startup() as f32;
     }

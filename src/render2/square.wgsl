@@ -1,0 +1,142 @@
+[[block]]
+struct View {
+    view_proj: mat4x4<f32>;
+    projection: mat4x4<f32>;
+    world_position: vec3<f32>;
+};
+[[group(0), binding(0)]]
+var<uniform> view: View;
+
+[[block]]
+struct Mesh {
+    model: mat4x4<f32>;
+};
+[[group(1), binding(0)]]
+var<uniform> mesh: Mesh;
+
+[[block]]
+struct TilemapData {
+    texture_size: vec2<f32>;
+    tile_size: vec2<f32>;
+    grid_size: vec2<f32>;
+    spacing: vec2<f32>;
+    chunk_pos: vec2<f32>;
+    map_size: vec2<f32>;
+    time: f32;
+};
+[[group(2), binding(0)]]
+var<uniform> tilemap_data: TilemapData;
+
+struct VertexOutput {
+    [[builtin(position)]] position: vec4<f32>;
+    [[location(0)]] uv: vec2<f32>;
+};
+
+[[stage(vertex)]]
+fn vertex(
+    [[builtin(vertex_index)]] v_index: u32,
+    [[location(0)]] vertex_position: vec3<f32>,
+    [[location(1)]] vertex_uv: vec4<i32>,
+    [[location(2)]] color: vec4<f32>,
+) -> VertexOutput {
+    var out: VertexOutput;
+    var position = vertex_position.xy;
+
+    var positions: array<vec2<f32>, 4> = array<vec2<f32>, 4>(
+        vec2<f32>(position.x, position.y),
+        vec2<f32>(position.x, position.y + 1.0),
+        vec2<f32>(position.x + 1.0, position.y + 1.0),
+        vec2<f32>(position.x + 1.0, position.y)
+    );
+
+    position = positions[v_index % 4u];
+    position = position * tilemap_data.tile_size;
+
+    var frames: f32 = f32(vertex_uv.w - vertex_uv.z);
+
+    var current_animation_frame = fract(tilemap_data.time * vertex_position.z) * frames;
+
+    current_animation_frame = clamp(current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
+
+    var texture_index: u32 = u32(current_animation_frame);
+
+    var columns: u32 = u32((tilemap_data.texture_size.x + tilemap_data.spacing.x) / (tilemap_data.tile_size.x + tilemap_data.spacing.x));
+
+    var sprite_sheet_x: f32 = floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
+    var sprite_sheet_y: f32 = floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
+
+    var start_u: f32 = sprite_sheet_x / tilemap_data.texture_size.x;
+    var end_u: f32 = (sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
+    var start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
+    var end_v: f32 = (sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
+
+    var atlas_uvs: array<vec2<f32>, 4>;
+
+    var x1: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
+        vec2<f32>(start_u, end_v),       // no flip/rotation
+        vec2<f32>(end_u, end_v),         // flip x
+        vec2<f32>(start_u, start_v),     // flip y
+        vec2<f32>(end_u, start_v),       // flip x y
+        vec2<f32>(end_u, start_v),       // flip     d
+        vec2<f32>(end_u, end_v),         // flip x   d
+        vec2<f32>(start_u, start_v),     // flip y   d
+        vec2<f32>(start_u, end_v)
+    );
+
+    var x2: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
+        vec2<f32>(start_u, start_v),
+        vec2<f32>(end_u, start_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(end_u, end_v),
+        vec2<f32>(start_u, start_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(end_u, start_v),
+        vec2<f32>(end_u, end_v)
+    );
+
+    var x3: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
+        vec2<f32>(end_u, start_v),
+        vec2<f32>(start_u, start_v),
+        vec2<f32>(end_u, end_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(start_u, start_v),
+        vec2<f32>(end_u, end_v),
+        vec2<f32>(end_u, start_v)
+    );
+
+    var x4: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
+        vec2<f32>(end_u, end_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(end_u, start_v),
+        vec2<f32>(start_u, start_v),
+        vec2<f32>(end_u, end_v),
+        vec2<f32>(end_u, start_v),
+        vec2<f32>(start_u, end_v),
+        vec2<f32>(start_u, start_v),
+    );
+
+    atlas_uvs = array<vec2<f32>, 4>(
+        x1[vertex_uv.y],
+        x2[vertex_uv.y],
+        x3[vertex_uv.y],
+        x4[vertex_uv.y]
+    );
+
+    out.uv = atlas_uvs[v_index % 4u];
+    out.uv = out.uv + 1e-5;
+
+    out.position = view.view_proj * mesh.model * vec4<f32>(position, 0.0, 1.0);
+    return out;
+} 
+
+[[group(3), binding(0)]]
+var sprite_texture: texture_2d<f32>;
+[[group(3), binding(1)]]
+var sprite_sampler: sampler;
+
+[[stage(fragment)]]
+fn fragment(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    // return vec4<f32>(1.0, 1.0, 1.0, 1.0);
+    return textureSample(sprite_texture, sprite_sampler, in.uv);
+}

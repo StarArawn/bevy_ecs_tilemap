@@ -1,25 +1,22 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
+    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
+    render2::camera::OrthographicCameraBundle,
+    window::WindowDescriptor,
+    PipelinedDefaultPlugins,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle {
         transform: Transform::from_xyz(1042.0, 1024.0, 1000.0 - 0.1),
         ..OrthographicCameraBundle::new_2d()
     });
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = MapSize(20, 20);
 
@@ -31,14 +28,13 @@ fn startup(
     );
 
     let (mut layer_builder, layer_0_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16, None);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16);
 
     layer_builder.set_all(Tile::default().into());
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     let texture_handle = asset_server.load("flower_sheet.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = MapSize(map_size.0 / 2, map_size.1 / 2);
     let layer_settings = LayerSettings::new(
@@ -48,7 +44,7 @@ fn startup(
         TextureSize(32.0, 448.0),
     );
     let (mut layer_builder, layer_1_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16, None);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16);
 
     let mut random = thread_rng();
 
@@ -73,7 +69,7 @@ fn startup(
         }
     }
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -93,10 +89,6 @@ fn startup(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
@@ -104,12 +96,12 @@ fn main() {
             title: String::from("Animated Map Example"),
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(PipelinedDefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

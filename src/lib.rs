@@ -69,6 +69,7 @@ mod map_query;
 mod mesher;
 mod neighbors;
 mod render;
+mod render2;
 mod tile;
 
 #[cfg(feature = "ldtk")]
@@ -139,12 +140,11 @@ impl Plugin for TilemapPlugin {
             // )
             .add_system_to_stage(
                 TilemapStage,
-                update_chunk_mesh
-                    .system()
-                    .after("hash_update_for_tiles"),
-                    // .after("update_chunk_visibility"),
-            );
-        let world = &mut app.world;
+                update_chunk_mesh.system().after("hash_update_for_tiles"),
+                // .after("update_chunk_visibility"),
+            )
+            .add_plugin(render2::TilemapRenderPlugin);
+        // let world = &mut app.world;
         // add_tile_map_graph(world);
     }
 }

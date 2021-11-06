@@ -3,13 +3,21 @@ use crate::{
     layer::LayerId,
     map::MapId,
     morton_index,
-    render::TilemapData,
+    render2::TilemapUniformData,
     round_to_power_of_two,
     tile::{TileBundleTrait, TileParent},
     Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,
     TilemapMeshType,
 };
-use bevy::{math::Vec2, prelude::{Assets, BuildChildren, Commands, Entity, Handle, ResMut, Transform}, render2::{mesh::{Indices, Mesh, VertexAttributeValues}, render_resource::PrimitiveTopology}, render2::texture::Image};
+use bevy::{
+    math::Vec2,
+    prelude::{Assets, BuildChildren, Commands, Entity, Handle, ResMut, Transform},
+    render2::texture::Image,
+    render2::{
+        mesh::{Indices, Mesh, VertexAttributeValues},
+        render_resource::PrimitiveTopology,
+    },
+};
 
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
@@ -94,6 +102,7 @@ where
                     settings.clone(),
                     chunk_pos,
                     mesh_handle.clone(),
+                    material_handle.clone(),
                 );
 
                 let index = morton_index(chunk_pos);
@@ -101,12 +110,11 @@ where
 
                 let transform = Self::get_chunk_coords(chunk_pos, &settings);
 
-                let tilemap_data = TilemapData::from(&chunk);
+                let tilemap_data = TilemapUniformData::from(&chunk);
 
                 commands.entity(chunk_entity).insert_bundle(ChunkBundle {
                     chunk,
                     mesh: mesh_handle,
-                    material: material_handle.clone(),
                     transform,
                     tilemap_data,
                     ..Default::default()
@@ -315,6 +323,7 @@ where
                     self.settings.clone(),
                     chunk_pos,
                     mesh_handle.clone(),
+                    material.clone(),
                 );
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
@@ -348,12 +357,11 @@ where
 
                 let transform = Self::get_chunk_coords(chunk_pos, &self.settings);
 
-                let tilemap_data = TilemapData::from(&chunk);
+                let tilemap_data = TilemapUniformData::from(&chunk);
 
                 commands.entity(chunk_entity).insert_bundle(ChunkBundle {
                     chunk,
                     mesh: mesh_handle,
-                    material: material.clone(),
                     transform,
                     tilemap_data,
                     ..Default::default()

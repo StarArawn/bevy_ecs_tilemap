@@ -13,14 +13,16 @@ exclude = ["assets/*", "screenshots/*"]
 default = []
 
 [dependencies]
-bevy = { git="https://github.com/bevyengine/bevy", branch ="pipelined-rendering" }
+bitflags = "1.3"
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "09706cdb2a91162d82b2f8e376e18598dd397b16" }
+crevice = { git = "https://github.com/bevyengine/bevy", rev = "09706cdb2a91162d82b2f8e376e18598dd397b16" }
 morton-encoding = "2.0"
 log = "0.4"
 bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { git="https://github.com/bevyengine/bevy", branch ="pipelined-rendering", default-features=false }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "09706cdb2a91162d82b2f8e376e18598dd397b16", default-features = false }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
