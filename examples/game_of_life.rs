@@ -1,21 +1,20 @@
+use bevy::core::Time;
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::prelude::{Entity, Query};
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
+    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
+    render2::camera::OrthographicCameraBundle,
+    window::WindowDescriptor,
+    PipelinedDefaultPlugins,
 };
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = MapSize(5 * 16, 5 * 16);
 
@@ -33,7 +32,6 @@ fn startup(
         ),
         0u16,
         0u16,
-        None,
     );
 
     let mut i = 0;
@@ -53,7 +51,7 @@ fn startup(
         }
     }
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
     commands.entity(layer_entity).insert(LastUpdate(0.0));
 
@@ -69,7 +67,6 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
-#[derive(Component)]
 pub struct LastUpdate(f64);
 
 fn update(
@@ -128,10 +125,6 @@ fn update(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Error)
-        .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
@@ -139,13 +132,13 @@ fn main() {
             title: String::from("Game Of Life"),
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(PipelinedDefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
-        .add_system(update.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(update)
         .run();
 }
