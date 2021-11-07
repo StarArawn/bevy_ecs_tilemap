@@ -127,7 +127,7 @@ impl Layer {
     }
 
     pub fn get_chunk(&self, chunk_pos: ChunkPos) -> Option<Entity> {
-        self.chunks[morton_index(chunk_pos)]
+        *self.chunks.get(morton_index(chunk_pos))?
     }
 
     /// Gets the map's size in tiles just for convenience.
