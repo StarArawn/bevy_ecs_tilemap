@@ -193,16 +193,16 @@ pub fn process_loaded_tile_maps(
                             layer.layer_index as u16,
                             None,
                             move |mut tile_pos| {
-                                if tile_pos.x >= tiled_map.map.width || tile_pos.y >= tiled_map.map.height {
+                                if tile_pos.0 >= tiled_map.map.width || tile_pos.1 >= tiled_map.map.height {
                                     return None;
                                 }
                 
                                 if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
-                                    tile_pos.y = (tiled_map.map.height - 1) as u32 - tile_pos.y;
+                                    tile_pos.1 = (tiled_map.map.height - 1) as u32 - tile_pos.1;
                                 }
                 
-                                let x = tile_pos.x as usize;
-                                let y = tile_pos.y as usize;
+                                let x = tile_pos.0 as usize;
+                                let y = tile_pos.1 as usize;
                 
                                 let map_tile = match &layer.tiles {
                                     tiled::LayerData::Finite(tiles) => &tiles[y][x],
