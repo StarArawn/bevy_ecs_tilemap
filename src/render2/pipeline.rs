@@ -40,12 +40,22 @@ use super::tilemap_data::TilemapUniformData;
 
 pub const SQUARE_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
-
 pub const ISO_DIAMOND_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
-
 pub const ISO_STAGGERED_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6571326172373592468);
+pub const HEX_COLUMN_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 12158158650956014109);
+pub const HEX_COLUMN_ODD_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 11472021184100190415);
+pub const HEX_COLUMN_EVEN_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5336568075571462317);
+pub const HEX_ROW_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 15900471900964169180);
+pub const HEX_ROW_ODD_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 14864388685772956547);
+pub const HEX_ROW_EVEN_SHADER_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 14433932828806852042);
 
 pub struct LayerId(u16);
 
@@ -189,12 +199,12 @@ impl SpecializedPipeline for TilemapPipeline {
                 crate::IsoType::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },
             TilemapMeshType::Hexagon(hex_type) => match hex_type {
-                crate::HexType::Column => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-                crate::HexType::ColumnEven => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-                crate::HexType::ColumnOdd => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-                crate::HexType::Row => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-                crate::HexType::RowEven => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-                crate::HexType::RowOdd => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
+                crate::HexType::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
             },
         };
 

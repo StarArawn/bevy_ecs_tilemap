@@ -9,7 +9,12 @@ use bevy::{
     },
 };
 
-use crate::render2::pipeline::{DrawTilemap, ISO_DIAMOND_SHADER_HANDLE, ISO_STAGGERED_SHADER_HANDLE, ImageBindGroups, MeshUniform, SQUARE_SHADER_HANDLE, TilemapPipeline};
+use crate::render2::pipeline::{
+    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE,
+    HEX_COLUMN_ODD_SHADER_HANDLE, HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE,
+    HEX_ROW_ODD_SHADER_HANDLE, HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE,
+    ISO_STAGGERED_SHADER_HANDLE, SQUARE_SHADER_HANDLE,
+};
 
 mod include_shader;
 mod pipeline;
@@ -40,6 +45,42 @@ impl Plugin for TilemapRenderPlugin {
             include_str!("shaders/tilemap.wgsl"),
         ));
         shaders.set_untracked(ISO_STAGGERED_SHADER_HANDLE, iso_staggered_shader);
+
+        let hex_column_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/column_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_COLUMN_SHADER_HANDLE, hex_column_shader);
+
+        let hex_column_odd_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/column_odd_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_COLUMN_ODD_SHADER_HANDLE, hex_column_odd_shader);
+
+        let hex_column_even_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/column_even_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_COLUMN_EVEN_SHADER_HANDLE, hex_column_even_shader);
+
+        let hex_row_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/row_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_ROW_SHADER_HANDLE, hex_row_shader);
+
+        let hex_row_odd_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/row_odd_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_ROW_ODD_SHADER_HANDLE, hex_row_odd_shader);
+
+        let hex_row_even_shader = Shader::from_wgsl(include_shader::include_shader(
+            vec![include_str!("shaders/row_even_hex.wgsl")],
+            include_str!("shaders/tilemap.wgsl"),
+        ));
+        shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
 
         app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
         app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
