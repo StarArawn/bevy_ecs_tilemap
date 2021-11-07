@@ -1,24 +1,22 @@
-use bevy::prelude::*;
+use bevy::{
+    core::Time,
+    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, Transform},
+    render2::camera::OrthographicCameraBundle,
+    window::WindowDescriptor,
+    PipelinedDefaultPlugins,
+};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-#[derive(Component)]
 struct CurrentColor(u16);
 
-#[derive(Component)]
 struct LastUpdate(f64);
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // We can create maps by using the LayerBuilder
     // LayerBuilder creates the tile entities and makes sure they are attached to chunks correctly.
@@ -39,7 +37,6 @@ fn startup(
         ),
         0u16,
         0u16,
-        None,
     );
 
     // We can easily fill the entire map by using set_all
@@ -85,7 +82,7 @@ fn startup(
     }
 
     // Once create_layer is called you can no longer access the tiles in this system.
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     commands
         .entity(layer_entity)
@@ -166,10 +163,6 @@ fn update_map(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
@@ -177,11 +170,11 @@ fn main() {
             title: String::from("Accessing tiles"),
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(PipelinedDefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(update_map.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(update_map)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }
