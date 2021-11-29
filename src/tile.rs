@@ -42,9 +42,9 @@ impl Into<TileBundle> for Tile {
 /// Currently all frames must be aligned in your tilemap.
 #[derive(Debug, Clone, Copy)]
 pub struct GPUAnimated {
-    /// The start frame index in the tilemap atlas/array.
+    /// The start frame index in the tilemap atlas/array (inclusive).
     pub start: u32,
-    /// The end frame index in the tilemap atlas/array.
+    /// The end frame index in the tilemap atlas/array (exclusive).
     pub end: u32,
     /// The speed the animation plays back at.
     pub speed: f32,
