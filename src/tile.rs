@@ -96,7 +96,7 @@ impl TileBundle {
 }
 
 /// A component containing the tiles parent information.
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct TileParent {
     /// The rendering chunk that the tile is attached to.
     pub chunk: Entity,
