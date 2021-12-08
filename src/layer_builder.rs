@@ -3,7 +3,7 @@ use crate::{
     layer::LayerId,
     map::MapId,
     morton_index,
-    render2::TilemapUniformData,
+    render::TilemapUniformData,
     round_to_power_of_two,
     tile::{TileBundleTrait, TileParent},
     Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,

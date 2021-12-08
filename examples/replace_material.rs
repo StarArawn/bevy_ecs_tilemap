@@ -1,6 +1,8 @@
 use bevy::{
     core::Time,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Handle, Query, Res, Transform},
+    prelude::{
+        App, AssetServer, Commands, Component, GlobalTransform, Handle, Query, Res, Transform,
+    },
     render2::{camera::OrthographicCameraBundle, texture::Image},
     window::WindowDescriptor,
     PipelinedDefaultPlugins,
@@ -9,7 +11,7 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct DidUpdate {
     value: bool,
 }

@@ -25,7 +25,7 @@ pub struct LdtkMap {
     pub tilesets: HashMap<i64, Handle<bevy::render2::texture::Image>>,
 }
 
-#[derive(Default)]
+#[derive(Default, Component)]
 pub struct LdtkMapConfig {
     pub selected_level: usize,
 }

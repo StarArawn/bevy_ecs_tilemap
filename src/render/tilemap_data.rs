@@ -1,10 +1,10 @@
-use bevy::math::Vec2;
+use bevy::{math::Vec2, prelude::Component};
 use crevice::std140::AsStd140;
 
 use crate::Chunk;
 
 // Used to transfer info to the GPU for tile building.
-#[derive(Debug, Default, Copy, Clone, AsStd140)]
+#[derive(Debug, Default, Copy, Component, Clone, AsStd140)]
 pub struct TilemapUniformData {
     pub texture_size: Vec2,
     pub tile_size: Vec2,

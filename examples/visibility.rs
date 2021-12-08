@@ -1,6 +1,6 @@
 use bevy::{
     core::Time,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, Transform},
+    prelude::{App, AssetServer, Commands, Component, GlobalTransform, Query, Res, Transform},
     render2::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
     PipelinedDefaultPlugins,
@@ -10,7 +10,7 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }

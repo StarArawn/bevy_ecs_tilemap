@@ -1,6 +1,6 @@
 use bevy::{
     core::Time,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, Transform},
+    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, Transform, Component},
     render2::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
     PipelinedDefaultPlugins,
@@ -9,8 +9,10 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
+#[derive(Component)]
 struct CurrentColor(u16);
 
+#[derive(Component)]
 struct LastUpdate(f64);
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {

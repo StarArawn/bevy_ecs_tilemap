@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use bevy::{
     core::Time,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, ResMut, Transform},
+    prelude::{
+        App, AssetServer, Commands, Component, GlobalTransform, Query, Res, ResMut, Transform,
+    },
     render2::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
     PipelinedDefaultPlugins,
@@ -59,7 +61,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         .insert(GlobalTransform::default());
 }
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }

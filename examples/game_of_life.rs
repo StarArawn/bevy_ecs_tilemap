@@ -1,6 +1,6 @@
 use bevy::core::Time;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::prelude::{Entity, Query};
+use bevy::prelude::{Component, Entity, Query};
 use bevy::{
     prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
     render2::camera::OrthographicCameraBundle,
@@ -67,6 +67,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         .insert(GlobalTransform::default());
 }
 
+#[derive(Component)]
 pub struct LastUpdate(f64);
 
 fn update(

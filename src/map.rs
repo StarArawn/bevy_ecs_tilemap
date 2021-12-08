@@ -4,7 +4,7 @@ use std::hash::Hash;
 use std::{collections::HashMap, vec::IntoIter};
 
 /// A simple component used to keep track of layer entities.
-#[derive(Clone)]
+#[derive(Clone, Component)]
 pub struct Map {
     pub map_entity: Entity,
     pub id: u16,

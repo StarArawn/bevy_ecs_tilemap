@@ -1,6 +1,6 @@
 use crate::{
     morton_index, morton_pos,
-    render2::TilemapUniformData,
+    render::TilemapUniformData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
     ChunkPos, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
@@ -9,8 +9,8 @@ use bevy::{
     core::Time,
     math::{Vec2, Vec4},
     prelude::{
-        Assets, Bundle, Changed, Entity, GlobalTransform, Handle, Query, Res, ResMut, Transform,
-        Visible,
+        Assets, Bundle, Changed, Component, Entity, GlobalTransform, Handle, Query, Res, ResMut,
+        Transform, Visible,
     },
     render2::camera::{Camera, OrthographicProjection},
     render2::{camera::CameraPlugin, mesh::Mesh, texture::Image},
@@ -42,7 +42,7 @@ impl Default for ChunkBundle {
 }
 
 /// A component that stores information about a specific chunk in the tile map.
-#[derive(Debug, Clone)]
+#[derive(Debug, Component, Clone)]
 pub struct Chunk {
     /// The specific location x,y of the chunk in the tile map in chunk coords.
     pub position: ChunkPos,
