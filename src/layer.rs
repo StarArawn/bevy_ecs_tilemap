@@ -8,7 +8,7 @@ use crate::{
     ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::prelude::*;
-use std::{hash::Hash, path::Component};
+use std::hash::Hash;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
 #[derive(Bundle, Default)]

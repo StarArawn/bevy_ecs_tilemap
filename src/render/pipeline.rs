@@ -164,7 +164,7 @@ impl FromWorld for TilemapPipeline {
                     visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
                         multisampled: false,
-                        sample_type: TextureSampleType::Float { filterable: false },
+                        sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
                     },
                     count: None,
@@ -546,13 +546,12 @@ impl RenderCommand<Transparent2d> for DrawMesh {
     type Param = (
         SRes<RenderAssets<Mesh>>,
         SQuery<Read<Handle<Mesh>>>,
-        SRes<RenderPipelineCache>,
     );
     #[inline]
     fn render<'w>(
         _view: Entity,
         item: &Transparent2d,
-        (meshes, mesh_query, pipeline_cache): SystemParamItem<'w, '_, Self::Param>,
+        (meshes, mesh_query): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let mesh_handle = mesh_query.get(item.entity).unwrap();
