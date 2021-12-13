@@ -1,11 +1,9 @@
 use bevy::{
     core_pipeline::Transparent2d,
-    prelude::{App, Assets, Plugin},
-    render2::{
-        render_component::UniformComponentPlugin,
-        render_phase::AddRenderCommand,
-        render_resource::{Shader, SpecializedPipelines},
-        RenderApp, RenderStage,
+    prelude::*,
+    render::{
+        render_component::UniformComponentPlugin, render_phase::AddRenderCommand,
+        render_resource::SpecializedPipelines, RenderApp, RenderStage,
     },
 };
 

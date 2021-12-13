@@ -3,11 +3,7 @@ use crate::map::Map;
 use crate::{morton_index, prelude::*};
 use bevy::ecs::system::SystemParam;
 use bevy::math::{Vec2, Vec3, Vec3Swizzles};
-use bevy::prelude::{
-    Assets, Commands, DespawnRecursiveExt, Entity, Handle, Mut, QuerySet, QueryState, ResMut,
-};
-use bevy::render2::mesh::Mesh;
-use bevy::render2::texture::Image;
+use bevy::prelude::*;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
 /// It's not required that you use this, but it does provide a convenience.

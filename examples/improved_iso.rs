@@ -1,11 +1,4 @@
-use bevy::{
-    math::Vec2,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    sprite2::PipelinedSpriteBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::{math::Vec2, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 mod helpers;
@@ -124,7 +117,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     let texture_handle = asset_server.load("player.png");
 
     commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: texture_handle,
             transform: sprite_pos,
             ..Default::default()
@@ -146,7 +139,7 @@ fn main() {
             title: String::from("Iso diamond Map"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

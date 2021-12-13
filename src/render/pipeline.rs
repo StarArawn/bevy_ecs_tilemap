@@ -6,13 +6,9 @@ use bevy::{
         SystemParamItem,
     },
     math::Mat4,
-    prelude::{
-        Commands, Component, Entity, FromWorld, GlobalTransform, Handle, HandleUntyped, Query, Res,
-        ResMut, With, World,
-    },
+    prelude::*,
     reflect::TypeUuid,
-    render2::{
-        mesh::Mesh,
+    render::{
         render_asset::RenderAssets,
         render_component::{ComponentUniforms, DynamicUniformIndex},
         render_phase::{
@@ -29,7 +25,7 @@ use bevy::{
             VertexAttribute, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
         },
         renderer::RenderDevice,
-        texture::{BevyDefault, Image},
+        texture::BevyDefault,
         view::{ExtractedView, ViewUniformOffset, ViewUniforms},
     },
     utils::HashMap,
@@ -543,10 +539,7 @@ pub type DrawTilemap = (
 
 pub struct DrawMesh;
 impl RenderCommand<Transparent2d> for DrawMesh {
-    type Param = (
-        SRes<RenderAssets<Mesh>>,
-        SQuery<Read<Handle<Mesh>>>,
-    );
+    type Param = (SRes<RenderAssets<Mesh>>, SQuery<Read<Handle<Mesh>>>);
     #[inline]
     fn render<'w>(
         _view: Entity,

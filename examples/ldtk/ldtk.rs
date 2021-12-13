@@ -22,7 +22,7 @@ impl Plugin for LdtkPlugin {
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,
-    pub tilesets: HashMap<i64, Handle<bevy::render2::texture::Image>>,
+    pub tilesets: HashMap<i64, Handle<Image>>,
 }
 
 #[derive(Default, Component)]
@@ -90,7 +90,7 @@ pub fn process_loaded_tile_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<LdtkMap>>,
     maps: Res<Assets<LdtkMap>>,
-    mut meshes: ResMut<Assets<bevy::render2::mesh::Mesh>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut query: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig, &mut Map)>,
     new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
     layer_query: Query<&Layer>,

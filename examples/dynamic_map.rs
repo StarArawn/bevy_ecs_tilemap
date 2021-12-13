@@ -1,12 +1,4 @@
-use bevy::{
-    core::Time,
-    prelude::{
-        App, AssetServer, Commands, Component, GlobalTransform, Query, Res, ResMut, Transform,
-    },
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
@@ -99,7 +91,7 @@ fn main() {
             title: String::from("Dynamic Map Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
