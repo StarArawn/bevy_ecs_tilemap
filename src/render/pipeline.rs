@@ -67,21 +67,24 @@ pub fn extract_tilemaps(
         &TilemapUniformData,
         &Handle<Mesh>,
     )>,
+    images: Res<Assets<Image>>,
 ) {
     let mut extracted_tilemaps = Vec::new();
     for (entity, transform, chunk, tilemap_uniform, mesh_handle) in query.iter() {
-        let transform = transform.compute_matrix();
-        extracted_tilemaps.push((
-            entity,
-            (
-                LayerId(chunk.settings.layer_id),
-                chunk.material.clone(),
-                chunk.settings.mesh_type.clone(),
-                mesh_handle.clone_weak(),
-                tilemap_uniform.clone(),
-                MeshUniform { transform },
-            ),
-        ));
+        if images.get(&chunk.material).is_some() {
+            let transform = transform.compute_matrix();
+            extracted_tilemaps.push((
+                entity,
+                (
+                    LayerId(chunk.settings.layer_id),
+                    chunk.material.clone(),
+                    chunk.settings.mesh_type.clone(),
+                    mesh_handle.clone_weak(),
+                    tilemap_uniform.clone(),
+                    MeshUniform { transform },
+                ),
+            ));
+        }
     }
     commands.insert_or_spawn_batch(extracted_tilemaps);
 }
