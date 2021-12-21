@@ -3,12 +3,9 @@ use std::collections::HashSet;
 use bevy::{
     core::Time,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{
-        App, AssetServer, Commands, Component, GlobalTransform, Query, Res, ResMut, Transform,
-    },
-    render2::camera::OrthographicCameraBundle,
+    prelude::*,
+    render::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
-    PipelinedDefaultPlugins,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
@@ -99,7 +96,7 @@ fn main() {
             title: String::from("Random Map Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)

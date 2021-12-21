@@ -1,9 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, AssetServer, Assets, Commands, GlobalTransform, Res, ResMut, Transform},
-    render2::{camera::OrthographicCameraBundle, mesh::Mesh},
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
+    prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
 
@@ -59,7 +56,7 @@ fn main() {
             title: String::from("Benchmark Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)

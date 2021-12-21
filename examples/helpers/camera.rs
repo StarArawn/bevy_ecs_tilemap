@@ -1,10 +1,4 @@
-use bevy::{
-    core::Time,
-    input::Input,
-    math::Vec3,
-    prelude::{KeyCode, Query, Res, Transform, With},
-    render2::camera::Camera,
-};
+use bevy::{core::Time, input::Input, math::Vec3, prelude::*, render::camera::Camera};
 
 // A simple camera system for moving and zooming the camera.
 pub fn movement(

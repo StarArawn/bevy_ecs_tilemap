@@ -1,7 +1,11 @@
 use std::array::IntoIter;
 
 use crate::{prelude::*, tile::GPUAnimated};
-use bevy::{math::Vec2, prelude::{Assets, Entity, Query, ResMut}, render2::mesh::{Indices, Mesh, VertexAttributeValues}};
+use bevy::{
+    math::Vec2,
+    prelude::*,
+    render::mesh::{Indices, VertexAttributeValues},
+};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub(crate) struct ChunkMesher;

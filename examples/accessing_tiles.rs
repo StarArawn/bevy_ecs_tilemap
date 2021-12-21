@@ -1,10 +1,4 @@
-use bevy::{
-    core::Time,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Query, Res, Transform, Component},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -172,7 +166,7 @@ fn main() {
             title: String::from("Accessing tiles"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(update_map)

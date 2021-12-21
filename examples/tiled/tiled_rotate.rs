@@ -1,11 +1,5 @@
 use crate::tiled::*;
-use bevy::{
-    math::Vec3,
-    prelude::{App, AssetServer, Commands, Handle, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::{math::Vec3, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
 #[path = "../helpers/mod.rs"]
@@ -42,7 +36,7 @@ fn main() {
             title: String::from("Tiled map editor example with flipping and rotation."),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(TiledMapPlugin)
         .add_startup_system(startup)

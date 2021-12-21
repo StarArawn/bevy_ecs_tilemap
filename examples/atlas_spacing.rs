@@ -1,10 +1,4 @@
-use bevy::{
-    math::Vec2,
-    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -65,7 +59,7 @@ fn main() {
             title: String::from("Map Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

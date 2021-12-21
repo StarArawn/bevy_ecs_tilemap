@@ -1,12 +1,4 @@
-use bevy::{
-    core::Time,
-    prelude::{
-        App, AssetServer, Commands, Component, GlobalTransform, Handle, Query, Res, Transform,
-    },
-    render2::{camera::OrthographicCameraBundle, texture::Image},
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -112,7 +104,7 @@ fn main() {
             title: String::from("Replace Material Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

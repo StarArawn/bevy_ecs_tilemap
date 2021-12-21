@@ -1,9 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
+    prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
@@ -96,7 +93,7 @@ fn main() {
             title: String::from("Animated Map Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)

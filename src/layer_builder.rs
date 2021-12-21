@@ -11,10 +11,9 @@ use crate::{
 };
 use bevy::{
     math::Vec2,
-    prelude::{Assets, BuildChildren, Commands, Entity, Handle, ResMut, Transform},
-    render2::texture::Image,
-    render2::{
-        mesh::{Indices, Mesh, VertexAttributeValues},
+    prelude::*,
+    render::{
+        mesh::{Indices, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
 };

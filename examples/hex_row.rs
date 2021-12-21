@@ -1,9 +1,4 @@
-use bevy::{
-    prelude::{App, AssetServer, Commands, GlobalTransform, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
@@ -111,7 +106,7 @@ fn main() {
             title: String::from("Hex Map Column Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

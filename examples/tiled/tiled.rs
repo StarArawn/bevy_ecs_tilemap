@@ -1,10 +1,5 @@
 use bevy::math::Vec2;
-use bevy::prelude::{
-    AddAsset, Added, App, AssetEvent, Assets, Bundle, Commands, DespawnRecursiveExt, Entity,
-    EventReader, GlobalTransform, Handle, Plugin, Query, Res, ResMut, Transform,
-};
-use bevy::render2::mesh::Mesh;
-use bevy::render2::texture::Image;
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use std::{collections::HashMap, io::BufReader};
 

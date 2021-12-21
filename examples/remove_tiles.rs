@@ -1,10 +1,4 @@
-use bevy::{
-    core::Time,
-    prelude::{App, AssetServer, Commands, Component, GlobalTransform, Query, Res, Transform},
-    render2::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
-    PipelinedDefaultPlugins,
-};
+use bevy::{core::Time, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
@@ -85,7 +79,7 @@ fn main() {
             title: String::from("Remove Tiles Example"),
             ..Default::default()
         })
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

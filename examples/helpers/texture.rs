@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render2::{render_resource::FilterMode, texture::Image}};
+use bevy::{prelude::*, render::render_resource::FilterMode};
 
 pub fn set_texture_filters_to_nearest(
     mut texture_events: EventReader<AssetEvent<Image>>,

@@ -8,12 +8,8 @@ use crate::{
 use bevy::{
     core::Time,
     math::{Vec2, Vec4},
-    prelude::{
-        Assets, Bundle, Changed, Component, Entity, GlobalTransform, Handle, Query, Res, ResMut,
-        Transform, Visible,
-    },
-    render2::camera::{Camera, OrthographicProjection},
-    render2::{camera::CameraPlugin, mesh::Mesh, texture::Image},
+    prelude::*,
+    render::camera::CameraPlugin,
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
@@ -25,7 +21,8 @@ pub(crate) struct ChunkBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub tilemap_data: TilemapUniformData,
-    pub visible: Visible,
+    pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
 }
 
 impl Default for ChunkBundle {
@@ -36,7 +33,8 @@ impl Default for ChunkBundle {
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
             tilemap_data: TilemapUniformData::default(),
-            visible: Visible::default(),
+            visibility: Visibility::default(),
+            computed_visibility: ComputedVisibility::default(),
         }
     }
 }
@@ -147,12 +145,12 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
-    mut changed_chunks: Query<(&mut Chunk, &Visible), Changed<Chunk>>,
+    mut changed_chunks: Query<(&mut Chunk, &Visibility), Changed<Chunk>>,
 ) {
     let threaded_meshes = Mutex::new(meshes);
 
-    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visible)| {
-        if chunk.needs_remesh && visible.is_visible {
+    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visibility)| {
+        if chunk.needs_remesh && visibility.is_visible {
             log::trace!(
                 "Re-meshing chunk at: {:?} layer id of: {}",
                 chunk.position,
@@ -172,7 +170,7 @@ pub(crate) fn update_chunk_mesh(
 
 pub(crate) fn update_chunk_visibility(
     camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
-    mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visible)>,
+    mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visibility)>,
 ) {
     if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
         if let Some(name) = &data.0.name {
@@ -193,7 +191,7 @@ pub(crate) fn update_chunk_visibility(
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
-        for (global_transform, chunk, mut visible) in chunks.iter_mut() {
+        for (global_transform, chunk, mut visibility) in chunks.iter_mut() {
             if chunk.settings.mesh_type != TilemapMeshType::Square || !chunk.settings.cull {
                 continue;
             }
@@ -219,25 +217,25 @@ pub(crate) fn update_chunk_visibility(
 
             if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
                 if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
-                    if visible.is_visible {
+                    if visibility.is_visible {
                         log::trace!("Hiding chunk @: {:?}", bounds);
-                        visible.is_visible = false;
+                        visibility.is_visible = false;
                     }
                 } else {
-                    if !visible.is_visible {
+                    if !visibility.is_visible {
                         log::trace!("Showing chunk @: {:?}", bounds);
-                        visible.is_visible = true;
+                        visibility.is_visible = true;
                     }
                 }
             } else {
-                if visible.is_visible {
+                if visibility.is_visible {
                     log::trace!(
                         "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
                         bounds,
                         padded_camera_bounds,
                         bounds_size
                     );
-                    visible.is_visible = false;
+                    visibility.is_visible = false;
                 }
             }
         }
