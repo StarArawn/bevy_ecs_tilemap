@@ -121,6 +121,14 @@ impl Default for TilemapMeshType {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, StageLabel)]
 pub struct TilemapStage;
 
+/// The tilemap system labels
+#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
+pub enum TilemapLabel {
+    UpdateChunkHashmap,
+    UpdateChunkVisibility,
+    UpdateChunkMesh,
+}
+
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_stage_before(CoreStage::PostUpdate, TilemapStage, SystemStage::parallel())
@@ -129,20 +137,21 @@ impl Plugin for TilemapPlugin {
                 TilemapStage,
                 update_chunk_hashmap_for_added_tiles
                     .system()
-                    .label("hash_update_for_tiles"),
+                    .label(TilemapLabel::UpdateChunkHashmap),
             )
             .add_system_to_stage(
                 TilemapStage,
                 update_chunk_visibility
                     .system()
-                    .label("update_chunk_visibility"),
+                    .label(TilemapLabel::UpdateChunkVisibility),
             )
             .add_system_to_stage(
                 TilemapStage,
                 update_chunk_mesh
                     .system()
-                    .after("hash_update_for_tiles")
-                    .after("update_chunk_visibility"),
+                    .label(TilemapLabel::UpdateChunkMesh)
+                    .after(TilemapLabel::UpdateChunkHashmap)
+                    .after(TilemapLabel::UpdateChunkVisibility),
             );
         let world = &mut app.world;
         add_tile_map_graph(world);

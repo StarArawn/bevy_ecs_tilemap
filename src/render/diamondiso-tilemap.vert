@@ -55,7 +55,7 @@ void main() {
 
     float current_animation_frame = fract(time * Vertex_Position.z) * frames;
 
-    current_animation_frame = clamp(current_animation_frame, float(Vertex_Texture.z), float(Vertex_Texture.w));
+    current_animation_frame = clamp(float(Vertex_Texture.z) + current_animation_frame, float(Vertex_Texture.z), float(Vertex_Texture.w));
 
     int texture_index = int(current_animation_frame);
     
