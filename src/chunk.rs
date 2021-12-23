@@ -145,7 +145,10 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
-    mut changed_chunks: Query<(&mut Chunk, &Visibility), Changed<Chunk>>,
+    mut changed_chunks: Query<
+        (&mut Chunk, &Visibility),
+        Or<(Added<Chunk>, Changed<Chunk>, Changed<Visibility>)>,
+    >,
 ) {
     let threaded_meshes = Mutex::new(meshes);
 
@@ -197,8 +200,12 @@ pub(crate) fn update_chunk_visibility(
             }
 
             let bounds_size = Vec2::new(
-                chunk.settings.chunk_size.0 as f32 * chunk.settings.tile_size.0,
-                chunk.settings.chunk_size.1 as f32 * chunk.settings.tile_size.1,
+                chunk.settings.chunk_size.0 as f32
+                    * chunk.settings.tile_size.0
+                    * global_transform.scale.x,
+                chunk.settings.chunk_size.1 as f32
+                    * chunk.settings.tile_size.1
+                    * global_transform.scale.y,
             );
 
             let bounds = Vec4::new(
