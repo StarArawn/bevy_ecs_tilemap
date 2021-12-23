@@ -59,7 +59,6 @@
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
 use layer::update_chunk_hashmap_for_added_tiles;
-use render::pipeline::add_tile_map_graph;
 
 mod chunk;
 mod layer;
@@ -70,9 +69,6 @@ mod mesher;
 mod neighbors;
 mod render;
 mod tile;
-
-#[cfg(feature = "ldtk")]
-mod ldtk;
 
 pub use crate::chunk::Chunk;
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
@@ -86,7 +82,7 @@ pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent
 pub struct TilemapPlugin;
 
 /// Different hex coordinate systems. You can find out more at this link: https://www.redblobgames.com/grids/hexagons/
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HexType {
     RowEven,
     RowOdd,
@@ -97,14 +93,14 @@ pub enum HexType {
 }
 
 /// Different iso coordinate systems.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoType {
     Diamond,
     Staggered,
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapMeshType {
     Square,
     Hexagon(HexType),
@@ -143,9 +139,8 @@ impl Plugin for TilemapPlugin {
                     .system()
                     .after("hash_update_for_tiles")
                     .after("update_chunk_visibility"),
-            );
-        let world = &mut app.world;
-        add_tile_map_graph(world);
+            )
+            .add_plugin(render::TilemapRenderPlugin);
     }
 }
 
@@ -182,7 +177,7 @@ pub(crate) fn round_to_power_of_two(value: f32) -> usize {
 }
 
 /// The size of the map, in chunks
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct MapSize(pub u32, pub u32);
 
 impl From<Vec2> for MapSize {
@@ -198,7 +193,7 @@ impl Into<Vec2> for MapSize {
 }
 
 /// The size of each chunk, in tiles
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ChunkSize(pub u32, pub u32);
 
 impl From<Vec2> for ChunkSize {
@@ -214,7 +209,7 @@ impl Into<Vec2> for ChunkSize {
 }
 
 /// The size of each tile, in pixels
-#[derive(Default, Clone, Copy, PartialEq, Debug)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Debug)]
 pub struct TileSize(pub f32, pub f32);
 
 impl From<Vec2> for TileSize {
@@ -230,7 +225,7 @@ impl Into<Vec2> for TileSize {
 }
 
 /// The size of a texture in pixels
-#[derive(Default, Clone, Copy, PartialEq, Debug)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Debug)]
 pub struct TextureSize(pub f32, pub f32);
 
 impl Into<Vec2> for TextureSize {
@@ -242,7 +237,7 @@ impl Into<Vec2> for TextureSize {
 /// The position of a tile, in map coordinates
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the map.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash, Component)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct TilePos(pub u32, pub u32);
 
 impl Into<UVec2> for TilePos {
@@ -260,7 +255,7 @@ impl Into<TilePos> for UVec2 {
 /// The position of a tile, in chunk coordinates
 ///
 /// Coordinates start at (0, 0) from the bottom-left tile of the chunk.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct LocalTilePos(pub u32, pub u32);
 
 impl Into<UVec2> for LocalTilePos {
@@ -273,7 +268,7 @@ impl Into<UVec2> for LocalTilePos {
 ///
 /// Coordinates start at (0, 0) from the bottom-left chunk of the map.
 /// Note that these coordinates are measured in terms of chunks, not tiles.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+#[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct ChunkPos(pub u32, pub u32);
 
 impl Into<UVec2> for ChunkPos {

@@ -2,7 +2,7 @@ use crate::layer::LayerId;
 use crate::map::Map;
 use crate::{morton_index, prelude::*};
 use bevy::ecs::system::SystemParam;
-use bevy::math::Vec3Swizzles;
+use bevy::math::{Vec2, Vec3, Vec3Swizzles};
 use bevy::prelude::*;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
@@ -44,7 +44,7 @@ impl<'w, 's> MapQuery<'w, 's> {
         &mut self,
         commands: &mut Commands,
         mut layer_builder: LayerBuilder<impl TileBundleTrait>,
-        material_handle: Handle<ColorMaterial>,
+        material_handle: Handle<Image>,
     ) -> Entity {
         let layer_bundle = layer_builder.build(commands, &mut self.meshes, material_handle);
         let mut layer = layer_bundle.layer;
@@ -189,6 +189,12 @@ impl<'w, 's> MapQuery<'w, 's> {
         }
 
         Err(MapTileError::OutOfBounds)
+    }
+
+    pub fn update_chunk<F: FnMut(Mut<Chunk>)>(&mut self, chunk_entity: Entity, mut f: F) {
+        if let Ok((_, chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity) {
+            f(chunk);
+        }
     }
 
     /// Despawns the tile entity and removes it from the layer/chunk cache.
@@ -369,8 +375,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                         tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) =
-                            self.chunk_query_set.q0().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
                         {
                             chunk.needs_remesh = true;
                         }
@@ -405,10 +410,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = map_query
-            .iter()
-            .find(|(_, map)| map.id == map_id)
-        {
+        if let Some((_, map)) = map_query.iter().find(|(_, map)| map.id == map_id) {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = layer_query.get(*layer_entity) {
                     let grid_size = layer.settings.grid_size;

@@ -1,8 +1,8 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_ecs_tilemap::MapQuery;
 
-#[derive(Component)]
 #[allow(dead_code)]
+#[derive(Component)]
 pub struct Player;
 
 // A simple camera system for moving and zooming the camera.

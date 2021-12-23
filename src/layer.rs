@@ -22,7 +22,7 @@ pub struct LayerBundle {
 }
 
 /// Various settings used to define the tilemap.
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Component, Copy, Clone)]
 pub struct LayerSettings {
     /// Size of the tilemap in chunks
     pub map_size: MapSize,

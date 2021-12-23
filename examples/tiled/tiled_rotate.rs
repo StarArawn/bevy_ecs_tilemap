@@ -1,5 +1,5 @@
 use crate::tiled::*;
-use bevy::prelude::*;
+use bevy::{math::Vec3, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
 #[path = "../helpers/mod.rs"]
@@ -29,10 +29,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
@@ -43,8 +39,8 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(TiledMapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }
