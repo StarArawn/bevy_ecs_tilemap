@@ -2,6 +2,7 @@ use std::array::IntoIter;
 
 use crate::{prelude::*, tile::GPUAnimated};
 use bevy::{
+    math::Vec2,
     prelude::*,
     render::mesh::{Indices, VertexAttributeValues},
 };
@@ -126,9 +127,12 @@ impl ChunkMesher {
                 }
             }
         }
-        mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float3(positions));
-        mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Int4(textures));
-        mesh.set_attribute("Vertex_Color", VertexAttributeValues::Float4(colors));
+        mesh.set_attribute(
+            "Vertex_Position",
+            VertexAttributeValues::Float32x3(positions),
+        );
+        mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(textures));
+        mesh.set_attribute("Vertex_Color", VertexAttributeValues::Float32x4(colors));
         mesh.set_indices(Some(Indices::U32(indices)));
     }
 }
