@@ -169,9 +169,10 @@ where
     }
 
     /// Sets a tile's data at the given position.
-    pub fn set_tile(&mut self, tile_pos: TilePos, tile: T) -> Result<(), MapTileError> {
+    pub fn set_tile(&mut self, tile_pos: TilePos, mut tile: T) -> Result<(), MapTileError> {
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
+            *tile.get_tile_pos_mut() = tile_pos;
             self.tiles[morton_tile_index].1 = Some(tile);
             return Ok(());
         }

@@ -4,11 +4,10 @@ use bevy::{core::Time, input::Input, math::Vec3, prelude::*, render::camera::Cam
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<&mut Transform, With<Camera>>,
+    mut query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
 ) {
-    for mut transform in query.iter_mut() {
+    for (mut transform, mut ortho) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
-        let scale = transform.scale.x;
 
         if keyboard_input.pressed(KeyCode::A) {
             direction -= Vec3::new(1.0, 0.0, 0.0);
@@ -27,17 +26,15 @@ pub fn movement(
         }
 
         if keyboard_input.pressed(KeyCode::Z) {
-            let scale = scale + 0.1;
-            transform.scale = Vec3::splat(scale);
+            ortho.scale += 0.1;
         }
 
         if keyboard_input.pressed(KeyCode::X) {
-            let scale = scale - 0.1;
-            transform.scale = Vec3::splat(scale);
+            ortho.scale -= 0.1;
         }
 
-        if transform.scale.x < 1.0 {
-            transform.scale = Vec3::splat(1.0)
+        if ortho.scale < 1.0 {
+            ortho.scale = 1.0;
         }
 
         transform.translation += time.delta_seconds() * direction * 500.;

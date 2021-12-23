@@ -151,7 +151,7 @@ pub(crate) fn update_chunk_mesh(
 
     changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visibility)| {
         if chunk.needs_remesh && visibility.is_visible {
-            log::trace!(
+            log::info!(
                 "Re-meshing chunk at: {:?} layer id of: {}",
                 chunk.position,
                 chunk.settings.layer_id
@@ -218,18 +218,18 @@ pub(crate) fn update_chunk_visibility(
             if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
                 if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
                     if visibility.is_visible {
-                        log::trace!("Hiding chunk @: {:?}", bounds);
+                        log::info!("Hiding chunk @: {:?}", bounds);
                         visibility.is_visible = false;
                     }
                 } else {
                     if !visibility.is_visible {
-                        log::trace!("Showing chunk @: {:?}", bounds);
+                        log::info!("Showing chunk @: {:?}", bounds);
                         visibility.is_visible = true;
                     }
                 }
             } else {
                 if visibility.is_visible {
-                    log::trace!(
+                    log::info!(
                         "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
                         bounds,
                         padded_camera_bounds,
