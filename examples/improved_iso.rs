@@ -1,20 +1,14 @@
-use bevy::prelude::*;
+use bevy::{math::Vec2, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     let mut camera_bundle = OrthographicCameraBundle::new_2d();
     camera_bundle.orthographic_projection.scale = 0.5;
     commands.spawn_bundle(camera_bundle);
 
     let texture_handle = asset_server.load("isometric-sheet.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component
     let map_entity = commands.spawn().id();
@@ -31,7 +25,7 @@ fn startup(
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
     map.add_layer(&mut commands, 0u16, layer_0_entity);
 
     layer_0.fill(
@@ -71,7 +65,7 @@ fn startup(
         .into(),
     );
 
-    map_query.build_layer(&mut commands, layer_0, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..1 {
@@ -82,7 +76,6 @@ fn startup(
             new_settings.clone(),
             0u16,
             new_settings.layer_id,
-            None,
         );
         map.add_layer(&mut commands, new_settings.layer_id, layer_entity);
 
@@ -103,7 +96,7 @@ fn startup(
             );
         }
 
-        map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+        map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
     }
 
     // Spawn Map
@@ -121,12 +114,11 @@ fn startup(
     dbg!(center);
     let sprite_pos = Transform::from_xyz(center.x, center.y, 1.0 + (1.0 - (center.y / 10000.0)));
     dbg!(sprite_pos);
-    let texture_handle: Handle<Texture> = asset_server.load("player.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
+    let texture_handle = asset_server.load("player.png");
 
     commands
         .spawn_bundle(SpriteBundle {
-            material: material_handle,
+            texture: texture_handle,
             transform: sprite_pos,
             ..Default::default()
         })
@@ -140,10 +132,6 @@ fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_module("bevy_ecs_tilemap", log::LevelFilter::Info)
-        .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
@@ -153,9 +141,9 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::movement::update.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::movement::update)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }
