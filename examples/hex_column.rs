@@ -4,16 +4,10 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("flat_hex_tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -28,7 +22,7 @@ fn startup(
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Column);
 
     let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
     layer_builder.fill(
@@ -68,13 +62,13 @@ fn startup(
         .into(),
     );
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
     for z in 0..2 {
         let mut new_settings = map_settings.clone();
         new_settings.layer_id = z + 1;
         let (mut layer_builder, layer_entity) =
-            LayerBuilder::<TileBundle>::new(&mut commands, new_settings, 0u16, 0u16, None);
+            LayerBuilder::<TileBundle>::new(&mut commands, new_settings, 0u16, 0u16);
         map.add_layer(&mut commands, z, layer_entity);
 
         let mut random = thread_rng();
@@ -92,7 +86,7 @@ fn startup(
             );
         }
 
-        map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+        map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
     }
 
     // Spawn Map
@@ -105,11 +99,7 @@ fn startup(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
@@ -118,8 +108,8 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

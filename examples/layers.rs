@@ -4,16 +4,10 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -28,21 +22,21 @@ fn startup(
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
-        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16, None);
+        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
 
     // Required to keep track of layers for a map internally.
     map.add_layer(&mut commands, 0u16, layer_0_entity);
 
     layer_0.set_all(TileBundle::default());
 
-    map_query.build_layer(&mut commands, layer_0, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
         let mut new_settings = map_settings.clone();
         new_settings.set_layer_id(z + 1);
         let (mut layer_builder, layer_entity) =
-            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1, None);
+            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1);
 
         let mut random = thread_rng();
 
@@ -61,7 +55,7 @@ fn startup(
             );
         }
 
-        map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+        map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
         // Required to keep track of layers for a map internally.
         map.add_layer(&mut commands, 0u16, layer_entity);
@@ -77,11 +71,7 @@ fn startup(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
@@ -90,8 +80,8 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

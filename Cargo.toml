@@ -6,20 +6,23 @@ authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license-file = "LICENSE"
-edition = "2018"
+edition = "2021"
 exclude = ["assets/*", "screenshots/*"]
 
 [features]
 default = []
 
 [dependencies]
-bevy = { version = "0.5", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "081350916c39fc1c7c9d659ccb6d86413832b465" }
+crevice = { git = "https://github.com/bevyengine/bevy", rev = "081350916c39fc1c7c9d659ccb6d86413832b465" }
 morton-encoding = "2.0"
 log = "0.4"
+regex = "1.5.4"
+bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { version = "0.5", default-features = true }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "081350916c39fc1c7c9d659ccb6d86413832b465", default-features = false }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"

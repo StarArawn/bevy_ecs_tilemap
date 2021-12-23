@@ -4,21 +4,15 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -34,11 +28,10 @@ fn startup(
         ),
         0u16,
         0u16,
-        None,
     );
     layer_builder.set_all(TileBundle::default());
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     commands.entity(layer_entity).insert(LastUpdate::default());
 
@@ -91,11 +84,7 @@ fn update_map(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
@@ -104,9 +93,9 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
-        .add_system(update_map.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(update_map)
         .run();
 }

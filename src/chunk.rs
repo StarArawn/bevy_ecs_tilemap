@@ -1,16 +1,15 @@
 use crate::{
     morton_index, morton_pos,
-    render::TilemapData,
+    render::TilemapUniformData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
     ChunkPos, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
 };
 use bevy::{
+    core::Time,
+    math::{Vec2, Vec4},
     prelude::*,
-    render::{
-        camera::{Camera, OrthographicProjection},
-        render_graph::base::{camera::CAMERA_2D, MainPass},
-    },
+    render::camera::CameraPlugin,
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
@@ -18,39 +17,30 @@ use std::sync::Mutex;
 #[derive(Bundle)]
 pub(crate) struct ChunkBundle {
     pub chunk: Chunk,
-    pub main_pass: MainPass,
-    pub material: Handle<ColorMaterial>,
-    pub render_pipeline: RenderPipelines,
-    pub visible: Visible,
-    pub draw: Draw,
     pub mesh: Handle<Mesh>,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    pub tilemap_data: TilemapData,
+    pub tilemap_data: TilemapUniformData,
+    pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
 }
 
 impl Default for ChunkBundle {
     fn default() -> Self {
         Self {
             chunk: Chunk::default(),
-            visible: Visible {
-                is_transparent: true,
-                ..Default::default()
-            },
-            draw: Draw::default(),
-            main_pass: MainPass,
             mesh: Handle::default(),
-            material: Handle::default(),
-            render_pipeline: TilemapMeshType::Square.into(),
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
-            tilemap_data: TilemapData::default(),
+            tilemap_data: TilemapUniformData::default(),
+            visibility: Visibility::default(),
+            computed_visibility: ComputedVisibility::default(),
         }
     }
 }
 
 /// A component that stores information about a specific chunk in the tile map.
-#[derive(Debug, Clone)]
+#[derive(Debug, Component, Clone)]
 pub struct Chunk {
     /// The specific location x,y of the chunk in the tile map in chunk coords.
     pub position: ChunkPos,
@@ -60,6 +50,8 @@ pub struct Chunk {
     pub settings: LayerSettings,
     /// Tells internal systems that this chunk should be remeshed(send new data to the GPU)
     pub needs_remesh: bool,
+    /// Tells the renderer which image to use for the tilemap.
+    pub material: Handle<Image>,
     pub(crate) tiles: Vec<Option<Entity>>,
     pub(crate) mesh_handle: Handle<Mesh>,
 }
@@ -68,6 +60,7 @@ impl Default for Chunk {
     fn default() -> Self {
         Self {
             map_entity: Entity::new(0),
+            material: Default::default(),
             mesh_handle: Default::default(),
             needs_remesh: true,
             position: Default::default(),
@@ -83,6 +76,7 @@ impl Chunk {
         layer_settings: LayerSettings,
         position: ChunkPos,
         mesh_handle: Handle<Mesh>,
+        material: Handle<Image>,
     ) -> Self {
         let tile_size_x = round_to_power_of_two(layer_settings.chunk_size.0 as f32);
         let tile_size_y = round_to_power_of_two(layer_settings.chunk_size.1 as f32);
@@ -91,6 +85,7 @@ impl Chunk {
 
         Self {
             map_entity,
+            material,
             mesh_handle,
             needs_remesh: true,
             position,
@@ -150,13 +145,16 @@ pub(crate) fn update_chunk_mesh(
     task_pool: Res<AsyncComputeTaskPool>,
     meshes: ResMut<Assets<Mesh>>,
     tile_query: Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
-    mut changed_chunks: Query<(&mut Chunk, &Visible), Or<(Changed<Visible>, Changed<Chunk>)>>,
+    mut changed_chunks: Query<
+        (&mut Chunk, &Visibility),
+        Or<(Added<Chunk>, Changed<Chunk>, Changed<Visibility>)>,
+    >,
 ) {
     let threaded_meshes = Mutex::new(meshes);
 
-    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visible)| {
-        if visible.is_visible && chunk.needs_remesh {
-            log::trace!(
+    changed_chunks.par_for_each_mut(&task_pool, 5, |(mut chunk, visibility)| {
+        if chunk.needs_remesh && visibility.is_visible {
+            log::info!(
                 "Re-meshing chunk at: {:?} layer id of: {}",
                 chunk.position,
                 chunk.settings.layer_id
@@ -175,31 +173,39 @@ pub(crate) fn update_chunk_mesh(
 
 pub(crate) fn update_chunk_visibility(
     camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
-    mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visible)>,
+    mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visibility)>,
 ) {
     if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
         if let Some(name) = &data.0.name {
-            name == CAMERA_2D
+            name == CameraPlugin::CAMERA_2D
         } else {
             false
         }
     }) {
         // Transform camera into world space.
-        let left = camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);
-        let right = camera_transform.translation.x + (ortho.right * ortho.scale * camera_transform.scale.x);
-        let bottom = camera_transform.translation.y + (ortho.bottom * ortho.scale * camera_transform.scale.y);
-        let top = camera_transform.translation.y + (ortho.top * ortho.scale * camera_transform.scale.y);
+        let left =
+            camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);
+        let right =
+            camera_transform.translation.x + (ortho.right * ortho.scale * camera_transform.scale.x);
+        let bottom = camera_transform.translation.y
+            + (ortho.bottom * ortho.scale * camera_transform.scale.y);
+        let top =
+            camera_transform.translation.y + (ortho.top * ortho.scale * camera_transform.scale.y);
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
-        for (global_transform, chunk, mut visible) in chunks.iter_mut() {
+        for (global_transform, chunk, mut visibility) in chunks.iter_mut() {
             if chunk.settings.mesh_type != TilemapMeshType::Square || !chunk.settings.cull {
                 continue;
             }
 
             let bounds_size = Vec2::new(
-                chunk.settings.chunk_size.0 as f32 * chunk.settings.tile_size.0,
-                chunk.settings.chunk_size.1 as f32 * chunk.settings.tile_size.1,
+                chunk.settings.chunk_size.0 as f32
+                    * chunk.settings.tile_size.0
+                    * global_transform.scale.x,
+                chunk.settings.chunk_size.1 as f32
+                    * chunk.settings.tile_size.1
+                    * global_transform.scale.y,
             );
 
             let bounds = Vec4::new(
@@ -218,32 +224,32 @@ pub(crate) fn update_chunk_visibility(
 
             if (bounds.x >= padded_camera_bounds.x) && (bounds.y <= padded_camera_bounds.y) {
                 if (bounds.z < padded_camera_bounds.z) || (bounds.w > padded_camera_bounds.w) {
-                    if visible.is_visible {
-                        log::trace!("Hiding chunk @: {:?}", bounds);
-                        visible.is_visible = false;
+                    if visibility.is_visible {
+                        log::info!("Hiding chunk @: {:?}", bounds);
+                        visibility.is_visible = false;
                     }
                 } else {
-                    if !visible.is_visible {
-                        log::trace!("Showing chunk @: {:?}", bounds);
-                        visible.is_visible = true;
+                    if !visibility.is_visible {
+                        log::info!("Showing chunk @: {:?}", bounds);
+                        visibility.is_visible = true;
                     }
                 }
             } else {
-                if visible.is_visible {
-                    log::trace!(
+                if visibility.is_visible {
+                    log::info!(
                         "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
                         bounds,
                         padded_camera_bounds,
                         bounds_size
                     );
-                    visible.is_visible = false;
+                    visibility.is_visible = false;
                 }
             }
         }
     }
 }
 
-pub(crate) fn update_chunk_time(time: Res<Time>, mut query: Query<&mut TilemapData>) {
+pub(crate) fn update_chunk_time(time: Res<Time>, mut query: Query<&mut TilemapUniformData>) {
     for mut data in query.iter_mut() {
         data.time = time.seconds_since_startup() as f32;
     }

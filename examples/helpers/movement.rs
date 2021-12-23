@@ -2,6 +2,7 @@ use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_ecs_tilemap::MapQuery;
 
 #[allow(dead_code)]
+#[derive(Component)]
 pub struct Player;
 
 // A simple camera system for moving and zooming the camera.
@@ -10,7 +11,7 @@ pub fn update(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,
-    map_query: MapQuery,
+    mut map_query: MapQuery,
 ) {
     for mut transform in query.iter_mut() {
         let mut direction = Vec3::ZERO;

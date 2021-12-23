@@ -1,24 +1,21 @@
 use std::collections::HashSet;
 
 use bevy::{
+    core::Time,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
+    render::camera::OrthographicCameraBundle,
+    window::WindowDescriptor,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     // Create map entity and component:
     let map_entity = commands.spawn().id();
@@ -35,7 +32,7 @@ fn startup(
 
     // Chunk sizes of 64x64 seem optimal for meshing updates.
     let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16, None);
+        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
     layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
@@ -50,7 +47,7 @@ fn startup(
             .insert(LastUpdate::default());
     });
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     // Spawn Map
     // Required in order to use map_query to retrieve layers/tiles.
@@ -61,7 +58,7 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }
@@ -92,11 +89,7 @@ fn random(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Warn)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
@@ -107,9 +100,9 @@ fn main() {
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(random.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_startup_system(startup)
+        .add_system(random)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

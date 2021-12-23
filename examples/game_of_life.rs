@@ -1,21 +1,13 @@
-use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut map_query: MapQuery,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     let texture_handle = asset_server.load("tiles.png");
-    let material_handle = materials.add(ColorMaterial::texture(texture_handle));
 
     let map_size = MapSize(5 * 16, 5 * 16);
 
@@ -33,7 +25,6 @@ fn startup(
         ),
         0u16,
         0u16,
-        None,
     );
 
     let mut i = 0;
@@ -53,7 +44,7 @@ fn startup(
         }
     }
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle.clone());
+    map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
     commands.entity(layer_entity).insert(LastUpdate(0.0));
 
@@ -69,6 +60,7 @@ fn startup(
         .insert(GlobalTransform::default());
 }
 
+#[derive(Component)]
 pub struct LastUpdate(f64);
 
 fn update(
@@ -79,60 +71,55 @@ fn update(
     mut map_query: MapQuery,
 ) {
     let current_time = time.seconds_since_startup();
-    if let Ok(mut last_update) = last_update_query.single_mut() {
-        if current_time - last_update.0 > 0.1 {
-            for (entity, tile, pos) in tile_query.iter() {
-                // Get neighbor count.
-                let neighbor_count = map_query
-                    .get_tile_neighbors(*pos, 0u16, 0u16)
-                    .iter()
-                    .filter(|&&neighboring_result| {
-                        if neighboring_result.is_ok() {
-                            let tile_component: &Tile = tile_query
-                                .get_component::<Tile>(neighboring_result.unwrap())
-                                .unwrap();
-                            tile_component.visible
-                        } else {
-                            false
-                        }
-                    })
-                    .count();
-                let was_alive = tile.visible;
+    let mut last_update = last_update_query.single_mut();
+    if current_time - last_update.0 > 0.1 {
+        for (entity, tile, pos) in tile_query.iter() {
+            // Get neighbor count.
+            let neighbor_count = map_query
+                .get_tile_neighbors(*pos, 0u16, 0u16)
+                .iter()
+                .filter(|&&neighboring_result| {
+                    if neighboring_result.is_ok() {
+                        let tile_component: &Tile = tile_query
+                            .get_component::<Tile>(neighboring_result.unwrap())
+                            .unwrap();
+                        tile_component.visible
+                    } else {
+                        false
+                    }
+                })
+                .count();
+            let was_alive = tile.visible;
 
-                let is_alive = match (was_alive, neighbor_count) {
-                    (true, x) if x < 2 => false,
-                    (true, 2) | (true, 3) => true,
-                    (true, x) if x > 3 => false,
-                    (false, 3) => true,
-                    (otherwise, _) => otherwise,
-                };
+            let is_alive = match (was_alive, neighbor_count) {
+                (true, x) if x < 2 => false,
+                (true, 2) | (true, 3) => true,
+                (true, x) if x > 3 => false,
+                (false, 3) => true,
+                (otherwise, _) => otherwise,
+            };
 
-                if is_alive && !was_alive {
-                    commands.entity(entity).insert(Tile {
-                        visible: true,
-                        ..*tile
-                    });
-                    map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
-                } else if !is_alive && was_alive {
-                    commands.entity(entity).insert(Tile {
-                        visible: false,
-                        ..*tile
-                    });
-                    map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
-                }
+            if is_alive && !was_alive {
+                commands.entity(entity).insert(Tile {
+                    visible: true,
+                    ..*tile
+                });
+                map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
+            } else if !is_alive && was_alive {
+                commands.entity(entity).insert(Tile {
+                    visible: false,
+                    ..*tile
+                });
+                map_query.notify_chunk_for_tile(*pos, 0u16, 0u16);
             }
-
-            last_update.0 = current_time;
         }
+
+        last_update.0 = current_time;
     }
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Error)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
@@ -143,9 +130,9 @@ fn main() {
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup.system())
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
-        .add_system(update.system())
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(update)
         .run();
 }

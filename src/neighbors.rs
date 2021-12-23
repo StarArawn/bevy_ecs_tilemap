@@ -27,7 +27,7 @@ impl<T: TileBundleTrait> LayerBuilder<T> {
     }
 }
 
-impl<'a> MapQuery<'a> {
+impl<'w, 's> MapQuery<'w, 's> {
     /// Retrieves a list of neighbor entities in the following order:
     /// N, S, W, E, NW, NE, SW, SE.
     ///
@@ -43,15 +43,15 @@ impl<'a> MapQuery<'a> {
     /// assert!(neighbors[0].1.is_none()); // Entity returned inside bounds.
     /// ```
     pub fn get_tile_neighbors(
-        &self,
+        &mut self,
         tile_pos: TilePos,
         map_id: impl MapId,
         layer_id: impl LayerId,
     ) -> Vec<Result<Entity, MapTileError>> {
-        let neighboring_tile_pos = get_neighboring_pos(tile_pos);
+        let mut neighboring_tile_pos = get_neighboring_pos(tile_pos);
 
         neighboring_tile_pos
-            .iter()
+            .iter_mut()
             .map(|maybe_pos| match maybe_pos {
                 Some(pos) => self.get_tile_entity(*pos, map_id, layer_id),
                 _ => Err(MapTileError::OutOfBounds),

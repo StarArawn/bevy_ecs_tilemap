@@ -22,7 +22,7 @@ pub struct LayerBundle {
 }
 
 /// Various settings used to define the tilemap.
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Component, Copy, Clone)]
 pub struct LayerSettings {
     /// Size of the tilemap in chunks
     pub map_size: MapSize,
@@ -94,7 +94,7 @@ impl LayerSettings {
 }
 
 /// A component which keeps information and a cache of tile/chunk entities for convenience.
-#[derive(Default)]
+#[derive(Default, Component)]
 pub struct Layer {
     /// The map information for the tilemap entity.
     pub settings: LayerSettings,
