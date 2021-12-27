@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d3d04f67-c1b6-42c1-a4b0-9850949e94fc" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-01.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-02.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-03.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-04.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-05.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/individual/tile-06.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/texture_atlas.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/include_shader.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_even_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_odd_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/diamond_iso.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_even_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_odd_hex.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/square.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/staggered_iso.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/shaders/tilemap.wgsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/render/tilemap_data.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/tile_atlas.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/accessing_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/accessing_tiles.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/animation.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/animation.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/atlas_spacing.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/atlas_spacing.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/bench.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/bench.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/color.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/color.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/dynamic_map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/dynamic_map.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/game_of_life.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/game_of_life.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/helpers/camera.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/camera.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/helpers/movement.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/movement.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/helpers/texture.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/texture.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/hex_column.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/hex_column.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/hex_row.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/hex_row.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/improved_iso.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/improved_iso.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/iso_diamond.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/iso_diamond.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/iso_staggered.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/iso_staggered.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/layers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/layers.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/ldtk/ldtk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ldtk/ldtk.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/ldtk/ldtk_usage.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ldtk/ldtk_usage.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/map.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/random_map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/random_map.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/remove_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/remove_tiles.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/replace_material.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/replace_material.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/sparse_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/sparse_tiles.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled_rotate.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled_rotate.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled_usage.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled_usage.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/visibility.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/visibility.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chunk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chunk.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/layer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/layer.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/layer_builder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/layer_builder.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/map.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/map_query.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/map_query.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mesher.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/mesher.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/neighbors.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/neighbors.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/columnevenhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/columnhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/columnoddhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/diamondiso-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/render/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/pipeline.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/render/pipeline.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/rowevenhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/rowhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/rowoddhex-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/square-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/staggerediso-tilemap.vert" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render/tilemap.frag" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tile.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tile.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="u3bqlr6a" />
+  </component>
+  <component name="ProjectId" id="20wkpw0QDNClDuZuZmrgq0LiYHR" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/assets" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/assets" />
+      <recent name="$PROJECT_DIR$/examples" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Cargo.Run hex_column">
+    <configuration name="Run animation" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package bevy_ecs_tilemap --example animation" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run auto_tiles" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package bevy_ecs_tilemap --example auto_tiles" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run dynamic_map" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package bevy_ecs_tilemap --example dynamic_map" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run hex_column" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package bevy_ecs_tilemap --example hex_column" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run texture_atlas" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package bevy_ecs_tilemap --example texture_atlas" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Run hex_column" />
+        <item itemvalue="Cargo.Run animation" />
+        <item itemvalue="Cargo.Run texture_atlas" />
+        <item itemvalue="Cargo.Run dynamic_map" />
+        <item itemvalue="Cargo.Run auto_tiles" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d3d04f67-c1b6-42c1-a4b0-9850949e94fc" name="Changes" comment="" />
+      <created>1636963223659</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1636963223659</updated>
+      <workItem from="1636963227366" duration="4753000" />
+      <workItem from="1637182161128" duration="782000" />
+      <workItem from="1637183232463" duration="3048000" />
+      <workItem from="1637209514471" duration="976000" />
+      <workItem from="1637210507369" duration="3798000" />
+      <workItem from="1637559953136" duration="600000" />
+      <workItem from="1637627286145" duration="1519000" />
+      <workItem from="1637875290462" duration="748000" />
+      <workItem from="1637967816275" duration="1714000" />
+      <workItem from="1640287693430" duration="559000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+</project>
