@@ -45,26 +45,25 @@ impl AssetLoader for TiledLoader {
             let map = tiled::parse(BufReader::new(bytes))?;
 
             let mut dependencies = Vec::new();
+            let mut handles = HashMap::default();
+
             for tileset in &map.tilesets {
+                let tile_path = root_dir.join(tileset.images.first().unwrap().source.as_str());
+                let asset_path = AssetPath::new(tile_path, None);
+                let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
+
                 for i in tileset.first_gid..(tileset.first_gid + tileset.tilecount.unwrap_or(1)) {
-                    let tile_path = root_dir.join(tileset.images.first().unwrap().source.as_str());
-                    dependencies.push((i, AssetPath::new(tile_path, None)));
+                    handles.insert(i, texture.clone());
                 }
+
+                dependencies.push(asset_path);
             }
 
             let loaded_asset = LoadedAsset::new(TiledMap {
                 map,
-                tilesets: dependencies
-                    .iter()
-                    .map(|dep| {
-                        let texture: Handle<Image> = load_context.get_handle(dep.1.clone());
-                        (dep.0, texture)
-                    })
-                    .collect(),
+                tilesets: handles,
             });
-            load_context.set_default_asset(
-                loaded_asset.with_dependencies(dependencies.iter().map(|x| x.1.clone()).collect()),
-            );
+            load_context.set_default_asset(loaded_asset.with_dependencies(dependencies));
             Ok(())
         })
     }
