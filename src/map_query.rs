@@ -4,6 +4,8 @@ use crate::{morton_index, prelude::*};
 use bevy::ecs::system::SystemParam;
 use bevy::math::{Vec2, Vec3, Vec3Swizzles};
 use bevy::prelude::*;
+use bevy::render::render_resource::TextureFormat;
+use bevy::render::texture::BevyDefault;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
 /// It's not required that you use this, but it does provide a convenience.
@@ -36,6 +38,7 @@ pub struct MapQuery<'w, 's> {
         ),
     >,
     meshes: ResMut<'w, Assets<Mesh>>,
+    images: ResMut<'w, Assets<LayerImage>>,
 }
 
 impl<'w, 's> MapQuery<'w, 's> {
@@ -46,7 +49,11 @@ impl<'w, 's> MapQuery<'w, 's> {
         mut layer_builder: LayerBuilder<impl TileBundleTrait>,
         material_handle: Handle<Image>,
     ) -> Entity {
-        let layer_bundle = layer_builder.build(commands, &mut self.meshes, material_handle);
+        let layer_image =
+            LayerImage::new_from_atlas_image(&material_handle, layer_builder.settings.tile_size);
+        let image_handle = self.images.add(layer_image);
+
+        let layer_bundle = layer_builder.build(commands, &mut self.meshes, image_handle);
         let mut layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
         layer.settings.layer_id = layer.settings.layer_id;

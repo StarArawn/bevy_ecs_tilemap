@@ -9,6 +9,7 @@ use bevy::{
     prelude::*,
     reflect::TypeUuid,
     render::{
+        mesh::GpuBufferInfo,
         render_asset::RenderAssets,
         render_component::{ComponentUniforms, DynamicUniformIndex},
         render_phase::{
@@ -31,9 +32,9 @@ use bevy::{
     },
     utils::HashMap,
 };
-use crevice::std140::AsStd140;
+use bevy_crevice::std140::AsStd140;
 
-use crate::{Chunk, TilemapMeshType};
+use crate::{Chunk, LayerImage, TilemapMeshType};
 
 use super::tilemap_data::TilemapUniformData;
 
@@ -68,7 +69,7 @@ pub fn extract_tilemaps(
         &TilemapUniformData,
         &Handle<Mesh>,
     )>,
-    images: Res<Assets<Image>>,
+    images: Res<Assets<LayerImage>>,
 ) {
     let mut extracted_tilemaps = Vec::new();
     for (entity, transform, chunk, tilemap_uniform, mesh_handle) in query.iter() {
@@ -165,7 +166,7 @@ impl FromWorld for TilemapPipeline {
                     ty: BindingType::Texture {
                         multisampled: false,
                         sample_type: TextureSampleType::Float { filterable: true },
-                        view_dimension: TextureViewDimension::D2,
+                        view_dimension: TextureViewDimension::D2Array,
                     },
                     count: None,
                 },
@@ -340,7 +341,7 @@ pub struct TilemapViewBindGroup {
 
 #[derive(Default)]
 pub struct ImageBindGroups {
-    values: HashMap<Handle<Image>, BindGroup>,
+    values: HashMap<Handle<LayerImage>, BindGroup>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -352,14 +353,14 @@ pub fn queue_meshes(
     mut pipelines: ResMut<SpecializedPipelines<TilemapPipeline>>,
     mut pipeline_cache: ResMut<RenderPipelineCache>,
     view_uniforms: Res<ViewUniforms>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<LayerImage>>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     standard_tilemap_meshes: Query<
         (
             Entity,
             &LayerId,
             &TilemapMeshType,
-            &Handle<Image>,
+            &Handle<LayerImage>,
             &MeshUniform,
         ),
         With<Handle<Mesh>>,
@@ -389,11 +390,16 @@ pub fn queue_meshes(
             for (entity, layer_id, tilemap_type, image, _mesh_uniform) in
                 standard_tilemap_meshes.iter()
             {
+                let gpu_image = if let Some(gpu_image) = gpu_images.get(&image) {
+                    gpu_image
+                } else {
+                    continue;
+                };
+
                 image_bind_groups
                     .values
                     .entry(image.clone_weak())
                     .or_insert_with(|| {
-                        let gpu_image = gpu_images.get(&image).unwrap();
                         render_device.create_bind_group(&BindGroupDescriptor {
                             entries: &[
                                 BindGroupEntry {
@@ -490,7 +496,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
 
 pub struct SetMaterialBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
-    type Param = (SRes<ImageBindGroups>, SQuery<Read<Handle<Image>>>);
+    type Param = (SRes<ImageBindGroups>, SQuery<Read<Handle<LayerImage>>>);
     #[inline]
     fn render<'w>(
         _view: Entity,
@@ -551,11 +557,18 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         let mesh_handle = mesh_query.get(item.entity).unwrap();
         let gpu_mesh = meshes.into_inner().get(mesh_handle).unwrap();
         pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-        if let Some(index_info) = &gpu_mesh.index_info {
-            pass.set_index_buffer(index_info.buffer.slice(..), 0, index_info.index_format);
-            pass.draw_indexed(0..index_info.count, 0, 0..1);
-        } else {
-            panic!("non-indexed drawing not supported yet")
+        match &gpu_mesh.buffer_info {
+            GpuBufferInfo::Indexed {
+                buffer,
+                index_format,
+                count,
+            } => {
+                pass.set_index_buffer(buffer.slice(..), 0, *index_format);
+                pass.draw_indexed(0..*count, 0, 0..1);
+            }
+            GpuBufferInfo::NonIndexed { vertex_count } => {
+                pass.draw(0..*vertex_count, 0..1);
+            }
         }
 
         RenderCommandResult::Success

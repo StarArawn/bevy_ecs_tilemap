@@ -2,8 +2,9 @@ use bevy::{
     core_pipeline::Transparent2d,
     prelude::*,
     render::{
-        render_component::UniformComponentPlugin, render_phase::AddRenderCommand,
-        render_resource::SpecializedPipelines, RenderApp, RenderStage,
+        render_asset::RenderAssetPlugin, render_component::UniformComponentPlugin,
+        render_phase::AddRenderCommand, render_resource::SpecializedPipelines, RenderApp,
+        RenderStage,
     },
 };
 
@@ -82,8 +83,9 @@ impl Plugin for TilemapRenderPlugin {
 
         app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
         app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
+        app.add_plugin(RenderAssetPlugin::<crate::LayerImage>::default());
 
-        let render_app = app.sub_app(RenderApp);
+        let render_app = app.sub_app_mut(RenderApp);
         render_app
             .add_system_to_stage(RenderStage::Extract, pipeline::extract_tilemaps)
             .add_system_to_stage(RenderStage::Queue, pipeline::queue_meshes)

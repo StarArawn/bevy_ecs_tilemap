@@ -61,6 +61,7 @@ use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
 use layer::update_chunk_hashmap_for_added_tiles;
 
 mod chunk;
+mod image;
 mod layer;
 mod layer_builder;
 mod map;
@@ -71,6 +72,7 @@ mod render;
 mod tile;
 
 pub use crate::chunk::Chunk;
+pub use crate::image::LayerImage;
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
@@ -127,7 +129,8 @@ pub enum TilemapLabel {
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_stage_before(CoreStage::PostUpdate, TilemapStage, SystemStage::parallel())
+        app.add_asset::<LayerImage>()
+            .add_stage_before(CoreStage::PostUpdate, TilemapStage, SystemStage::parallel())
             .add_system_to_stage(TilemapStage, update_chunk_time.system())
             .add_system_to_stage(
                 TilemapStage,
@@ -173,10 +176,10 @@ pub mod prelude {
     pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::ChunkMesher;
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
+    pub use crate::LayerImage;
     pub use crate::TilemapPlugin;
-    pub use crate::{HexType, IsoType, TilemapMeshType};
-
     pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TextureSize, TilePos, TileSize};
+    pub use crate::{HexType, IsoType, TilemapMeshType};
 
     pub use crate::neighbors::get_neighboring_pos;
 }

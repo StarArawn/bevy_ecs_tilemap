@@ -3,7 +3,7 @@ use crate::{
     render::TilemapUniformData,
     round_to_power_of_two,
     tile::{GPUAnimated, Tile},
-    ChunkPos, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
+    ChunkPos, LayerImage, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
 };
 use bevy::{
     core::Time,
@@ -51,7 +51,7 @@ pub struct Chunk {
     /// Tells internal systems that this chunk should be remeshed(send new data to the GPU)
     pub needs_remesh: bool,
     /// Tells the renderer which image to use for the tilemap.
-    pub material: Handle<Image>,
+    pub material: Handle<LayerImage>,
     pub(crate) tiles: Vec<Option<Entity>>,
     pub(crate) mesh_handle: Handle<Mesh>,
 }
@@ -76,7 +76,7 @@ impl Chunk {
         layer_settings: LayerSettings,
         position: ChunkPos,
         mesh_handle: Handle<Mesh>,
-        material: Handle<Image>,
+        material: Handle<LayerImage>,
     ) -> Self {
         let tile_size_x = round_to_power_of_two(layer_settings.chunk_size.0 as f32);
         let tile_size_y = round_to_power_of_two(layer_settings.chunk_size.1 as f32);

@@ -29,7 +29,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
 
     // Builds the layer.
     // Note: Once this is called you can no longer edit the layer until a hard sync in bevy.
-    let layer_entity = map_query.build_layer(&mut commands, layer_builder, texture_handle);
+    let layer_entity = map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
     // Required to keep track of layers for a map internally.
     map.add_layer(&mut commands, 0u16, layer_entity);
@@ -57,8 +57,8 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(helpers::camera::movement)
+        .add_startup_system(startup)
         .run();
 }

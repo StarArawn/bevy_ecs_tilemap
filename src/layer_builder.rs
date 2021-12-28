@@ -6,7 +6,7 @@ use crate::{
     render::TilemapUniformData,
     round_to_power_of_two,
     tile::{TileBundleTrait, TileParent},
-    Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,
+    Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerImage, LayerSettings, MapTileError, TilePos,
     TilemapMeshType,
 };
 use bevy::{
@@ -66,7 +66,7 @@ where
         commands: &mut Commands,
         mut settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
-        material_handle: Handle<Image>,
+        material_handle: Handle<LayerImage>,
         map_id: impl MapId,
         layer_id: impl LayerId,
         mut f: F,
@@ -299,7 +299,7 @@ where
         &mut self,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
-        material: Handle<Image>,
+        material: Handle<LayerImage>,
     ) -> LayerBundle {
         let mut layer = Layer::new(self.settings.clone());
         for x in 0..layer.settings.map_size.0 {
