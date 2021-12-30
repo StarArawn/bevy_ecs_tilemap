@@ -28,7 +28,7 @@ var<uniform> tilemap_data: TilemapData;
 
 struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] uv: vec2<f32>;
+    [[location(0)]] uv: vec3<f32>;
     [[location(1)]] color: vec4<f32>;
 };
 
@@ -109,27 +109,27 @@ fn vertex(
     );
 
     atlas_uvs = array<vec2<f32>, 4>(
-        x1[vertex_uv.y],
-        x2[vertex_uv.y],
-        x3[vertex_uv.y],
-        x4[vertex_uv.y]
+        vec2<f32>(0.0, 1.0),
+        vec2<f32>(0.0, 0.0),
+        vec2<f32>(1.0, 0.0),
+        vec2<f32>(1.0, 1.0)
     );
 
-    out.uv = atlas_uvs[v_index % 4u];
-    out.uv = out.uv + 1e-5;
+    out.uv = vec3<f32>(atlas_uvs[v_index % 4u], f32(texture_index));
+    // out.uv = out.uv + 1e-5;
     out.position = view.view_proj * mesh_data.world_position;
     out.color = color;
     return out;
 } 
 
 [[group(3), binding(0)]]
-var sprite_texture: texture_2d<f32>;
+var sprite_texture: texture_2d_array<f32>;
 [[group(3), binding(1)]]
 var sprite_sampler: sampler;
 
 [[stage(fragment)]]
 fn fragment(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    var color = textureSample(sprite_texture, sprite_sampler, in.uv) * in.color;
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy, i32(in.uv.z)) * in.color;
     if (color.a < 0.001) {
         discard;
     }

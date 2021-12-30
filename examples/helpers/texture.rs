@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::render_resource::FilterMode};
+use bevy::{prelude::*, render::render_resource::TextureUsages};
 
 pub fn set_texture_filters_to_nearest(
     mut texture_events: EventReader<AssetEvent<Image>>,
@@ -9,7 +9,9 @@ pub fn set_texture_filters_to_nearest(
         match event {
             AssetEvent::Created { handle } => {
                 if let Some(mut texture) = textures.get_mut(handle) {
-                    texture.sampler_descriptor.min_filter = FilterMode::Nearest;
+                    texture.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+                        | TextureUsages::COPY_SRC
+                        | TextureUsages::COPY_DST;
                 }
             }
             _ => (),
