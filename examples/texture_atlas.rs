@@ -5,11 +5,10 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-#[derive(Default)]
+#[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum AppState {
@@ -32,7 +31,7 @@ fn check_textures(
     asset_server: Res<AssetServer>,
 ) {
     if let LoadState::Loaded =
-    asset_server.get_group_load_state(texture_handles.handles.iter().map(|handle| handle.id))
+        asset_server.get_group_load_state(texture_handles.handles.iter().map(|handle| handle.id))
     {
         state.set(AppState::Finished).unwrap();
     }
@@ -40,10 +39,8 @@ fn check_textures(
 
 fn startup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     texture_handles: Res<TextureHandles>,
-    mut textures: ResMut<Assets<Texture>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut textures: ResMut<Assets<Image>>,
     mut map_query: MapQuery,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -53,12 +50,13 @@ fn startup(
     let mut atlas_builder = TileAtlasBuilder::new(tile_size);
     for handle in texture_handles.handles.iter() {
         let texture = textures.get(handle).unwrap();
-        atlas_builder.add_texture(handle.clone_weak().typed::<Texture>(), texture);
+        atlas_builder
+            .add_texture(handle.clone_weak().typed::<Image>(), texture)
+            .unwrap();
     }
 
     let texture_atlas = atlas_builder.finish(&mut textures).unwrap();
     let texture_atlas_texture = texture_atlas.texture.clone();
-    let material_handle = materials.add(ColorMaterial::texture(texture_atlas_texture));
     let texture_atlas_size = texture_atlas.size;
 
     // Create map entity and component:
@@ -75,11 +73,10 @@ fn startup(
         ),
         0u16,
         0u16,
-        None,
     );
     layer_builder.set_all(TileBundle::default());
 
-    map_query.build_layer(&mut commands, layer_builder, material_handle);
+    map_query.build_layer(&mut commands, layer_builder, texture_atlas_texture);
 
     commands.entity(layer_entity).insert(LastUpdate::default());
 
@@ -132,15 +129,11 @@ fn update_map(
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Dynamic Map Example"),
+            title: String::from("Texture Atlas Example"),
             ..Default::default()
         })
         .init_resource::<TextureHandles>()

@@ -69,7 +69,7 @@ mod mesher;
 mod neighbors;
 mod render;
 mod tile;
-// mod tile_atlas; // TODO Temporarily disabled until I can update to the new renderer.
+mod tile_atlas;
 
 pub use crate::chunk::Chunk;
 pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
@@ -77,7 +77,7 @@ pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
 pub use crate::map_query::MapQuery;
 pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
-// pub use crate::tile_atlas::TileAtlasBuilder;
+pub use crate::tile_atlas::TileAtlasBuilder;
 
 /// Adds the default systems and pipelines used by bevy_ecs_tilemap.
 #[derive(Default)]
@@ -175,7 +175,7 @@ pub mod prelude {
     pub use crate::map_query::MapQuery;
     pub(crate) use crate::mesher::ChunkMesher;
     pub use crate::tile::{GPUAnimated, Tile, TileBundle, TileBundleTrait, TileParent};
-    // pub use crate::tile_atlas::TileAtlasBuilder;
+    pub use crate::tile_atlas::TileAtlasBuilder;
     pub use crate::TilemapPlugin;
     pub use crate::{HexType, IsoType, TilemapMeshType};
 
