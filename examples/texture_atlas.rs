@@ -39,7 +39,6 @@ fn check_textures(
 
 fn startup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     texture_handles: Res<TextureHandles>,
     mut textures: ResMut<Assets<Image>>,
     mut map_query: MapQuery,
@@ -51,7 +50,9 @@ fn startup(
     let mut atlas_builder = TileAtlasBuilder::new(tile_size);
     for handle in texture_handles.handles.iter() {
         let texture = textures.get(handle).unwrap();
-        atlas_builder.add_texture(handle.clone_weak().typed::<Image>(), texture);
+        atlas_builder
+            .add_texture(handle.clone_weak().typed::<Image>(), texture)
+            .unwrap();
     }
 
     let texture_atlas = atlas_builder.finish(&mut textures).unwrap();
