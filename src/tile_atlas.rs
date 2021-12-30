@@ -1,8 +1,9 @@
-use std::collections::HashMap;
-use bevy::prelude::{Assets, Handle, Texture, TextureAtlas, Vec2};
-use bevy::render::texture::{Extent3d, TextureDimension, TextureFormat};
-use bevy::sprite::{Rect, TextureAtlasBuilderError};
 use bevy::log::{debug, error, warn};
+use bevy::prelude::{Assets, Handle, Image, TextureAtlas, Vec2};
+use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
+use bevy::render::texture::TextureFormatPixelInfo;
+use bevy::sprite::{Rect, TextureAtlasBuilderError};
+use std::collections::HashMap;
 
 /// Used to build a `TextureAtlas` that maintains the order of the textures added.
 pub struct TileAtlasBuilder {
@@ -13,7 +14,7 @@ pub struct TileAtlasBuilder {
     /// If `None`, then there's no wrapping
     columns: Option<usize>,
     /// The ordered collection of texture handles in this atlas
-    handles: Vec<Handle<Texture>>,
+    handles: Vec<Handle<Image>>,
     /// The texture format for the textures that will be loaded in the atlas.
     format: TextureFormat,
     /// Enable automatic format conversion for textures if they are not in the atlas format.
@@ -66,19 +67,18 @@ impl TileAtlasBuilder {
     /// Adds a texture to be copied to the texture atlas.
     pub fn add_texture(
         &mut self,
-        texture_handle: Handle<Texture>,
-        texture: &Texture,
+        texture_handle: Handle<Image>,
+        texture: &Image,
     ) -> Result<usize, ()> {
-        if texture.size.width > self.tile_size.x as u32
-            || texture.size.height > self.tile_size.y as u32
+        if texture.texture_descriptor.size.width > self.tile_size.x as u32
+            || texture.texture_descriptor.size.height > self.tile_size.y as u32
         {
             error!(
-				"Error: Given texture does not fit into specified tile size.\n
+                "Error: Given texture does not fit into specified tile size.\n
 				Expected {:?}\n
 				Received: {:?}",
-				self.tile_size,
-				texture.size.as_vec3().truncate(),
-			);
+                self.tile_size, texture.texture_descriptor.size,
+            );
             return Err(());
         }
 
@@ -89,18 +89,18 @@ impl TileAtlasBuilder {
     /// Build the final `TextureAtlas`
     pub fn finish(
         self,
-        textures: &mut Assets<Texture>,
+        textures: &mut Assets<Image>,
     ) -> Result<TextureAtlas, TextureAtlasBuilderError> {
         let size = &self.tile_size;
         let total = self.handles.len();
         let total_rows = ((total as f32) / self.columns_f32()).ceil() as usize;
 
-        let mut atlas_texture = Texture::new_fill(
-            Extent3d::new(
-                (self.columns_f32() * size.x) as u32,
-                ((total_rows as f32) * size.y) as u32,
-                1,
-            ),
+        let mut atlas_texture = Image::new_fill(
+            Extent3d {
+                width: (self.columns_f32() * size.x) as u32,
+                height: ((total_rows as f32) * size.y) as u32,
+                depth_or_array_layers: 1,
+            },
             TextureDimension::D2,
             &[0, 0, 0, 0],
             self.format,
@@ -119,11 +119,11 @@ impl TileAtlasBuilder {
 
             texture_handles.insert(handle.clone_weak(), index);
             texture_rects.push(Rect { min, max });
-            if texture.format != self.format && !self.auto_format_conversion {
+            if texture.texture_descriptor.format != self.format && !self.auto_format_conversion {
                 warn!(
-					"Loading a texture of format '{:?}' in an atlas with format '{:?}'",
-					texture.format, self.format
-				);
+                    "Loading a texture of format '{:?}' in an atlas with format '{:?}'",
+                    texture.texture_descriptor.format, self.format
+                );
                 return Err(TextureAtlasBuilderError::WrongFormat);
             }
             self.copy_converted_texture(&mut atlas_texture, texture, row_idx, col_idx);
@@ -137,7 +137,10 @@ impl TileAtlasBuilder {
         }
 
         Ok(TextureAtlas {
-            size: atlas_texture.size.as_vec3().truncate(),
+            size: Vec2::new(
+                atlas_texture.texture_descriptor.size.width as f32,
+                atlas_texture.texture_descriptor.size.height as f32,
+            ),
             texture: textures.add(atlas_texture),
             textures: texture_rects,
             texture_handles: Some(texture_handles),
@@ -154,31 +157,31 @@ impl TileAtlasBuilder {
 
     fn copy_converted_texture(
         &self,
-        atlas_texture: &mut Texture,
-        texture: &Texture,
+        atlas_texture: &mut Image,
+        texture: &Image,
         row_index: usize,
         column_index: usize,
     ) {
-        if self.format == texture.format {
+        if self.format == texture.texture_descriptor.format {
             self.copy_texture_to_atlas(atlas_texture, texture, row_index, column_index);
         } else if let Some(converted_texture) = texture.convert(self.format) {
             debug!(
-				"Converting texture from '{:?}' to '{:?}'",
-				texture.format, self.format
-			);
+                "Converting texture from '{:?}' to '{:?}'",
+                texture.texture_descriptor.format, self.format
+            );
             self.copy_texture_to_atlas(atlas_texture, &converted_texture, row_index, column_index);
         } else {
             error!(
-				"Error converting texture from '{:?}' to '{:?}', ignoring",
-				texture.format, self.format
-			);
+                "Error converting texture from '{:?}' to '{:?}', ignoring",
+                texture.texture_descriptor.format, self.format
+            );
         }
     }
 
     fn copy_texture_to_atlas(
         &self,
-        atlas_texture: &mut Texture,
-        texture: &Texture,
+        atlas_texture: &mut Image,
+        texture: &Image,
         row_index: usize,
         column_index: usize,
     ) {
@@ -186,8 +189,8 @@ impl TileAtlasBuilder {
         let rect_height = self.tile_size.y as usize;
         let rect_x = row_index * self.tile_size.x as usize;
         let rect_y = column_index * self.tile_size.y as usize;
-        let atlas_width = atlas_texture.size.width as usize;
-        let format_size = atlas_texture.format.pixel_size();
+        let atlas_width = atlas_texture.texture_descriptor.size.width as usize;
+        let format_size = atlas_texture.texture_descriptor.format.pixel_size();
 
         for (texture_y, bound_y) in (rect_y..rect_y + rect_height).enumerate() {
             let begin = (bound_y * atlas_width + rect_x) * format_size;
