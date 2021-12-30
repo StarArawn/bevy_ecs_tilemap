@@ -3,22 +3,28 @@ use bevy::{
     prelude::*,
     render::{
         render_component::UniformComponentPlugin, render_phase::AddRenderCommand,
-        render_resource::SpecializedPipelines, RenderApp, RenderStage,
+        render_resource::SpecializedPipelines, renderer::RenderDevice, RenderApp, RenderStage,
     },
 };
 
-use crate::render::pipeline::{
-    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE,
-    HEX_COLUMN_ODD_SHADER_HANDLE, HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE,
-    HEX_ROW_ODD_SHADER_HANDLE, HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE,
-    ISO_STAGGERED_SHADER_HANDLE, SQUARE_SHADER_HANDLE,
+use crate::{
+    render::pipeline::{
+        DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE,
+        HEX_COLUMN_ODD_SHADER_HANDLE, HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE,
+        HEX_ROW_ODD_SHADER_HANDLE, HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE,
+        ISO_STAGGERED_SHADER_HANDLE, SQUARE_SHADER_HANDLE,
+    },
+    TextureSize, TileSize,
 };
 
 mod include_shader;
 mod pipeline;
+mod texture_array_cache;
 mod tilemap_data;
 
 pub use tilemap_data::TilemapUniformData;
+
+use self::texture_array_cache::TextureArrayCache;
 
 #[derive(Default)]
 pub struct TilemapRenderPlugin;
@@ -85,7 +91,9 @@ impl Plugin for TilemapRenderPlugin {
 
         let render_app = app.sub_app(RenderApp);
         render_app
+            .init_resource::<TextureArrayCache>()
             .add_system_to_stage(RenderStage::Extract, pipeline::extract_tilemaps)
+            .add_system_to_stage(RenderStage::Prepare, prepare_textures)
             .add_system_to_stage(RenderStage::Queue, pipeline::queue_meshes)
             .add_system_to_stage(RenderStage::Queue, pipeline::queue_transform_bind_group)
             .add_system_to_stage(RenderStage::Queue, pipeline::queue_tilemap_bind_group)
@@ -95,4 +103,20 @@ impl Plugin for TilemapRenderPlugin {
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
     }
+}
+
+fn prepare_textures(
+    render_device: Res<RenderDevice>,
+    mut texture_array_cache: ResMut<TextureArrayCache>,
+    extracted_query: Query<(&Handle<Image>, &TilemapUniformData)>,
+) {
+    for (atlas_image, tilemap_data) in extracted_query.iter() {
+        texture_array_cache.add(
+            atlas_image,
+            TileSize(tilemap_data.tile_size.x, tilemap_data.tile_size.y),
+            TextureSize(tilemap_data.texture_size.x, tilemap_data.texture_size.y),
+        );
+    }
+
+    texture_array_cache.prepare(&render_device);
 }
