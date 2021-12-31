@@ -59,7 +59,7 @@ pub struct Chunk {
 impl Default for Chunk {
     fn default() -> Self {
         Self {
-            map_entity: Entity::new(0),
+            map_entity: Entity::from_raw(0),
             material: Default::default(),
             mesh_handle: Default::default(),
             needs_remesh: true,

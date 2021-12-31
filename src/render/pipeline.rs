@@ -9,6 +9,7 @@ use bevy::{
     prelude::*,
     reflect::TypeUuid,
     render::{
+        mesh::GpuBufferInfo,
         render_asset::RenderAssets,
         render_component::{ComponentUniforms, DynamicUniformIndex},
         render_phase::{
@@ -31,7 +32,7 @@ use bevy::{
     },
     utils::HashMap,
 };
-use crevice::std140::AsStd140;
+use bevy_crevice::std140::AsStd140;
 
 use crate::{Chunk, TilemapMeshType};
 
@@ -568,11 +569,18 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         let mesh_handle = mesh_query.get(item.entity).unwrap();
         let gpu_mesh = meshes.into_inner().get(mesh_handle).unwrap();
         pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-        if let Some(index_info) = &gpu_mesh.index_info {
-            pass.set_index_buffer(index_info.buffer.slice(..), 0, index_info.index_format);
-            pass.draw_indexed(0..index_info.count, 0, 0..1);
-        } else {
-            panic!("non-indexed drawing not supported yet")
+        match &gpu_mesh.buffer_info {
+            GpuBufferInfo::Indexed {
+                buffer,
+                index_format,
+                count,
+            } => {
+                pass.set_index_buffer(buffer.slice(..), 0, *index_format);
+                pass.draw_indexed(0..*count, 0, 0..1);
+            }
+            GpuBufferInfo::NonIndexed { vertex_count } => {
+                pass.draw(0..*vertex_count, 0..1);
+            }
         }
 
         RenderCommandResult::Success

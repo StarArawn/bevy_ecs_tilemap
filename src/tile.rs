@@ -109,7 +109,7 @@ pub struct TileParent {
 impl Default for TileParent {
     fn default() -> Self {
         Self {
-            chunk: Entity::new(0),
+            chunk: Entity::from_raw(0),
             layer_id: 0,
             map_id: 0,
         }

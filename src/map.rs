@@ -14,7 +14,7 @@ pub struct Map {
 impl Default for Map {
     fn default() -> Self {
         Self {
-            map_entity: Entity::new(0),
+            map_entity: Entity::from_raw(0),
             id: 0,
             layers: HashMap::new(),
         }
