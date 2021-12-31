@@ -1,6 +1,7 @@
 use std::num::NonZeroU32;
 
 use bevy::{
+    math::Vec2,
     prelude::{Handle, Image, Res},
     render::{
         render_asset::RenderAssets,
@@ -20,7 +21,7 @@ use crate::{TextureSize, TileSize};
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<Handle<Image>, GpuImage>,
-    sizes: HashMap<Handle<Image>, (TileSize, TextureSize)>,
+    sizes: HashMap<Handle<Image>, (TileSize, TextureSize, Vec2)>,
     prepare_queue: HashSet<Handle<Image>>,
     queue_queue: HashSet<Handle<Image>>,
 }
@@ -32,10 +33,13 @@ impl TextureArrayCache {
         atlas_texture: &Handle<Image>,
         tile_size: TileSize,
         texture_size: TextureSize,
+        tile_spacing: Vec2,
     ) {
         if !self.sizes.contains_key(&atlas_texture) {
-            self.sizes
-                .insert(atlas_texture.clone_weak(), (tile_size, texture_size));
+            self.sizes.insert(
+                atlas_texture.clone_weak(),
+                (tile_size, texture_size, tile_spacing),
+            );
             self.prepare_queue.insert(atlas_texture.clone_weak());
         }
     }
@@ -52,7 +56,7 @@ impl TextureArrayCache {
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for item in prepare_queue {
-            let (tile_size, atlas_size) = self.sizes.get(&item).unwrap();
+            let (tile_size, atlas_size, _) = self.sizes.get(&item).unwrap();
             let tile_count_x = atlas_size.0 as f32 / tile_size.0;
             let tile_count_y = atlas_size.1 as f32 / tile_size.1;
             let count = (tile_count_x * tile_count_y).floor() as u32;
@@ -124,7 +128,7 @@ impl TextureArrayCache {
                 continue;
             };
 
-            let (tile_size, atlas_size) = self.sizes.get(&item).unwrap();
+            let (tile_size, atlas_size, spacing) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
             let tile_count_x = atlas_size.0 as f32 / tile_size.0;
             let tile_count_y = atlas_size.1 as f32 / tile_size.1;
@@ -136,9 +140,9 @@ impl TextureArrayCache {
                 });
 
             for i in 0..count {
-                let columns = atlas_size.0 as f32 / tile_size.0;
-                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.0);
-                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.1);
+                let columns = (atlas_size.0 as f32 + spacing.x) / (tile_size.0 + spacing.x);
+                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.0 + spacing.x);
+                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.1 + spacing.y);
 
                 command_encoder.copy_texture_to_texture(
                     ImageCopyTexture {

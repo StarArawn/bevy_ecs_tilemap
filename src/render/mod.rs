@@ -115,6 +115,7 @@ fn prepare_textures(
             atlas_image,
             TileSize(tilemap_data.tile_size.x, tilemap_data.tile_size.y),
             TextureSize(tilemap_data.texture_size.x, tilemap_data.texture_size.y),
+            tilemap_data.spacing,
         );
     }
 
