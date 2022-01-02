@@ -13,8 +13,8 @@ exclude = ["assets/*", "screenshots/*"]
 default = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "1d0d8a3397bd6fc2c14d42ffd0668d2443748912" }
-bevy_crevice = { git = "https://github.com/bevyengine/bevy", rev = "1d0d8a3397bd6fc2c14d42ffd0668d2443748912" }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
+bevy_crevice = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
 morton-encoding = "2.0"
 log = "0.4"
 regex = "1.5.4"
@@ -22,7 +22,7 @@ bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "1d0d8a3397bd6fc2c14d42ffd0668d2443748912", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b", default-features = false }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
