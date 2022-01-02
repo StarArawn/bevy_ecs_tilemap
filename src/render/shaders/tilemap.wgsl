@@ -57,10 +57,10 @@ fn vertex(
     var sprite_sheet_x: f32 = floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
     var sprite_sheet_y: f32 = floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
 
-    var start_u: f32 = sprite_sheet_x / tilemap_data.texture_size.x;
-    var end_u: f32 = (sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
-    var start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
-    var end_v: f32 = (sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
+    var start_u: f32 = 0.0; //sprite_sheet_x / tilemap_data.texture_size.x;
+    var end_u: f32 = 1.0; //(sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
+    var start_v: f32 = 0.0; //sprite_sheet_y / tilemap_data.texture_size.y;
+    var end_v: f32 = 1.0; //(sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
 
     var atlas_uvs: array<vec2<f32>, 4>;
 
@@ -109,10 +109,10 @@ fn vertex(
     );
 
     atlas_uvs = array<vec2<f32>, 4>(
-        vec2<f32>(0.0, 1.0),
-        vec2<f32>(0.0, 0.0),
-        vec2<f32>(1.0, 0.0),
-        vec2<f32>(1.0, 1.0)
+        x1[vertex_uv.y],
+        x2[vertex_uv.y],
+        x3[vertex_uv.y],
+        x4[vertex_uv.y]
     );
 
     out.uv = vec3<f32>(atlas_uvs[v_index % 4u], f32(texture_index));
