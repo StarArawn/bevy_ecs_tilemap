@@ -172,7 +172,6 @@ pub fn process_loaded_tile_maps(
                             tiled_map.map.tile_width as f32,
                             tiled_map.map.tile_height as f32,
                         );
-                        map_settings.set_layer_id(layer.layer_index as u16);
 
                         map_settings.mesh_type = match tiled_map.map.orientation {
                             tiled::Orientation::Hexagonal => {
@@ -240,7 +239,7 @@ pub fn process_loaded_tile_maps(
                         commands.entity(layer_entity).insert(Transform::from_xyz(
                             offset_x,
                             -offset_y,
-                            map_settings.layer_id as f32,
+                            layer.layer_index as f32,
                         ));
                         map.add_layer(&mut commands, layer.layer_index as u16, layer_entity);
                     }

@@ -50,6 +50,8 @@ pub struct Chunk {
     pub settings: LayerSettings,
     /// Tells internal systems that this chunk should be remeshed(send new data to the GPU)
     pub needs_remesh: bool,
+    /// Id of Layer Chunk is member of
+    pub layer_id: u16,
     /// Tells the renderer which image to use for the tilemap.
     pub material: Handle<Image>,
     pub(crate) tiles: Vec<Option<Entity>>,
@@ -66,6 +68,7 @@ impl Default for Chunk {
             position: Default::default(),
             settings: Default::default(),
             tiles: Vec::new(),
+            layer_id: 0u16,
         }
     }
 }
@@ -77,6 +80,7 @@ impl Chunk {
         position: ChunkPos,
         mesh_handle: Handle<Mesh>,
         material: Handle<Image>,
+        layer_id: u16,
     ) -> Self {
         let tile_size_x = round_to_power_of_two(layer_settings.chunk_size.0 as f32);
         let tile_size_y = round_to_power_of_two(layer_settings.chunk_size.1 as f32);
@@ -91,6 +95,7 @@ impl Chunk {
             position,
             settings: layer_settings,
             tiles,
+            layer_id,
         }
     }
 
@@ -157,7 +162,7 @@ pub(crate) fn update_chunk_mesh(
             log::trace!(
                 "Re-meshing chunk at: {:?} layer id of: {}",
                 chunk.position,
-                chunk.settings.layer_id
+                chunk.layer_id
             );
 
             let mut meshes = threaded_meshes.lock().unwrap();

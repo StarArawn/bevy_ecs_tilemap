@@ -33,10 +33,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
-        let mut new_settings = map_settings.clone();
-        new_settings.set_layer_id(z + 1);
+        let new_settings = map_settings.clone();
+        let layer_id = z + 1;
         let (mut layer_builder, layer_entity) =
-            LayerBuilder::new(&mut commands, new_settings, 0u16, z + 1);
+            LayerBuilder::new(&mut commands, new_settings, 0u16, layer_id);
 
         let mut random = thread_rng();
 
@@ -58,7 +58,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
 
         // Required to keep track of layers for a map internally.
-        map.add_layer(&mut commands, 0u16, layer_entity);
+        map.add_layer(&mut commands, layer_id, layer_entity);
     }
 
     // Spawn Map

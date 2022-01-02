@@ -1,6 +1,5 @@
 use crate::{
     chunk::Chunk,
-    map::MapId,
     morton_index,
     prelude::{ChunkMesher, Tile},
     round_to_power_of_two,
@@ -34,10 +33,6 @@ pub struct LayerSettings {
     pub grid_size: Vec2,
     /// Size in pixels of the tilemap texture.
     pub texture_size: TextureSize,
-    /// The layer id associated with this map.
-    pub layer_id: u16,
-    /// The map id associated with this map.
-    pub map_id: u16,
     /// The meshing algorithm used for the tilemap.
     pub mesh_type: TilemapMeshType,
     /// Cull the chunks in the map when they are off screen.
@@ -61,21 +56,11 @@ impl LayerSettings {
             tile_size,
             grid_size: tile_size.into(),
             texture_size,
-            layer_id: 0,
-            map_id: 0,
             cull: true,
             mesh_type: TilemapMeshType::Square,
             tile_spacing: Vec2::ZERO,
             mesher: ChunkMesher,
         }
-    }
-
-    pub fn set_layer_id(&mut self, id: impl LayerId) {
-        self.layer_id = id.into();
-    }
-
-    pub fn set_map_id(&mut self, id: impl MapId) {
-        self.map_id = id.into();
     }
 
     pub fn get_pixel_center(&self) -> Vec2 {

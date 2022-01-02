@@ -1,5 +1,3 @@
-use std::array::IntoIter;
-
 use crate::{prelude::*, tile::GPUAnimated};
 use bevy::{
     math::Vec2,
@@ -46,7 +44,7 @@ impl ChunkMesher {
                             (tile.texture_index as i32, tile.texture_index as i32, 0.0)
                         };
 
-                    positions.extend(IntoIter::new([
+                    positions.extend(IntoIterator::into_iter([
                         // X, Y
                         [tile_pos.x, tile_pos.y, animation_speed],
                         // X, Y + 1
@@ -60,7 +58,7 @@ impl ChunkMesher {
                         [tile_pos.x, tile_pos.y, animation_speed],
                     ]));
 
-                    colors.extend(IntoIter::new([
+                    colors.extend(IntoIterator::into_iter([
                         [
                             tile.color.r(),
                             tile.color.g(),
@@ -95,7 +93,7 @@ impl ChunkMesher {
                     let tile_flip_bits =
                         tile.flip_x as i32 | (tile.flip_y as i32) << 1 | (tile.flip_d as i32) << 2;
 
-                    textures.extend(IntoIter::new([
+                    textures.extend(IntoIterator::into_iter([
                         [
                             tile.texture_index as i32,
                             tile_flip_bits,

@@ -87,7 +87,7 @@ pub fn extract_tilemaps(
             extracted_tilemaps.push((
                 entity,
                 (
-                    LayerId(chunk.settings.layer_id),
+                    LayerId(chunk.layer_id),
                     chunk.material.clone(),
                     chunk.settings.mesh_type.clone(),
                     mesh_handle.clone_weak(),
