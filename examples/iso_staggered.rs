@@ -66,15 +66,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
 
     // Make 2 layers on "top" of the base map.
     for z in 0..5 {
-        let mut new_settings = map_settings.clone();
-        new_settings.layer_id = z + 1;
-        let (mut layer_builder, layer_entity) = LayerBuilder::new(
-            &mut commands,
-            new_settings.clone(),
-            0u16,
-            new_settings.layer_id,
-        );
-        map.add_layer(&mut commands, new_settings.layer_id, layer_entity);
+        let (mut layer_builder, layer_entity) =
+            LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, z + 1);
+        map.add_layer(&mut commands, z + 1, layer_entity);
 
         let mut random = thread_rng();
 

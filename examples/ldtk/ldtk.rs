@@ -194,13 +194,12 @@ pub fn process_loaded_tile_maps(
                         continue;
                     };
 
-                    let mut settings = LayerSettings::new(
+                    let settings = LayerSettings::new(
                         map_size,
                         ChunkSize(32, 32),
                         TileSize(tileset.tile_grid_size as f32, tileset.tile_grid_size as f32),
                         TextureSize(tileset.px_wid as f32, tileset.px_hei as f32),
                     );
-                    settings.set_layer_id(layer_id as u16);
 
                     let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
                         &mut commands,
@@ -236,15 +235,14 @@ pub fn process_loaded_tile_maps(
                     }
 
                     let layer_bundle = layer_builder.build(&mut commands, &mut meshes, texture);
-                    let mut layer = layer_bundle.layer;
+                    let layer = layer_bundle.layer;
                     let mut transform = Transform::from_xyz(
                         0.0,
                         -level.px_hei as f32,
                         layer_bundle.transform.translation.z,
                     );
-                    layer.settings.layer_id = layer.settings.layer_id;
-                    transform.translation.z = layer.settings.layer_id as f32;
-                    map.add_layer(&mut commands, layer.settings.layer_id, layer_entity);
+                    transform.translation.z = layer_id as f32;
+                    map.add_layer(&mut commands, layer_id as u16, layer_entity);
                     commands.entity(layer_entity).insert_bundle(LayerBundle {
                         layer,
                         transform,
