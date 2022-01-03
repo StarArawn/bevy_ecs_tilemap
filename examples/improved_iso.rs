@@ -68,15 +68,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
-    for z in 0..1 {
-        let new_settings = map_settings.clone();
+    for z in 0..3 {
         let layer_id = z + 1;
-        let (mut layer_builder, layer_entity) = LayerBuilder::new(
-            &mut commands,
-            new_settings.clone(),
-            0u16,
-            layer_id,
-        );
+        let (mut layer_builder, layer_entity) =
+            LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, layer_id);
         map.add_layer(&mut commands, layer_id, layer_entity);
 
         let mut random = thread_rng();
@@ -111,9 +106,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     let y_pos = 8.0;
     // TODO: Replace this with like a "get_z_map_position" or something.
     let center = project_iso(Vec2::new(x_pos, y_pos), 64.0, 32.0);
-    dbg!(center);
     let sprite_pos = Transform::from_xyz(center.x, center.y, 1.0 + (1.0 - (center.y / 10000.0)));
-    dbg!(sprite_pos);
     let texture_handle = asset_server.load("player.png");
 
     commands
