@@ -35,9 +35,9 @@ pub struct LayerSettings {
     /// Size in pixels of the tilemap texture.
     pub texture_size: TextureSize,
     /// The layer id associated with this map.
-    pub layer_id: u16,
+    pub(crate) layer_id: u16,
     /// The map id associated with this map.
-    pub map_id: u16,
+    pub(crate) map_id: u16,
     /// The meshing algorithm used for the tilemap.
     pub mesh_type: TilemapMeshType,
     /// Cull the chunks in the map when they are off screen.
@@ -70,11 +70,11 @@ impl LayerSettings {
         }
     }
 
-    pub fn set_layer_id(&mut self, id: impl LayerId) {
+    pub(crate) fn set_layer_id(&mut self, id: impl LayerId) {
         self.layer_id = id.into();
     }
 
-    pub fn set_map_id(&mut self, id: impl MapId) {
+    pub(crate) fn set_map_id(&mut self, id: impl MapId) {
         self.map_id = id.into();
     }
 

@@ -1,3 +1,4 @@
+use bevy::render::render_resource::std140::AsStd140;
 use bevy::{
     core::FloatOrd,
     core_pipeline::Transparent2d,
@@ -32,7 +33,6 @@ use bevy::{
     },
     utils::HashMap,
 };
-use bevy_crevice::std140::AsStd140;
 
 use crate::{Chunk, TilemapMeshType};
 
