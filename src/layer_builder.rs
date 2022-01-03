@@ -21,10 +21,10 @@ use bevy::{
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
-    pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
-    map_id: u16,
-    layer_id: u16,
+    pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
+    pub(crate) map_id: u16,
+    pub(crate) layer_id: u16,
 }
 
 impl<T> LayerBuilder<T>
@@ -39,7 +39,7 @@ where
         settings: LayerSettings,
         map_id: impl MapId,
         layer_id: impl LayerId,
-    ) -> (Self, Entity) {
+    ) -> Self {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
 
@@ -50,16 +50,18 @@ where
             round_to_power_of_two((settings.map_size.1 * settings.chunk_size.1) as f32);
         let tile_count = tile_size_x.max(tile_size_y);
 
-        (
-            Self {
-                settings,
-                tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
-                layer_entity,
-                map_id,
-                layer_id,
-            },
+        Self {
+            settings,
+            tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
             layer_entity,
-        )
+            map_id,
+            layer_id,
+        }
+    }
+
+    // Obtain layer entity associated with LayerBuilder
+    pub fn get_entity(&self) -> Entity {
+        self.layer_entity
     }
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
