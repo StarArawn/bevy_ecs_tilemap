@@ -28,7 +28,7 @@ env_logger = "0.9"
 serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
 
-[patch."https://github.com/bevyengine/bevy"] # < Fails here because you can't patch using the same URL :(
+[patch."https://github.com/bevyengine/bevy"]
 bevy = { git = "https://github.com/bevyengine//bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
 
 [[example]]
