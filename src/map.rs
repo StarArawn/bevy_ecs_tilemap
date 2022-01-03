@@ -23,7 +23,9 @@ impl Default for Map {
 
 impl Map {
     /// Creates a new map component
-    pub fn new(id: impl MapId, map_entity: Entity) -> Self {
+    pub fn new(commands: &mut Commands, id: impl MapId) -> Self {
+        let map_entity = commands.spawn().id();
+
         Self {
             map_entity,
             id: id.into(),
