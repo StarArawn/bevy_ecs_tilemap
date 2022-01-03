@@ -13,8 +13,7 @@ exclude = ["assets/*", "screenshots/*"]
 default = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
-bevy_crevice = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
+bevy = { git = "https://github.com/bevyengine/bevy", default-features = false }
 morton-encoding = "2.0"
 log = "0.4"
 regex = "1.5.4"
@@ -22,12 +21,15 @@ bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy" }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
+
+[patch."https://github.com/bevyengine/bevy"] # < Fails here because you can't patch using the same URL :(
+bevy = { git = "https://github.com/bevyengine//bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
 
 [[example]]
 name = "ldtk"

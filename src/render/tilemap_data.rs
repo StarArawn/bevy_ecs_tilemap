@@ -1,5 +1,5 @@
+use bevy::render::render_resource::std140::AsStd140;
 use bevy::{math::Vec2, prelude::Component};
-use bevy_crevice::std140::AsStd140;
 
 use crate::Chunk;
 
