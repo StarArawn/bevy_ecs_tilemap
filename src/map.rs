@@ -1,4 +1,4 @@
-use crate::layer::LayerId;
+use crate::{layer::LayerId, LayerBuilder, LayerSettings, TileBundleTrait};
 use bevy::prelude::*;
 use std::hash::Hash;
 use std::{collections::HashMap, vec::IntoIter};
@@ -42,6 +42,18 @@ impl Map {
             .entity(self.map_entity)
             .push_children(&[layer_entity]);
         self.layers.insert(layer_id.into(), layer_entity);
+    }
+
+    /// Initialize new Layer Builder for the Map
+    pub fn layer_builder<T: TileBundleTrait>(
+        &mut self,
+        commands: &mut Commands,
+        settings: &LayerSettings,
+        layer_id: impl LayerId,
+    ) -> LayerBuilder<T> {
+        let builder = LayerBuilder::new(commands, settings.clone(), self.id, layer_id);
+        self.add_layer(commands, layer_id, builder.get_entity());
+        builder
     }
 
     /// Adds multiple layers to the map.

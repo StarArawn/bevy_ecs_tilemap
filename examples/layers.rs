@@ -21,21 +21,18 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     );
 
     // Layer 0
-    let mut layer_0 =
-        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+    let mut layer0_builder =
+        map.layer_builder(&mut commands, &map_settings, 0u16);
 
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_0.get_entity());
+    layer0_builder.set_all(TileBundle::default());
 
-    layer_0.set_all(TileBundle::default());
-
-    map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
+    map_query.build_layer(&mut commands, layer0_builder, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
         let layer_id = z + 1;
         let mut layer_builder =
-            LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, layer_id);
+            map.layer_builder(&mut commands, &map_settings, layer_id);
 
         let mut random = thread_rng();
 
@@ -53,9 +50,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
                 },
             );
         }
-
-        // Required to keep track of layers for a map internally.
-        map.add_layer(&mut commands, layer_id, layer_builder.get_entity());
 
         map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
     }
