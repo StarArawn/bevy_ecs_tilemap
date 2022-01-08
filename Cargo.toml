@@ -40,3 +40,6 @@ path = "examples/tiled/tiled_usage.rs"
 [[example]]
 name = "tiled_rotate"
 path = "examples/tiled/tiled_rotate.rs"
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
