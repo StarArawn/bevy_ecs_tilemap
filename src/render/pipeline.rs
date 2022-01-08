@@ -197,12 +197,17 @@ impl FromWorld for TilemapPipeline {
         }
     }
 }
+#[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TilemapPipelineKey {
+    msaa: u32,
+    mesh_type: TilemapMeshType,
+}
 
 impl SpecializedPipeline for TilemapPipeline {
-    type Key = TilemapMeshType;
+    type Key = TilemapPipelineKey;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
-        let shader = match key {
+        let shader = match key.mesh_type {
             TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
             TilemapMeshType::Isometric(iso_type) => match iso_type {
                 crate::IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
@@ -286,7 +291,7 @@ impl SpecializedPipeline for TilemapPipeline {
             },
             depth_stencil: None,
             multisample: MultisampleState {
-                count: 1,
+                count: key.msaa,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
@@ -364,6 +369,7 @@ pub fn queue_meshes(
     mut pipeline_cache: ResMut<RenderPipelineCache>,
     view_uniforms: Res<ViewUniforms>,
     gpu_images: Res<RenderAssets<Image>>,
+    msaa: Res<Msaa>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     standard_tilemap_meshes: Query<
         (
@@ -428,13 +434,18 @@ pub fn queue_meshes(
                         })
                     });
 
-                let pipeline_id =
-                    pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, *tilemap_type);
+                let key = TilemapPipelineKey {
+                    msaa: msaa.samples,
+                    mesh_type: *tilemap_type,
+                };
+
+                let pipeline_id = pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
                 transparent_phase.add(Transparent2d {
                     entity,
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
                     sort_key: FloatOrd(layer_id.0 as f32),
+                    batch_range: None,
                 });
             }
         }
