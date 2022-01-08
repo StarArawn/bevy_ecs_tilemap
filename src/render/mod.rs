@@ -2,8 +2,11 @@ use bevy::{
     core_pipeline::Transparent2d,
     prelude::*,
     render::{
-        render_component::UniformComponentPlugin, render_phase::AddRenderCommand,
-        render_resource::SpecializedPipelines, renderer::RenderDevice, RenderApp, RenderStage,
+        render_component::UniformComponentPlugin,
+        render_phase::AddRenderCommand,
+        render_resource::{FilterMode, SpecializedPipelines},
+        renderer::RenderDevice,
+        RenderApp, RenderStage,
     },
 };
 
@@ -28,6 +31,9 @@ use self::texture_array_cache::TextureArrayCache;
 
 #[derive(Default)]
 pub struct TilemapRenderPlugin;
+
+#[derive(Copy, Clone, Debug, Component)]
+pub(crate) struct ExtractedFilterMode(FilterMode);
 
 impl Plugin for TilemapRenderPlugin {
     fn build(&self, app: &mut App) {
@@ -108,14 +114,15 @@ impl Plugin for TilemapRenderPlugin {
 fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
-    extracted_query: Query<(&Handle<Image>, &TilemapUniformData)>,
+    extracted_query: Query<(&Handle<Image>, &TilemapUniformData, &ExtractedFilterMode)>,
 ) {
-    for (atlas_image, tilemap_data) in extracted_query.iter() {
+    for (atlas_image, tilemap_data, filter) in extracted_query.iter() {
         texture_array_cache.add(
             atlas_image,
             TileSize(tilemap_data.tile_size.x, tilemap_data.tile_size.y),
             TextureSize(tilemap_data.texture_size.x, tilemap_data.texture_size.y),
             tilemap_data.spacing,
+            filter.0,
         );
     }
 

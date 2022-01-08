@@ -33,8 +33,8 @@ pub fn movement(
             ortho.scale -= 0.1;
         }
 
-        if ortho.scale < 1.0 {
-            ortho.scale = 1.0;
+        if ortho.scale < 0.5 {
+            ortho.scale = 0.5;
         }
 
         let z = transform.translation.z;

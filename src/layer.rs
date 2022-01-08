@@ -7,7 +7,7 @@ use crate::{
     tile::TileParent,
     ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
-use bevy::prelude::*;
+use bevy::{prelude::*, render::render_resource::FilterMode};
 use std::hash::Hash;
 
 /// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
@@ -46,6 +46,9 @@ pub struct LayerSettings {
     /// Note: This is ignored in array mode.
     pub tile_spacing: Vec2,
     pub(crate) mesher: ChunkMesher,
+    /// Filtering used by the shader to sample the texture.
+    /// Nearest by default.
+    pub filter: FilterMode,
 }
 
 impl LayerSettings {
@@ -67,6 +70,7 @@ impl LayerSettings {
             mesh_type: TilemapMeshType::Square,
             tile_spacing: Vec2::ZERO,
             mesher: ChunkMesher,
+            filter: FilterMode::Nearest,
         }
     }
 

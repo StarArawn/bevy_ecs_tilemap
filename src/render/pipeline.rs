@@ -36,6 +36,7 @@ use bevy::{
 
 use crate::{Chunk, TilemapMeshType};
 
+use super::ExtractedFilterMode;
 use super::{texture_array_cache::TextureArrayCache, tilemap_data::TilemapUniformData};
 
 pub const SQUARE_SHADER_HANDLE: HandleUntyped =
@@ -93,6 +94,7 @@ pub fn extract_tilemaps(
                     mesh_handle.clone_weak(),
                     tilemap_uniform.clone(),
                     MeshUniform { transform },
+                    ExtractedFilterMode(chunk.settings.filter),
                 ),
             ));
         }

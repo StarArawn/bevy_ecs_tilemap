@@ -21,7 +21,7 @@ use crate::{TextureSize, TileSize};
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<Handle<Image>, GpuImage>,
-    sizes: HashMap<Handle<Image>, (TileSize, TextureSize, Vec2)>,
+    sizes: HashMap<Handle<Image>, (TileSize, TextureSize, Vec2, FilterMode)>,
     prepare_queue: HashSet<Handle<Image>>,
     queue_queue: HashSet<Handle<Image>>,
 }
@@ -34,11 +34,12 @@ impl TextureArrayCache {
         tile_size: TileSize,
         texture_size: TextureSize,
         tile_spacing: Vec2,
+        filter: FilterMode,
     ) {
         if !self.sizes.contains_key(&atlas_texture) {
             self.sizes.insert(
                 atlas_texture.clone_weak(),
-                (tile_size, texture_size, tile_spacing),
+                (tile_size, texture_size, tile_spacing, filter),
             );
             self.prepare_queue.insert(atlas_texture.clone_weak());
         }
@@ -56,7 +57,7 @@ impl TextureArrayCache {
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for item in prepare_queue {
-            let (tile_size, atlas_size, _) = self.sizes.get(&item).unwrap();
+            let (tile_size, atlas_size, _, filter) = self.sizes.get(&item).unwrap();
             let tile_count_x = atlas_size.0 as f32 / tile_size.0;
             let tile_count_y = atlas_size.1 as f32 / tile_size.1;
             let count = (tile_count_x * tile_count_y).floor() as u32;
@@ -80,9 +81,9 @@ impl TextureArrayCache {
                 address_mode_u: AddressMode::ClampToEdge,
                 address_mode_v: AddressMode::ClampToEdge,
                 address_mode_w: AddressMode::ClampToEdge,
-                mag_filter: FilterMode::Linear,
-                min_filter: FilterMode::Linear,
-                mipmap_filter: FilterMode::Nearest,
+                mag_filter: *filter,
+                min_filter: *filter,
+                mipmap_filter: *filter,
                 lod_min_clamp: 0.0,
                 lod_max_clamp: std::f32::MAX,
                 compare: None,
@@ -129,7 +130,7 @@ impl TextureArrayCache {
                 continue;
             };
 
-            let (tile_size, atlas_size, spacing) = self.sizes.get(&item).unwrap();
+            let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
             let tile_count_x = atlas_size.0 as f32 / tile_size.0;
             let tile_count_y = atlas_size.1 as f32 / tile_size.1;
