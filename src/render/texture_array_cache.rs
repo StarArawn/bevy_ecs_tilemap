@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 
 use bevy::{
-    math::Vec2,
+    math::{Size, Vec2},
     prelude::{Handle, Image, Res},
     render::{
         render_asset::RenderAssets,
@@ -105,6 +105,7 @@ impl TextureArrayCache {
                 texture,
                 sampler,
                 texture_view,
+                size: Size::new(tile_size.0, tile_size.1),
             };
 
             self.textures.insert(item.clone_weak(), gpu_image);

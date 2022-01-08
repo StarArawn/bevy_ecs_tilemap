@@ -29,7 +29,7 @@ serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
 
 [patch."https://github.com/bevyengine/bevy"]
-bevy = { git = "https://github.com/bevyengine//bevy", rev = "50b3f27a767e3b538694d5e7b3ccfdffca647f1b" }
+bevy = { git = "https://github.com/bevyengine//bevy", rev = "458cb7a9e93dab3127bb99ce7bf8cfc3af18851d" }
 
 [[example]]
 name = "ldtk"
