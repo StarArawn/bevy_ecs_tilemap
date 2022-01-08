@@ -73,6 +73,12 @@ fn update_damage(
 cargo run --release --example map
 ```
 
+### Running examples on web!
+```
+cargo build --target wasm32-unknown-unknown --example animation --release --features atlas
+wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wasm
+```
+
 ## Known Issues
  - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
  - Besides the above no known issues.
