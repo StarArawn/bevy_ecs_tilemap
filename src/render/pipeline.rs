@@ -24,20 +24,26 @@ use bevy::{
             PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipelineCache,
             RenderPipelineDescriptor, SamplerBindingType, Shader, ShaderStages,
             SpecializedPipeline, SpecializedPipelines, TextureFormat, TextureSampleType,
-            TextureUsages, TextureViewDimension, VertexAttribute, VertexBufferLayout, VertexFormat,
-            VertexState, VertexStepMode,
+            TextureViewDimension, VertexAttribute, VertexBufferLayout, VertexFormat, VertexState,
+            VertexStepMode,
         },
-        renderer::{RenderDevice, RenderQueue},
+        renderer::RenderDevice,
         texture::BevyDefault,
         view::{ExtractedView, ViewUniformOffset, ViewUniforms},
     },
     utils::HashMap,
 };
 
+#[cfg(not(feature = "atlas"))]
+use bevy::render::{render_resource::TextureUsages, renderer::RenderQueue};
+
 use crate::{Chunk, TilemapMeshType};
 
+use super::tilemap_data::TilemapUniformData;
 use super::ExtractedFilterMode;
-use super::{texture_array_cache::TextureArrayCache, tilemap_data::TilemapUniformData};
+
+#[cfg(not(feature = "atlas"))]
+use super::texture_array_cache::TextureArrayCache;
 
 pub const SQUARE_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
@@ -74,13 +80,14 @@ pub fn extract_tilemaps(
 ) {
     let mut extracted_tilemaps = Vec::new();
     for (entity, transform, chunk, tilemap_uniform, mesh_handle) in query.iter() {
-        if let Some(atlas_image) = images.get(&chunk.material) {
-            if !atlas_image
+        if let Some(_atlas_image) = images.get(&chunk.material) {
+            #[cfg(not(feature = "atlas"))]
+            if !_atlas_image
                 .texture_descriptor
                 .usage
                 .contains(TextureUsages::COPY_SRC)
             {
-                log::error!("Texture atlas MUST have COPY_SRC texture usages defined! Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
+                log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
                 continue;
             }
 
@@ -169,6 +176,7 @@ impl FromWorld for TilemapPipeline {
             label: Some("tilemap_material_layout"),
         });
 
+        #[cfg(not(feature = "atlas"))]
         let material_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             entries: &[
                 BindGroupLayoutEntry {
@@ -178,6 +186,29 @@ impl FromWorld for TilemapPipeline {
                         multisampled: false,
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2Array,
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("tilemap_material_layout"),
+        });
+
+        #[cfg(feature = "atlas")]
+        let material_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            entries: &[
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Texture {
+                        multisampled: false,
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
                     },
                     count: None,
                 },
@@ -365,7 +396,6 @@ pub fn queue_meshes(
     mut commands: Commands,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     render_device: Res<RenderDevice>,
-    render_queue: Res<RenderQueue>,
     tilemap_pipeline: Res<TilemapPipeline>,
     mut pipelines: ResMut<SpecializedPipelines<TilemapPipeline>>,
     mut pipeline_cache: ResMut<RenderPipelineCache>,
@@ -384,8 +414,11 @@ pub fn queue_meshes(
         With<Handle<Mesh>>,
     >,
     mut views: Query<(Entity, &ExtractedView, &mut RenderPhase<Transparent2d>)>,
-    mut texture_array_cache: ResMut<TextureArrayCache>,
+
+    #[cfg(not(feature = "atlas"))] mut texture_array_cache: ResMut<TextureArrayCache>,
+    #[cfg(not(feature = "atlas"))] render_queue: Res<RenderQueue>,
 ) {
+    #[cfg(not(feature = "atlas"))]
     texture_array_cache.queue(&render_device, &render_queue, &gpu_images);
 
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
@@ -411,7 +444,13 @@ pub fn queue_meshes(
             for (entity, layer_id, tilemap_type, image, _mesh_uniform) in
                 standard_tilemap_meshes.iter()
             {
+                #[cfg(not(feature = "atlas"))]
                 if !texture_array_cache.contains(image) {
+                    continue;
+                }
+
+                #[cfg(feature = "atlas")]
+                if gpu_images.get(&image).is_none() {
                     continue;
                 }
 
@@ -419,7 +458,10 @@ pub fn queue_meshes(
                     .values
                     .entry(image.clone_weak())
                     .or_insert_with(|| {
+                        #[cfg(not(feature = "atlas"))]
                         let gpu_image = texture_array_cache.get(&image);
+                        #[cfg(feature = "atlas")]
+                        let gpu_image = gpu_images.get(&image).unwrap();
                         render_device.create_bind_group(&BindGroupDescriptor {
                             entries: &[
                                 BindGroupEntry {
