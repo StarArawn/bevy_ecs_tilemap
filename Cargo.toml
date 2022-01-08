@@ -1,7 +1,7 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.4.0"
+version = "0.5.0"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
@@ -13,7 +13,7 @@ exclude = ["assets/*", "screenshots/*"]
 default = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", default-features = false }
+bevy = { version = "0.6", default-features = false }
 morton-encoding = "2.0"
 log = "0.4"
 regex = "1.5.4"
@@ -21,15 +21,12 @@ bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { git = "https://github.com/bevyengine/bevy" }
+bevy = { version = "0.6" }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
-
-[patch."https://github.com/bevyengine/bevy"]
-bevy = { git = "https://github.com/bevyengine//bevy", rev = "458cb7a9e93dab3127bb99ce7bf8cfc3af18851d" }
 
 [[example]]
 name = "ldtk"
