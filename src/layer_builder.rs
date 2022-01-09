@@ -21,8 +21,10 @@ use bevy::{
 /// Useful for creating and modifying a layer in the same system.
 pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
-    pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
+    pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
+    pub(crate) map_id: u16,
+    pub(crate) layer_id: u16,
 }
 
 impl<T> LayerBuilder<T>
@@ -34,10 +36,13 @@ where
     /// which will be used for rendering each chunk entity.
     pub fn new(
         commands: &mut Commands,
-        mut settings: LayerSettings,
+        settings: LayerSettings,
         map_id: impl MapId,
         layer_id: impl LayerId,
-    ) -> (Self, Entity) {
+    ) -> Self {
+        let map_id = map_id.into();
+        let layer_id = layer_id.into();
+
         let layer_entity = commands.spawn().id();
         let tile_size_x =
             round_to_power_of_two((settings.map_size.0 * settings.chunk_size.0) as f32);
@@ -45,17 +50,18 @@ where
             round_to_power_of_two((settings.map_size.1 * settings.chunk_size.1) as f32);
         let tile_count = tile_size_x.max(tile_size_y);
 
-        settings.set_map_id(map_id);
-        settings.set_layer_id(layer_id);
-
-        (
-            Self {
-                settings,
-                tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
-                layer_entity,
-            },
+        Self {
+            settings,
+            tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
             layer_entity,
-        )
+            map_id,
+            layer_id,
+        }
+    }
+
+    // Obtain layer entity associated with LayerBuilder
+    pub fn get_entity(&self) -> Entity {
+        self.layer_entity
     }
 
     /// Uses bevy's `spawn_batch` to quickly create large amounts of tiles.
@@ -64,20 +70,20 @@ where
     /// which will be used for rendering each chunk entity.
     pub fn new_batch<F: FnMut(TilePos) -> Option<T>>(
         commands: &mut Commands,
-        mut settings: LayerSettings,
+        settings: LayerSettings,
         meshes: &mut ResMut<Assets<Mesh>>,
         material_handle: Handle<Image>,
         map_id: impl MapId,
         layer_id: impl LayerId,
         mut f: F,
     ) -> Entity {
+        let layer_id = layer_id.into();
+        let map_id = map_id.into();
+
         let layer_entity = commands.spawn().id();
 
         let size_x = settings.map_size.0 * settings.chunk_size.0;
         let size_y = settings.map_size.1 * settings.chunk_size.1;
-
-        settings.set_map_id(map_id);
-        settings.set_layer_id(layer_id);
 
         let mut layer = Layer::new(settings.clone());
         for x in 0..layer.settings.map_size.0 {
@@ -102,6 +108,7 @@ where
                     chunk_pos,
                     mesh_handle.clone(),
                     material_handle.clone(),
+                    layer_id,
                 );
 
                 let index = morton_index(chunk_pos);
@@ -123,8 +130,6 @@ where
 
         let ref_layer = &layer;
         let chunk_size = settings.chunk_size;
-        let layer_id = settings.layer_id;
-        let map_id = settings.map_id;
         let bundles: Vec<T> = (0..size_x)
             .flat_map(|x| (0..size_y).map(move |y| (x, y)))
             .filter_map(move |(x, y)| {
@@ -151,13 +156,13 @@ where
 
         let layer_bundle = LayerBundle {
             layer,
-            transform: Transform::from_xyz(0.0, 0.0, settings.layer_id as f32),
+            transform: Transform::from_xyz(0.0, 0.0, layer_id as f32),
             ..LayerBundle::default()
         };
 
-        let mut layer = layer_bundle.layer;
+        let layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
-        layer.settings.layer_id = layer.settings.layer_id;
+        // TODO: is this correct?
         transform.translation.z = 0.0; //layer.settings.layer_id as f32;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
@@ -200,6 +205,11 @@ where
         }
 
         Err(MapTileError::OutOfBounds)
+    }
+
+    // Get transform.translation.z (z index) of the layer
+    pub fn get_z(&self) -> f32 {
+        self.layer_id as f32
     }
 
     /// Returns an existing tile entity if it exists
@@ -324,6 +334,7 @@ where
                     chunk_pos,
                     mesh_handle.clone(),
                     material.clone(),
+                    self.layer_id,
                 );
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
@@ -338,8 +349,8 @@ where
                         let tile_parent = tile_bundle.get_tile_parent();
                         *tile_parent = TileParent {
                             chunk: chunk_entity,
-                            layer_id: self.settings.layer_id,
-                            map_id: self.settings.map_id,
+                            layer_id: self.layer_id,
+                            map_id: self.map_id,
                         };
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
@@ -371,7 +382,7 @@ where
 
         LayerBundle {
             layer,
-            transform: Transform::from_xyz(0.0, 0.0, self.settings.layer_id as f32),
+            transform: Transform::from_xyz(0.0, 0.0, self.get_z()),
             ..LayerBundle::default()
         }
     }

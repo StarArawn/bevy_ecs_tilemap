@@ -47,10 +47,9 @@ impl<'w, 's> MapQuery<'w, 's> {
         material_handle: Handle<Image>,
     ) -> Entity {
         let layer_bundle = layer_builder.build(commands, &mut self.meshes, material_handle);
-        let mut layer = layer_bundle.layer;
+        let layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
-        layer.settings.layer_id = layer.settings.layer_id;
-        transform.translation.z = layer.settings.layer_id as f32;
+        transform.translation.z = layer_builder.get_z();
         commands
             .entity(layer_builder.layer_entity)
             .insert_bundle(LayerBundle {
@@ -87,6 +86,7 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<Entity, MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
+
         if let Some((_, map)) = self
             .map_query_set
             .q1()
@@ -116,7 +116,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 .insert(TileParent {
                                     chunk: chunk_entity,
                                     layer_id,
-                                    map_id: layer.settings.map_id,
+                                    map_id,
                                 })
                                 .insert(tile_pos);
                             let tile_entity = tile_commands.id();

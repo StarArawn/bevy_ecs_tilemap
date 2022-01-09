@@ -9,9 +9,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
 
     let texture_handle = asset_server.load("tiles.png");
 
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
+    // Create map:
+    let mut map = Map::new(&mut commands, 0u16);
 
     let map_settings = LayerSettings::new(
         MapSize(2, 2),
@@ -21,20 +20,18 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     );
 
     // Layer 0
-    let (mut layer_0, layer_0_entity) =
-        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+    let mut layer0_builder =
+        map.layer_builder(&mut commands, &map_settings, 0u16);
 
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_0_entity);
+    layer0_builder.set_all(TileBundle::default());
 
-    layer_0.set_all(TileBundle::default());
-
-    map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
+    map_query.build_layer(&mut commands, layer0_builder, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
     for z in 0..2 {
-        let (mut layer_builder, layer_entity) =
-            LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, z + 1);
+        let layer_id = z + 1;
+        let mut layer_builder =
+            map.layer_builder(&mut commands, &map_settings, layer_id);
 
         let mut random = thread_rng();
 
@@ -54,15 +51,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         }
 
         map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
-
-        // Required to keep track of layers for a map internally.
-        map.add_layer(&mut commands, z + 1, layer_entity);
     }
 
     // Spawn Map
     // Required in order to use map_query to retrieve layers/tiles.
     commands
-        .entity(map_entity)
+        .entity(map.map_entity)
         .insert(map)
         .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
         .insert(GlobalTransform::default());
