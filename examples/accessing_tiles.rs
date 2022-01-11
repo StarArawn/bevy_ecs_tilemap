@@ -17,7 +17,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     // We can create maps by using the LayerBuilder
     // LayerBuilder creates the tile entities and makes sure they are attached to chunks correctly.
     // It also provides a way of accessing and viewing tiles during the creation phase.
-    // Once a LayerBuilder is passed to the map_query.create_layer function it is consumed and
+    // Once a LayerBuilder is passed to the map_query.build_layer function it is consumed and
     // can no longer be accessed.
     // Layer builder accepts a generic bundle that must implement the `TileBundleTrait`.
     // This is used internally to access the tile in the bundle to attach the chunk correctly.
@@ -77,7 +77,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         }
     }
 
-    // Once create_layer is called you can no longer access the tiles in this system.
+    // Once build_layer is called you can no longer access the tiles in this system.
     map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     commands
