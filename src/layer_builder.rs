@@ -79,7 +79,7 @@ where
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
 
-        let mut layer = Layer::new(settings.clone());
+        let mut layer = Layer::new(settings);
         for x in 0..layer.settings.map_size.0 {
             for y in 0..layer.settings.map_size.1 {
                 let mut chunk_entity = None;
@@ -98,7 +98,7 @@ where
                 let mesh_handle = meshes.add(mesh);
                 let chunk = Chunk::new(
                     layer_entity,
-                    settings.clone(),
+                    settings,
                     chunk_pos,
                     mesh_handle.clone(),
                     material_handle.clone(),
@@ -155,9 +155,8 @@ where
             ..LayerBundle::default()
         };
 
-        let mut layer = layer_bundle.layer;
+        let layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
-        layer.settings.layer_id = layer.settings.layer_id;
         transform.translation.z = 0.0; //layer.settings.layer_id as f32;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
@@ -188,8 +187,7 @@ where
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
-                let tile_entity = self.tiles[morton_tile_index].0;
-                tile_entity
+                self.tiles[morton_tile_index].0
             } else {
                 let tile_entity = Some(commands.spawn().id());
                 self.tiles[morton_tile_index].0 = tile_entity;
@@ -230,7 +228,7 @@ where
         let morton_tile_index = morton_index(tile_pos);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
-                return Ok(&tile);
+                return Ok(tile);
             } else {
                 return Err(MapTileError::NonExistent);
             }
@@ -301,7 +299,7 @@ where
         meshes: &mut ResMut<Assets<Mesh>>,
         material: Handle<Image>,
     ) -> LayerBundle {
-        let mut layer = Layer::new(self.settings.clone());
+        let mut layer = Layer::new(self.settings);
         for x in 0..layer.settings.map_size.0 {
             for y in 0..layer.settings.map_size.1 {
                 let mut chunk_entity = None;
@@ -320,7 +318,7 @@ where
                 let mesh_handle = meshes.add(mesh);
                 let mut chunk = Chunk::new(
                     self.layer_entity,
-                    self.settings.clone(),
+                    self.settings,
                     chunk_pos,
                     mesh_handle.clone(),
                     material.clone(),
