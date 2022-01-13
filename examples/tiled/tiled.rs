@@ -109,7 +109,7 @@ pub fn process_loaded_tile_maps(
 
     // If we have new map entities add them to the changed_maps list.
     for new_map_handle in new_maps.iter() {
-        changed_maps.push(new_map_handle.clone());
+        changed_maps.push(new_map_handle.clone_weak());
     }
 
     for changed_map in changed_maps.iter() {
@@ -190,7 +190,7 @@ pub fn process_loaded_tile_maps(
                             &mut commands,
                             map_settings.clone(),
                             &mut meshes,
-                            tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone(),
+                            tiled_map.tilesets.get(&tileset.first_gid).unwrap().clone_weak(),
                             0u16,
                             layer.layer_index as u16,
                             move |mut tile_pos| {
