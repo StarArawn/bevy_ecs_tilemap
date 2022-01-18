@@ -42,19 +42,19 @@ impl TileAtlasBuilder {
     }
 
     /// Sets the tile size.
-    pub fn tile_size(mut self, size: Vec2) -> Self {
+    pub const fn tile_size(mut self, size: Vec2) -> Self {
         self.tile_size = size;
         self
     }
 
     /// Sets the texture format for textures in the atlas.
-    pub fn format(mut self, format: TextureFormat) -> Self {
+    pub const fn format(mut self, format: TextureFormat) -> Self {
         self.format = format;
         self
     }
 
     /// Control whether the added texture should be converted to the atlas format, if different.
-    pub fn auto_format_conversion(mut self, auto_format_conversion: bool) -> Self {
+    pub const fn auto_format_conversion(mut self, auto_format_conversion: bool) -> Self {
         self.auto_format_conversion = auto_format_conversion;
         self
     }
@@ -79,6 +79,7 @@ impl TileAtlasBuilder {
 				Received: {:?}",
                 self.tile_size, texture.texture_descriptor.size,
             );
+            // TODO: Use a custom error type
             return Err(());
         }
 

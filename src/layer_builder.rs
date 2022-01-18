@@ -130,7 +130,7 @@ where
             .filter_map(move |(x, y)| {
                 let tile_pos = TilePos(x, y);
                 let chunk_pos = ChunkPos(x / chunk_size.0, y / chunk_size.1);
-                if let Some(mut tile_bundle) = f(tile_pos) {
+                f(tile_pos).map(|mut tile_bundle| {
                     let tile_parent = tile_bundle.get_tile_parent();
                     *tile_parent = TileParent {
                         chunk: ref_layer.get_chunk(chunk_pos).unwrap(),
@@ -140,10 +140,8 @@ where
                     let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                     *tile_bundle_pos = tile_pos;
 
-                    Some(tile_bundle)
-                } else {
-                    None
-                }
+                    tile_bundle
+                })
             })
             .collect();
 
@@ -203,12 +201,9 @@ where
     /// Returns an existing tile entity if it exists
     pub fn look_up_tile_entity(&self, tile_pos: TilePos) -> Option<Entity> {
         let morton_tile_index = morton_index(tile_pos);
-        if morton_tile_index < self.tiles.capacity() {
-            if self.tiles[morton_tile_index].0.is_some() {
-                return self.tiles[morton_tile_index].0;
-            }
+        if morton_tile_index < self.tiles.capacity() && self.tiles[morton_tile_index].0.is_some() {
+            return self.tiles[morton_tile_index].0;
         }
-
         None
     }
 
@@ -328,11 +323,9 @@ where
                     let morton_tile_index = morton_index(tile_pos);
 
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
-                        let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
-                            Some(entity)
-                        } else {
-                            Some(commands.spawn().id())
-                        };
+                        let tile_entity = self.tiles[morton_tile_index]
+                            .0
+                            .map_or_else(|| commands.spawn().id(), |entity| entity);
                         let tile_parent = tile_bundle.get_tile_parent();
                         *tile_parent = TileParent {
                             chunk: chunk_entity,
@@ -341,11 +334,9 @@ where
                         };
                         let tile_bundle_pos = tile_bundle.get_tile_pos_mut();
                         *tile_bundle_pos = tile_pos;
-                        commands
-                            .entity(tile_entity.unwrap())
-                            .insert_bundle(tile_bundle);
+                        commands.entity(tile_entity).insert_bundle(tile_bundle);
 
-                        return tile_entity;
+                        return Some(tile_entity);
                     }
                     None
                 });

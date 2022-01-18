@@ -97,9 +97,9 @@ pub fn extract_tilemaps(
                 (
                     LayerId(chunk.settings.layer_id),
                     chunk.material.clone(),
-                    chunk.settings.mesh_type.clone(),
+                    chunk.settings.mesh_type,
                     mesh_handle.clone_weak(),
-                    tilemap_uniform.clone(),
+                    *tilemap_uniform,
                     MeshUniform { transform },
                     ExtractedFilterMode(chunk.settings.filter),
                 ),
@@ -222,7 +222,7 @@ impl FromWorld for TilemapPipeline {
             label: Some("tilemap_material_layout"),
         });
 
-        TilemapPipeline {
+        Self {
             view_layout,
             material_layout,
             mesh_layout,
@@ -450,7 +450,7 @@ pub fn queue_meshes(
                 }
 
                 #[cfg(feature = "atlas")]
-                if gpu_images.get(&image).is_none() {
+                if gpu_images.get(image).is_none() {
                     continue;
                 }
 
@@ -459,9 +459,9 @@ pub fn queue_meshes(
                     .entry(image.clone_weak())
                     .or_insert_with(|| {
                         #[cfg(not(feature = "atlas"))]
-                        let gpu_image = texture_array_cache.get(&image);
+                        let gpu_image = texture_array_cache.get(image);
                         #[cfg(feature = "atlas")]
-                        let gpu_image = gpu_images.get(&image).unwrap();
+                        let gpu_image = gpu_images.get(image).unwrap();
                         render_device.create_bind_group(&BindGroupDescriptor {
                             entries: &[
                                 BindGroupEntry {
@@ -577,7 +577,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
             .values
             .get(image_handle)
             .unwrap();
-        pass.set_bind_group(I, &bind_group, &[]);
+        pass.set_bind_group(I, bind_group, &[]);
 
         RenderCommandResult::Success
     }
@@ -593,12 +593,13 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
         pipeline_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        if let Some(pipeline) = pipeline_cache.into_inner().get(item.pipeline) {
-            pass.set_render_pipeline(pipeline);
-            RenderCommandResult::Success
-        } else {
-            RenderCommandResult::Failure
-        }
+        pipeline_cache.into_inner().get(item.pipeline).map_or(
+            RenderCommandResult::Failure,
+            |pipeline| {
+                pass.set_render_pipeline(pipeline);
+                RenderCommandResult::Success
+            },
+        )
     }
 }
 

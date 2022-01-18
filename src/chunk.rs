@@ -14,7 +14,7 @@ use bevy::{
 };
 use std::sync::Mutex;
 
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub(crate) struct ChunkBundle {
     pub chunk: Chunk,
     pub mesh: Handle<Mesh>,
@@ -23,20 +23,6 @@ pub(crate) struct ChunkBundle {
     pub tilemap_data: TilemapUniformData,
     pub visibility: Visibility,
     pub computed_visibility: ComputedVisibility,
-}
-
-impl Default for ChunkBundle {
-    fn default() -> Self {
-        Self {
-            chunk: Chunk::default(),
-            mesh: Handle::default(),
-            transform: Transform::default(),
-            global_transform: GlobalTransform::default(),
-            tilemap_data: TilemapUniformData::default(),
-            visibility: Visibility::default(),
-            computed_visibility: ComputedVisibility::default(),
-        }
-    }
 }
 
 /// A component that stores information about a specific chunk in the tile map.
@@ -133,7 +119,7 @@ impl Chunk {
     /// Returns the local coordinates of a tile
     ///
     /// Coordinates are relative to the origin of the chunk that this method is called on
-    pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
+    pub const fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
         LocalTilePos(
             global_tile_position.0 - (self.position.0 * self.settings.chunk_size.0),
             global_tile_position.1 - (self.position.1 * self.settings.chunk_size.1),
@@ -176,21 +162,20 @@ pub(crate) fn update_chunk_visibility(
     mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visibility)>,
 ) {
     if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
-        if let Some(name) = &data.0.name {
-            name == CameraPlugin::CAMERA_2D
-        } else {
-            false
-        }
+        data.0
+            .name
+            .as_ref()
+            .map_or(false, |name| name == CameraPlugin::CAMERA_2D)
     }) {
         // Transform camera into world space.
-        let left =
-            camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);
-        let right =
-            camera_transform.translation.x + (ortho.right * ortho.scale * camera_transform.scale.x);
-        let bottom = camera_transform.translation.y
-            + (ortho.bottom * ortho.scale * camera_transform.scale.y);
-        let top =
-            camera_transform.translation.y + (ortho.top * ortho.scale * camera_transform.scale.y);
+        let left = (ortho.left * ortho.scale)
+            .mul_add(camera_transform.scale.x, camera_transform.translation.x);
+        let right = (ortho.right * ortho.scale)
+            .mul_add(camera_transform.scale.x, camera_transform.translation.x);
+        let bottom = (ortho.bottom * ortho.scale)
+            .mul_add(camera_transform.scale.y, camera_transform.translation.y);
+        let top = (ortho.top * ortho.scale)
+            .mul_add(camera_transform.scale.y, camera_transform.translation.y);
 
         let camera_bounds = Vec4::new(left, right, bottom, top);
 
@@ -228,22 +213,18 @@ pub(crate) fn update_chunk_visibility(
                         log::trace!("Hiding chunk @: {:?}", bounds);
                         visibility.is_visible = false;
                     }
-                } else {
-                    if !visibility.is_visible {
-                        log::trace!("Showing chunk @: {:?}", bounds);
-                        visibility.is_visible = true;
-                    }
+                } else if !visibility.is_visible {
+                    log::trace!("Showing chunk @: {:?}", bounds);
+                    visibility.is_visible = true;
                 }
-            } else {
-                if visibility.is_visible {
-                    log::trace!(
-                        "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
-                        bounds,
-                        padded_camera_bounds,
-                        bounds_size
-                    );
-                    visibility.is_visible = false;
-                }
+            } else if visibility.is_visible {
+                log::trace!(
+                    "Hiding chunk @: {:?}, with camera_bounds: {:?}, bounds_size: {:?}",
+                    bounds,
+                    padded_camera_bounds,
+                    bounds_size
+                );
+                visibility.is_visible = false;
             }
         }
     }

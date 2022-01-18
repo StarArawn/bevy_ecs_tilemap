@@ -47,9 +47,8 @@ impl<'w, 's> MapQuery<'w, 's> {
         material_handle: Handle<Image>,
     ) -> Entity {
         let layer_bundle = layer_builder.build(commands, &mut self.meshes, material_handle);
-        let mut layer = layer_bundle.layer;
+        let layer = layer_bundle.layer;
         let mut transform = layer_bundle.transform;
-        layer.settings.layer_id = layer.settings.layer_id;
         transform.translation.z = layer.settings.layer_id as f32;
         commands
             .entity(layer_builder.layer_entity)
@@ -325,7 +324,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .iter()
             .find(|(_, map)| map.id == map_id)
         {
-            Some(map.layers.keys().map(|layer_id| *layer_id).collect())
+            Some(map.layers.keys().copied().collect())
         } else {
             None
         };
@@ -444,5 +443,5 @@ pub fn unproject_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
 fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
     let x = (pos.x - pos.y) * tile_width / 2.0;
     let y = (pos.x + pos.y) * tile_height / 2.0;
-    return Vec2::new(x, -y);
+    Vec2::new(x, -y)
 }
