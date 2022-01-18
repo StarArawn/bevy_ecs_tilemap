@@ -13,77 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d3d04f67-c1b6-42c1-a4b0-9850949e94fc" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-01.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-02.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-03.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-04.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-05.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/individual/tile-06.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/texture_atlas.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/include_shader.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_even_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/column_odd_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/diamond_iso.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_even_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/row_odd_hex.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/square.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/staggered_iso.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/shaders/tilemap.wgsl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/render/tilemap_data.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/tile_atlas.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/accessing_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/accessing_tiles.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/animation.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/animation.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/atlas_spacing.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/atlas_spacing.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/bench.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/bench.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/color.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/color.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/dynamic_map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/dynamic_map.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/game_of_life.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/game_of_life.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/helpers/camera.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/camera.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/helpers/movement.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/movement.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/helpers/texture.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/helpers/texture.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/hex_column.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/hex_column.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/hex_row.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/hex_row.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/improved_iso.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/improved_iso.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/iso_diamond.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/iso_diamond.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/iso_staggered.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/iso_staggered.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/layers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/layers.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/ldtk/ldtk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ldtk/ldtk.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/ldtk/ldtk_usage.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/ldtk/ldtk_usage.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/map.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/random_map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/random_map.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/remove_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/remove_tiles.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/replace_material.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/replace_material.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/sparse_tiles.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/sparse_tiles.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled_rotate.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled_rotate.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/tiled/tiled_usage.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/tiled/tiled_usage.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/visibility.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/visibility.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chunk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chunk.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/layer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/layer.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/layer_builder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/layer_builder.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/map.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/map.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/map_query.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/map_query.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mesher.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/mesher.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/neighbors.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/neighbors.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/columnevenhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/columnhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/columnoddhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/diamondiso-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/render/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/pipeline.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/render/pipeline.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/rowevenhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/rowhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/rowoddhex-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/square-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/staggerediso-tilemap.vert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/render/tilemap.frag" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tile.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tile.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,7 +46,9 @@
     <option name="directoryName" value="u3bqlr6a" />
   </component>
   <component name="ProjectId" id="20wkpw0QDNClDuZuZmrgq0LiYHR" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -127,7 +60,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/assets" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -143,6 +76,11 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Run hex_column">
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run animation" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="run --package bevy_ecs_tilemap --example animation" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -223,11 +161,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Run hex_column" />
@@ -260,6 +193,7 @@
       <workItem from="1637875290462" duration="748000" />
       <workItem from="1637967816275" duration="1714000" />
       <workItem from="1640287693430" duration="559000" />
+      <workItem from="1642499067130" duration="2270000" />
     </task>
     <servers />
   </component>
