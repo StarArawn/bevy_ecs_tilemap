@@ -64,54 +64,29 @@ impl<'w, 's> MapQuery<'w, 's> {
 /// Order: N, S, W, E, NW, NE, SW, SE.
 ///
 /// Tile positions are bounded between 0 and u32::MAX, so None may be returned
-pub const fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
-    let north = if tile_pos.1 != u32::MAX {
-        Some(TilePos(tile_pos.0, tile_pos.1 + 1))
-    } else {
-        None
-    };
+pub fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
+    let north = (tile_pos.1 != u32::MAX).then(Some(TilePos(tile_pos.0, tile_pos.1 + 1)));
 
-    let south = if tile_pos.1 != 0 {
-        Some(TilePos(tile_pos.0, tile_pos.1 - 1))
-    } else {
-        None
-    };
+    let south = (tile_pos.1 != 0).then(
+        Some(TilePos(tile_pos.0, tile_pos.1 - 1)));
 
-    let west = if tile_pos.0 != 0 {
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1))
-    } else {
-        None
-    };
+    let west = (tile_pos.0 != 0).then(
+        Some(TilePos(tile_pos.0 - 1, tile_pos.1)));
 
-    let east = if tile_pos.0 != u32::MAX {
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1))
-    } else {
-        None
-    };
+    let east = (tile_pos.0 != u32::MAX).then(
+        Some(TilePos(tile_pos.0 + 1, tile_pos.1)));
 
-    let northwest = if (tile_pos.0 != 0) & (tile_pos.1 != u32::MAX) {
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1 + 1))
-    } else {
-        None
-    };
+    let northwest = ((tile_pos.0 != 0) & (tile_pos.1 != u32::MAX)).then(
+        Some(TilePos(tile_pos.0 - 1, tile_pos.1 + 1)));
 
-    let northeast = if (tile_pos.0 != u32::MAX) & (tile_pos.1 != u32::MAX) {
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1 + 1))
-    } else {
-        None
-    };
+    let northeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != u32::MAX)).then(
+        Some(TilePos(tile_pos.0 + 1, tile_pos.1 + 1)));
 
-    let southwest = if (tile_pos.0 != 0) & (tile_pos.1 != 0) {
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1 - 1))
-    } else {
-        None
-    };
+    let southwest = ((tile_pos.0 != 0) & (tile_pos.1 != 0)).then(
+        Some(TilePos(tile_pos.0 - 1, tile_pos.1 - 1)));
 
-    let southeast = if (tile_pos.0 != u32::MAX) & (tile_pos.1 != 0) {
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1 - 1))
-    } else {
-        None
-    };
+    let southeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != 0)).then(
+        Some(TilePos(tile_pos.0 + 1, tile_pos.1 - 1)));
 
     [
         north, south, west, east, northwest, northeast, southwest, southeast,

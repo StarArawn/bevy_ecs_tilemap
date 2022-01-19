@@ -119,7 +119,8 @@ impl Chunk {
     /// Returns the local coordinates of a tile
     ///
     /// Coordinates are relative to the origin of the chunk that this method is called on
-    pub const fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
+    #[inline]
+    pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
         LocalTilePos(
             global_tile_position.0 - (self.position.0 * self.settings.chunk_size.0),
             global_tile_position.1 - (self.position.1 * self.settings.chunk_size.1),
