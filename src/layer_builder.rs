@@ -149,7 +149,7 @@ where
 
         let layer_bundle = LayerBundle {
             layer,
-            transform: Transform::from_xyz(0.0, 0.0, settings.layer_id as f32),
+            transform: Transform::from_xyz(0.0, 0.0, f32::from(settings.layer_id)),
             ..LayerBundle::default()
         };
 
@@ -224,9 +224,8 @@ where
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(tile);
-            } else {
-                return Err(MapTileError::NonExistent);
             }
+            return Err(MapTileError::NonExistent);
         }
         Err(MapTileError::OutOfBounds)
     }
@@ -237,9 +236,8 @@ where
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(tile);
-            } else {
-                return Err(MapTileError::NonExistent);
             }
+            return Err(MapTileError::NonExistent);
         }
         Err(MapTileError::OutOfBounds)
     }
@@ -282,7 +280,7 @@ where
 
     /// Sets all of the tiles in the layer builder.
     pub fn set_all(&mut self, tile: T) {
-        for tile_option in self.tiles.iter_mut() {
+        for tile_option in &mut self.tiles {
             *tile_option = (tile_option.0, Some(tile.clone()));
         }
     }
@@ -360,7 +358,7 @@ where
 
         LayerBundle {
             layer,
-            transform: Transform::from_xyz(0.0, 0.0, self.settings.layer_id as f32),
+            transform: Transform::from_xyz(0.0, 0.0, f32::from(self.settings.layer_id)),
             ..LayerBundle::default()
         }
     }
@@ -397,10 +395,10 @@ where
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
             TilemapMeshType::Hexagon(crate::HexType::Row) => {
-                let chunk_pos_x = (chunk_pos.1 as f32
-                    * settings.chunk_size.0 as f32
-                    * (0.5 * settings.tile_size.0).floor())
-                    + (chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0);
+                let chunk_pos_x = (chunk_pos.1 as f32 * settings.chunk_size.0 as f32).mul_add(
+                    (0.5 * settings.tile_size.0).floor(),
+                    chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0,
+                );
                 let chunk_pos_y = chunk_pos.1 as f32
                     * settings.chunk_size.1 as f32
                     * (0.75 * settings.tile_size.1).floor();
@@ -410,14 +408,13 @@ where
                 let chunk_pos_x = chunk_pos.0 as f32
                     * settings.chunk_size.0 as f32
                     * (0.75 * settings.tile_size.0).floor();
-                let chunk_pos_y = (chunk_pos.0 as f32
-                    * settings.chunk_size.1 as f32
-                    * (0.5 * settings.tile_size.1).ceil())
-                    + chunk_pos.1 as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1;
+                let chunk_pos_y = (chunk_pos.0 as f32 * settings.chunk_size.1 as f32).mul_add(
+                    (0.5 * settings.tile_size.1).ceil(),
+                    chunk_pos.1 as f32 * settings.chunk_size.1 as f32 * settings.tile_size.1,
+                );
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
-            TilemapMeshType::Hexagon(crate::HexType::RowOdd)
-            | TilemapMeshType::Hexagon(crate::HexType::RowEven) => {
+            TilemapMeshType::Hexagon(crate::HexType::RowOdd | crate::HexType::RowEven) => {
                 let chunk_pos_x =
                     chunk_pos.0 as f32 * settings.chunk_size.0 as f32 * settings.tile_size.0;
                 let chunk_pos_y = chunk_pos.1 as f32
@@ -425,8 +422,7 @@ where
                     * (0.75 * settings.tile_size.1).floor();
                 Vec2::new(chunk_pos_x, chunk_pos_y)
             }
-            TilemapMeshType::Hexagon(crate::HexType::ColumnOdd)
-            | TilemapMeshType::Hexagon(crate::HexType::ColumnEven) => {
+            TilemapMeshType::Hexagon(crate::HexType::ColumnOdd | crate::HexType::ColumnEven) => {
                 let chunk_pos_x = chunk_pos.0 as f32
                     * settings.chunk_size.0 as f32
                     * (0.75 * settings.tile_size.0).floor();

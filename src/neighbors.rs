@@ -65,29 +65,18 @@ impl<'w, 's> MapQuery<'w, 's> {
 ///
 /// Tile positions are bounded between 0 and u32::MAX, so None may be returned
 pub fn get_neighboring_pos(tile_pos: TilePos) -> [Option<TilePos>; 8] {
-    let north = (tile_pos.1 != u32::MAX).then(Some(TilePos(tile_pos.0, tile_pos.1 + 1)));
-
-    let south = (tile_pos.1 != 0).then(
-        Some(TilePos(tile_pos.0, tile_pos.1 - 1)));
-
-    let west = (tile_pos.0 != 0).then(
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1)));
-
-    let east = (tile_pos.0 != u32::MAX).then(
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1)));
-
-    let northwest = ((tile_pos.0 != 0) & (tile_pos.1 != u32::MAX)).then(
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1 + 1)));
-
-    let northeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != u32::MAX)).then(
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1 + 1)));
-
-    let southwest = ((tile_pos.0 != 0) & (tile_pos.1 != 0)).then(
-        Some(TilePos(tile_pos.0 - 1, tile_pos.1 - 1)));
-
-    let southeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != 0)).then(
-        Some(TilePos(tile_pos.0 + 1, tile_pos.1 - 1)));
-
+    let north = (tile_pos.1 != u32::MAX).then(|| TilePos(tile_pos.0, tile_pos.1 + 1));
+    let south = (tile_pos.1 != 0).then(|| TilePos(tile_pos.0, tile_pos.1 - 1));
+    let west = (tile_pos.0 != 0).then(|| TilePos(tile_pos.0 - 1, tile_pos.1));
+    let east = (tile_pos.0 != u32::MAX).then(|| TilePos(tile_pos.0 + 1, tile_pos.1));
+    let northwest = ((tile_pos.0 != 0) & (tile_pos.1 != u32::MAX))
+        .then(|| TilePos(tile_pos.0 - 1, tile_pos.1 + 1));
+    let northeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != u32::MAX))
+        .then(|| TilePos(tile_pos.0 + 1, tile_pos.1 + 1));
+    let southwest =
+        ((tile_pos.0 != 0) & (tile_pos.1 != 0)).then(|| TilePos(tile_pos.0 - 1, tile_pos.1 - 1));
+    let southeast = ((tile_pos.0 != u32::MAX) & (tile_pos.1 != 0))
+        .then(|| TilePos(tile_pos.0 + 1, tile_pos.1 - 1));
     [
         north, south, west, east, northwest, northeast, southwest, southeast,
     ]

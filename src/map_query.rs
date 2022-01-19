@@ -178,9 +178,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                             if let Some(tile) = chunk.get_tile_entity(chunk.to_chunk_pos(tile_pos))
                             {
                                 return Ok(tile);
-                            } else {
-                                return Err(MapTileError::NonExistent);
                             }
+                            return Err(MapTileError::NonExistent);
                         }
                     }
                 }
@@ -227,9 +226,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 let morton_tile_index = morton_index(chunk_tile_pos);
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
-                            } else {
-                                return Err(MapTileError::NonExistent);
                             }
+                            return Err(MapTileError::NonExistent);
                         }
                     }
                 }

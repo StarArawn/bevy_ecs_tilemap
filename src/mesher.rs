@@ -12,7 +12,7 @@ pub(crate) struct ChunkMesher;
 
 impl ChunkMesher {
     pub fn mesh(
-        &self,
+        self,
         chunk: &Chunk,
         chunk_tiles: &[Option<Entity>],
         tile_query: &Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
@@ -39,7 +39,11 @@ impl ChunkMesher {
                     (tile_position.1 - (chunk.position.1 * chunk.settings.chunk_size.1)) as f32,
                 );
                 let (animation_start, animation_end, animation_speed) = gpu_animated.map_or(
-                    (tile.texture_index as i32, tile.texture_index as i32, 0.0),
+                    (
+                        i32::from(tile.texture_index),
+                        i32::from(tile.texture_index),
+                        0.0,
+                    ),
                     |ani| (ani.start as i32, ani.end as i32, ani.speed),
                 );
 
@@ -94,25 +98,25 @@ impl ChunkMesher {
 
                 textures.extend(IntoIter::new([
                     [
-                        tile.texture_index as i32,
+                        i32::from(tile.texture_index),
                         tile_flip_bits,
                         animation_start,
                         animation_end,
                     ],
                     [
-                        tile.texture_index as i32,
+                        i32::from(tile.texture_index),
                         tile_flip_bits,
                         animation_start,
                         animation_end,
                     ],
                     [
-                        tile.texture_index as i32,
+                        i32::from(tile.texture_index),
                         tile_flip_bits,
                         animation_start,
                         animation_end,
                     ],
                     [
-                        tile.texture_index as i32,
+                        i32::from(tile.texture_index),
                         tile_flip_bits,
                         animation_start,
                         animation_end,
