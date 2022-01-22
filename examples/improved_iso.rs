@@ -15,8 +15,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     let mut map = Map::new(0u16, map_entity);
 
     let mut map_settings = LayerSettings::new(
-        MapSize(2, 2),
-        ChunkSize(32, 32),
+        MapSize(1, 10),
+        ChunkSize(10, 1),
         TileSize(64.0, 64.0),
         TextureSize(384.0, 64.0),
     );
@@ -68,7 +68,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
-    for z in 0..3 {
+    for z in 0..1 {
         let (mut layer_builder, layer_entity) =
             LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, z + 1);
         map.add_layer(&mut commands, z + 1, layer_entity);
@@ -90,7 +90,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
             );
         }
 
-        map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
+        let layer_entity =
+            map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
     }
 
     // Spawn Map
@@ -98,16 +99,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     commands
         .entity(map_entity)
         .insert(map)
-        .insert(Transform::from_xyz(0.0, 1024.0, 0.0))
+        .insert(Transform::from_xyz(0.0, 0.0, 0.0))
         .insert(GlobalTransform::default());
 
     let x_pos = 8.0;
     let y_pos = 8.0;
     // TODO: Replace this with like a "get_z_map_position" or something.
-    let center = project_iso(Vec2::new(x_pos, y_pos), 64.0, 32.0);
-    let sprite_pos = Transform::from_xyz(center.x, center.y, 1.0 + (1.0 - (center.y / 10000.0)));
-    let texture_handle = asset_server.load("player.png");
+    let center = project_iso(Vec2::new(0.0, 0.0), 64.0, 32.0);
+    let mut sprite_pos = Transform::from_xyz(center.x, center.y, 0.0);
 
+    let texture_handle = asset_server.load("player.png");
     commands
         .spawn_bundle(SpriteBundle {
             texture: texture_handle,

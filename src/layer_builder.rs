@@ -353,7 +353,21 @@ where
                 let index = morton_index(chunk_pos);
                 layer.chunks[index] = Some(chunk_entity);
 
-                let transform = Self::get_chunk_coords(chunk_pos, &self.settings);
+                let mut transform = Self::get_chunk_coords(chunk_pos, &self.settings);
+
+                if matches!(
+                    self.settings.mesh_type,
+                    TilemapMeshType::Isometric(IsoType::Diamond)
+                ) {
+                    let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
+                    let map_size: Vec2 = layer_size_in_tiles * self.settings.grid_size;
+                    dbg!(chunk_pos.1 as f32 / map_size.y, chunk_pos, map_size);
+                    transform.translation.z = (chunk_pos.1 as f32 / layer_size_in_tiles.y);
+                    dbg!(&transform.translation.z);
+                    if transform.translation.y < 0.0 {
+                        // panic!("");
+                    }
+                }
 
                 let tilemap_data = TilemapUniformData::from(&chunk);
 
@@ -380,7 +394,7 @@ where
         chunk_pixel_width: f32,
         chunk_pixel_height: f32,
     ) -> Vec2 {
-        let new_x = (x - y) * chunk_pixel_width / 2.0;
+        let new_x = (x - y) * 64.0 / 2.0;
         let new_y = (x + y) * chunk_pixel_height / 2.0;
         Vec2::new(new_x, -new_y)
     }
@@ -396,7 +410,7 @@ where
         Vec2::new(new_x, new_y)
     }
 
-    fn get_chunk_coords(chunk_pos: ChunkPos, settings: &LayerSettings) -> Transform {
+    pub fn get_chunk_coords(chunk_pos: ChunkPos, settings: &LayerSettings) -> Transform {
         let chunk_pos = match settings.mesh_type {
             TilemapMeshType::Square => {
                 let chunk_pos_x =

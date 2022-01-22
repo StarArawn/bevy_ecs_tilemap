@@ -34,8 +34,11 @@ pub fn update(
 
         transform.translation += time.delta_seconds() * direction * 50.;
 
-        let sprite_pos_z =
-            map_query.get_zindex_for_pixel_pos(transform.translation.xy().extend(1.0), 0u16, 0u16);
+        let sprite_pos_z = map_query.get_zindex_for_pixel_pos(
+            Vec3::new(transform.translation.x, transform.translation.y + 10.0, 1.0), // Drop down by sprite height divided by two.
+            0u16,
+            0u16,
+        );
 
         dbg!(sprite_pos_z);
         transform.translation.z = sprite_pos_z;

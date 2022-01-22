@@ -23,8 +23,8 @@ pub struct MapQuery<'w, 's> {
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Layer)>,
-            QueryState<(Entity, &'static Layer)>,
+            QueryState<(Entity, &'static mut Layer, &'static GlobalTransform)>,
+            QueryState<(Entity, &'static Layer, &'static GlobalTransform)>,
         ),
     >,
     map_query_set: QuerySet<
@@ -94,7 +94,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
@@ -144,7 +144,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((entity, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((entity, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     return Some((entity, layer));
                 }
             }
@@ -169,7 +169,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
@@ -214,7 +214,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
@@ -256,7 +256,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     for x in 0..layer.get_layer_size_in_tiles().0 {
                         for y in 0..layer.get_layer_size_in_tiles().1 {
                             let tile_pos = TilePos(x, y);
@@ -300,7 +300,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     for x in 0..layer.settings.map_size.0 {
                         for y in 0..layer.settings.map_size.1 {
                             if let Some(chunk_entity) = layer.get_chunk(ChunkPos(x, y)) {
@@ -369,7 +369,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .find(|(_, map)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer, _)) = self.layer_query_set.q1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
@@ -412,19 +412,12 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map)) = map_query.iter().find(|(_, map)| map.id == map_id) {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = layer_query.get(*layer_entity) {
+                if let Ok((_, layer, _)) = layer_query.get(*layer_entity) {
                     let grid_size = layer.settings.grid_size;
                     let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
-                    let map_size: Vec2 = layer_size_in_tiles * grid_size;
-                    let map_pos = unproject_iso(pixel_position.xy(), grid_size.x, grid_size.y);
-                    let center = project_iso(
-                        Vec2::new(map_pos.x, map_pos.y - 2.0),
-                        grid_size.x,
-                        grid_size.y,
-                    );
-                    dbg!(grid_size, layer_size_in_tiles, map_size, map_pos, center);
-
-                    return pixel_position.z + (1.0 - (center.y / map_size.y));
+                    let map_pos =
+                        unproject_iso(Vec2::new(0.0, pixel_position.y), grid_size.x, grid_size.y);
+                    return pixel_position.z + (map_pos.y / layer_size_in_tiles.y);
                 }
             }
         }

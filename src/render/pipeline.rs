@@ -91,7 +91,7 @@ pub fn extract_tilemaps(
                 continue;
             }
 
-            let transform = transform.compute_matrix();
+            let transform_mat = transform.compute_matrix();
             extracted_tilemaps.push((
                 entity,
                 (
@@ -100,8 +100,11 @@ pub fn extract_tilemaps(
                     chunk.settings.mesh_type.clone(),
                     mesh_handle.clone_weak(),
                     tilemap_uniform.clone(),
-                    MeshUniform { transform },
+                    MeshUniform {
+                        transform: transform_mat,
+                    },
                     ExtractedFilterMode(chunk.settings.filter),
+                    *transform,
                 ),
             ));
         }
@@ -410,6 +413,7 @@ pub fn queue_meshes(
             &TilemapMeshType,
             &Handle<Image>,
             &MeshUniform,
+            &GlobalTransform,
         ),
         With<Handle<Mesh>>,
     >,
@@ -441,7 +445,7 @@ pub fn queue_meshes(
                 .get_id::<DrawTilemap>()
                 .unwrap();
 
-            for (entity, layer_id, tilemap_type, image, _mesh_uniform) in
+            for (entity, layer_id, tilemap_type, image, _mesh_uniform, global_transform) in
                 standard_tilemap_meshes.iter()
             {
                 #[cfg(not(feature = "atlas"))]
@@ -484,11 +488,12 @@ pub fn queue_meshes(
                 };
 
                 let pipeline_id = pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
+                dbg!(global_transform.translation.z);
                 transparent_phase.add(Transparent2d {
                     entity,
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
-                    sort_key: FloatOrd(layer_id.0 as f32),
+                    sort_key: FloatOrd(global_transform.translation.z),
                     batch_range: None,
                 });
             }
