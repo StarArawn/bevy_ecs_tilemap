@@ -58,9 +58,9 @@ impl TextureArrayCache {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for item in prepare_queue {
             let (tile_size, atlas_size, _, filter) = self.sizes.get(&item).unwrap();
-            let tile_count_x = atlas_size.0 as f32 / tile_size.0;
-            let tile_count_y = atlas_size.1 as f32 / tile_size.1;
-            let count = (tile_count_x * tile_count_y).floor() as u32;
+            let tile_count_x = (atlas_size.0 as f32 / tile_size.0).floor();
+            let tile_count_y = (atlas_size.1 as f32 / tile_size.1).floor();
+            let count = (tile_count_x * tile_count_y) as u32;
 
             let texture = render_device.create_texture(&TextureDescriptor {
                 label: Some("texture_array"),
@@ -132,9 +132,9 @@ impl TextureArrayCache {
 
             let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
-            let tile_count_x = atlas_size.0 as f32 / tile_size.0;
-            let tile_count_y = atlas_size.1 as f32 / tile_size.1;
-            let count = (tile_count_x * tile_count_y).floor() as u32;
+            let tile_count_x = (atlas_size.0 as f32 / tile_size.0).floor();
+            let tile_count_y = (atlas_size.1 as f32 / tile_size.1).floor();
+            let count = (tile_count_x * tile_count_y) as u32;
 
             let mut command_encoder =
                 render_device.create_command_encoder(&CommandEncoderDescriptor {
