@@ -29,14 +29,15 @@ impl Default for Tile {
     }
 }
 
-impl Into<TileBundle> for Tile {
-    fn into(self) -> TileBundle {
-        TileBundle {
-            tile: self,
+impl From<Tile> for TileBundle {
+    fn from(tile: Tile) -> Self {
+        Self {
+            tile,
             ..Default::default()
         }
     }
 }
+
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
@@ -51,7 +52,7 @@ pub struct GPUAnimated {
 }
 
 impl GPUAnimated {
-    pub fn new(start: u32, end: u32, speed: f32) -> Self {
+    pub const fn new(start: u32, end: u32, speed: f32) -> Self {
         Self { start, end, speed }
     }
 }

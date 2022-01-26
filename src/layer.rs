@@ -10,7 +10,7 @@ use crate::{
 use bevy::{prelude::*, render::render_resource::FilterMode};
 use std::hash::Hash;
 
-/// A bevy bundle which contains: Map, Transform, and GlobalTransform components.
+/// A bevy bundle which contains: `Layer`, `Transform`, and `GlobalTransform` components.
 #[derive(Bundle, Default)]
 pub struct LayerBundle {
     /// The map component for the tilemap.
@@ -89,6 +89,7 @@ impl LayerSettings {
         )
     }
 
+    #[inline]
     pub fn get_center(&self) -> TilePos {
         TilePos(
             (self.map_size.0 * self.chunk_size.0) / 2,
@@ -138,6 +139,7 @@ impl Layer {
     }
 
     /// Gets the map's size in tiles just for convenience.
+    #[inline]
     pub fn get_layer_size_in_tiles(&self) -> MapSize {
         MapSize(
             self.settings.map_size.0 * self.settings.chunk_size.0,

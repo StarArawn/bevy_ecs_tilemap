@@ -55,6 +55,14 @@
 //!     ))
 //!     .insert(GlobalTransform::default());
 //! ```
+#![warn(
+    clippy::all,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::suspicious
+)]
+#![allow(clippy::type_complexity, clippy::result_unit_err)]
 
 use bevy::prelude::*;
 use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
@@ -101,7 +109,7 @@ pub enum IsoType {
     Staggered,
 }
 
-/// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
+/// The type of tile to be rendered, currently we support: `Square`, `Hexagon`, and `Isometric`.
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapMeshType {
     Square,
@@ -194,13 +202,13 @@ pub struct MapSize(pub u32, pub u32);
 
 impl From<Vec2> for MapSize {
     fn from(vec: Vec2) -> Self {
-        MapSize(vec.x as u32, vec.y as u32)
+        Self(vec.x as u32, vec.y as u32)
     }
 }
 
-impl Into<Vec2> for MapSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.0 as f32, self.1 as f32)
+impl From<MapSize> for Vec2 {
+    fn from(size: MapSize) -> Self {
+        Self::new(size.0 as f32, size.1 as f32)
     }
 }
 
@@ -210,29 +218,28 @@ pub struct ChunkSize(pub u32, pub u32);
 
 impl From<Vec2> for ChunkSize {
     fn from(vec: Vec2) -> Self {
-        ChunkSize(vec.x as u32, vec.y as u32)
+        Self(vec.x as u32, vec.y as u32)
     }
 }
 
-impl Into<Vec2> for ChunkSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.0 as f32, self.1 as f32)
+impl From<ChunkSize> for Vec2 {
+    fn from(size: ChunkSize) -> Self {
+        Self::new(size.0 as f32, size.1 as f32)
     }
 }
-
 /// The size of each tile, in pixels
 #[derive(Default, Component, Clone, Copy, PartialEq, Debug)]
 pub struct TileSize(pub f32, pub f32);
 
 impl From<Vec2> for TileSize {
     fn from(vec: Vec2) -> Self {
-        TileSize(vec.x, vec.y)
+        Self(vec.x, vec.y)
     }
 }
 
-impl Into<Vec2> for TileSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.0, self.1)
+impl From<TileSize> for Vec2 {
+    fn from(size: TileSize) -> Self {
+        Self::new(size.0, size.1)
     }
 }
 
@@ -240,9 +247,9 @@ impl Into<Vec2> for TileSize {
 #[derive(Default, Component, Clone, Copy, PartialEq, Debug)]
 pub struct TextureSize(pub f32, pub f32);
 
-impl Into<Vec2> for TextureSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.0, self.1)
+impl From<TextureSize> for Vec2 {
+    fn from(size: TextureSize) -> Self {
+        Self::new(size.0, size.1)
     }
 }
 
@@ -252,15 +259,15 @@ impl Into<Vec2> for TextureSize {
 #[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct TilePos(pub u32, pub u32);
 
-impl Into<UVec2> for TilePos {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+impl From<TilePos> for UVec2 {
+    fn from(pos: TilePos) -> Self {
+        Self::new(pos.0, pos.1)
     }
 }
 
-impl Into<TilePos> for UVec2 {
-    fn into(self) -> TilePos {
-        TilePos(self.x, self.y)
+impl From<UVec2> for TilePos {
+    fn from(vec: UVec2) -> Self {
+        Self(vec.x, vec.y)
     }
 }
 
@@ -270,9 +277,9 @@ impl Into<TilePos> for UVec2 {
 #[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct LocalTilePos(pub u32, pub u32);
 
-impl Into<UVec2> for LocalTilePos {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+impl From<LocalTilePos> for UVec2 {
+    fn from(pos: LocalTilePos) -> Self {
+        Self::new(pos.0, pos.1)
     }
 }
 
@@ -283,14 +290,14 @@ impl Into<UVec2> for LocalTilePos {
 #[derive(Default, Component, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct ChunkPos(pub u32, pub u32);
 
-impl Into<UVec2> for ChunkPos {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.0, self.1)
+impl From<ChunkPos> for UVec2 {
+    fn from(pos: ChunkPos) -> Self {
+        Self::new(pos.0, pos.1)
     }
 }
 
-impl Into<Vec2> for ChunkPos {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.0 as f32, self.1 as f32)
+impl From<ChunkPos> for Vec2 {
+    fn from(pos: ChunkPos) -> Self {
+        Self::new(pos.0 as f32, pos.1 as f32)
     }
 }
