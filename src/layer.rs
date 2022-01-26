@@ -121,17 +121,20 @@ impl Layer {
     ///
     /// - `settings`: The map settings struct.
     pub fn new(settings: LayerSettings) -> Self {
-        let map_size_x = round_to_power_of_two(settings.map_size.0 as f32);
-        let map_size_y = round_to_power_of_two(settings.map_size.1 as f32);
-        let map_size = map_size_x.max(map_size_y);
+        let map_size_x = settings.map_size.0;
+        let map_size_y = settings.map_size.1;
+        let map_size = (map_size_x * map_size_y) as usize;
         Self {
             settings,
-            chunks: vec![None; map_size * map_size],
+            chunks: vec![None; map_size],
         }
     }
 
     pub fn get_chunk(&self, chunk_pos: ChunkPos) -> Option<Entity> {
-        match self.chunks.get(morton_index(chunk_pos)) {
+        match self
+            .chunks
+            .get(morton_index(chunk_pos, self.settings.map_size.0))
+        {
             Some(Some(chunk)) => Some(*chunk),
             _ => None,
         }
@@ -156,8 +159,9 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
     }
     for (tile_entity, tile_pos, tile_parent) in tile_query.iter() {
         if let Ok(mut chunk) = chunk_query.get_mut(tile_parent.chunk) {
+            let chunk_width = chunk.settings.chunk_size.0;
             let tile_pos = chunk.to_chunk_pos(*tile_pos);
-            chunk.tiles[morton_index(tile_pos)] = Some(tile_entity);
+            chunk.tiles[morton_index(tile_pos, chunk_width)] = Some(tile_entity);
         }
     }
 }

@@ -105,7 +105,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                             let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
                             // If the tile exists throw error.
-                            if let Some(existing) = chunk.tiles[morton_index(chunk_local_tile_pos)]
+                            if let Some(existing) = chunk.tiles
+                                [morton_index(chunk_local_tile_pos, layer.settings.chunk_size.0)]
                             {
                                 commands.entity(existing).despawn_recursive();
                             }
@@ -120,7 +121,9 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 })
                                 .insert(tile_pos);
                             let tile_entity = tile_commands.id();
-                            chunk.tiles[morton_index(chunk_local_tile_pos)] = Some(tile_entity);
+                            chunk.tiles
+                                [morton_index(chunk_local_tile_pos, layer.settings.chunk_size.0)] =
+                                Some(tile_entity);
                             return Ok(tile_entity);
                         }
                     }
@@ -225,7 +228,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                             let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                             if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                 commands.entity(tile).despawn_recursive();
-                                let morton_tile_index = morton_index(chunk_tile_pos);
+                                let morton_tile_index =
+                                    morton_index(chunk_tile_pos, layer.settings.chunk_size.0);
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
                             } else {
@@ -271,7 +275,10 @@ impl<'w, 's> MapQuery<'w, 's> {
                                     let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                                     if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                         commands.entity(tile).despawn_recursive();
-                                        let morton_tile_index = morton_index(chunk_tile_pos);
+                                        let morton_tile_index = morton_index(
+                                            chunk_tile_pos,
+                                            layer.settings.chunk_size.0,
+                                        );
                                         chunk.tiles[morton_tile_index] = None;
                                     }
                                 }

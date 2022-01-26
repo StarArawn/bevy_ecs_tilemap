@@ -23,6 +23,7 @@ pub struct LayerBuilder<T> {
     pub settings: LayerSettings,
     pub(crate) tiles: Vec<(Option<Entity>, Option<T>)>,
     pub(crate) layer_entity: Entity,
+    layer_size_in_tiles: UVec2,
 }
 
 impl<T> LayerBuilder<T>
@@ -39,11 +40,9 @@ where
         layer_id: impl LayerId,
     ) -> (Self, Entity) {
         let layer_entity = commands.spawn().id();
-        let tile_size_x =
-            round_to_power_of_two((settings.map_size.0 * settings.chunk_size.0) as f32);
-        let tile_size_y =
-            round_to_power_of_two((settings.map_size.1 * settings.chunk_size.1) as f32);
-        let tile_count = tile_size_x.max(tile_size_y);
+        let tile_size_x = settings.map_size.0 * settings.chunk_size.0;
+        let tile_size_y = settings.map_size.1 * settings.chunk_size.1;
+        let tile_count = tile_size_x * tile_size_y;
 
         settings.set_map_id(map_id);
         settings.set_layer_id(layer_id);
@@ -51,8 +50,9 @@ where
         (
             Self {
                 settings,
-                tiles: (0..tile_count * tile_count).map(|_| (None, None)).collect(),
+                tiles: (0..tile_count).map(|_| (None, None)).collect(),
                 layer_entity,
+                layer_size_in_tiles: UVec2::new(tile_size_x, tile_size_y),
             },
             layer_entity,
         )
@@ -104,7 +104,7 @@ where
                     material_handle.clone(),
                 );
 
-                let index = morton_index(chunk_pos);
+                let index = morton_index(chunk_pos, layer.settings.map_size.0);
                 layer.chunks[index] = Some(chunk_entity);
 
                 let transform = Self::get_chunk_coords(chunk_pos, &settings);
@@ -169,7 +169,7 @@ where
 
     /// Sets a tile's data at the given position.
     pub fn set_tile(&mut self, tile_pos: TilePos, mut tile: T) -> Result<(), MapTileError> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             *tile.get_tile_pos_mut() = tile_pos;
             self.tiles[morton_tile_index].1 = Some(tile);
@@ -184,7 +184,7 @@ where
         commands: &mut Commands,
         tile_pos: TilePos,
     ) -> Result<Entity, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
                 self.tiles[morton_tile_index].0
@@ -202,7 +202,7 @@ where
 
     /// Returns an existing tile entity if it exists
     pub fn look_up_tile_entity(&self, tile_pos: TilePos) -> Option<Entity> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if self.tiles[morton_tile_index].0.is_some() {
                 return self.tiles[morton_tile_index].0;
@@ -213,7 +213,7 @@ where
     }
 
     pub(crate) fn get_tile_full(&self, tile_pos: TilePos) -> Option<(Option<Entity>, &T)> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             let tile = &self.tiles[morton_tile_index];
             if let Some(bundle) = &tile.1 {
@@ -225,7 +225,7 @@ where
 
     /// Gets a reference to the tile data using a tile position.
     pub fn get_tile(&self, tile_pos: TilePos) -> Result<&T, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(tile);
@@ -238,7 +238,7 @@ where
 
     /// Gets a mutable reference to the tile data using the a tile position.
     pub fn get_tile_mut(&mut self, tile_pos: TilePos) -> Result<&mut T, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos);
+        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(tile);
@@ -325,7 +325,7 @@ where
                 );
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
-                    let morton_tile_index = morton_index(tile_pos);
+                    let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
 
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
                         let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
@@ -350,7 +350,7 @@ where
                     None
                 });
 
-                let index = morton_index(chunk_pos);
+                let index = morton_index(chunk_pos, layer.settings.map_size.0);
                 layer.chunks[index] = Some(chunk_entity);
 
                 let transform = Self::get_chunk_coords(chunk_pos, &self.settings);

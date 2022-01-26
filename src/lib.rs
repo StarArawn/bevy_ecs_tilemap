@@ -155,14 +155,18 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-pub(crate) fn morton_index(tile_pos: impl Into<UVec2>) -> usize {
+pub(crate) fn morton_index(tile_pos: impl Into<UVec2>, width: u32) -> usize {
     let tile_pos: UVec2 = tile_pos.into();
-    morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
+    // morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
+    ((tile_pos.y * width) + tile_pos.x) as usize
 }
 
 // TODO: Hide this.
-fn morton_pos(index: usize) -> UVec2 {
-    let [x, y]: [u32; 2] = morton_encoding::morton_decode(index as u64);
+fn morton_pos(index: usize, width: u32) -> UVec2 {
+    // let [x, y]: [u32; 2] = morton_encoding::morton_decode(index as u64);
+    // UVec2::new(x, y)
+    let x = index as u32 / width;
+    let y = index as u32 % width;
     UVec2::new(x, y)
 }
 

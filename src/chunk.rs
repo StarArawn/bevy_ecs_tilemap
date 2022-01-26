@@ -78,10 +78,10 @@ impl Chunk {
         mesh_handle: Handle<Mesh>,
         material: Handle<Image>,
     ) -> Self {
-        let tile_size_x = round_to_power_of_two(layer_settings.chunk_size.0 as f32);
-        let tile_size_y = round_to_power_of_two(layer_settings.chunk_size.1 as f32);
-        let tile_count = tile_size_x.max(tile_size_y);
-        let tiles = vec![None; tile_count * tile_count];
+        let tile_size_x = layer_settings.chunk_size.0;
+        let tile_size_y = layer_settings.chunk_size.1;
+        let tile_count = (tile_size_x * tile_size_y) as usize;
+        let tiles = vec![None; tile_count];
 
         Self {
             map_entity,
@@ -105,7 +105,7 @@ impl Chunk {
                     (self.position.1 * self.settings.chunk_size.1) + y,
                 );
                 if let Some(tile_entity) = f(tile_pos, chunk_entity) {
-                    let morton_i = morton_index(TilePos(x, y));
+                    let morton_i = morton_index(TilePos(x, y), self.settings.chunk_size.0);
                     self.tiles[morton_i] = Some(tile_entity);
                 }
             }
@@ -113,7 +113,7 @@ impl Chunk {
     }
 
     pub fn get_tile_entity(&self, position: LocalTilePos) -> Option<Entity> {
-        let morton_tile_index = morton_index(position);
+        let morton_tile_index = morton_index(position, self.settings.chunk_size.0);
         if morton_tile_index < self.tiles.capacity() {
             return self.tiles[morton_tile_index];
         }
@@ -125,7 +125,7 @@ impl Chunk {
         F: FnMut((TilePos, &Option<Entity>)),
     {
         self.tiles.iter().enumerate().for_each(|(index, entity)| {
-            let chunk_tile_pos = morton_pos(index);
+            let chunk_tile_pos = morton_pos(index, self.settings.chunk_size.0);
             f((chunk_tile_pos.into(), entity));
         });
     }
