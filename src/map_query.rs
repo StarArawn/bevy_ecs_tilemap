@@ -422,7 +422,6 @@ impl<'w, 's> MapQuery<'w, 's> {
                         grid_size.x,
                         grid_size.y,
                     );
-                    dbg!(grid_size, layer_size_in_tiles, map_size, map_pos, center);
 
                     return pixel_position.z + (1.0 - (center.y / map_size.y));
                 }
