@@ -31,8 +31,8 @@ pub struct MapQuery<'w, 's> {
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Map)>,
-            QueryState<(Entity, &'static Map)>,
+            QueryState<(Entity, &'static mut Map, &'static mut GlobalTransform)>,
+            QueryState<(Entity, &'static Map, &'static GlobalTransform)>,
         ),
     >,
     meshes: ResMut<'w, Assets<Mesh>>,
@@ -87,11 +87,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<Entity, MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -141,11 +141,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Option<(Entity, &Layer)> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((entity, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -166,11 +166,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<Entity, MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -211,11 +211,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<(), MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -254,11 +254,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -301,11 +301,11 @@ impl<'w, 's> MapQuery<'w, 's> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
         self.despawn_layer_tiles(commands, map_id, layer_id);
-        if let Some((_, mut map)) = self
+        if let Some((_, mut map, _)) = self
             .map_query_set
             .q0()
             .iter_mut()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -327,11 +327,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     pub fn despawn(&mut self, commands: &mut Commands, map_id: impl MapId) {
         let map_id: u16 = map_id.into();
 
-        let layer_ids: Option<Vec<u16>> = if let Some((_, map)) = self
+        let layer_ids: Option<Vec<u16>> = if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             Some(map.layers.keys().map(|layer_id| *layer_id).collect())
         } else {
@@ -344,11 +344,11 @@ impl<'w, 's> MapQuery<'w, 's> {
             }
         }
 
-        if let Some((entity, _)) = self
+        if let Some((entity, _, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             commands.entity(entity).despawn_recursive();
         }
@@ -370,11 +370,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -418,13 +418,15 @@ impl<'w, 's> MapQuery<'w, 's> {
 
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = map_query.iter().find(|(_, map)| map.id == map_id) {
+        if let Some((_, map, transform)) = map_query.iter().find(|(_, map, _)| map.id == map_id) {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = layer_query.get(*layer_entity) {
                     let grid_size = layer.settings.grid_size;
                     let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
                     let map_size: Vec2 = layer_size_in_tiles * grid_size;
-                    let local_z = pixel_position.y / map_size.y;
+                    let local_z =
+                        (transform.translation.y + (grid_size.y / 2.0) + pixel_position.y)
+                            / map_size.y;
                     return pixel_position.z + (1.0 - local_z);
                 }
             }
