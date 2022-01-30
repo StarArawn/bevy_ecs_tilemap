@@ -10,3 +10,6 @@
 /target
 
 .vscode
+
+# Ignore idea folders.
+.idea
