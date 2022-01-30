@@ -1,10 +1,9 @@
 use crate::{
     chunk::ChunkBundle,
+    get_tile_index,
     layer::LayerId,
     map::MapId,
-    morton_index,
     render::TilemapUniformData,
-    round_to_power_of_two,
     tile::{TileBundleTrait, TileParent},
     Chunk, ChunkPos, IsoType, Layer, LayerBundle, LayerSettings, MapTileError, TilePos,
     TilemapMeshType,
@@ -104,7 +103,7 @@ where
                     material_handle.clone(),
                 );
 
-                let index = morton_index(chunk_pos, layer.settings.map_size.0);
+                let index = get_tile_index(chunk_pos, layer.settings.map_size.0);
                 layer.chunks[index] = Some(chunk_entity);
 
                 let transform = Self::get_chunk_coords(chunk_pos, &settings);
@@ -169,7 +168,7 @@ where
 
     /// Sets a tile's data at the given position.
     pub fn set_tile(&mut self, tile_pos: TilePos, mut tile: T) -> Result<(), MapTileError> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             *tile.get_tile_pos_mut() = tile_pos;
             self.tiles[morton_tile_index].1 = Some(tile);
@@ -184,7 +183,7 @@ where
         commands: &mut Commands,
         tile_pos: TilePos,
     ) -> Result<Entity, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             let tile_entity = if self.tiles[morton_tile_index].0.is_some() {
                 self.tiles[morton_tile_index].0
@@ -202,7 +201,7 @@ where
 
     /// Returns an existing tile entity if it exists
     pub fn look_up_tile_entity(&self, tile_pos: TilePos) -> Option<Entity> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if self.tiles[morton_tile_index].0.is_some() {
                 return self.tiles[morton_tile_index].0;
@@ -213,7 +212,7 @@ where
     }
 
     pub(crate) fn get_tile_full(&self, tile_pos: TilePos) -> Option<(Option<Entity>, &T)> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             let tile = &self.tiles[morton_tile_index];
             if let Some(bundle) = &tile.1 {
@@ -225,7 +224,7 @@ where
 
     /// Gets a reference to the tile data using a tile position.
     pub fn get_tile(&self, tile_pos: TilePos) -> Result<&T, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(tile);
@@ -238,7 +237,7 @@ where
 
     /// Gets a mutable reference to the tile data using the a tile position.
     pub fn get_tile_mut(&mut self, tile_pos: TilePos) -> Result<&mut T, MapTileError> {
-        let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+        let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
         if morton_tile_index < self.tiles.capacity() {
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(tile);
@@ -300,8 +299,17 @@ where
         material: Handle<Image>,
     ) -> LayerBundle {
         let mut layer = Layer::new(self.settings);
+        let mut chunk_count_y = layer.settings.map_size.1;
+
+        if matches!(
+            self.settings.mesh_type,
+            TilemapMeshType::Isometric(IsoType::Diamond3d)
+        ) {
+            chunk_count_y *= 2;
+        }
+
         for x in 0..layer.settings.map_size.0 {
-            for y in 0..layer.settings.map_size.1 {
+            for y in 0..chunk_count_y {
                 let mut chunk_entity = None;
                 commands
                     .entity(self.layer_entity)
@@ -325,7 +333,7 @@ where
                 );
 
                 chunk.build_tiles(chunk_entity, |tile_pos, chunk_entity| {
-                    let morton_tile_index = morton_index(tile_pos, self.layer_size_in_tiles.x);
+                    let morton_tile_index = get_tile_index(tile_pos, self.layer_size_in_tiles.x);
 
                     if let Some(mut tile_bundle) = self.tiles[morton_tile_index].1.take() {
                         let tile_entity = if let Some(entity) = self.tiles[morton_tile_index].0 {
@@ -350,10 +358,18 @@ where
                     None
                 });
 
-                let index = morton_index(chunk_pos, layer.settings.map_size.0);
+                let index = get_tile_index(chunk_pos, layer.settings.map_size.0);
                 layer.chunks[index] = Some(chunk_entity);
 
-                let transform = Self::get_chunk_coords(chunk_pos, &self.settings);
+                let mut transform = Self::get_chunk_coords(chunk_pos, &self.settings);
+
+                if matches!(
+                    self.settings.mesh_type,
+                    TilemapMeshType::Isometric(IsoType::Diamond3d)
+                ) {
+                    transform.translation.z =
+                        (chunk_pos.1 + 1) as f32 / (self.layer_size_in_tiles.y as f32 * 2.0);
+                }
 
                 let tilemap_data = TilemapUniformData::from(&chunk);
 
@@ -449,6 +465,17 @@ where
                 settings.chunk_size.0 as f32 * settings.grid_size.x,
                 settings.chunk_size.1 as f32 * settings.grid_size.y,
             ),
+            TilemapMeshType::Isometric(IsoType::Diamond3d) => {
+                Self::project_iso_diamond(
+                    chunk_pos.0 as f32,
+                    chunk_pos.1 as f32,
+                    settings.chunk_size.0 as f32 * settings.grid_size.x,
+                    settings.chunk_size.1 as f32 * settings.grid_size.y,
+                ) + Vec2::new(
+                    chunk_pos.1 as f32 * 2.0 * settings.grid_size.x,
+                    -((chunk_pos.1 as f32) * -settings.grid_size.x / 4.0),
+                )
+            }
             TilemapMeshType::Isometric(IsoType::Staggered) => Self::project_iso_staggered(
                 chunk_pos.0 as f32,
                 chunk_pos.1 as f32,

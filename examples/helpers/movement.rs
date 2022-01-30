@@ -34,10 +34,9 @@ pub fn update(
 
         transform.translation += time.delta_seconds() * direction * 50.;
 
-        let sprite_pos_z =
-            map_query.get_zindex_for_pixel_pos(transform.translation.xy().extend(1.0), 0u16, 0u16);
-
-        dbg!(sprite_pos_z);
+        let mut position = transform.translation.xy().extend(1.0);
+        position.y += 64.0 + 16.0 + 5.25; // map_pos.y + grid_size.y / 2 + sprite_height / 4.0
+        let sprite_pos_z = map_query.get_zindex_for_pixel_pos(position, 0u16, 0u16);
         transform.translation.z = sprite_pos_z;
     }
 }

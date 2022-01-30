@@ -1,11 +1,10 @@
 use crate::{
     chunk::Chunk,
+    get_tile_index,
     map::MapId,
-    morton_index,
     prelude::{ChunkMesher, Tile},
-    round_to_power_of_two,
     tile::TileParent,
-    ChunkPos, ChunkSize, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
+    ChunkPos, ChunkSize, IsoType, MapSize, TextureSize, TilePos, TileSize, TilemapMeshType,
 };
 use bevy::{prelude::*, render::render_resource::FilterMode};
 use std::hash::Hash;
@@ -122,7 +121,15 @@ impl Layer {
     /// - `settings`: The map settings struct.
     pub fn new(settings: LayerSettings) -> Self {
         let map_size_x = settings.map_size.0;
-        let map_size_y = settings.map_size.1;
+        let mut map_size_y = settings.map_size.1;
+
+        if matches!(
+            settings.mesh_type,
+            TilemapMeshType::Isometric(IsoType::Diamond3d)
+        ) {
+            map_size_y *= 2;
+        }
+
         let map_size = (map_size_x * map_size_y) as usize;
         Self {
             settings,
@@ -133,7 +140,7 @@ impl Layer {
     pub fn get_chunk(&self, chunk_pos: ChunkPos) -> Option<Entity> {
         match self
             .chunks
-            .get(morton_index(chunk_pos, self.settings.map_size.0))
+            .get(get_tile_index(chunk_pos, self.settings.map_size.0))
         {
             Some(Some(chunk)) => Some(*chunk),
             _ => None,
@@ -160,8 +167,15 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
     for (tile_entity, tile_pos, tile_parent) in tile_query.iter() {
         if let Ok(mut chunk) = chunk_query.get_mut(tile_parent.chunk) {
             let chunk_width = chunk.settings.chunk_size.0;
-            let tile_pos = chunk.to_chunk_pos(*tile_pos);
-            chunk.tiles[morton_index(tile_pos, chunk_width)] = Some(tile_entity);
+            if matches!(
+                chunk.settings.mesh_type,
+                TilemapMeshType::Isometric(IsoType::Diamond3d)
+            ) {
+                chunk.tiles[get_tile_index(*tile_pos, chunk_width)] = Some(tile_entity);
+            } else {
+                let tile_pos = chunk.to_chunk_pos(*tile_pos);
+                chunk.tiles[get_tile_index(tile_pos, chunk_width)] = Some(tile_entity);
+            }
         }
     }
 }

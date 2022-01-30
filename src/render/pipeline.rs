@@ -87,11 +87,10 @@ pub fn extract_tilemaps(
                 .usage
                 .contains(TextureUsages::COPY_SRC)
             {
-                log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
+                log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! You may ignore this warning if the atlas already has the COPY_SRC usage flag. Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
                 continue;
             }
 
-            let transform = transform.compute_matrix();
             extracted_tilemaps.push((
                 entity,
                 (
@@ -100,7 +99,10 @@ pub fn extract_tilemaps(
                     chunk.settings.mesh_type.clone(),
                     mesh_handle.clone_weak(),
                     tilemap_uniform.clone(),
-                    MeshUniform { transform },
+                    *transform,
+                    MeshUniform {
+                        transform: transform.compute_matrix(),
+                    },
                     ExtractedFilterMode(chunk.settings.filter),
                 ),
             ));
@@ -243,6 +245,7 @@ impl SpecializedPipeline for TilemapPipeline {
         let shader = match key.mesh_type {
             TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
             TilemapMeshType::Isometric(iso_type) => match iso_type {
+                crate::IsoType::Diamond3d => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
                 crate::IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
                 crate::IsoType::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },
@@ -410,6 +413,7 @@ pub fn queue_meshes(
             &TilemapMeshType,
             &Handle<Image>,
             &MeshUniform,
+            &GlobalTransform,
         ),
         With<Handle<Mesh>>,
     >,
@@ -441,7 +445,7 @@ pub fn queue_meshes(
                 .get_id::<DrawTilemap>()
                 .unwrap();
 
-            for (entity, layer_id, tilemap_type, image, _mesh_uniform) in
+            for (entity, _, tilemap_type, image, _mesh_uniform, transform) in
                 standard_tilemap_meshes.iter()
             {
                 #[cfg(not(feature = "atlas"))]
@@ -488,7 +492,7 @@ pub fn queue_meshes(
                     entity,
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
-                    sort_key: FloatOrd(layer_id.0 as f32),
+                    sort_key: FloatOrd(transform.translation.z as f32),
                     batch_range: None,
                 });
             }

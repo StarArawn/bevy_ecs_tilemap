@@ -1,8 +1,8 @@
 use crate::layer::LayerId;
 use crate::map::Map;
-use crate::{morton_index, prelude::*};
+use crate::{get_tile_index, prelude::*};
 use bevy::ecs::system::SystemParam;
-use bevy::math::{Vec2, Vec3, Vec3Swizzles};
+use bevy::math::{Vec2, Vec3};
 use bevy::prelude::*;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
@@ -106,7 +106,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
                             // If the tile exists throw error.
                             if let Some(existing) = chunk.tiles
-                                [morton_index(chunk_local_tile_pos, layer.settings.chunk_size.0)]
+                                [get_tile_index(chunk_local_tile_pos, layer.settings.chunk_size.0)]
                             {
                                 commands.entity(existing).despawn_recursive();
                             }
@@ -121,9 +121,10 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 })
                                 .insert(tile_pos);
                             let tile_entity = tile_commands.id();
-                            chunk.tiles
-                                [morton_index(chunk_local_tile_pos, layer.settings.chunk_size.0)] =
-                                Some(tile_entity);
+                            chunk.tiles[get_tile_index(
+                                chunk_local_tile_pos,
+                                layer.settings.chunk_size.0,
+                            )] = Some(tile_entity);
                             return Ok(tile_entity);
                         }
                     }
@@ -229,7 +230,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                             if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                 commands.entity(tile).despawn_recursive();
                                 let morton_tile_index =
-                                    morton_index(chunk_tile_pos, layer.settings.chunk_size.0);
+                                    get_tile_index(chunk_tile_pos, layer.settings.chunk_size.0);
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
                             } else {
@@ -275,7 +276,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                                     let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                                     if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                         commands.entity(tile).despawn_recursive();
-                                        let morton_tile_index = morton_index(
+                                        let morton_tile_index = get_tile_index(
                                             chunk_tile_pos,
                                             layer.settings.chunk_size.0,
                                         );
@@ -423,33 +424,12 @@ impl<'w, 's> MapQuery<'w, 's> {
                     let grid_size = layer.settings.grid_size;
                     let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
                     let map_size: Vec2 = layer_size_in_tiles * grid_size;
-                    let map_pos = unproject_iso(pixel_position.xy(), grid_size.x, grid_size.y);
-                    let center = project_iso(
-                        Vec2::new(map_pos.x, map_pos.y - 2.0),
-                        grid_size.x,
-                        grid_size.y,
-                    );
-                    dbg!(grid_size, layer_size_in_tiles, map_size, map_pos, center);
-
-                    return pixel_position.z + (1.0 - (center.y / map_size.y));
+                    let local_z = pixel_position.y / map_size.y;
+                    return pixel_position.z + (1.0 - local_z);
                 }
             }
         }
 
         0.0
     }
-}
-
-pub fn unproject_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
-    let half_width = tile_width / 2.0;
-    let half_height = tile_height / 2.0;
-    let x = ((pos.x / half_width) + (-(pos.y) / half_height)) / 2.0;
-    let y = ((-(pos.y) / half_height) - (pos.x / half_width)) / 2.0;
-    Vec2::new(x.round(), y.round())
-}
-
-fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
-    let x = (pos.x - pos.y) * tile_width / 2.0;
-    let y = (pos.x + pos.y) * tile_height / 2.0;
-    return Vec2::new(x, -y);
 }

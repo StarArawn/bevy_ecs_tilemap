@@ -14,14 +14,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     let map_entity = commands.spawn().id();
     let mut map = Map::new(0u16, map_entity);
 
+    // Important for ISO rendering! In order to order tiles correctly we need a chunk per Y layer.
+    // This is why the map size is 4 on the y but only 1 for chunk size.
     let mut map_settings = LayerSettings::new(
-        MapSize(2, 2),
-        ChunkSize(32, 32),
+        MapSize(1, 4),
+        ChunkSize(4, 1),
         TileSize(64.0, 64.0),
         TextureSize(384.0, 64.0),
     );
     map_settings.grid_size = Vec2::new(64.0, 64.0 / 2.0);
-    map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond);
+    map_settings.mesh_type = TilemapMeshType::Isometric(IsoType::Diamond3d);
 
     // Layer 0
     let (mut layer_0, layer_0_entity) =
@@ -68,15 +70,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
     // Make 2 layers on "top" of the base map.
-    for z in 0..3 {
+    for z in 0..1 {
         let (mut layer_builder, layer_entity) =
             LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, z + 1);
         map.add_layer(&mut commands, z + 1, layer_entity);
 
         let mut random = thread_rng();
 
-        for _ in 0..1000 {
-            let position = TilePos(random.gen_range(0..128), random.gen_range(0..128));
+        for _ in 0..4 {
+            let position = TilePos(random.gen_range(0..3), random.gen_range(0..3));
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
                 position,
@@ -98,11 +100,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     commands
         .entity(map_entity)
         .insert(map)
-        .insert(Transform::from_xyz(0.0, 1024.0, 0.0))
+        .insert(Transform::from_xyz(0.0, 64.0, 0.0))
         .insert(GlobalTransform::default());
 
-    let x_pos = 8.0;
-    let y_pos = 8.0;
+    let x_pos = 0.0;
+    let y_pos = 0.0;
     // TODO: Replace this with like a "get_z_map_position" or something.
     let center = project_iso(Vec2::new(x_pos, y_pos), 64.0, 32.0);
     let sprite_pos = Transform::from_xyz(center.x, center.y, 1.0 + (1.0 - (center.y / 10000.0)));

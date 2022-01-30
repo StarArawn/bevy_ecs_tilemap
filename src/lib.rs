@@ -98,6 +98,7 @@ pub enum HexType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoType {
     Diamond,
+    Diamond3d,
     Staggered,
 }
 
@@ -155,16 +156,13 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-pub(crate) fn morton_index(tile_pos: impl Into<UVec2>, width: u32) -> usize {
+pub(crate) fn get_tile_index(tile_pos: impl Into<UVec2>, width: u32) -> usize {
     let tile_pos: UVec2 = tile_pos.into();
-    // morton_encoding::morton_encode([tile_pos.x, tile_pos.y]) as usize
     ((tile_pos.y * width) + tile_pos.x) as usize
 }
 
 // TODO: Hide this.
-fn morton_pos(index: usize, width: u32) -> UVec2 {
-    // let [x, y]: [u32; 2] = morton_encoding::morton_decode(index as u64);
-    // UVec2::new(x, y)
+fn get_tile_pos_from_index(index: usize, width: u32) -> UVec2 {
     let x = index as u32 / width;
     let y = index as u32 % width;
     UVec2::new(x, y)
@@ -186,10 +184,6 @@ pub mod prelude {
     pub use crate::{ChunkPos, ChunkSize, LocalTilePos, MapSize, TextureSize, TilePos, TileSize};
 
     pub use crate::neighbors::get_neighboring_pos;
-}
-
-pub(crate) fn round_to_power_of_two(value: f32) -> usize {
-    1 << value.log2().ceil() as usize
 }
 
 /// The size of the map, in chunks

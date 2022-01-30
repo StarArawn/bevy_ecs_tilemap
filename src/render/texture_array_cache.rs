@@ -60,7 +60,12 @@ impl TextureArrayCache {
             let (tile_size, atlas_size, _, filter) = self.sizes.get(&item).unwrap();
             let tile_count_x = (atlas_size.0 as f32 / tile_size.0).floor();
             let tile_count_y = (atlas_size.1 as f32 / tile_size.1).floor();
-            let count = (tile_count_x * tile_count_y) as u32;
+            let mut count = (tile_count_x * tile_count_y) as u32;
+
+            // Fixes weird cubemap bug.
+            if count == 6 {
+                count += 1;
+            }
 
             let texture = render_device.create_texture(&TextureDescriptor {
                 label: Some("texture_array"),
