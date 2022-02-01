@@ -14,8 +14,7 @@ default = []
 atlas = []
 
 [dependencies]
-bevy = { version = "0.6", default-features = false, features=["render"] }
-morton-encoding = "2.0"
+bevy = { version = "0.6", default-features = false, features = ["render"] }
 log = "0.4"
 regex = "1.5.4"
 bytemuck = "1.7.2"

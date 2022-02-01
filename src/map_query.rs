@@ -1,8 +1,8 @@
 use crate::layer::LayerId;
 use crate::map::Map;
-use crate::{morton_index, prelude::*};
+use crate::{get_tile_index, prelude::*};
 use bevy::ecs::system::SystemParam;
-use bevy::math::{Vec2, Vec3, Vec3Swizzles};
+use bevy::math::{Vec2, Vec3};
 use bevy::prelude::*;
 
 /// MapQuery is a useful bevy system param that provides a standard API for interacting with tiles.
@@ -31,8 +31,8 @@ pub struct MapQuery<'w, 's> {
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Map)>,
-            QueryState<(Entity, &'static Map)>,
+            QueryState<(Entity, &'static mut Map, &'static mut GlobalTransform)>,
+            QueryState<(Entity, &'static Map, &'static GlobalTransform)>,
         ),
     >,
     meshes: ResMut<'w, Assets<Mesh>>,
@@ -87,11 +87,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<Entity, MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -105,7 +105,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                             let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
                             // If the tile exists throw error.
-                            if let Some(existing) = chunk.tiles[morton_index(chunk_local_tile_pos)]
+                            if let Some(existing) = chunk.tiles
+                                [get_tile_index(chunk_local_tile_pos, layer.settings.chunk_size.0)]
                             {
                                 commands.entity(existing).despawn_recursive();
                             }
@@ -120,7 +121,10 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 })
                                 .insert(tile_pos);
                             let tile_entity = tile_commands.id();
-                            chunk.tiles[morton_index(chunk_local_tile_pos)] = Some(tile_entity);
+                            chunk.tiles[get_tile_index(
+                                chunk_local_tile_pos,
+                                layer.settings.chunk_size.0,
+                            )] = Some(tile_entity);
                             return Ok(tile_entity);
                         }
                     }
@@ -137,11 +141,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Option<(Entity, &Layer)> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((entity, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -162,11 +166,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<Entity, MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -207,11 +211,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) -> Result<(), MapTileError> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -225,7 +229,8 @@ impl<'w, 's> MapQuery<'w, 's> {
                             let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                             if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                 commands.entity(tile).despawn_recursive();
-                                let morton_tile_index = morton_index(chunk_tile_pos);
+                                let morton_tile_index =
+                                    get_tile_index(chunk_tile_pos, layer.settings.chunk_size.0);
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
                             } else {
@@ -249,11 +254,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -271,7 +276,10 @@ impl<'w, 's> MapQuery<'w, 's> {
                                     let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                                     if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
                                         commands.entity(tile).despawn_recursive();
-                                        let morton_tile_index = morton_index(chunk_tile_pos);
+                                        let morton_tile_index = get_tile_index(
+                                            chunk_tile_pos,
+                                            layer.settings.chunk_size.0,
+                                        );
                                         chunk.tiles[morton_tile_index] = None;
                                     }
                                 }
@@ -293,11 +301,11 @@ impl<'w, 's> MapQuery<'w, 's> {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
         self.despawn_layer_tiles(commands, map_id, layer_id);
-        if let Some((_, mut map)) = self
+        if let Some((_, mut map, _)) = self
             .map_query_set
             .q0()
             .iter_mut()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -319,11 +327,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     pub fn despawn(&mut self, commands: &mut Commands, map_id: impl MapId) {
         let map_id: u16 = map_id.into();
 
-        let layer_ids: Option<Vec<u16>> = if let Some((_, map)) = self
+        let layer_ids: Option<Vec<u16>> = if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             Some(map.layers.keys().map(|layer_id| *layer_id).collect())
         } else {
@@ -336,11 +344,11 @@ impl<'w, 's> MapQuery<'w, 's> {
             }
         }
 
-        if let Some((entity, _)) = self
+        if let Some((entity, _, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             commands.entity(entity).despawn_recursive();
         }
@@ -362,11 +370,11 @@ impl<'w, 's> MapQuery<'w, 's> {
     ) {
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = self
+        if let Some((_, map, _)) = self
             .map_query_set
             .q1()
             .iter()
-            .find(|(_, map)| map.id == map_id)
+            .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
@@ -410,39 +418,20 @@ impl<'w, 's> MapQuery<'w, 's> {
 
         let map_id = map_id.into();
         let layer_id = layer_id.into();
-        if let Some((_, map)) = map_query.iter().find(|(_, map)| map.id == map_id) {
+        if let Some((_, map, transform)) = map_query.iter().find(|(_, map, _)| map.id == map_id) {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((_, layer)) = layer_query.get(*layer_entity) {
                     let grid_size = layer.settings.grid_size;
                     let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
                     let map_size: Vec2 = layer_size_in_tiles * grid_size;
-                    let map_pos = unproject_iso(pixel_position.xy(), grid_size.x, grid_size.y);
-                    let center = project_iso(
-                        Vec2::new(map_pos.x, map_pos.y - 2.0),
-                        grid_size.x,
-                        grid_size.y,
-                    );
-                    dbg!(grid_size, layer_size_in_tiles, map_size, map_pos, center);
-
-                    return pixel_position.z + (1.0 - (center.y / map_size.y));
+                    let local_z =
+                        (transform.translation.y + (grid_size.y / 2.0) + pixel_position.y)
+                            / map_size.y;
+                    return pixel_position.z + (1.0 - local_z);
                 }
             }
         }
 
         0.0
     }
-}
-
-pub fn unproject_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
-    let half_width = tile_width / 2.0;
-    let half_height = tile_height / 2.0;
-    let x = ((pos.x / half_width) + (-(pos.y) / half_height)) / 2.0;
-    let y = ((-(pos.y) / half_height) - (pos.x / half_width)) / 2.0;
-    Vec2::new(x.round(), y.round())
-}
-
-fn project_iso(pos: Vec2, tile_width: f32, tile_height: f32) -> Vec2 {
-    let x = (pos.x - pos.y) * tile_width / 2.0;
-    let y = (pos.x + pos.y) * tile_height / 2.0;
-    return Vec2::new(x, -y);
 }

@@ -35,10 +35,20 @@ impl ChunkMesher {
                         continue;
                     }
 
-                    let tile_pos = Vec2::new(
-                        (tile_position.0 - (chunk.position.0 * chunk.settings.chunk_size.0)) as f32,
-                        (tile_position.1 - (chunk.position.1 * chunk.settings.chunk_size.1)) as f32,
-                    );
+                    let tile_pos = if matches!(
+                        chunk.settings.mesh_type,
+                        TilemapMeshType::Isometric(IsoType::Diamond3d)
+                    ) {
+                        Vec2::new(tile_position.0 as f32, tile_position.1 as f32)
+                    } else {
+                        Vec2::new(
+                            (tile_position.0 - (chunk.position.0 * chunk.settings.chunk_size.0))
+                                as f32,
+                            (tile_position.1 - (chunk.position.1 * chunk.settings.chunk_size.1))
+                                as f32,
+                        )
+                    };
+
                     let (animation_start, animation_end, animation_speed) =
                         if let Some(ani) = gpu_animated {
                             (ani.start as i32, ani.end as i32, ani.speed)
