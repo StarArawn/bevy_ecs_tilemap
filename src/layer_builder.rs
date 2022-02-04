@@ -472,7 +472,8 @@ where
                     settings.chunk_size.0 as f32 * settings.grid_size.x,
                     settings.chunk_size.1 as f32 * settings.grid_size.y,
                 ) + Vec2::new(
-                    chunk_pos.1 as f32 * 2.0 * settings.grid_size.x,
+                    chunk_pos.1 as f32
+                        * (settings.grid_size.x * settings.chunk_size.0 as f32 / 2.0),
                     -((chunk_pos.1 as f32) * -settings.grid_size.x / 4.0),
                 )
             }

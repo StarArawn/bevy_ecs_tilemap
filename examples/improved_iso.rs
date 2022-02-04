@@ -17,8 +17,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     // Important for ISO rendering! In order to order tiles correctly we need a chunk per Y layer.
     // This is why the map size is 4 on the y but only 1 for chunk size.
     let mut map_settings = LayerSettings::new(
-        MapSize(1, 4),
-        ChunkSize(4, 1),
+        MapSize(1, 8),
+        ChunkSize(8, 1),
         TileSize(64.0, 64.0),
         TextureSize(384.0, 64.0),
     );
@@ -39,33 +39,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         }
         .into(),
     );
-    layer_0.fill(
-        TilePos(32, 0),
-        TilePos(64, 32),
-        Tile {
-            texture_index: 1,
-            ..Default::default()
-        }
-        .into(),
-    );
-    layer_0.fill(
-        TilePos(0, 32),
-        TilePos(32, 64),
-        Tile {
-            texture_index: 2,
-            ..Default::default()
-        }
-        .into(),
-    );
-    layer_0.fill(
-        TilePos(32, 32),
-        TilePos(64, 64),
-        Tile {
-            texture_index: 3,
-            ..Default::default()
-        }
-        .into(),
-    );
 
     map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
 
@@ -77,7 +50,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
 
         let mut random = thread_rng();
 
-        for _ in 0..4 {
+        for _ in 0..8 {
             let position = TilePos(random.gen_range(0..3), random.gen_range(0..3));
             // Ignore errors for demo sake.
             let _ = layer_builder.set_tile(
@@ -100,7 +73,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     commands
         .entity(map_entity)
         .insert(map)
-        .insert(Transform::from_xyz(0.0, 64.0, 0.0))
+        .insert(Transform::from_xyz(0.0, 128.0, 0.0))
         .insert(GlobalTransform::default());
 
     let x_pos = 0.0;
