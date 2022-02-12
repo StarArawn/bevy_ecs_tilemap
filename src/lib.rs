@@ -171,7 +171,7 @@ fn get_tile_pos_from_index(index: usize, width: u32) -> UVec2 {
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
     pub use crate::chunk::Chunk;
-    pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+    pub use crate::layer::{Layer, LayerId, LayerBundle, LayerSettings, MapTileError};
     pub use crate::layer_builder::LayerBuilder;
     pub use crate::map::{Map, MapId};
     pub use crate::map_query::MapQuery;
