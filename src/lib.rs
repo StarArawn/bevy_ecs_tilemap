@@ -61,6 +61,7 @@ use chunk::{update_chunk_mesh, update_chunk_time, update_chunk_visibility};
 use layer::update_chunk_hashmap_for_added_tiles;
 
 mod chunk;
+mod error;
 mod layer;
 mod layer_builder;
 mod map;
@@ -72,7 +73,8 @@ mod tile;
 mod tile_atlas;
 
 pub use crate::chunk::Chunk;
-pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+pub use crate::error::MapTileError;
+pub use crate::layer::{Layer, LayerBundle, LayerSettings};
 pub use crate::layer_builder::LayerBuilder;
 pub use crate::map::Map;
 pub use crate::map_query::MapQuery;
@@ -171,7 +173,8 @@ fn get_tile_pos_from_index(index: usize, width: u32) -> UVec2 {
 /// use bevy_ecs_tilemap::prelude::*; to import commonly used components, data structures, bundles, and plugins.
 pub mod prelude {
     pub use crate::chunk::Chunk;
-    pub use crate::layer::{Layer, LayerBundle, LayerSettings, MapTileError};
+    pub use crate::error::MapTileError;
+    pub use crate::layer::{Layer, LayerBundle, LayerSettings};
     pub use crate::layer_builder::LayerBuilder;
     pub use crate::map::{Map, MapId};
     pub use crate::map_query::MapQuery;

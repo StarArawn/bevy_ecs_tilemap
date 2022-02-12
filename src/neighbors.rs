@@ -1,4 +1,5 @@
-use crate::layer::{LayerId, MapTileError};
+use crate::error::MapTileError;
+use crate::layer::LayerId;
 use crate::layer_builder::LayerBuilder;
 use crate::map::MapId;
 use crate::map_query::MapQuery;
