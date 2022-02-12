@@ -131,7 +131,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                 }
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     pub fn get_layer(
@@ -184,7 +184,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                             {
                                 return Ok(tile);
                             } else {
-                                return Err(MapTileError::NonExistent);
+                                return Err(MapTileError::NonExistent(tile_pos));
                             }
                         }
                     }
@@ -192,7 +192,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             }
         }
 
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     pub fn update_chunk<F: FnMut(Mut<Chunk>)>(&mut self, chunk_entity: Entity, mut f: F) {
@@ -234,14 +234,14 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
                             } else {
-                                return Err(MapTileError::NonExistent);
+                                return Err(MapTileError::NonExistent(tile_pos));
                             }
                         }
                     }
                 }
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Despawns all of the tiles in a layer.
