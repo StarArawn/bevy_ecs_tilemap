@@ -174,7 +174,7 @@ fn get_tile_pos_from_index(index: usize, width: u32) -> UVec2 {
 pub mod prelude {
     pub use crate::chunk::Chunk;
     pub use crate::error::MapTileError;
-    pub use crate::layer::{Layer, LayerBundle, LayerSettings};
+    pub use crate::layer::{Layer, LayerId, LayerBundle, LayerSettings};
     pub use crate::layer_builder::LayerBuilder;
     pub use crate::map::{Map, MapId};
     pub use crate::map_query::MapQuery;
