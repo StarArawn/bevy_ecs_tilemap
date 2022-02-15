@@ -174,7 +174,7 @@ where
             self.tiles[morton_tile_index].1 = Some(tile);
             return Ok(());
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Returns an existing tile entity or spawns a new one.
@@ -196,7 +196,7 @@ where
             return Ok(tile_entity.unwrap());
         }
 
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Returns an existing tile entity if it exists
@@ -229,10 +229,10 @@ where
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(tile);
             } else {
-                return Err(MapTileError::NonExistent);
+                return Err(MapTileError::NonExistent(tile_pos));
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Gets a mutable reference to the tile data using the a tile position.
@@ -242,10 +242,10 @@ where
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(tile);
             } else {
-                return Err(MapTileError::NonExistent);
+                return Err(MapTileError::NonExistent(tile_pos));
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Loops through each tile entity and tile bundle in the builder.

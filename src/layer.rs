@@ -104,17 +104,6 @@ pub struct Layer {
     pub(crate) chunks: Vec<Option<Entity>>,
 }
 
-/// General errors that are returned by bevy_ecs_tilemap.
-#[derive(Debug, Copy, Clone)]
-pub enum MapTileError {
-    /// The tile was out of bounds.
-    OutOfBounds,
-    /// The tile already exists.
-    AlreadyExists,
-    /// Doesn't exist
-    NonExistent,
-}
-
 impl Layer {
     /// Creates a new map component.
     ///
