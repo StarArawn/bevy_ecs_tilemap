@@ -63,7 +63,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
     /// Adds or sets a new tile for a given layer.
     /// Returns an error if the tile is out of bounds.
-    /// It's important to know that the new tile wont exist until bevy flushes
+    /// It's important to know that the new tile won't exist until bevy flushes
     /// the commands during a hard sync point(between stages).
     /// A better option for updating existing tiles would be the following:
     /// ```rust
@@ -354,14 +354,14 @@ impl<'w, 's> MapQuery<'w, 's> {
         }
     }
 
-    /// Let's the internal systems know to "remesh" the chunk.
+    /// Lets the internal systems know to "remesh" the chunk.
     pub fn notify_chunk(&mut self, chunk_entity: Entity) {
         if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity) {
             chunk.needs_remesh = true;
         }
     }
 
-    /// Let's the internal systems know to remesh the chunk for a given tile pos and layer_id.
+    /// Lets the internal systems know to remesh the chunk for a given tile pos and layer_id.
     pub fn notify_chunk_for_tile<M: Into<u16>, L: Into<u16>>(
         &mut self,
         tile_pos: TilePos,
