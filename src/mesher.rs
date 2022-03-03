@@ -70,32 +70,8 @@ impl ChunkMesher {
                         [tile_pos.x, tile_pos.y, animation_speed],
                     ]));
 
-                    colors.extend(IntoIter::new([
-                        [
-                            tile.color.r(),
-                            tile.color.g(),
-                            tile.color.b(),
-                            tile.color.a(),
-                        ],
-                        [
-                            tile.color.r(),
-                            tile.color.g(),
-                            tile.color.b(),
-                            tile.color.a(),
-                        ],
-                        [
-                            tile.color.r(),
-                            tile.color.g(),
-                            tile.color.b(),
-                            tile.color.a(),
-                        ],
-                        [
-                            tile.color.r(),
-                            tile.color.g(),
-                            tile.color.b(),
-                            tile.color.a(),
-                        ],
-                    ]));
+                    let color_f32 = tile.color.as_linear_rgba_f32();
+                    colors.extend([color_f32, color_f32, color_f32, color_f32]);
 
                     // flipping and rotation packed in bits
                     // bit 0 : flip_x
