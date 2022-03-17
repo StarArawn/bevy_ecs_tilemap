@@ -26,7 +26,7 @@ ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
-tiled = { version = "0.10", default-features = false }
+tiled = { version = "0.10.1", default-features = false }
 
 [[example]]
 name = "ldtk"

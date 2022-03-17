@@ -41,11 +41,8 @@ impl AssetLoader for TiledLoader {
         load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
         Box::pin(async move {
-            let map = tiled::Map::parse_reader(
-                BufReader::new(bytes),
-                load_context.path(),
-                &mut tiled::FilesystemResourceCache::new(),
-            )?;
+            let mut loader = tiled::Loader::new();
+            let map = loader.load_tmx_map_from(BufReader::new(bytes), load_context.path())?;
 
             let mut dependencies = Vec::new();
             let mut handles = HashMap::default();
