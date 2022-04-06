@@ -338,9 +338,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_ecs"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b182092396e6c2caf5ab30d738511fcd382628aa86ef35878d28fabb325c933"
+checksum = "6daf05da2680a14b17a4b669879fa7186abb80e7fbe400fb02c0c62628d1e200"
 dependencies = [
  "async-channel",
  "bevy_ecs_macros",
