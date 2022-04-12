@@ -1,4 +1,3 @@
-use bevy::render::mesh::MeshVertexAttribute;
 use bevy::render::render_resource::std140::AsStd140;
 use bevy::{
     core::FloatOrd,
@@ -25,8 +24,8 @@ use bevy::{
             PipelineCache, PolygonMode, PrimitiveState, PrimitiveTopology,
             RenderPipelineDescriptor, SamplerBindingType, Shader, ShaderStages,
             SpecializedRenderPipeline, SpecializedRenderPipelines, TextureFormat,
-            TextureSampleType, TextureViewDimension, VertexAttribute, VertexBufferLayout,
-            VertexFormat, VertexState, VertexStepMode,
+            TextureSampleType, TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState,
+            VertexStepMode,
         },
         renderer::RenderDevice,
         texture::BevyDefault,

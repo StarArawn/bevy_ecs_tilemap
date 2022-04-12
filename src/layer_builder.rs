@@ -13,7 +13,7 @@ use bevy::{
     prelude::*,
     render::{
         mesh::{Indices, VertexAttributeValues},
-        render_resource::{PrimitiveTopology, VertexAttribute},
+        render_resource::PrimitiveTopology,
     },
 };
 

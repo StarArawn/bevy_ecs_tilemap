@@ -8,7 +8,7 @@ use bevy::{
     core::Time,
     math::{Vec2, Vec4},
     prelude::*,
-    render::camera::{Camera2d, CameraPlugin},
+    render::camera::Camera2d,
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
