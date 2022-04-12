@@ -11,28 +11,28 @@ use bevy::prelude::*;
 /// have your own tile data attached to each tile and a standard tile query wouldn't pull that data in.
 #[derive(SystemParam)]
 pub struct MapQuery<'w, 's> {
-    chunk_query_set: QuerySet<
+    chunk_query_set: ParamSet<
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Chunk)>,
-            QueryState<(Entity, &'static Chunk)>,
+            Query<'w, 's, (Entity, &'static mut Chunk)>,
+            Query<'w, 's, (Entity, &'static Chunk)>,
         ),
     >,
-    layer_query_set: QuerySet<
+    layer_query_set: ParamSet<
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Layer)>,
-            QueryState<(Entity, &'static Layer)>,
+            Query<'w, 's, (Entity, &'static mut Layer)>,
+            Query<'w, 's, (Entity, &'static Layer)>,
         ),
     >,
-    map_query_set: QuerySet<
+    map_query_set: ParamSet<
         'w,
         's,
         (
-            QueryState<(Entity, &'static mut Map, &'static mut GlobalTransform)>,
-            QueryState<(Entity, &'static Map, &'static GlobalTransform)>,
+            Query<'w, 's, (Entity, &'static mut Map, &'static mut GlobalTransform)>,
+            Query<'w, 's, (Entity, &'static Map, &'static GlobalTransform)>,
         ),
     >,
     meshes: ResMut<'w, Assets<Mesh>>,
@@ -89,18 +89,18 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity)
                         {
                             let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
@@ -134,28 +134,28 @@ impl<'w, 's> MapQuery<'w, 's> {
         Err(MapTileError::OutOfBounds(tile_pos))
     }
 
-    pub fn get_layer(
-        &mut self,
-        map_id: impl MapId,
-        layer_id: impl LayerId,
-    ) -> Option<(Entity, &Layer)> {
-        let map_id = map_id.into();
-        let layer_id = layer_id.into();
-        if let Some((_, map, _)) = self
-            .map_query_set
-            .q1()
-            .iter()
-            .find(|(_, map, _)| map.id == map_id)
-        {
-            if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((entity, layer)) = self.layer_query_set.q1().get(*layer_entity) {
-                    return Some((entity, layer));
-                }
-            }
-        }
+    // pub fn get_layer(
+    //     &mut self,
+    //     map_id: impl MapId,
+    //     layer_id: impl LayerId,
+    // ) -> Option<(Entity, Layer)> {
+    //     let map_id = map_id.into();
+    //     let layer_id = layer_id.into();
+    //     if let Some((_, map, _)) = self
+    //         .map_query_set
+    //         .p1()
+    //         .iter()
+    //         .find(|(_, map, _)| map.id == map_id)
+    //     {
+    //         if let Some(layer_entity) = map.get_layer_entity(layer_id) {
+    //             if let Ok((entity, layer)) = self.layer_query_set.p1().get(*layer_entity) {
+    //                 return Some((entity, layer));
+    //             }
+    //         }
+    //     }
 
-        None
-    }
+    //     None
+    // }
 
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
     pub fn get_tile_entity(
@@ -168,18 +168,18 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, chunk)) = self.chunk_query_set.q1().get(chunk_entity) {
+                        if let Ok((_, chunk)) = self.chunk_query_set.p1().get(chunk_entity) {
                             if let Some(tile) = chunk.get_tile_entity(chunk.to_chunk_pos(tile_pos))
                             {
                                 return Ok(tile);
@@ -196,7 +196,7 @@ impl<'w, 's> MapQuery<'w, 's> {
     }
 
     pub fn update_chunk<F: FnMut(Mut<Chunk>)>(&mut self, chunk_entity: Entity, mut f: F) {
-        if let Ok((_, chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity) {
+        if let Ok((_, chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity) {
             f(chunk);
         }
     }
@@ -213,18 +213,18 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity)
                         {
                             let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                             if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
@@ -256,12 +256,12 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     for x in 0..layer.get_layer_size_in_tiles().0 {
                         for y in 0..layer.get_layer_size_in_tiles().1 {
                             let tile_pos = TilePos(x, y);
@@ -271,7 +271,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                             );
                             if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                 if let Ok((_, mut chunk)) =
-                                    self.chunk_query_set.q0().get_mut(chunk_entity)
+                                    self.chunk_query_set.p0().get_mut(chunk_entity)
                                 {
                                     let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
                                     if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
@@ -303,12 +303,12 @@ impl<'w, 's> MapQuery<'w, 's> {
         self.despawn_layer_tiles(commands, map_id, layer_id);
         if let Some((_, mut map, _)) = self
             .map_query_set
-            .q0()
+            .p0()
             .iter_mut()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     for x in 0..layer.settings.map_size.0 {
                         for y in 0..layer.settings.map_size.1 {
                             if let Some(chunk_entity) = layer.get_chunk(ChunkPos(x, y)) {
@@ -329,7 +329,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
         let layer_ids: Option<Vec<u16>> = if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
@@ -346,7 +346,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
         if let Some((entity, _, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
@@ -356,7 +356,7 @@ impl<'w, 's> MapQuery<'w, 's> {
 
     /// Lets the internal systems know to "remesh" the chunk.
     pub fn notify_chunk(&mut self, chunk_entity: Entity) {
-        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity) {
+        if let Ok((_, mut chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity) {
             chunk.needs_remesh = true;
         }
     }
@@ -372,18 +372,18 @@ impl<'w, 's> MapQuery<'w, 's> {
         let layer_id = layer_id.into();
         if let Some((_, map, _)) = self
             .map_query_set
-            .q1()
+            .p1()
             .iter()
             .find(|(_, map, _)| map.id == map_id)
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-                if let Ok((_, layer)) = self.layer_query_set.q1().get(*layer_entity) {
+                if let Ok((_, layer)) = self.layer_query_set.p1().get(*layer_entity) {
                     let chunk_pos = ChunkPos(
                         tile_pos.0 / layer.settings.chunk_size.0,
                         tile_pos.1 / layer.settings.chunk_size.1,
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
-                        if let Ok((_, mut chunk)) = self.chunk_query_set.q0().get_mut(chunk_entity)
+                        if let Ok((_, mut chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity)
                         {
                             chunk.needs_remesh = true;
                         }
@@ -413,8 +413,8 @@ impl<'w, 's> MapQuery<'w, 's> {
         map_id: M,
         layer_id: L,
     ) -> f32 {
-        let map_query = self.map_query_set.q1();
-        let layer_query = self.layer_query_set.q1();
+        let map_query = self.map_query_set.p1();
+        let layer_query = self.layer_query_set.p1();
 
         let map_id = map_id.into();
         let layer_id = layer_id.into();

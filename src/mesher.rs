@@ -113,12 +113,18 @@ impl ChunkMesher {
                 }
             }
         }
-        mesh.set_attribute(
-            "Vertex_Position",
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_POSITION,
             VertexAttributeValues::Float32x3(positions),
         );
-        mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(textures));
-        mesh.set_attribute("Vertex_Color", VertexAttributeValues::Float32x4(colors));
+        mesh.insert_attribute(
+            crate::render::ATTRIBUTE_TEXTURE,
+            VertexAttributeValues::Sint32x4(textures),
+        );
+        mesh.insert_attribute(
+            crate::render::ATTRIBUTE_COLOR,
+            VertexAttributeValues::Float32x4(colors),
+        );
         mesh.set_indices(Some(Indices::U32(indices)));
     }
 }
