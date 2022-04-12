@@ -133,23 +133,18 @@ pub enum TilemapLabel {
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_stage_before(CoreStage::PostUpdate, TilemapStage, SystemStage::parallel())
-            .add_system_to_stage(TilemapStage, update_chunk_time.system())
+            .add_system_to_stage(TilemapStage, update_chunk_time)
             .add_system_to_stage(
                 TilemapStage,
-                update_chunk_hashmap_for_added_tiles
-                    .system()
-                    .label(TilemapLabel::UpdateChunkHashmap),
+                update_chunk_hashmap_for_added_tiles.label(TilemapLabel::UpdateChunkHashmap),
             )
             .add_system_to_stage(
                 TilemapStage,
-                update_chunk_visibility
-                    .system()
-                    .label(TilemapLabel::UpdateChunkVisibility),
+                update_chunk_visibility.label(TilemapLabel::UpdateChunkVisibility),
             )
             .add_system_to_stage(
                 TilemapStage,
                 update_chunk_mesh
-                    .system()
                     .label(TilemapLabel::UpdateChunkMesh)
                     .after(TilemapLabel::UpdateChunkHashmap)
                     .after(TilemapLabel::UpdateChunkVisibility),
