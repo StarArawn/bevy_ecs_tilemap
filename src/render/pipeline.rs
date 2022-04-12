@@ -260,35 +260,24 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             },
         };
 
+        let formats = vec![
+            // Position
+            VertexFormat::Float32x3,
+            // Uv
+            VertexFormat::Sint32x4,
+            // Color
+            VertexFormat::Float32x4,
+        ];
+
+        let vertex_layout =
+            VertexBufferLayout::from_vertex_formats(VertexStepMode::Vertex, formats);
+
         RenderPipelineDescriptor {
             vertex: VertexState {
                 shader: shader.clone(),
                 entry_point: "vertex".into(),
                 shader_defs: vec![],
-                buffers: vec![VertexBufferLayout {
-                    array_stride: 44,
-                    step_mode: VertexStepMode::Vertex,
-                    attributes: vec![
-                        // Position (GOTCHA! Vertex_Position isn't first in the buffer due to how Mesh sorts attributes (alphabetically))
-                        VertexAttribute {
-                            format: VertexFormat::Float32x3,
-                            offset: 16,
-                            shader_location: 0,
-                        },
-                        // Uv
-                        VertexAttribute {
-                            format: VertexFormat::Sint32x4,
-                            offset: 28,
-                            shader_location: 1,
-                        },
-                        // Color
-                        VertexAttribute {
-                            format: VertexFormat::Float32x4,
-                            offset: 0,
-                            shader_location: 2,
-                        },
-                    ],
-                }],
+                buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
                 shader,
