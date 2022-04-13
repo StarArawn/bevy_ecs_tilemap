@@ -134,6 +134,7 @@ impl<'w, 's> MapQuery<'w, 's> {
         Err(MapTileError::OutOfBounds(tile_pos))
     }
 
+    /// SAFETY: Returned `Layer` is bound to world lifetime.
     pub fn get_layer(
         &mut self,
         map_id: impl MapId,
@@ -149,6 +150,8 @@ impl<'w, 's> MapQuery<'w, 's> {
         {
             if let Some(layer_entity) = map.get_layer_entity(layer_id) {
                 if let Ok((entity, layer)) = self.layer_query_set.p1().get(*layer_entity) {
+                    // SAFETY: "probably sound" because the query is not used again
+                    let layer = unsafe { std::mem::transmute::<&Layer, &'w Layer>(layer) };
                     return Some((entity, layer));
                 }
             }
