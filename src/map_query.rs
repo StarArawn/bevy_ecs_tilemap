@@ -134,28 +134,28 @@ impl<'w, 's> MapQuery<'w, 's> {
         Err(MapTileError::OutOfBounds(tile_pos))
     }
 
-    // pub fn get_layer(
-    //     &mut self,
-    //     map_id: impl MapId,
-    //     layer_id: impl LayerId,
-    // ) -> Option<(Entity, Layer)> {
-    //     let map_id = map_id.into();
-    //     let layer_id = layer_id.into();
-    //     if let Some((_, map, _)) = self
-    //         .map_query_set
-    //         .p1()
-    //         .iter()
-    //         .find(|(_, map, _)| map.id == map_id)
-    //     {
-    //         if let Some(layer_entity) = map.get_layer_entity(layer_id) {
-    //             if let Ok((entity, layer)) = self.layer_query_set.p1().get(*layer_entity) {
-    //                 return Some((entity, layer));
-    //             }
-    //         }
-    //     }
+    pub fn get_layer(
+        &mut self,
+        map_id: impl MapId,
+        layer_id: impl LayerId,
+    ) -> Option<(Entity, &Layer)> {
+        let map_id = map_id.into();
+        let layer_id = layer_id.into();
+        if let Some((_, map, _)) = self
+            .map_query_set
+            .p1()
+            .iter()
+            .find(|(_, map, _)| map.id == map_id)
+        {
+            if let Some(layer_entity) = map.get_layer_entity(layer_id) {
+                if let Ok((entity, layer)) = self.layer_query_set.p1().get(*layer_entity) {
+                    return Some((entity, layer));
+                }
+            }
+        }
 
-    //     None
-    // }
+        None
+    }
 
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
     pub fn get_tile_entity(
