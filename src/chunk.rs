@@ -8,7 +8,7 @@ use bevy::{
     core::Time,
     math::{Vec2, Vec4},
     prelude::*,
-    render::camera::CameraPlugin,
+    render::camera::Camera2d,
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
@@ -206,16 +206,10 @@ pub(crate) fn update_chunk_mesh(
 }
 
 pub(crate) fn update_chunk_visibility(
-    camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
+    camera: Query<(&OrthographicProjection, &Transform), With<Camera2d>>,
     mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visibility)>,
 ) {
-    if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
-        if let Some(name) = &data.0.name {
-            name == CameraPlugin::CAMERA_2D
-        } else {
-            false
-        }
-    }) {
+    for (ortho, camera_transform) in camera.iter() {
         // Transform camera into world space.
         let left =
             camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);

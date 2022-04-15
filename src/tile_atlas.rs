@@ -3,7 +3,7 @@ use bevy::prelude::{Assets, Handle, Image, TextureAtlas, Vec2};
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy::render::texture::TextureFormatPixelInfo;
 use bevy::sprite::{Rect, TextureAtlasBuilderError};
-use std::collections::HashMap;
+use bevy::utils::HashMap;
 
 /// Used to build a `TextureAtlas` that maintains the order of the textures added.
 pub struct TileAtlasBuilder {
