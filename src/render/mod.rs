@@ -42,9 +42,9 @@ pub struct TilemapRenderPlugin;
 pub(crate) struct ExtractedFilterMode(FilterMode);
 
 pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
-    MeshVertexAttribute::new("Texture", 8777271426986189335, VertexFormat::Sint32x4);
+    MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Sint32x4);
 pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
-    MeshVertexAttribute::new("Color", 9809610523720883312, VertexFormat::Float32x4);
+    MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
 
 impl Plugin for TilemapRenderPlugin {
     fn build(&self, app: &mut App) {
