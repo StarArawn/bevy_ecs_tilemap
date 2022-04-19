@@ -43,7 +43,7 @@ fn vertex(
     var animation_speed = vertex_position.z;
 
     var mesh_data: Output = get_mesh(v_index, vertex_position);
-    
+
     var frames: f32 = f32(vertex_uv.w - vertex_uv.z);
 
     var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;

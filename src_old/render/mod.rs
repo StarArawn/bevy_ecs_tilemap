@@ -1,42 +1,52 @@
-use std::marker::PhantomData;
-
 use bevy::{
     core_pipeline::Transparent2d,
-    prelude::{Assets, Component, Plugin, Shader},
+    prelude::*,
     render::{
+        render_component::UniformComponentPlugin,
         render_phase::AddRenderCommand,
-        render_resource::{DynamicUniformVec, SpecializedPipelines},
+        render_resource::{FilterMode, SpecializedPipelines},
         RenderApp, RenderStage,
     },
 };
 
-use self::{
-    chunk::{RenderChunk2dStorage, TilemapUniformData},
-    draw::DrawTilemap,
-    pipeline::{
-        TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE, HEX_COLUMN_ODD_SHADER_HANDLE,
-        HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE, HEX_ROW_ODD_SHADER_HANDLE,
-        HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE, ISO_STAGGERED_SHADER_HANDLE,
-        SQUARE_SHADER_HANDLE,
-    },
-    prepare::MeshUniform,
-    queue::ImageBindGroups,
+#[cfg(not(feature = "atlas"))]
+use bevy::render::renderer::RenderDevice;
+
+#[cfg(not(feature = "atlas"))]
+use crate::{TextureSize, TileSize};
+
+use crate::render::pipeline::{
+    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE,
+    HEX_COLUMN_ODD_SHADER_HANDLE, HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE,
+    HEX_ROW_ODD_SHADER_HANDLE, HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE,
+    ISO_STAGGERED_SHADER_HANDLE, SQUARE_SHADER_HANDLE,
 };
 
-mod chunk;
-mod draw;
-mod extract;
 mod include_shader;
 mod pipeline;
-mod prepare;
-mod queue;
+mod tilemap_data;
 
-pub struct Tilemap2dRenderingPlugin;
+pub use tilemap_data::TilemapUniformData;
 
-impl Plugin for Tilemap2dRenderingPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
+#[cfg(not(feature = "atlas"))]
+mod texture_array_cache;
+
+#[cfg(not(feature = "atlas"))]
+use self::texture_array_cache::TextureArrayCache;
+
+#[derive(Default)]
+pub struct TilemapRenderPlugin;
+
+#[derive(Copy, Clone, Debug, Component)]
+pub(crate) struct ExtractedFilterMode(FilterMode);
+
+impl Plugin for TilemapRenderPlugin {
+    fn build(&self, app: &mut App) {
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
 
+        #[cfg(not(feature = "atlas"))]
+        let tilemap_shader = include_str!("shaders/tilemap.wgsl");
+        #[cfg(feature = "atlas")]
         let tilemap_shader = include_str!("shaders/tilemap-atlas.wgsl");
 
         let square_shader = Shader::from_wgsl(include_shader::include_shader(
@@ -93,37 +103,43 @@ impl Plugin for Tilemap2dRenderingPlugin {
         ));
         shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
 
-        // app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
-        // app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
+        app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
+        app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
 
         let render_app = app.sub_app_mut(RenderApp);
-        render_app.insert_resource(RenderChunk2dStorage::default());
-        render_app.add_system_to_stage(RenderStage::Extract, extract::extract);
         render_app
-            .add_system_to_stage(RenderStage::Prepare, prepare::prepare)
-            .add_system_to_stage(RenderStage::Queue, queue::queue_meshes)
-            .add_system_to_stage(RenderStage::Queue, queue::queue_transform_bind_group)
-            .add_system_to_stage(RenderStage::Queue, queue::queue_tilemap_bind_group)
+            .add_system_to_stage(RenderStage::Extract, pipeline::extract_tilemaps)
+            .add_system_to_stage(RenderStage::Queue, pipeline::queue_meshes)
+            .add_system_to_stage(RenderStage::Queue, pipeline::queue_transform_bind_group)
+            .add_system_to_stage(RenderStage::Queue, pipeline::queue_tilemap_bind_group)
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
-            .init_resource::<SpecializedPipelines<TilemapPipeline>>()
-            .init_resource::<DynamicUniformVec<MeshUniform>>()
-            .init_resource::<DynamicUniformVec<TilemapUniformData>>();
+            .init_resource::<SpecializedPipelines<TilemapPipeline>>();
+
+        #[cfg(not(feature = "atlas"))]
+        render_app
+            .init_resource::<TextureArrayCache>()
+            .add_system_to_stage(RenderStage::Prepare, prepare_textures);
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
     }
 }
 
-/// Stores the index of a uniform inside of [`ComponentUniforms`].
-#[derive(Component)]
-pub struct DynamicUniformIndex<C: Component> {
-    index: u32,
-    marker: PhantomData<C>,
-}
-
-impl<C: Component> DynamicUniformIndex<C> {
-    #[inline]
-    pub fn index(&self) -> u32 {
-        self.index
+#[cfg(not(feature = "atlas"))]
+fn prepare_textures(
+    render_device: Res<RenderDevice>,
+    mut texture_array_cache: ResMut<TextureArrayCache>,
+    extracted_query: Query<(&Handle<Image>, &TilemapUniformData, &ExtractedFilterMode)>,
+) {
+    for (atlas_image, tilemap_data, filter) in extracted_query.iter() {
+        texture_array_cache.add(
+            atlas_image,
+            TileSize(tilemap_data.tile_size.x, tilemap_data.tile_size.y),
+            TextureSize(tilemap_data.texture_size.x, tilemap_data.texture_size.y),
+            tilemap_data.spacing,
+            filter.0,
+        );
     }
+
+    texture_array_cache.prepare(&render_device);
 }

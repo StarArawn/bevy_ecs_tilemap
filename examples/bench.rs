@@ -2,50 +2,50 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::{
+    map::{
+        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
+        TilemapTexture,
+    },
+    tiles::{Tile2dStorage, TilePos2d, TileTexture},
+    Tilemap2dPlugin, TilemapBundle,
+};
 
 mod helpers;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let texture_handle = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    // Create map with (10 * 128) ^ 2 tiles or 1,638,400 tiles.
-    // Be patient when running this example as meshing does not run on multiple CPU's yet..
-    let layer_entity = LayerBuilder::<TileBundle>::new_batch(
-        &mut commands,
-        LayerSettings::new(
-            MapSize(10, 10),
-            ChunkSize(128, 128),
-            TileSize(16.0, 16.0),
-            TextureSize(96.0, 16.0),
-        ),
-        &mut meshes,
-        texture_handle,
-        0u16,
-        0u16,
-        |_| Some(TileBundle::default()),
-    );
+    let tilemap_size = Tilemap2dSize { x: 1280, y: 1280 };
+    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+    let tilemap_entity = commands.spawn().id();
 
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
+    for x in 0..tilemap_size.x {
+        for y in 0..tilemap_size.y {
+            let tile_pos = TilePos2d { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert(tile_pos)
+                .insert(TileTexture(0))
+                .insert(TilemapId(tilemap_entity))
+                .id();
+            tile_storage.set(&tile_pos, Some(tile_entity));
+        }
+    }
 
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_entity);
-
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
     commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-10240.0, -10240.0, 0.0))
-        .insert(GlobalTransform::default());
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
+            texture: TilemapTexture(texture_handle),
+            tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
+            ..Default::default()
+        });
 }
 
 fn main() {
@@ -59,7 +59,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TilemapPlugin)
+        .add_plugin(Tilemap2dPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)

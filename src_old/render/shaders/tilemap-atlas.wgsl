@@ -36,14 +36,14 @@ struct VertexOutput {
 fn vertex(
     [[builtin(vertex_index)]] v_index: u32,
     [[location(0)]] vertex_position: vec3<f32>,
-    [[location(1)]] vertex_uv: vec4<f32>,
+    [[location(1)]] vertex_uv: vec4<i32>,
     [[location(2)]] color: vec4<f32>,
 ) -> VertexOutput {
     var out: VertexOutput;
     var animation_speed = vertex_position.z;
 
     var mesh_data: Output = get_mesh(v_index, vertex_position);
-
+    
     var frames: f32 = f32(vertex_uv.w - vertex_uv.z);
 
     var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
@@ -109,10 +109,10 @@ fn vertex(
     );
 
     atlas_uvs = array<vec2<f32>, 4>(
-        x1[u32(vertex_uv.y)],
-        x2[u32(vertex_uv.y)],
-        x3[u32(vertex_uv.y)],
-        x4[u32(vertex_uv.y)]
+        x1[vertex_uv.y],
+        x2[vertex_uv.y],
+        x3[vertex_uv.y],
+        x4[vertex_uv.y]
     );
 
     out.uv = atlas_uvs[v_index % 4u];
