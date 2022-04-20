@@ -1,0 +1,28 @@
+on: [push]
+
+name: Code Quality
+
+jobs:
+  quality:
+    name: Check Code Quality
+        
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install Audio Driver via Alsa for Linux
+        run: sudo apt update && sudo apt-get install libasound2-dev libudev-dev
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
