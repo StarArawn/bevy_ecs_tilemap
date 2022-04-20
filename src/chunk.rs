@@ -2,7 +2,7 @@ use crate::{
     get_tile_index, get_tile_pos_from_index,
     render::TilemapUniformData,
     tile::{GPUAnimated, Tile},
-    ChunkPos, IsoType, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
+    ChunkPos, IsoType, LayerSettings, LocalTilePos, MapTileError, TilePos, TilemapMeshType,
 };
 use bevy::{
     core::Time,
@@ -167,11 +167,22 @@ impl Chunk {
     /// Returns the local coordinates of a tile
     ///
     /// Coordinates are relative to the origin of the chunk that this method is called on
-    pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
-        LocalTilePos(
-            global_tile_position.0 - (self.position.0 * self.settings.chunk_size.0),
-            global_tile_position.1 - (self.position.1 * self.settings.chunk_size.1),
-        )
+    pub fn to_chunk_pos(
+        &self,
+        global_tile_position: TilePos,
+    ) -> Result<LocalTilePos, MapTileError> {
+        let x = global_tile_position
+            .0
+            .checked_sub(self.position.0 * self.settings.chunk_size.0);
+        let y = global_tile_position
+            .1
+            .checked_sub(self.position.1 * self.settings.chunk_size.1);
+
+        if x.is_none() || y.is_none() {
+            return Err(MapTileError::OutOfBounds(TilePos(0, 0)));
+        }
+
+        Ok(LocalTilePos(x.unwrap(), y.unwrap()))
     }
 }
 

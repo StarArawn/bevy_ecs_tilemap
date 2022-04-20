@@ -104,10 +104,15 @@ impl<'w, 's> MapQuery<'w, 's> {
                         {
                             let chunk_local_tile_pos = chunk.to_chunk_pos(tile_pos);
 
+                            if chunk_local_tile_pos.is_err() {
+                                return Err(chunk_local_tile_pos.err().unwrap());
+                            }
+
                             // If the tile exists throw error.
-                            if let Some(existing) = chunk.tiles
-                                [get_tile_index(chunk_local_tile_pos, layer.settings.chunk_size.0)]
-                            {
+                            if let Some(existing) = chunk.tiles[get_tile_index(
+                                chunk_local_tile_pos.unwrap(),
+                                layer.settings.chunk_size.0,
+                            )] {
                                 commands.entity(existing).despawn_recursive();
                             }
 
@@ -122,7 +127,7 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 .insert(tile_pos);
                             let tile_entity = tile_commands.id();
                             chunk.tiles[get_tile_index(
-                                chunk_local_tile_pos,
+                                chunk_local_tile_pos.unwrap(),
                                 layer.settings.chunk_size.0,
                             )] = Some(tile_entity);
                             return Ok(tile_entity);
@@ -180,8 +185,11 @@ impl<'w, 's> MapQuery<'w, 's> {
                     );
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, chunk)) = self.chunk_query_set.p1().get(chunk_entity) {
-                            if let Some(tile) = chunk.get_tile_entity(chunk.to_chunk_pos(tile_pos))
-                            {
+                            let tile_pos_result = chunk.to_chunk_pos(tile_pos);
+                            if tile_pos_result.is_err() {
+                                return Err(tile_pos_result.err().unwrap());
+                            }
+                            if let Some(tile) = chunk.get_tile_entity(tile_pos_result.unwrap()) {
                                 return Ok(tile);
                             } else {
                                 return Err(MapTileError::NonExistent(tile_pos));
@@ -226,11 +234,16 @@ impl<'w, 's> MapQuery<'w, 's> {
                     if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                         if let Ok((_, mut chunk)) = self.chunk_query_set.p0().get_mut(chunk_entity)
                         {
-                            let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
-                            if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
+                            let tile_pos_result = chunk.to_chunk_pos(tile_pos);
+                            if tile_pos_result.is_err() {
+                                return Err(tile_pos_result.err().unwrap());
+                            }
+                            if let Some(tile) = chunk.get_tile_entity(tile_pos_result.unwrap()) {
                                 commands.entity(tile).despawn_recursive();
-                                let morton_tile_index =
-                                    get_tile_index(chunk_tile_pos, layer.settings.chunk_size.0);
+                                let morton_tile_index = get_tile_index(
+                                    tile_pos_result.unwrap(),
+                                    layer.settings.chunk_size.0,
+                                );
                                 chunk.tiles[morton_tile_index] = None;
                                 return Ok(());
                             } else {
@@ -273,11 +286,16 @@ impl<'w, 's> MapQuery<'w, 's> {
                                 if let Ok((_, mut chunk)) =
                                     self.chunk_query_set.p0().get_mut(chunk_entity)
                                 {
-                                    let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
-                                    if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
+                                    let tile_pos_result = chunk.to_chunk_pos(tile_pos);
+                                    if tile_pos_result.is_err() {
+                                        continue;
+                                    }
+                                    if let Some(tile) =
+                                        chunk.get_tile_entity(tile_pos_result.unwrap())
+                                    {
                                         commands.entity(tile).despawn_recursive();
                                         let morton_tile_index = get_tile_index(
-                                            chunk_tile_pos,
+                                            tile_pos_result.unwrap(),
                                             layer.settings.chunk_size.0,
                                         );
                                         chunk.tiles[morton_tile_index] = None;
