@@ -43,6 +43,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
         .insert(GlobalTransform::default());
 }
 
+fn remove_map(
+    mut commands: Commands,
+    mut map_query: MapQuery,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if keyboard_input.pressed(KeyCode::Space) {
+        map_query.despawn_layer(&mut commands, 0, 0);
+    }
+}
+
 fn main() {
     // env_logger::Builder::from_default_env()
     //     .filter_level(log::LevelFilter::Info)
@@ -60,5 +70,6 @@ fn main() {
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(remove_map)
         .run();
 }

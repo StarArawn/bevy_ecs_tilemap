@@ -144,8 +144,12 @@ pub fn process_loaded_tile_maps(
                                 if let Some(chunk_entity) = layer.get_chunk(chunk_pos) {
                                     if let Ok(chunk) = chunk_query.get(chunk_entity) {
                                         let chunk_tile_pos = chunk.to_chunk_pos(tile_pos);
-                                        if let Some(tile) = chunk.get_tile_entity(chunk_tile_pos) {
-                                            commands.entity(tile).despawn_recursive();
+                                        if let Ok(chunk_tile_pos) = chunk_tile_pos {
+                                            if let Some(tile) =
+                                                chunk.get_tile_entity(chunk_tile_pos)
+                                            {
+                                                commands.entity(tile).despawn_recursive();
+                                            }
                                         }
                                     }
 
