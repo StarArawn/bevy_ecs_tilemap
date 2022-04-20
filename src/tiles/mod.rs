@@ -1,9 +1,14 @@
 mod storage;
 
-use bevy::{math::UVec2, prelude::Component};
+use bevy::{
+    math::UVec2,
+    prelude::{Bundle, Component},
+};
 pub use storage::*;
 
-#[derive(Component, Clone, Copy, Debug)]
+use crate::map::TilemapId;
+
+#[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TilePos2d {
     pub x: u32,
     pub y: u32,
@@ -33,5 +38,22 @@ impl From<UVec2> for TilePos2d {
     }
 }
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TileTexture(pub u32);
+
+#[derive(Component, Clone, Copy, Debug)]
+pub struct TileVisible(pub bool);
+
+impl Default for TileVisible {
+    fn default() -> Self {
+        Self(true)
+    }
+}
+
+#[derive(Bundle, Default, Clone, Copy, Debug)]
+pub struct TileBundle {
+    pub position: TilePos2d,
+    pub texture: TileTexture,
+    pub tilemap_id: TilemapId,
+    pub visible: TileVisible,
+}

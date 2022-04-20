@@ -29,6 +29,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
+    let tile_size = Tilemap2dTileSize { x: 16.0, y: 16.0 };
+
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
@@ -37,7 +39,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle.clone()),
-            tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
             ..Default::default()
         });
 
@@ -62,7 +69,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle),
             tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
-            transform: Transform::from_xyz(32.0, 32.0, 1.0),
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                1.0,
+            ) * Transform::from_xyz(32.0, 32.0, 0.0),
             ..Default::default()
         });
 }

@@ -6,6 +6,12 @@ use bevy::{
 #[derive(Component, Clone, Copy, Debug)]
 pub struct TilemapId(pub Entity);
 
+impl Default for TilemapId {
+    fn default() -> Self {
+        Self(Entity::from_raw(0))
+    }
+}
+
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dSize {
     pub x: u32,

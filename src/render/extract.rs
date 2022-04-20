@@ -9,7 +9,7 @@ use crate::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapMeshType, TilemapTexture,
     },
-    tiles::{TilePos2d, TileTexture},
+    tiles::{TilePos2d, TileTexture, TileVisible},
 };
 
 use super::chunk::PackedTileData;
@@ -40,11 +40,12 @@ pub struct ExtractedTilemapBundle {
 pub fn extract(
     mut commands: Commands,
     changed_tiles_query: Query<
-        (Entity, &TilePos2d, &TilemapId, &TileTexture),
+        (Entity, &TilePos2d, &TilemapId, &TileTexture, &TileVisible),
         Or<(
             Added<TilePos2d>,
             Added<TileTexture>,
             Changed<TilePos2d>,
+            Changed<TileVisible>,
             Changed<TileTexture>,
         )>,
     >,
@@ -62,8 +63,9 @@ pub fn extract(
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
     // Process all tiles
-    for (entity, tile_pos, tilemap_id, tile_texture) in changed_tiles_query.iter() {
+    for (entity, tile_pos, tilemap_id, tile_texture, visible) in changed_tiles_query.iter() {
         let tile = PackedTileData {
+            visible: visible.0,
             position: Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0),
             texture: Vec4::new(tile_texture.0 as f32, 0.0, 0.0, 0.0),
             color: Vec4::new(1.0, 1.0, 1.0, 1.0),

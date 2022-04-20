@@ -7,7 +7,7 @@ use bevy_ecs_tilemap::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapTexture,
     },
-    tiles::{Tile2dStorage, TilePos2d, TileTexture},
+    tiles::{Tile2dStorage, TilePos2d, TileTexture, TileVisible},
     Tilemap2dPlugin, TilemapBundle,
 };
 use rand::{thread_rng, Rng};
@@ -32,10 +32,13 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .insert(TileTexture(0))
                 .insert(TilemapId(tilemap_entity))
                 .insert(LastUpdate::default())
+                .insert(TileVisible(true))
                 .id();
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
     }
+
+    let tile_size = Tilemap2dTileSize { x: 16.0, y: 16.0 };
 
     commands
         .entity(tilemap_entity)
@@ -45,7 +48,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle),
-            tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
             ..Default::default()
         });
 }

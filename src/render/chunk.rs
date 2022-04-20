@@ -97,6 +97,7 @@ impl RenderChunk2dStorage {
 
 #[derive(Clone, Copy, Debug)]
 pub struct PackedTileData {
+    pub visible: bool,
     pub position: Vec4,
     pub texture: Vec4,
     pub color: Vec4,
@@ -181,6 +182,10 @@ impl RenderChunk2d {
 
             // Convert tile into mesh data.
             for tile in self.tiles.iter().filter_map(|x| x.as_ref()) {
+                if !tile.visible {
+                    continue;
+                }
+
                 let position: [f32; 4] = tile.position.to_array();
                 positions.extend(
                     [

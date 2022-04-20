@@ -4,8 +4,8 @@ use bevy::{
 };
 
 use crate::{
-    map::{Tilemap2dSize, TilemapId, TilemapMeshType},
-    tiles::{Tile2dStorage, TilePos2d, TileTexture},
+    map::{Tilemap2dSize, Tilemap2dTileSize, TilemapId, TilemapMeshType},
+    tiles::{Tile2dStorage, TilePos2d, TileTexture, TileVisible},
 };
 
 pub fn pos_2d_to_index(tile_pos: &TilePos2d, size: &Tilemap2dSize) -> usize {
@@ -45,8 +45,21 @@ pub fn fill_tilemap(
                 .insert(tile_pos)
                 .insert(tile_texture)
                 .insert(tilemap_id)
+                .insert(TileVisible(true))
                 .id();
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
     }
+}
+
+pub fn get_centered_transform_2d(
+    size: &Tilemap2dSize,
+    tile_size: &Tilemap2dTileSize,
+    z_index: f32,
+) -> Transform {
+    Transform::from_xyz(
+        -(size.x as f32 * tile_size.x as f32) / 2.0,
+        -(size.y as f32 * tile_size.y as f32) / 2.0,
+        z_index,
+    )
 }
