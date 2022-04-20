@@ -1,0 +1,43 @@
+# Based on https://github.com/actions-rs/meta/blob/master/recipes/quickstart.md
+
+on: [push]
+
+name: Continuous Integration
+
+jobs:
+  check:
+    name: Check Code
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        
+      - name: Install Audio Driver via Alsa for Linux
+        run: |
+             if [ "$RUNNER_OS" == "Linux" ]; then
+                  sudo apt update && sudo apt-get install -y libasound2-dev libudev-dev
+             fi
+        shell: bash
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+
