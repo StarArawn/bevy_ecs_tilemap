@@ -70,6 +70,11 @@ impl RenderChunk2dStorage {
         chunk_storage.get(&position.xyz()).unwrap()
     }
 
+    pub fn get_mut(&mut self, position: &UVec4) -> &mut RenderChunk2d {
+        let chunk_storage = self.chunks.get_mut(&position.w).unwrap();
+        chunk_storage.get_mut(&position.xyz()).unwrap()
+    }
+
     pub fn get_chunk_storage(&mut self, position: &UVec4) -> &mut HashMap<UVec3, RenderChunk2d> {
         if self.chunks.contains_key(&position.w) {
             self.chunks.get_mut(&position.w).unwrap()
@@ -78,6 +83,14 @@ impl RenderChunk2dStorage {
             self.chunks.insert(position.w, hash_map);
             self.chunks.get_mut(&position.w).unwrap()
         }
+    }
+
+    pub fn remove(&mut self, position: &UVec4) {
+        let chunk_storage = self.get_chunk_storage(position);
+
+        let pos = position.xyz();
+
+        chunk_storage.remove(&pos);
     }
 
     pub fn count(&self) -> usize {

@@ -1,6 +1,9 @@
 use bevy::{
     math::Vec4,
-    prelude::{Added, Bundle, Changed, Commands, Component, Entity, Or, Query, Transform},
+    prelude::{
+        Added, Bundle, Changed, Commands, Component, DespawnRecursiveExt, Entity, Or, Query,
+        Transform, With,
+    },
     utils::HashMap,
 };
 
@@ -9,7 +12,7 @@ use crate::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapMeshType, TilemapTexture,
     },
-    tiles::{TilePos2d, TileTexture, TileVisible},
+    tiles::{RemoveTile, TilePos2d, TileTexture, TileVisible},
 };
 
 use super::chunk::PackedTileData;
@@ -24,6 +27,18 @@ pub struct ExtractedTile {
 #[derive(Bundle)]
 pub struct ExtractedTileBundle {
     tile: ExtractedTile,
+}
+
+#[derive(Component)]
+pub struct ExtractedRemovedTile {
+    pub position: TilePos2d,
+    pub tilemap_id: TilemapId,
+    pub layer: u32,
+}
+
+#[derive(Bundle)]
+pub struct ExtractedRemovedTileBundle {
+    tile: ExtractedRemovedTile,
 }
 
 #[derive(Bundle)]
@@ -105,4 +120,28 @@ pub fn extract(
 
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
+}
+
+pub fn extract_removal(
+    mut commands: Commands,
+    removed_tiles_query: Query<(Entity, &TilePos2d, &TilemapId), With<RemoveTile>>,
+    tilemap_query: Query<&Transform>,
+) {
+    let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
+    for (entity, position, tilemap_id) in removed_tiles_query.iter() {
+        let transform = tilemap_query.get(tilemap_id.0).unwrap();
+        removed_tiles.push((
+            entity,
+            ExtractedRemovedTileBundle {
+                tile: ExtractedRemovedTile {
+                    position: *position,
+                    tilemap_id: *tilemap_id,
+                    layer: transform.translation.z as u32,
+                },
+            },
+        ));
+        commands.entity(entity).despawn_recursive();
+    }
+
+    commands.insert_or_spawn_batch(removed_tiles);
 }

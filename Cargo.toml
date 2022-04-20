@@ -30,3 +30,7 @@ tiled = { version = "0.9", default-features = false }
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
+
+[[example]]
+name = "tiled"
+path = "examples/tiled/tiled_usage.rs"

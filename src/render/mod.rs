@@ -98,9 +98,12 @@ impl Plugin for Tilemap2dRenderingPlugin {
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app.insert_resource(RenderChunk2dStorage::default());
-        render_app.add_system_to_stage(RenderStage::Extract, extract::extract);
+        render_app
+            .add_system_to_stage(RenderStage::Extract, extract::extract)
+            .add_system_to_stage(RenderStage::Extract, extract::extract_removal);
         render_app
             .add_system_to_stage(RenderStage::Prepare, prepare::prepare)
+            .add_system_to_stage(RenderStage::Prepare, prepare::prepare_removal)
             .add_system_to_stage(RenderStage::Queue, queue::queue_meshes)
             .add_system_to_stage(RenderStage::Queue, queue::queue_transform_bind_group)
             .add_system_to_stage(RenderStage::Queue, queue::queue_tilemap_bind_group)

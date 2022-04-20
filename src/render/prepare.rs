@@ -32,7 +32,7 @@ pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos2d, chunk_position: 
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
-    extract::ExtractedTile,
+    extract::{ExtractedRemovedTile, ExtractedTile},
     DynamicUniformIndex,
 };
 
@@ -132,4 +132,25 @@ pub fn prepare(
 
     mesh_uniforms.write_buffer(&render_device, &render_queue);
     tilemap_uniforms.write_buffer(&render_device, &render_queue);
+}
+
+pub fn prepare_removal(
+    mut chunk_storage: ResMut<RenderChunk2dStorage>,
+    removed_tiles: Query<&ExtractedRemovedTile>,
+) {
+    for removed_tile in removed_tiles.iter() {
+        let chunk_pos = map_tile_to_chunk(&removed_tile.position);
+        let chunk_data = UVec4::new(
+            chunk_pos.x,
+            chunk_pos.y,
+            removed_tile.layer,
+            removed_tile.tilemap_id.0.id(),
+        );
+        let chunk = chunk_storage.get_mut(&chunk_data);
+
+        chunk.set(
+            &map_tile_to_chunk_tile(&removed_tile.position, &chunk_pos).into(),
+            None,
+        );
+    }
 }

@@ -4,7 +4,7 @@ use bevy_ecs_tilemap::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapTexture,
     },
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileVisible},
+    tiles::{RemoveTile, Tile2dStorage, TileBundle, TilePos2d},
     Tilemap2dPlugin, TilemapBundle,
 };
 use rand::{thread_rng, Rng};
@@ -62,12 +62,12 @@ struct LastUpdate {
 }
 
 fn remove_tiles(
+    mut commands: Commands,
     time: Res<Time>,
-    mut last_update_query: Query<(&mut LastUpdate, &Tile2dStorage)>,
-    mut tile_query: Query<&mut TileVisible>,
+    mut last_update_query: Query<(&mut LastUpdate, &mut Tile2dStorage)>,
 ) {
     let current_time = time.seconds_since_startup();
-    for (mut last_update, tile_storage) in last_update_query.iter_mut() {
+    for (mut last_update, mut tile_storage) in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
@@ -76,10 +76,10 @@ fn remove_tiles(
                 y: random.gen_range(0..32),
             };
 
-            // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
             if let Some(tile_entity) = tile_storage.get(&position) {
-                let mut visibility = tile_query.get_mut(tile_entity).unwrap();
-                visibility.0 = !visibility.0;
+                commands.entity(tile_entity).insert(RemoveTile);
+                // Don't forget to remove tiles from the tile storage!
+                tile_storage.set(&position, None);
             }
 
             last_update.value = current_time;
@@ -92,7 +92,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Visibility Example"),
+            title: String::from("Remove Tiles Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)

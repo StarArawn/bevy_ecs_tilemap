@@ -57,3 +57,6 @@ pub struct TileBundle {
     pub tilemap_id: TilemapId,
     pub visible: TileVisible,
 }
+
+#[derive(Component, Clone, Copy, Debug)]
+pub struct RemoveTile;
