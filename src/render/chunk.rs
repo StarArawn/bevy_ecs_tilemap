@@ -235,14 +235,18 @@ impl RenderChunk2d {
                 i += 4;
             }
 
-            self.mesh.set_attribute(
-                "Vertex_Position",
+            self.mesh.insert_attribute(
+                crate::render::ATTRIBUTE_POSITION,
                 VertexAttributeValues::Float32x4(positions),
             );
-            self.mesh
-                .set_attribute("Vertex_Texture", VertexAttributeValues::Float32x4(textures));
-            self.mesh
-                .set_attribute("Vertex_Color", VertexAttributeValues::Float32x4(colors));
+            self.mesh.insert_attribute(
+                crate::render::ATTRIBUTE_TEXTURE,
+                VertexAttributeValues::Float32x4(textures),
+            );
+            self.mesh.insert_attribute(
+                crate::render::ATTRIBUTE_COLOR,
+                VertexAttributeValues::Float32x4(colors),
+            );
             self.mesh.set_indices(Some(Indices::U32(indices)));
 
             let vertex_buffer_data = self.mesh.get_vertex_buffer_data();
@@ -267,10 +271,11 @@ impl RenderChunk2d {
                 },
             );
 
+            let mesh_vertex_buffer_layout = self.mesh.get_mesh_vertex_buffer_layout();
             self.gpu_mesh = Some(GpuMesh {
                 vertex_buffer,
                 buffer_info,
-                has_tangents: false,
+                layout: mesh_vertex_buffer_layout,
                 primitive_topology: bevy::render::render_resource::PrimitiveTopology::TriangleList,
             });
             self.dirty_mesh = false;

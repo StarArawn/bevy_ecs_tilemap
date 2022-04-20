@@ -7,9 +7,9 @@ use bevy::{
             BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType, BufferSize,
             ColorTargetState, ColorWrites, Face, FragmentState, FrontFace, MultisampleState,
             PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipelineDescriptor,
-            SamplerBindingType, ShaderStages, SpecializedPipeline, TextureFormat,
-            TextureSampleType, TextureViewDimension, VertexAttribute, VertexBufferLayout,
-            VertexFormat, VertexState, VertexStepMode,
+            SamplerBindingType, ShaderStages, SpecializedRenderPipeline, TextureFormat,
+            TextureSampleType, TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState,
+            VertexStepMode,
         },
         renderer::RenderDevice,
         texture::BevyDefault,
@@ -159,7 +159,7 @@ pub struct TilemapPipelineKey {
     pub mesh_type: TilemapMeshType,
 }
 
-impl SpecializedPipeline for TilemapPipeline {
+impl SpecializedRenderPipeline for TilemapPipeline {
     type Key = TilemapPipelineKey;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
@@ -180,35 +180,24 @@ impl SpecializedPipeline for TilemapPipeline {
             },
         };
 
+        let formats = vec![
+            // Position
+            VertexFormat::Float32x4,
+            // Uv
+            VertexFormat::Float32x4,
+            // Color
+            VertexFormat::Float32x4,
+        ];
+
+        let vertex_layout =
+            VertexBufferLayout::from_vertex_formats(VertexStepMode::Vertex, formats);
+
         RenderPipelineDescriptor {
             vertex: VertexState {
                 shader: shader.clone(),
                 entry_point: "vertex".into(),
                 shader_defs: vec![],
-                buffers: vec![VertexBufferLayout {
-                    array_stride: 48,
-                    step_mode: VertexStepMode::Vertex,
-                    attributes: vec![
-                        // Position (GOTCHA! Vertex_Position isn't first in the buffer due to how Mesh sorts attributes (alphabetically))
-                        VertexAttribute {
-                            format: VertexFormat::Float32x4,
-                            offset: 16,
-                            shader_location: 0,
-                        },
-                        // Uv
-                        VertexAttribute {
-                            format: VertexFormat::Float32x4,
-                            offset: 32,
-                            shader_location: 1,
-                        },
-                        // Color
-                        VertexAttribute {
-                            format: VertexFormat::Float32x4,
-                            offset: 0,
-                            shader_location: 2,
-                        },
-                    ],
-                }],
+                buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
                 shader,

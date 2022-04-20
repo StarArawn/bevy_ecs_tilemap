@@ -35,8 +35,8 @@ struct VertexOutput {
 [[stage(vertex)]]
 fn vertex(
     [[builtin(vertex_index)]] v_index: u32,
-    [[location(0)]] vertex_position: vec3<f32>,
-    [[location(1)]] vertex_uv: vec4<f32>,
+    [[location(0)]] vertex_uv: vec4<f32>,
+    [[location(1)]] vertex_position: vec3<f32>,
     [[location(2)]] color: vec4<f32>,
 ) -> VertexOutput {
     var out: VertexOutput;

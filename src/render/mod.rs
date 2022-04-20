@@ -4,8 +4,9 @@ use bevy::{
     core_pipeline::Transparent2d,
     prelude::{Assets, Component, Plugin, Shader},
     render::{
+        mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
-        render_resource::{DynamicUniformVec, SpecializedPipelines},
+        render_resource::{DynamicUniformVec, SpecializedRenderPipelines, VertexFormat},
         RenderApp, RenderStage,
     },
 };
@@ -109,7 +110,7 @@ impl Plugin for Tilemap2dRenderingPlugin {
             .add_system_to_stage(RenderStage::Queue, queue::queue_tilemap_bind_group)
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
-            .init_resource::<SpecializedPipelines<TilemapPipeline>>()
+            .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
             .init_resource::<DynamicUniformVec<MeshUniform>>()
             .init_resource::<DynamicUniformVec<TilemapUniformData>>();
 
@@ -130,3 +131,10 @@ impl<C: Component> DynamicUniformIndex<C> {
         self.index
     }
 }
+
+pub const ATTRIBUTE_POSITION: MeshVertexAttribute =
+    MeshVertexAttribute::new("Position", 229221259, VertexFormat::Float32x4);
+pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
+    MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Float32x4);
+pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
+    MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);

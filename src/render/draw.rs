@@ -9,7 +9,7 @@ use bevy::{
     render::{
         mesh::GpuBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
-        render_resource::RenderPipelineCache,
+        render_resource::PipelineCache,
         view::ViewUniformOffset,
     },
 };
@@ -35,7 +35,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMeshViewBindGroup<I> {
         view_query: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let (view_uniform, pbr_view_bind_group) = view_query.get(view).unwrap();
+        let (view_uniform, pbr_view_bind_group) = view_query.get_inner(view).unwrap();
         pass.set_bind_group(I, &pbr_view_bind_group.value, &[view_uniform.offset]);
 
         RenderCommandResult::Success
@@ -114,7 +114,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
 
 pub struct SetItemPipeline;
 impl RenderCommand<Transparent2d> for SetItemPipeline {
-    type Param = SRes<RenderPipelineCache>;
+    type Param = SRes<PipelineCache>;
     #[inline]
     fn render<'w>(
         _view: Entity,
@@ -122,7 +122,10 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
         pipeline_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        if let Some(pipeline) = pipeline_cache.into_inner().get(item.pipeline) {
+        if let Some(pipeline) = pipeline_cache
+            .into_inner()
+            .get_render_pipeline(item.pipeline)
+        {
             pass.set_render_pipeline(pipeline);
             RenderCommandResult::Success
         } else {
