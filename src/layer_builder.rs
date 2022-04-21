@@ -161,8 +161,7 @@ where
         };
 
         let layer = layer_bundle.layer;
-        let mut transform = layer_bundle.transform;
-        transform.translation.z = 0.0; //layer.settings.layer_id as f32;
+        let transform = layer_bundle.transform;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
             transform,
