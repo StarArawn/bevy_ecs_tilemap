@@ -139,7 +139,7 @@ pub fn process_loaded_maps(
                             }
                         }
                     }
-                    commands.entity(*layer_entity).despawn_recursive();
+                    // commands.entity(*layer_entity).despawn_recursive();
                 }
 
                 for tileset in tiled_map.map.tilesets.iter() {

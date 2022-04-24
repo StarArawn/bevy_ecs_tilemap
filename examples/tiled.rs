@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{asset::AssetServerSettings, prelude::*};
 use bevy_ecs_tilemap::Tilemap2dPlugin;
 
 mod helpers;
@@ -23,6 +23,10 @@ fn main() {
             height: 720.0,
             title: String::from("Tiled Map Editor Example"),
             ..Default::default()
+        })
+        .insert_resource(AssetServerSettings {
+            watch_for_changes: true,
+            ..default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(Tilemap2dPlugin)
