@@ -1,0 +1,34 @@
+use bevy::prelude::*;
+use bevy_ecs_tilemap::Tilemap2dPlugin;
+
+mod helpers;
+
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+
+    let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("map.tmx");
+
+    commands
+        .spawn()
+        .insert_bundle(helpers::tiled::TiledMapBundle {
+            tiled_map: map_handle,
+            ..Default::default()
+        });
+}
+
+fn main() {
+    App::new()
+        .insert_resource(WindowDescriptor {
+            width: 1270.0,
+            height: 720.0,
+            title: String::from("Tiled Map Editor Example"),
+            ..Default::default()
+        })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(helpers::tiled::TiledMapPlugin)
+        .add_startup_system(startup)
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .run();
+}
