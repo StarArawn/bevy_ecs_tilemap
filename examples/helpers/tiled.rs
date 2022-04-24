@@ -2,7 +2,6 @@ use std::io::BufReader;
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
-    hierarchy::DespawnRecursiveExt,
     prelude::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, Entity, EventReader,
         GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
