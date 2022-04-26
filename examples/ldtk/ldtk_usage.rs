@@ -1,5 +1,5 @@
 use crate::ldtk::*;
-use bevy::prelude::*;
+use bevy::{asset::AssetServerSettings, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
 #[path = "../helpers/mod.rs"]
@@ -28,6 +28,10 @@ fn main() {
             height: 720.0,
             title: String::from("LDTK Example"),
             ..Default::default()
+        })
+        .insert_resource(AssetServerSettings {
+            watch_for_changes: true,
+            ..default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)

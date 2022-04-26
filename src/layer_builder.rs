@@ -91,8 +91,14 @@ where
 
                 let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
+                mesh.insert_attribute(
+                    Mesh::ATTRIBUTE_POSITION,
+                    VertexAttributeValues::Float32x3(vec![]),
+                );
+                mesh.insert_attribute(
+                    crate::render::ATTRIBUTE_TEXTURE,
+                    VertexAttributeValues::Sint32x4(vec![]),
+                );
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let chunk = Chunk::new(
@@ -155,8 +161,7 @@ where
         };
 
         let layer = layer_bundle.layer;
-        let mut transform = layer_bundle.transform;
-        transform.translation.z = 0.0; //layer.settings.layer_id as f32;
+        let transform = layer_bundle.transform;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
             transform,
@@ -320,8 +325,14 @@ where
 
                 let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
+                mesh.insert_attribute(
+                    Mesh::ATTRIBUTE_POSITION,
+                    VertexAttributeValues::Float32x3(vec![]),
+                );
+                mesh.insert_attribute(
+                    crate::render::ATTRIBUTE_TEXTURE,
+                    VertexAttributeValues::Sint32x4(vec![]),
+                );
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let mut chunk = Chunk::new(

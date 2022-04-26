@@ -162,7 +162,7 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
             ) {
                 chunk.tiles[get_tile_index(*tile_pos, chunk_width)] = Some(tile_entity);
             } else {
-                let tile_pos = chunk.to_chunk_pos(*tile_pos);
+                let tile_pos = chunk.to_chunk_pos(*tile_pos).unwrap();
                 chunk.tiles[get_tile_index(tile_pos, chunk_width)] = Some(tile_entity);
             }
         }

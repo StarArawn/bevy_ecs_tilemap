@@ -2,9 +2,10 @@ use bevy::{
     core_pipeline::Transparent2d,
     prelude::*,
     render::{
+        mesh::MeshVertexAttribute,
         render_component::UniformComponentPlugin,
         render_phase::AddRenderCommand,
-        render_resource::{FilterMode, SpecializedPipelines},
+        render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         RenderApp, RenderStage,
     },
 };
@@ -39,6 +40,11 @@ pub struct TilemapRenderPlugin;
 
 #[derive(Copy, Clone, Debug, Component)]
 pub(crate) struct ExtractedFilterMode(FilterMode);
+
+pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
+    MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Sint32x4);
+pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
+    MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
 
 impl Plugin for TilemapRenderPlugin {
     fn build(&self, app: &mut App) {
@@ -114,7 +120,7 @@ impl Plugin for TilemapRenderPlugin {
             .add_system_to_stage(RenderStage::Queue, pipeline::queue_tilemap_bind_group)
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
-            .init_resource::<SpecializedPipelines<TilemapPipeline>>();
+            .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>();
 
         #[cfg(not(feature = "atlas"))]
         render_app
