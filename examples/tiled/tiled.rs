@@ -21,7 +21,7 @@ impl Plugin for TiledMapPlugin {
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,
-    pub tilesets: HashMap<u32, Handle<Image>>,
+    pub tilesets: HashMap<usize, Handle<Image>>,
 }
 
 #[derive(Default, Bundle)]
@@ -41,20 +41,18 @@ impl AssetLoader for TiledLoader {
         load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
         Box::pin(async move {
-            let root_dir = load_context.path().parent().unwrap();
-            let map = tiled::parse(BufReader::new(bytes))?;
+            let mut loader = tiled::Loader::new();
+            let map = loader.load_tmx_map_from(BufReader::new(bytes), load_context.path())?;
 
             let mut dependencies = Vec::new();
             let mut handles = HashMap::default();
 
-            for tileset in &map.tilesets {
-                let tile_path = root_dir.join(tileset.images.first().unwrap().source.as_str());
+            for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+                let tile_path = tileset.image.as_ref().unwrap().source.clone();
                 let asset_path = AssetPath::new(tile_path, None);
                 let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
 
-                for i in tileset.first_gid..(tileset.first_gid + tileset.tilecount.unwrap_or(1)) {
-                    handles.insert(i, texture.clone());
-                }
+                handles.insert(tileset_index, texture.clone());
 
                 dependencies.push(asset_path);
             }
@@ -150,9 +148,9 @@ pub fn process_loaded_tile_maps(
                     map.remove_layer(&mut commands, layer_id);
                 }
 
-                for tileset in tiled_map.map.tilesets.iter() {
+                for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
                     // Once materials have been created/added we need to then create the layers.
-                    for layer in tiled_map.map.layers.iter() {
+                    for (layer_index, layer) in tiled_map.map.layers().enumerate() {
                         let tile_width = tileset.tile_width as f32;
                         let tile_height = tileset.tile_height as f32;
 
@@ -169,9 +167,9 @@ pub fn process_loaded_tile_maps(
                             ChunkSize(64, 64),
                             TileSize(tile_width, tile_height),
                             TextureSize(
-                                tileset.images[0].width as f32,
-                                tileset.images[0].height as f32,
-                            ), // TODO: support multiple tileset images?
+                                tileset.image.as_ref().unwrap().width as f32,
+                                tileset.image.as_ref().unwrap().height as f32,
+                            ),
                         );
                         map_settings.grid_size = Vec2::new(
                             tiled_map.map.tile_width as f32,
@@ -197,11 +195,11 @@ pub fn process_loaded_tile_maps(
                             &mut meshes,
                             tiled_map
                                 .tilesets
-                                .get(&tileset.first_gid)
+                                .get(&tileset_index)
                                 .unwrap()
                                 .clone_weak(),
                             0u16,
-                            layer.layer_index as u16,
+                            layer_index as u16,
                             move |mut tile_pos| {
                                 if tile_pos.0 >= tiled_map.map.width
                                     || tile_pos.1 >= tiled_map.map.height
@@ -213,44 +211,40 @@ pub fn process_loaded_tile_maps(
                                     tile_pos.1 = (tiled_map.map.height - 1) as u32 - tile_pos.1;
                                 }
 
-                                let x = tile_pos.0 as usize;
-                                let y = tile_pos.1 as usize;
+                                let x = tile_pos.0 as i32;
+                                let y = tile_pos.1 as i32;
 
-                                let map_tile = match &layer.tiles {
-                                    tiled::LayerData::Finite(tiles) => &tiles[y][x],
-                                    _ => panic!("Infinite maps not supported"),
-                                };
+                                match layer.layer_type() {
+                                    tiled::LayerType::TileLayer(tile_layer) => {
+                                        tile_layer.get_tile(x, y).and_then(|tile| {
+                                            if tile.tileset_index() != tileset_index {
+                                                return None;
+                                            }
+                                            let tile = Tile {
+                                                texture_index: tile.id() as u16,
+                                                flip_x: tile.flip_h,
+                                                flip_y: tile.flip_v,
+                                                flip_d: tile.flip_d,
+                                                ..Default::default()
+                                            };
 
-                                if map_tile.gid < tileset.first_gid
-                                    || map_tile.gid
-                                        >= tileset.first_gid + tileset.tilecount.unwrap()
-                                {
-                                    return None;
+                                            Some(TileBundle {
+                                                tile,
+                                                ..Default::default()
+                                            })
+                                        })
+                                    }
+                                    _ => panic!("Unsupported layer type"),
                                 }
-
-                                let tile_id = map_tile.gid - tileset.first_gid;
-
-                                let tile = Tile {
-                                    texture_index: tile_id as u16,
-                                    flip_x: map_tile.flip_h,
-                                    flip_y: map_tile.flip_v,
-                                    flip_d: map_tile.flip_d,
-                                    ..Default::default()
-                                };
-
-                                Some(TileBundle {
-                                    tile,
-                                    ..Default::default()
-                                })
                             },
                         );
 
                         commands.entity(layer_entity).insert(Transform::from_xyz(
                             offset_x,
                             -offset_y,
-                            layer.layer_index as f32,
+                            layer_index as f32,
                         ));
-                        map.add_layer(&mut commands, layer.layer_index as u16, layer_entity);
+                        map.add_layer(&mut commands, layer_index as u16, layer_entity);
                     }
                 }
             }
