@@ -1,6 +1,10 @@
 # Based on https://github.com/actions-rs/meta/blob/master/recipes/quickstart.md
 
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 name: Continuous Integration
 
@@ -19,7 +23,7 @@ jobs:
       - name: Install Audio Driver via Alsa for Linux
         run: |
              if [ "$RUNNER_OS" == "Linux" ]; then
-                  sudo apt update && sudo apt-get install libasound2-dev libudev-dev
+                  sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
              fi
         shell: bash
 
@@ -30,9 +34,10 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo test
+      - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: check
+          args: --all-targets
 
 

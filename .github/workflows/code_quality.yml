@@ -1,4 +1,8 @@
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 name: Code Quality
 
@@ -21,8 +25,10 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo clippy
-        uses: actions-rs/clippy-check@v1
+      - name: Check code format.
+        uses: actions-rs/cargo@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: fmt
+          args: --all -- --check
+
 
