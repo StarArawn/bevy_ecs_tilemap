@@ -20,7 +20,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
         
-      - name: Install Audio Driver via Alsa for Linux
+      - name: Install alsa and udev for Linux
         run: |
              if [ "$RUNNER_OS" == "Linux" ]; then
                   sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
