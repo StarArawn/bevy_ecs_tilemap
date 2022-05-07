@@ -216,6 +216,11 @@ pub fn process_loaded_maps(
                                         position: tile_pos,
                                         tilemap_id: TilemapId(layer_entity),
                                         texture: TileTexture(tile_id),
+                                        flip: TileFlip {
+                                            x: map_tile.flip_h,
+                                            y: map_tile.flip_v,
+                                            d: map_tile.flip_d,
+                                        },
                                         ..Default::default()
                                     })
                                     .id();

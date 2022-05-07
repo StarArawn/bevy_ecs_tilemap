@@ -50,12 +50,22 @@ impl Default for TileVisible {
     }
 }
 
+#[derive(Component, Default, Clone, Copy, Debug)]
+pub struct TileFlip {
+    /// Flip tile along the x axis.
+    pub x: bool,
+    /// Flip tile along the Y axis.
+    pub y: bool,
+    pub d: bool, // anti
+}
+
 #[derive(Bundle, Default, Clone, Copy, Debug)]
 pub struct TileBundle {
     pub position: TilePos2d,
     pub texture: TileTexture,
     pub tilemap_id: TilemapId,
     pub visible: TileVisible,
+    pub flip: TileFlip,
 }
 
 #[derive(Component, Clone, Copy, Debug)]
