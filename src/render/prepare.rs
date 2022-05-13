@@ -73,6 +73,8 @@ pub fn prepare(
         );
 
         let chunk = chunk_storage.get_or_add(
+            tile.entity,
+            map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
             &chunk_data,
             CHUNK_SIZE_2D,
             *mesh_type,
@@ -139,18 +141,8 @@ pub fn prepare_removal(
     removed_tiles: Query<&ExtractedRemovedTile>,
 ) {
     for removed_tile in removed_tiles.iter() {
-        let chunk_pos = map_tile_to_chunk(&removed_tile.position);
-        let chunk_data = UVec4::new(
-            chunk_pos.x,
-            chunk_pos.y,
-            removed_tile.layer,
-            removed_tile.tilemap_id.0.id(),
-        );
-        let chunk = chunk_storage.get_mut(&chunk_data);
-
-        chunk.set(
-            &map_tile_to_chunk_tile(&removed_tile.position, &chunk_pos).into(),
-            None,
-        );
+        if let Some((chunk, tile_pos)) = chunk_storage.get_mut_from_entity(removed_tile.entity) {
+            chunk.set(&tile_pos.into(), None);
+        }
     }
 }

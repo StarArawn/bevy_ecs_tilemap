@@ -4,7 +4,7 @@ use bevy_ecs_tilemap::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapTexture,
     },
-    tiles::{RemoveTile, Tile2dStorage, TileBundle, TilePos2d},
+    tiles::{Tile2dStorage, TileBundle, TilePos2d},
     Tilemap2dPlugin, TilemapBundle,
 };
 use rand::{thread_rng, Rng};
@@ -77,7 +77,7 @@ fn remove_tiles(
             };
 
             if let Some(tile_entity) = tile_storage.get(&position) {
-                commands.entity(tile_entity).insert(RemoveTile);
+                commands.entity(tile_entity).despawn_recursive();
                 // Don't forget to remove tiles from the tile storage!
                 tile_storage.set(&position, None);
             }

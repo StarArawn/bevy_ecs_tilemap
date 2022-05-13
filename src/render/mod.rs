@@ -2,7 +2,10 @@ use std::marker::PhantomData;
 
 use bevy::{
     core_pipeline::Transparent2d,
-    prelude::{Assets, Component, Plugin, Shader},
+    prelude::{
+        Assets, Commands, Component, CoreStage, Entity, Plugin, Query, RemovedComponents, Shader,
+        With,
+    },
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
@@ -10,6 +13,8 @@ use bevy::{
         RenderApp, RenderStage,
     },
 };
+
+use crate::tiles::TilePos2d;
 
 use self::{
     chunk::{RenderChunk2dStorage, TilemapUniformData},
@@ -36,6 +41,9 @@ pub struct Tilemap2dRenderingPlugin;
 
 impl Plugin for Tilemap2dRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_system_to_stage(CoreStage::First, clear_removed);
+        app.add_system_to_stage(CoreStage::PostUpdate, removal_helper);
+
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
 
         let tilemap_shader = include_str!("shaders/tilemap-atlas.wgsl");
@@ -138,3 +146,18 @@ pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
     MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Float32x4);
 pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
     MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
+
+#[derive(Component)]
+pub struct RemovedTileEntity(pub Entity);
+
+fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos2d>) {
+    for entity in removed_query.iter() {
+        commands.spawn().insert(RemovedTileEntity(entity));
+    }
+}
+
+fn clear_removed(mut commands: Commands, removed_query: Query<Entity, With<RemovedTileEntity>>) {
+    for entity in removed_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}

@@ -2,7 +2,7 @@ use std::hash::{Hash, Hasher};
 
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, Mesh, Transform},
+    prelude::{Component, Entity, Mesh, Transform},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
         render_resource::{std140::AsStd140, BufferInitDescriptor, BufferUsages},
@@ -19,6 +19,7 @@ use crate::{
 #[derive(Default, Clone, Debug)]
 pub struct RenderChunk2dStorage {
     chunks: HashMap<u32, HashMap<UVec3, RenderChunk2d>>,
+    entity_to_chunk_tile: HashMap<Entity, (u32, UVec3, UVec2)>,
 }
 
 #[derive(Default, Component, Clone, Copy, Debug)]
@@ -27,6 +28,8 @@ pub struct ChunkId(pub UVec3);
 impl RenderChunk2dStorage {
     pub fn get_or_add(
         &mut self,
+        tile_entity: Entity,
+        tile_pos: UVec2,
         position: &UVec4,
         chunk_size: UVec2,
         mesh_type: TilemapMeshType,
@@ -37,9 +40,12 @@ impl RenderChunk2dStorage {
         map_size: Tilemap2dSize,
         transform: Transform,
     ) -> &mut RenderChunk2d {
-        let chunk_storage = self.get_chunk_storage(position);
-
         let pos = position.xyz();
+
+        self.entity_to_chunk_tile
+            .insert(tile_entity, (position.w, pos, tile_pos));
+
+        let chunk_storage = self.get_chunk_storage(position);
 
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         position.hash(&mut hasher);
@@ -73,6 +79,19 @@ impl RenderChunk2dStorage {
     pub fn get_mut(&mut self, position: &UVec4) -> &mut RenderChunk2d {
         let chunk_storage = self.chunks.get_mut(&position.w).unwrap();
         chunk_storage.get_mut(&position.xyz()).unwrap()
+    }
+
+    pub fn get_mut_from_entity(&mut self, entity: Entity) -> Option<(&mut RenderChunk2d, UVec2)> {
+        // dbg!(&self.entity_to_chunk_tile);
+
+        if !self.entity_to_chunk_tile.contains_key(&entity) {
+            return None;
+        }
+
+        let (tilemap_id, chunk_pos, tile_pos) = self.entity_to_chunk_tile.get(&entity).unwrap();
+
+        let chunk_storage = self.chunks.get_mut(&tilemap_id).unwrap();
+        Some((chunk_storage.get_mut(&chunk_pos.xyz()).unwrap(), *tile_pos))
     }
 
     pub fn get_chunk_storage(&mut self, position: &UVec4) -> &mut HashMap<UVec3, RenderChunk2d> {

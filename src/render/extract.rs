@@ -1,9 +1,6 @@
 use bevy::{
     math::Vec4,
-    prelude::{
-        Added, Bundle, Changed, Commands, Component, DespawnRecursiveExt, Entity, Or, Query,
-        Transform, With,
-    },
+    prelude::{Added, Bundle, Changed, Commands, Component, Entity, Or, Query, Transform},
     utils::HashMap,
 };
 
@@ -12,13 +9,14 @@ use crate::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapMeshType, TilemapTexture,
     },
-    tiles::{RemoveTile, TileFlip, TilePos2d, TileTexture, TileVisible},
+    tiles::{TileFlip, TilePos2d, TileTexture, TileVisible},
 };
 
-use super::chunk::PackedTileData;
+use super::{chunk::PackedTileData, RemovedTileEntity};
 
 #[derive(Component)]
 pub struct ExtractedTile {
+    pub entity: Entity,
     pub position: TilePos2d,
     pub tile: PackedTileData,
     pub tilemap_id: TilemapId,
@@ -31,9 +29,7 @@ pub struct ExtractedTileBundle {
 
 #[derive(Component)]
 pub struct ExtractedRemovedTile {
-    pub position: TilePos2d,
-    pub tilemap_id: TilemapId,
-    pub layer: u32,
+    pub entity: Entity,
 }
 
 #[derive(Bundle)]
@@ -120,6 +116,7 @@ pub fn extract(
             entity,
             ExtractedTileBundle {
                 tile: ExtractedTile {
+                    entity,
                     position: *tile_pos,
                     tile,
                     tilemap_id: *tilemap_id,
@@ -137,23 +134,17 @@ pub fn extract(
 
 pub fn extract_removal(
     mut commands: Commands,
-    removed_tiles_query: Query<(Entity, &TilePos2d, &TilemapId), With<RemoveTile>>,
-    tilemap_query: Query<&Transform>,
+    // removed_tiles_query: Query<(Entity, &, &TilemapId), With<RemoveTile>>,
+    removed_tiles_query: Query<&RemovedTileEntity>,
 ) {
     let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
-    for (entity, position, tilemap_id) in removed_tiles_query.iter() {
-        let transform = tilemap_query.get(tilemap_id.0).unwrap();
+    for entity in removed_tiles_query.iter() {
         removed_tiles.push((
-            entity,
+            entity.0,
             ExtractedRemovedTileBundle {
-                tile: ExtractedRemovedTile {
-                    position: *position,
-                    tilemap_id: *tilemap_id,
-                    layer: transform.translation.z as u32,
-                },
+                tile: ExtractedRemovedTile { entity: entity.0 },
             },
         ));
-        commands.entity(entity).despawn_recursive();
     }
 
     commands.insert_or_spawn_batch(removed_tiles);

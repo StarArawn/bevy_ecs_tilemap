@@ -4,7 +4,7 @@ use bevy_ecs_tilemap::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapTexture,
     },
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture, TileVisible},
+    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileVisible},
     Tilemap2dPlugin, TilemapBundle,
 };
 
@@ -15,7 +15,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    let tilemap_size = Tilemap2dSize { x: 80, y: 80 };
+    let tilemap_size = Tilemap2dSize { x: 512, y: 512 };
     let mut tile_storage = Tile2dStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
@@ -65,12 +65,12 @@ fn update(
     mut commands: Commands,
     time: Res<Time>,
     mut tile_storage_query: Query<(&Tile2dStorage, &mut LastUpdate)>,
-    tile_query: Query<(Entity, &TilePos2d, &TileTexture, &TileVisible)>,
+    tile_query: Query<(Entity, &TilePos2d, &TileVisible)>,
 ) {
     let current_time = time.seconds_since_startup();
     let (tile_storage, mut last_update) = tile_storage_query.single_mut();
     if current_time - last_update.0 > 0.1 {
-        for (entity, position, tile_texture, visibility) in tile_query.iter() {
+        for (entity, position, visibility) in tile_query.iter() {
             let neighbor_count = tile_storage
                 .get_tile_neighbors(position)
                 .iter()
