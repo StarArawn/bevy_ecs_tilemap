@@ -48,7 +48,7 @@ fn vertex(
 
     var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
 
-    current_animation_frame = clamp(current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
+    current_animation_frame = clamp(f32(vertex_uv.z) + current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
 
     var texture_index: u32 = u32(current_animation_frame);
 
