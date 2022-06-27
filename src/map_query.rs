@@ -162,6 +162,22 @@ impl<'w, 's> MapQuery<'w, 's> {
         None
     }
 
+    pub fn get_layer_by_entity(&self, entity: Entity) -> Option<&Layer> {
+        self.layer_query_set
+            .q1()
+            .get(entity)
+            .ok()
+            .map(|(_, layer)| layer)
+    }
+
+    pub fn get_layer_by_entity_mut(&mut self, entity: Entity) -> Option<Mut<Layer>> {
+        self.layer_query_set
+            .q0_mut()
+            .get_mut(entity)
+            .ok()
+            .map(|(_, layer)| layer)
+    }
+
     /// Gets a tile entity for the given position and layer_id returns an error if OOB or the tile doesn't exist.
     pub fn get_tile_entity(
         &mut self,
@@ -451,5 +467,33 @@ impl<'w, 's> MapQuery<'w, 's> {
         }
 
         0.0
+    }
+
+    pub fn get_chunk_by_entity(&self, entity: Entity) -> Option<&Chunk> {
+        self.chunk_query_set
+            .q1()
+            .get(entity)
+            .ok()
+            .map(|(_, chunk)| chunk)
+    }
+
+    pub fn get_chunk_by_entity_mut(&mut self, entity: Entity) -> Option<Mut<Chunk>> {
+        self.chunk_query_set
+            .q0_mut()
+            .get_mut(entity)
+            .ok()
+            .map(|(_, chunk)| chunk)
+    }
+
+    pub fn get_map_by_entity(&self, entity: Entity) -> Option<&Map> {
+        self.map_query_set.q1().get(entity).ok().map(|(_, map)| map)
+    }
+
+    pub fn get_map_by_entity_mut(&mut self, entity: Entity) -> Option<Mut<Map>> {
+        self.map_query_set
+            .q0_mut()
+            .get_mut(entity)
+            .ok()
+            .map(|(_, map)| map)
     }
 }
