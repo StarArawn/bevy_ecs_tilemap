@@ -3,6 +3,7 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image},
 };
 
+// A component which stores a reference to the tilemap entity.
 #[derive(Component, Clone, Copy, Debug)]
 pub struct TilemapId(pub Entity);
 
@@ -12,6 +13,7 @@ impl Default for TilemapId {
     }
 }
 
+/// Size of the tilemap in tiles.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dSize {
     pub x: u32,
@@ -45,6 +47,7 @@ impl From<UVec2> for Tilemap2dSize {
 #[derive(Component, Clone, Default, Debug)]
 pub struct TilemapTexture(pub Handle<Image>);
 
+/// Size of the tiles in pixels
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dTileSize {
     pub x: f32,
@@ -57,6 +60,10 @@ impl Into<Vec2> for Tilemap2dTileSize {
     }
 }
 
+/// Size of the tiles on the grid in pixels.
+/// This can be used to overlay tiles on top of each other.
+/// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
+/// a grid size of 16x8.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dGridSize {
     pub x: f32,
@@ -69,6 +76,7 @@ impl Into<Vec2> for Tilemap2dGridSize {
     }
 }
 
+/// Spacing between tiles inside of the texture atlas.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dSpacing {
     pub x: f32,
@@ -87,6 +95,7 @@ impl Tilemap2dSpacing {
     }
 }
 
+/// Size of the atlas texture in pixels.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct Tilemap2dTextureSize {
     pub x: f32,

@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::{
     map::{Tilemap2dSize, Tilemap2dTileSize, TilemapId, TilemapMeshType},
-    tiles::{Tile2dStorage, TilePos2d, TileTexture, TileVisible},
+    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
 };
 
 pub fn pos_2d_to_index(tile_pos: &TilePos2d, size: &Tilemap2dSize) -> usize {
@@ -42,10 +42,12 @@ pub fn fill_tilemap(
             let tile_pos = TilePos2d { x, y };
             let tile_entity = commands
                 .spawn()
-                .insert(tile_pos)
-                .insert(tile_texture)
-                .insert(tilemap_id)
-                .insert(TileVisible(true))
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: tilemap_id,
+                    texture: tile_texture,
+                    ..Default::default()
+                })
                 .id();
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
