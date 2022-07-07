@@ -28,7 +28,7 @@ var<uniform> tilemap_data: TilemapData;
 
 struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] uv: vec2<f32>;
+    [[location(0)]] uv: vec4<f32>;
     [[location(1)]] color: vec4<f32>;
 };
 
@@ -62,61 +62,61 @@ fn vertex(
     var start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
     var end_v: f32 = (sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
 
-    var atlas_uvs: array<vec2<f32>, 4>;
+    var uvs: array<vec4<f32>, 4>;
 
-    var x1: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(start_u, end_v),       // no flip/rotation
-        vec2<f32>(end_u, end_v),         // flip x
-        vec2<f32>(start_u, start_v),     // flip y
-        vec2<f32>(end_u, start_v),       // flip x y
-        vec2<f32>(end_u, start_v),       // flip     d
-        vec2<f32>(end_u, end_v),         // flip x   d
-        vec2<f32>(start_u, start_v),     // flip y   d
-        vec2<f32>(start_u, end_v)
+    var x1: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        // The x and y are the texture UV, and the z and w and the local tile UV
+        vec4<f32>(start_u, end_v, 0.0, 1.0),       // no flip/rotation
+        vec4<f32>(end_u, end_v, 1.0, 1.0),         // flip x
+        vec4<f32>(start_u, start_v, 0.0, 0.0),     // flip y
+        vec4<f32>(end_u, start_v, 1.0, 0.0),       // flip x y
+        vec4<f32>(end_u, start_v, 1.0, 0.0),       // flip     d
+        vec4<f32>(end_u, end_v, 1.0, 1.0),         // flip x   d
+        vec4<f32>(start_u, start_v, 0.0, 0.0),     // flip y   d
+        vec4<f32>(start_u, end_v, 0.0, 1.0)
     );
 
-    var x2: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(end_u, end_v)
+    var x2: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0)
     );
 
-    var x3: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(end_u, start_v)
+    var x3: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0)
     );
 
-    var x4: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, start_v),
+    var x4: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
     );
 
-    atlas_uvs = array<vec2<f32>, 4>(
+    uvs = array<vec4<f32>, 4>(
         x1[vertex_uv.y],
         x2[vertex_uv.y],
         x3[vertex_uv.y],
         x4[vertex_uv.y]
     );
 
-    out.uv = atlas_uvs[v_index % 4u];
-    out.uv = out.uv + 1e-5;
+    out.uv = uvs[v_index % 4u];
     out.position = view.view_proj * mesh_data.world_position;
     out.color = color;
     return out;
@@ -129,7 +129,26 @@ var sprite_sampler: sampler;
 
 [[stage(fragment)]]
 fn fragment(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy) * in.color;
+    var half_texture_pixel_size_u = 0.5 / tilemap_data.texture_size.x;
+    var half_texture_pixel_size_v = 0.5 / tilemap_data.texture_size.y;
+    let half_tile_pixel_size_u = 0.5 / tilemap_data.tile_size.x;
+    let half_tile_pixel_size_v = 0.5 / tilemap_data.tile_size.y;
+
+    // Offset the UV 1/2 pixel from the sides of the tile, so that the sampler doesn't bleed onto
+    // adjacent tiles at the edges.
+    var uv_offset: vec2<f32> = vec2<f32>(0.0, 0.0);
+    if (in.uv.z < half_tile_pixel_size_u) {
+        uv_offset.x = half_texture_pixel_size_u;
+    } else if (in.uv.z > (1.0 - half_tile_pixel_size_u)) {
+        uv_offset.x = - half_texture_pixel_size_u;
+    }
+    if (in.uv.w < half_tile_pixel_size_v) {
+        uv_offset.y = half_texture_pixel_size_v;
+    } else if (in.uv.w > (1.0 - half_tile_pixel_size_v)) {
+        uv_offset.y = - half_texture_pixel_size_v;
+    }
+
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy + uv_offset) * in.color;
     if (color.a < 0.001) {
         discard;
     }
