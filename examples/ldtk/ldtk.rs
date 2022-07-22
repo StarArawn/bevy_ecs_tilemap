@@ -195,8 +195,6 @@ pub fn process_loaded_tile_maps(
 
                         position.y = map_tile_count_y - position.y - 1;
 
-                        dbg!(tile.t);
-
                         let tile_entity = commands
                             .spawn()
                             .insert_bundle(TileBundle {
