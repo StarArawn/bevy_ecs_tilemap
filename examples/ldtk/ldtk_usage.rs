@@ -1,3 +1,13 @@
+//! This example is capable of spawning tilemaps from [LDtk](https://ldtk.io) files.
+//!
+//! It can load the AutoTile and Tile layers of simple LDtk levels.
+//! However, it does have limitations.
+//! Some edge cases around tileset definitions and layer definitions haven't been considered here.
+//! Furthermore, since this example is primarily concerned with the tilemap functionality,
+//! there's no solution built in for Entity or Intgrid layers.
+//!
+//! For a more comprehensive LDtk solution, consider [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk), which uses bevy_ecs_tilemap internally.
+
 use crate::ldtk::*;
 use bevy::prelude::*;
 use bevy_ecs_tilemap::*;
