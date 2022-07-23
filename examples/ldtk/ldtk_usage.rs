@@ -21,9 +21,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let handle: Handle<LdtkMap> = asset_server.load("map.ldtk");
 
-    let map_entity = commands.spawn().id();
-
-    commands.entity(map_entity).insert_bundle(LdtkMapBundle {
+    commands.spawn().insert_bundle(LdtkMapBundle {
         ldtk_map: handle,
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()
