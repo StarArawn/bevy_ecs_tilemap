@@ -121,7 +121,7 @@ pub fn process_loaded_tile_maps(
         }
     }
 
-    // If we have new map entities add them to the changed_maps list.
+    // If we have new map entities, add them to the changed_maps list
     for new_map_handle in new_maps.iter() {
         changed_maps.push(new_map_handle.clone());
     }
@@ -133,10 +133,10 @@ pub fn process_loaded_tile_maps(
                 continue;
             }
             if let Some(ldtk_map) = maps.get(map_handle) {
-                // Despawn all tiles/chunks/layers.
+                // Despawn all existing tilemaps for this LdtkMap
                 commands.entity(entity).despawn_descendants();
 
-                // Pull out tilesets.
+                // Pull out tilesets and their definitions into a new hashmap
                 let mut tilesets = HashMap::new();
                 ldtk_map.project.defs.tilesets.iter().for_each(|tileset| {
                     tilesets.insert(
@@ -159,6 +159,7 @@ pub fn process_loaded_tile_maps(
                     y: map_tile_count_y,
                 };
 
+                // We will create a tilemap for each layer in the following loop
                 for (layer_id, layer) in level
                     .layer_instances
                     .as_ref()
@@ -167,61 +168,63 @@ pub fn process_loaded_tile_maps(
                     .rev()
                     .enumerate()
                 {
-                    let (texture, tileset) = if let Some(uid) = layer.tileset_def_uid {
-                        tilesets.get(&uid).unwrap().clone()
-                    } else {
-                        continue;
-                    };
+                    if let Some(uid) = layer.tileset_def_uid {
+                        let (texture, tileset) = tilesets.get(&uid).unwrap().clone();
 
-                    let tile_size = Tilemap2dTileSize {
-                        x: tileset.tile_grid_size as f32,
-                        y: tileset.tile_grid_size as f32,
-                    };
-
-                    let texture_size = Tilemap2dTextureSize {
-                        x: tileset.px_wid as f32,
-                        y: tileset.px_hei as f32,
-                    };
-
-                    let mut storage = Tile2dStorage::empty(size);
-
-                    let map_entity = commands.spawn().id();
-
-                    for tile in layer.grid_tiles.iter() {
-                        let mut position = TilePos2d {
-                            x: (tile.px[0] / default_grid_size) as u32,
-                            y: (tile.px[1] / default_grid_size) as u32,
+                        // Tileset-specific tilemap settings
+                        let tile_size = Tilemap2dTileSize {
+                            x: tileset.tile_grid_size as f32,
+                            y: tileset.tile_grid_size as f32,
                         };
 
-                        position.y = map_tile_count_y - position.y - 1;
+                        let texture_size = Tilemap2dTextureSize {
+                            x: tileset.px_wid as f32,
+                            y: tileset.px_hei as f32,
+                        };
 
-                        let tile_entity = commands
-                            .spawn()
-                            .insert_bundle(TileBundle {
-                                position,
-                                tilemap_id: TilemapId(map_entity),
-                                texture: TileTexture(tile.t as u32),
-                                ..default()
-                            })
-                            .id();
+                        // Pre-emptively create a map entity for tile creation
+                        let map_entity = commands.spawn().id();
 
-                        storage.set(&position, Some(tile_entity));
+                        // Create tiles for this layer from LDtk's grid_tiles and auto_layer_tiles
+                        let mut storage = Tile2dStorage::empty(size);
+
+                        for tile in layer.grid_tiles.iter().chain(layer.auto_layer_tiles.iter()) {
+                            let mut position = TilePos2d {
+                                x: (tile.px[0] / default_grid_size) as u32,
+                                y: (tile.px[1] / default_grid_size) as u32,
+                            };
+
+                            position.y = map_tile_count_y - position.y - 1;
+
+                            let tile_entity = commands
+                                .spawn()
+                                .insert_bundle(TileBundle {
+                                    position,
+                                    tilemap_id: TilemapId(map_entity),
+                                    texture: TileTexture(tile.t as u32),
+                                    ..default()
+                                })
+                                .id();
+
+                            storage.set(&position, Some(tile_entity));
+                        }
+
+                        // Create the tilemap
+                        commands.entity(map_entity).insert_bundle(TilemapBundle {
+                            grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+                            size,
+                            storage,
+                            texture_size,
+                            texture: TilemapTexture(texture),
+                            tile_size,
+                            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                                &size,
+                                &tile_size,
+                                layer_id as f32,
+                            ),
+                            ..default()
+                        });
                     }
-
-                    commands.entity(map_entity).insert_bundle(TilemapBundle {
-                        grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
-                        size,
-                        storage,
-                        texture_size,
-                        texture: TilemapTexture(texture),
-                        tile_size,
-                        transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                            &size,
-                            &tile_size,
-                            layer_id as f32,
-                        ),
-                        ..Default::default()
-                    });
                 }
             }
         }
