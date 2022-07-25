@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use bevy::{
     math::{const_uvec2, Mat4, UVec2, UVec4, Vec3Swizzles},
-    prelude::{Commands, Component, Entity, Query, Res, ResMut, Transform},
+    prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Transform},
     render::{
         render_resource::{std140::AsStd140, DynamicUniformVec},
         renderer::{RenderDevice, RenderQueue},
@@ -49,7 +49,7 @@ pub fn prepare(
     extracted_tiles: Query<&ExtractedTile>,
     extracted_tilemaps: Query<(
         Entity,
-        &Transform,
+        &GlobalTransform,
         &Tilemap2dTileSize,
         &Tilemap2dTextureSize,
         &Tilemap2dSpacing,
@@ -97,11 +97,21 @@ pub fn prepare(
         );
     }
 
+    // Copies transform changes from tilemap to chunks.
+    for (entity, transform, _, _, _, _, _, _) in extracted_tilemaps.iter() {
+        let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
+        for chunk in chunks.values_mut() {
+            chunk.transform = *transform;
+        }
+    }
+
     mesh_uniforms.clear();
     tilemap_uniforms.clear();
 
     for chunk in chunk_storage.iter_mut() {
         chunk.prepare(&render_device);
+
+        let chunk_global_transform: Transform = chunk.transform.into();
 
         let transform = get_chunk_2d_transform(
             chunk.position.as_vec3().xy(),
@@ -109,7 +119,7 @@ pub fn prepare(
             chunk.size.as_vec2(),
             0,
             chunk.mesh_type,
-        ) * chunk.transform;
+        ) * chunk_global_transform;
 
         let chunk_uniform: TilemapUniformData = chunk.into();
 

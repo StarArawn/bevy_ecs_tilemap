@@ -70,3 +70,16 @@ pub struct TileBundle {
 
 #[derive(Component, Clone, Copy, Debug)]
 pub struct RemoveTile;
+
+/// A component that is attached to a Tile entity that
+/// tells the GPU how to animate the tile.
+/// Currently all frames must be aligned in your tilemap.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct AnimatedTile {
+    /// The start frame index in the tilemap atlas/array (inclusive).
+    pub start: u32,
+    /// The end frame index in the tilemap atlas/array (exclusive).
+    pub end: u32,
+    /// The speed the animation plays back at.
+    pub speed: f32,
+}

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use bevy::prelude::{Bundle, Plugin, Transform};
+use bevy::prelude::{Bundle, Plugin, Transform, GlobalTransform};
 use map::{
     Tilemap2dGridSize, Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize,
     TilemapMeshType, TilemapTexture,
@@ -31,4 +31,5 @@ pub struct TilemapBundle {
     pub texture: TilemapTexture,
     pub tile_size: Tilemap2dTileSize,
     pub transform: Transform,
+    pub global_transform: GlobalTransform,
 }

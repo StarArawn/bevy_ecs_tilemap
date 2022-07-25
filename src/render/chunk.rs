@@ -2,7 +2,7 @@ use std::hash::{Hash, Hasher};
 
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, Entity, Mesh, Transform},
+    prelude::{Component, Entity, GlobalTransform, Mesh},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
         render_resource::{std140::AsStd140, BufferInitDescriptor, BufferUsages},
@@ -38,7 +38,7 @@ impl RenderChunk2dStorage {
         spacing: Vec2,
         texture: TilemapTexture,
         map_size: Tilemap2dSize,
-        transform: Transform,
+        transform: GlobalTransform,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
 
@@ -151,7 +151,7 @@ pub struct RenderChunk2d {
     pub mesh: Mesh,
     pub gpu_mesh: Option<GpuMesh>,
     pub dirty_mesh: bool,
-    pub transform: Transform,
+    pub transform: GlobalTransform,
 }
 
 impl RenderChunk2d {
@@ -166,7 +166,7 @@ impl RenderChunk2d {
         texture: TilemapTexture,
         texture_size: Vec2,
         map_size: Tilemap2dSize,
-        transform: Transform,
+        transform: GlobalTransform,
     ) -> Self {
         Self {
             dirty_mesh: true,
