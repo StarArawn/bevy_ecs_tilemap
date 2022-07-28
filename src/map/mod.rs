@@ -123,7 +123,6 @@ pub enum HexType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoType {
     Diamond,
-    Diamond3d,
     Staggered,
 }
 

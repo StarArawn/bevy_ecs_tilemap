@@ -34,7 +34,7 @@ mod draw;
 mod extract;
 mod include_shader;
 mod pipeline;
-mod prepare;
+pub(crate) mod prepare;
 mod queue;
 
 pub struct Tilemap2dRenderingPlugin;

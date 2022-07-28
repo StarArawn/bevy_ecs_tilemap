@@ -166,7 +166,6 @@ impl SpecializedRenderPipeline for TilemapPipeline {
         let shader = match key.mesh_type {
             TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
             TilemapMeshType::Isometric(iso_type) => match iso_type {
-                IsoType::Diamond3d => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
                 IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
                 IsoType::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },
