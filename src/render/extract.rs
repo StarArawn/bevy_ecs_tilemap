@@ -11,7 +11,7 @@ use crate::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapMeshType, TilemapTexture,
     },
-    tiles::{TileFlip, TilePos2d, TileTexture, TileVisible},
+    tiles::{TileColor, TileFlip, TilePos2d, TileTexture, TileVisible},
 };
 
 use super::{chunk::PackedTileData, RemovedTileEntity};
@@ -60,6 +60,7 @@ pub fn extract(
             &TileTexture,
             &TileVisible,
             &TileFlip,
+            &TileColor,
         ),
         Or<(
             Added<TilePos2d>,
@@ -67,6 +68,7 @@ pub fn extract(
             Changed<TileVisible>,
             Changed<TileTexture>,
             Changed<TileFlip>,
+            Changed<TileColor>,
         )>,
     >,
     tilemap_query: Query<(
@@ -84,7 +86,9 @@ pub fn extract(
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
     // Process all tiles
-    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip) in changed_tiles_query.iter() {
+    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color) in
+        changed_tiles_query.iter()
+    {
         // flipping and rotation packed in bits
         // bit 0 : flip_x
         // bit 1 : flip_y
@@ -95,7 +99,7 @@ pub fn extract(
             visible: visible.0,
             position: Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0),
             texture: Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0),
-            color: Vec4::new(1.0, 1.0, 1.0, 1.0),
+            color: color.0.into(),
         };
 
         let data = tilemap_query.get(tilemap_id.0).unwrap();
