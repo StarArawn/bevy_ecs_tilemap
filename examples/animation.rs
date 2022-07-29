@@ -69,25 +69,17 @@ fn create_background_tilemap(commands: &mut Commands, asset_server: &Res<AssetSe
 fn create_flower_tilemap(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("flower_sheet.png");
 
-    // Size of the tile map in tiles.
     let tilemap_size = Tilemap2dSize { x: 10, y: 10 };
     let texture_size = Tilemap2dTextureSize { x: 32.0, y: 448.0 };
     let tile_size = Tilemap2dTileSize { x: 32.0, y: 32.0 };
     let grid_size = Tilemap2dGridSize { x: 16.0, y: 16.0 };
 
-    // To create a map we use the Tile2dStorage component.
-    // This component is a grid of tile entities and is used to help keep track of individual
-    // tiles in the world. If you have multiple layers of tiles you would have a Tilemap2dStorage
-    // component per layer.
     let mut tile_storage = Tile2dStorage::empty(tilemap_size);
 
-    // Create a tilemap entity a little early
-    // We want this entity early because we need to tell each tile which tilemap entity
-    // it is associated with. This is done with the TilemapId component on each tile.
     let tilemap_entity = commands.spawn().id();
 
     let mut random = thread_rng();
-    // Spawn the elements of the tilemap.
+
     for _ in 0..10 {
         let tile_pos = TilePos2d {
             x: random.gen_range(0..tilemap_size.x),
@@ -122,7 +114,7 @@ fn create_flower_tilemap(commands: &mut Commands, asset_server: &Res<AssetServer
             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
                 &tilemap_size,
                 &tile_size,
-                0.0,
+                1.0,
             ),
             ..Default::default()
         });

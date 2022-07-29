@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
 
+use bevy::log::info;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh},

@@ -92,8 +92,8 @@ pub fn prepare(
             Some(PackedTileData {
                 position: map_tile_to_chunk_tile(&tile.position, &chunk_pos)
                     .as_vec2()
-                    .extend(0.0)
-                    .extend(0.0),
+                    .extend(tile.tile.position.z)
+                    .extend(tile.tile.position.w),
                 ..tile.tile
             }),
         );
