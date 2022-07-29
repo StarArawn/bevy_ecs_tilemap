@@ -2,7 +2,7 @@ mod storage;
 
 use bevy::{
     math::UVec2,
-    prelude::{Bundle, Component},
+    prelude::{Bundle, Color, Component},
 };
 pub use storage::*;
 
@@ -41,6 +41,9 @@ impl From<UVec2> for TilePos2d {
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TileTexture(pub u32);
 
+#[derive(Component, Default, Clone, Copy, Debug)]
+pub struct TileColor(pub Color);
+
 #[derive(Component, Clone, Copy, Debug)]
 pub struct TileVisible(pub bool);
 
@@ -66,6 +69,7 @@ pub struct TileBundle {
     pub tilemap_id: TilemapId,
     pub visible: TileVisible,
     pub flip: TileFlip,
+    pub color: TileColor,
 }
 
 #[derive(Component, Clone, Copy, Debug)]

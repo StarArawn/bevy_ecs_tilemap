@@ -12,7 +12,7 @@ use crate::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapMeshType, TilemapTexture,
     },
-    tiles::{TileFlip, TilePos2d, TileTexture, TileVisible},
+    tiles::{TileColor, TileFlip, TilePos2d, TileTexture, TileVisible},
 };
 
 use super::{chunk::PackedTileData, RemovedTileEntity};
@@ -61,6 +61,7 @@ pub fn extract(
             &TileTexture,
             &TileVisible,
             &TileFlip,
+            &TileColor,
             Option<&AnimatedTile>,
         ),
         Or<(
@@ -69,6 +70,7 @@ pub fn extract(
             Changed<TileVisible>,
             Changed<TileTexture>,
             Changed<TileFlip>,
+            Changed<TileColor>,
         )>,
     >,
     tilemap_query: Query<(
@@ -86,7 +88,7 @@ pub fn extract(
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
     // Process all tiles
-    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, animated) in
+    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color, animated) in
         changed_tiles_query.iter()
     {
         // flipping and rotation packed in bits
@@ -95,25 +97,19 @@ pub fn extract(
         // bit 2 : flip_d (anti diagonal)
         let tile_flip_bits = flip.x as i32 | (flip.y as i32) << 1 | (flip.d as i32) << 2;
 
-        let tile = if let Some(animated) = animated {
-            PackedTileData {
-                visible: visible.0,
-                position: Vec4::new(tile_pos.x as f32, tile_pos.y as f32, animated.speed, 0.0),
-                texture: Vec4::new(
-                    tile_texture.0 as f32,
-                    tile_flip_bits as f32,
-                    animated.start as f32,
-                    animated.end as f32,
-                ),
-                color: Vec4::new(1.0, 1.0, 1.0, 1.0),
-            }
-        } else {
-            PackedTileData {
-                visible: visible.0,
-                position: Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0),
-                texture: Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0),
-                color: Vec4::new(1.0, 1.0, 1.0, 1.0),
-            }
+        let mut position = Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0);
+        let mut texture = Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0);
+        if let Some(animation_data) = animated {
+            position.z = animation_data.speed;
+            texture.z = animation_data.start as f32;
+            texture.w = animation_data.end as f32;
+        }
+
+        let tile = PackedTileData {
+            visible: visible.0,
+            position,
+            texture,
+            color: color.0.into(),
         };
 
         let data = tilemap_query.get(tilemap_id.0).unwrap();
