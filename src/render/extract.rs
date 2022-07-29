@@ -1,3 +1,5 @@
+use bevy::core::Time;
+use bevy::prelude::Res;
 use bevy::{
     math::Vec4,
     prelude::{
@@ -6,6 +8,7 @@ use bevy::{
     utils::HashMap,
 };
 
+use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
 use crate::{
     map::{
@@ -84,6 +87,7 @@ pub fn extract(
         &Tilemap2dSize,
     )>,
     changed_tilemap_query: Query<Entity, (With<TilemapMeshType>, Changed<GlobalTransform>)>,
+    time: Res<Time>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
@@ -166,6 +170,7 @@ pub fn extract(
 
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
+    commands.insert_resource(SecondsSinceStartup(time.seconds_since_startup() as f32));
 }
 
 pub fn extract_removal(

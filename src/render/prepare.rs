@@ -9,6 +9,7 @@ use bevy::{
     },
 };
 
+use crate::render::SecondsSinceStartup;
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
@@ -59,6 +60,7 @@ pub fn prepare(
     )>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
+    seconds_since_startup: Res<SecondsSinceStartup>,
 ) {
     for tile in extracted_tiles.iter() {
         let chunk_pos = map_tile_to_chunk(&tile.position);
@@ -121,7 +123,8 @@ pub fn prepare(
             chunk.mesh_type,
         ) * chunk_global_transform;
 
-        let chunk_uniform: TilemapUniformData = chunk.into();
+        let mut chunk_uniform: TilemapUniformData = chunk.into();
+        chunk_uniform.time = **seconds_since_startup;
 
         commands
             .spawn()

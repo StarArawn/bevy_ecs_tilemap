@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use bevy::{
     core_pipeline::Transparent2d,
     prelude::{
-        Assets, Commands, Component, CoreStage, Entity, Plugin, Query, RemovedComponents, Shader,
-        With,
+        Assets, Commands, Component, CoreStage, Deref, DerefMut, Entity, Plugin, Query,
+        RemovedComponents, Shader, With,
     },
     render::{
         mesh::MeshVertexAttribute,
@@ -38,6 +38,8 @@ pub(crate) mod prepare;
 mod queue;
 
 pub struct Tilemap2dRenderingPlugin;
+#[derive(Default, Deref, DerefMut)]
+pub struct SecondsSinceStartup(f32);
 
 impl Plugin for Tilemap2dRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -106,7 +108,9 @@ impl Plugin for Tilemap2dRenderingPlugin {
         // app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
 
         let render_app = app.sub_app_mut(RenderApp);
-        render_app.insert_resource(RenderChunk2dStorage::default());
+        render_app
+            .insert_resource(RenderChunk2dStorage::default())
+            .insert_resource(SecondsSinceStartup);
         render_app
             .add_system_to_stage(RenderStage::Extract, extract::extract)
             .add_system_to_stage(RenderStage::Extract, extract::extract_removal);
