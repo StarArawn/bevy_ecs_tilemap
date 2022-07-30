@@ -8,32 +8,50 @@ use bevy_ecs_tilemap::map::{
 };
 use bevy_ecs_tilemap::tiles::{AnimatedTile, Tile2dStorage, TileBundle, TilePos2d, TileTexture};
 use bevy_ecs_tilemap::{Tilemap2dPlugin, TilemapBundle};
-use rand::{thread_rng, Rng};
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
 
 mod helpers;
 
+struct TilemapMetadata {
+    texture_size: Tilemap2dTextureSize,
+    size: Tilemap2dSize,
+    tile_size: Tilemap2dTileSize,
+    grid_size: Tilemap2dGridSize,
+}
+
+const BACKGROUND: &'static str = "tiles.png";
+const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
+    texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
+    size: Tilemap2dSize { x: 20, y: 20 },
+    tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
+    grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+};
+
+const FLOWERS: &'static str = "flower_sheet.png";
+const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
+    texture_size: Tilemap2dTextureSize { x: 32.0, y: 448.0 },
+    size: Tilemap2dSize { x: 10, y: 10 },
+    tile_size: Tilemap2dTileSize { x: 32.0, y: 32.0 },
+    grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+};
+
 fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
-    let tilemap_size = Tilemap2dSize { x: 20, y: 20 };
-    let texture_size = Tilemap2dTextureSize { x: 96.0, y: 16.0 };
-    let tile_size = Tilemap2dTileSize { x: 16.0, y: 16.0 };
-    let grid_size = Tilemap2dGridSize { x: 16.0, y: 16.0 };
-
-    // To create a map we use the Tile2dStorage component.
-    // This component is a grid of tile entities and is used to help keep track of individual
-    // tiles in the world. If you have multiple layers of tiles you would have an entity per layer,
-    // each with their own Tilemap2dStorage component.
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
-
-    // Create a tilemap entity a little early.
-    // We want this entity early because we need to tell each tile which tilemap entity
-    // it is associated with. This is done with the TilemapId component on each tile.
     let tilemap_entity = commands.spawn().id();
 
-    // Spawn the elements of the tilemap.
-    for x in 0..tilemap_size.x {
-        for y in 0..tilemap_size.y {
+    let TilemapMetadata {
+        texture_size,
+        size,
+        grid_size,
+        tile_size,
+    } = BACKGROUND_METADATA;
+
+    let mut tilemap_storage = Tile2dStorage::empty(size);
+
+    for x in 0..size.x {
+        for y in 0..size.y {
             let tile_pos = TilePos2d { x, y };
             let tile_entity = commands
                 .spawn()
@@ -44,47 +62,48 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
                 })
                 .id();
             // Here we let the tile storage component know what tiles we have.
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tilemap_storage.set(&tile_pos, Some(tile_entity));
         }
     }
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
+            size,
             grid_size,
-            size: tilemap_size,
-            storage: tile_storage,
             texture_size,
-            texture: TilemapTexture(texture_handle.clone()),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            storage: tilemap_storage,
+            texture: TilemapTexture(texture_handle.clone()),
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 0.0),
             ..Default::default()
         });
 }
 
-fn create_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let texture_handle: Handle<Image> = asset_server.load("flower_sheet.png");
+fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let texture_handle: Handle<Image> = asset_server.load(FLOWERS);
 
-    let tilemap_size = Tilemap2dSize { x: 10, y: 10 };
-    let texture_size = Tilemap2dTextureSize { x: 32.0, y: 448.0 };
-    let tile_size = Tilemap2dTileSize { x: 32.0, y: 32.0 };
-    let grid_size = Tilemap2dGridSize { x: 16.0, y: 16.0 };
+    let TilemapMetadata {
+        texture_size,
+        size,
+        grid_size,
+        tile_size,
+    } = FLOWERS_METADATA;
 
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+    let mut tilemap_storage = Tile2dStorage::empty(size);
 
     let tilemap_entity = commands.spawn().id();
 
-    let mut random = thread_rng();
-
-    for _ in 0..10 {
-        let tile_pos = TilePos2d {
-            x: random.gen_range(0..tilemap_size.x),
-            y: random.gen_range(0..tilemap_size.y),
-        };
+    // Choose 10 random tiles to contain flowers.
+    let mut rng = thread_rng();
+    let mut indices: Vec<(u32, u32)> = Vec::with_capacity((size.x * size.y) as usize);
+    for x in 0..size.x {
+        for y in 0..size.y {
+            indices.push((x, y));
+        }
+    }
+    for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
+        let tile_pos = TilePos2d { x, y };
         let tile_entity = commands
             .spawn()
             .insert_bundle(TileBundle {
@@ -94,7 +113,9 @@ fn create_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..Default::default()
             })
             .id();
-        tile_storage.set(&tile_pos, Some(tile_entity));
+        tilemap_storage.set(&tile_pos, Some(tile_entity));
+        // To enable animation, we must insert the `AnimatedTile` component on
+        // each tile that is to be animated.
         commands.entity(tile_entity).insert(AnimatedTile {
             start: 0,
             end: 13,
@@ -106,16 +127,12 @@ fn create_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             grid_size,
-            size: tilemap_size,
-            storage: tile_storage,
+            size,
+            storage: tilemap_storage,
             texture_size,
             texture: TilemapTexture(texture_handle.clone()),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                1.0,
-            ),
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 1.0),
             ..Default::default()
         });
 }
@@ -137,8 +154,8 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(Tilemap2dPlugin)
         .add_startup_system(startup)
-        .add_system(create_background)
-        .add_system(create_flowers)
+        .add_startup_system(create_background)
+        .add_startup_system(create_animated_flowers)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
