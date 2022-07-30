@@ -100,9 +100,10 @@ pub fn prepare(
     }
 
     // Copies transform changes from tilemap to chunks.
-    for (entity, transform, _, _, _, _, _, _) in extracted_tilemaps.iter() {
+    for (entity, transform, _, _, _, mesh_type, _, _) in extracted_tilemaps.iter() {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
         for chunk in chunks.values_mut() {
+            chunk.mesh_type = *mesh_type;
             chunk.transform = *transform;
         }
     }

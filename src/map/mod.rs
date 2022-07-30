@@ -60,6 +60,15 @@ impl Into<Vec2> for Tilemap2dTileSize {
     }
 }
 
+impl Into<Tilemap2dGridSize> for Tilemap2dTileSize {
+    fn into(self) -> Tilemap2dGridSize {
+        Tilemap2dGridSize {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}
+
 /// Size of the tiles on the grid in pixels.
 /// This can be used to overlay tiles on top of each other.
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
