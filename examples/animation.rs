@@ -12,7 +12,7 @@ use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn create_background_tilemap(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = Tilemap2dSize { x: 20, y: 20 };
@@ -26,7 +26,7 @@ fn create_background_tilemap(commands: &mut Commands, asset_server: &Res<AssetSe
     // component per layer.
     let mut tile_storage = Tile2dStorage::empty(tilemap_size);
 
-    // Create a tilemap entity a little early
+    // Create a tilemap entity a little early.
     // We want this entity early because we need to tell each tile which tilemap entity
     // it is associated with. This is done with the TilemapId component on each tile.
     let tilemap_entity = commands.spawn().id();
@@ -66,7 +66,7 @@ fn create_background_tilemap(commands: &mut Commands, asset_server: &Res<AssetSe
         });
 }
 
-fn create_flower_tilemap(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+fn create_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("flower_sheet.png");
 
     let tilemap_size = Tilemap2dSize { x: 10, y: 10 };
@@ -120,11 +120,8 @@ fn create_flower_tilemap(commands: &mut Commands, asset_server: &Res<AssetServer
         });
 }
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn startup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-
-    create_background_tilemap(&mut commands, &asset_server);
-    create_flower_tilemap(&mut commands, &asset_server);
 }
 
 fn main() {
@@ -140,6 +137,8 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(Tilemap2dPlugin)
         .add_startup_system(startup)
+        .add_system(create_background)
+        .add_system(create_flowers)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
