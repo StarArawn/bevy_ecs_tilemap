@@ -4,7 +4,7 @@ use bevy::{
 };
 
 use crate::{
-    map::{IsoType, Tilemap2dSize, Tilemap2dTileSize, TilemapId, TilemapMeshType},
+    map::{HexType, IsoType, Tilemap2dSize, Tilemap2dTileSize, TilemapId, TilemapMeshType},
     tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
 };
 
@@ -29,7 +29,29 @@ pub fn get_chunk_2d_transform(
             let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
             Vec2::new(chunk_pos_x, chunk_pos_y)
         }
-        TilemapMeshType::Hexagon(_) => todo!(),
+        TilemapMeshType::Hexagon(HexType::Row) => {
+            let chunk_pos_x = (chunk_position.y * chunk_size.x * (0.5 * grid_size.x).floor())
+                + (chunk_position.x * chunk_size.x * grid_size.x);
+            let chunk_pos_y = chunk_position.y * chunk_size.y * (0.75 * grid_size.y).floor();
+            Vec2::new(chunk_pos_x, chunk_pos_y)
+        }
+        TilemapMeshType::Hexagon(HexType::RowOdd) | TilemapMeshType::Hexagon(HexType::RowEven) => {
+            let chunk_pos_x = chunk_position.x * chunk_size.x * grid_size.x;
+            let chunk_pos_y = chunk_position.y * chunk_size.y * (0.75 * grid_size.y).floor();
+            Vec2::new(chunk_pos_x, chunk_pos_y)
+        }
+        TilemapMeshType::Hexagon(HexType::Column) => {
+            let chunk_pos_x = chunk_position.x * chunk_size.x * (0.75 * grid_size.x).floor();
+            let chunk_pos_y = (chunk_position.x * chunk_size.y * (0.5 * grid_size.y).ceil())
+                + chunk_position.y * chunk_size.y * grid_size.y;
+            Vec2::new(chunk_pos_x, chunk_pos_y)
+        }
+        TilemapMeshType::Hexagon(HexType::ColumnOdd)
+        | TilemapMeshType::Hexagon(HexType::ColumnEven) => {
+            let chunk_pos_x = chunk_position.x * chunk_size.x * (0.75 * grid_size.x).floor();
+            let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
+            Vec2::new(chunk_pos_x, chunk_pos_y)
+        }
         TilemapMeshType::Isometric(IsoType::Diamond) => project_iso_diamond(
             chunk_position.x,
             chunk_position.y,

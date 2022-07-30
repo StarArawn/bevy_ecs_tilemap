@@ -1,8 +1,6 @@
 use bevy::{
     math::Vec4,
-    prelude::{
-        Added, Bundle, Changed, Commands, Component, Entity, GlobalTransform, Or, Query, With,
-    },
+    prelude::{Added, Bundle, Changed, Commands, Component, Entity, GlobalTransform, Or, Query},
     utils::HashMap,
 };
 
@@ -81,7 +79,7 @@ pub fn extract(
         &TilemapTexture,
         &Tilemap2dSize,
     )>,
-    changed_tilemap_query: Query<Entity, (With<TilemapMeshType>, Changed<GlobalTransform>)>,
+    changed_tilemap_query: Query<Entity, Or<(Changed<TilemapMeshType>, Changed<GlobalTransform>)>>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
@@ -133,22 +131,24 @@ pub fn extract(
     }
 
     for tilemap_entity in changed_tilemap_query.iter() {
-        let data = tilemap_query.get(tilemap_entity).unwrap();
-        extracted_tilemaps.insert(
-            data.0,
-            (
+        if let Ok(data) = tilemap_query.get(tilemap_entity) {
+            dbg!(data.5);
+            extracted_tilemaps.insert(
                 data.0,
-                ExtractedTilemapBundle {
-                    transform: *data.1,
-                    size: *data.2,
-                    texture_size: *data.3,
-                    spacing: *data.4,
-                    mesh_type: *data.5,
-                    texture: data.6.clone(),
-                    map_size: *data.7,
-                },
-            ),
-        );
+                (
+                    data.0,
+                    ExtractedTilemapBundle {
+                        transform: *data.1,
+                        size: *data.2,
+                        texture_size: *data.3,
+                        spacing: *data.4,
+                        mesh_type: *data.5,
+                        texture: data.6.clone(),
+                        map_size: *data.7,
+                    },
+                ),
+            );
+        }
     }
 
     let extracted_tilemaps: Vec<(Entity, ExtractedTilemapBundle)> =
