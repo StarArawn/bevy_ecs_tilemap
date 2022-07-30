@@ -22,8 +22,8 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // To create a map we use the Tile2dStorage component.
     // This component is a grid of tile entities and is used to help keep track of individual
-    // tiles in the world. If you have multiple layers of tiles you would have a Tilemap2dStorage
-    // component per layer.
+    // tiles in the world. If you have multiple layers of tiles you would have an entity per layer,
+    // each with their own Tilemap2dStorage component.
     let mut tile_storage = Tile2dStorage::empty(tilemap_size);
 
     // Create a tilemap entity a little early.
