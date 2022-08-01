@@ -2,17 +2,19 @@ use std::marker::PhantomData;
 
 use bevy::{
     core_pipeline::Transparent2d,
-    prelude::{
-        Assets, Commands, Component, CoreStage, Entity, Plugin, Query, RemovedComponents, Shader,
-        With,
-    },
+    prelude::*,
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
-        render_resource::{DynamicUniformVec, SpecializedRenderPipelines, VertexFormat},
+        render_resource::{
+            DynamicUniformVec, FilterMode, SpecializedRenderPipelines, VertexFormat,
+        },
         RenderApp, RenderStage,
     },
 };
+
+#[cfg(not(feature = "atlas"))]
+use bevy::render::renderer::RenderDevice;
 
 use crate::tiles::TilePos2d;
 
@@ -37,6 +39,17 @@ mod pipeline;
 pub(crate) mod prepare;
 mod queue;
 
+#[cfg(not(feature = "atlas"))]
+mod texture_array_cache;
+
+#[cfg(not(feature = "atlas"))]
+use self::extract::ExtractedTilemapTexture;
+#[cfg(not(feature = "atlas"))]
+use self::texture_array_cache::TextureArrayCache;
+
+#[derive(Copy, Clone, Debug, Component)]
+pub(crate) struct ExtractedFilterMode(FilterMode);
+
 pub struct Tilemap2dRenderingPlugin;
 
 impl Plugin for Tilemap2dRenderingPlugin {
@@ -46,6 +59,9 @@ impl Plugin for Tilemap2dRenderingPlugin {
 
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
 
+        #[cfg(not(feature = "atlas"))]
+        let tilemap_shader = include_str!("shaders/tilemap.wgsl");
+        #[cfg(feature = "atlas")]
         let tilemap_shader = include_str!("shaders/tilemap-atlas.wgsl");
 
         let square_shader = Shader::from_wgsl(include_shader::include_shader(
@@ -102,9 +118,6 @@ impl Plugin for Tilemap2dRenderingPlugin {
         ));
         shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
 
-        // app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
-        // app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
-
         let render_app = app.sub_app_mut(RenderApp);
         render_app.insert_resource(RenderChunk2dStorage::default());
         render_app
@@ -123,6 +136,11 @@ impl Plugin for Tilemap2dRenderingPlugin {
             .init_resource::<DynamicUniformVec<TilemapUniformData>>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
+
+        #[cfg(not(feature = "atlas"))]
+        render_app
+            .init_resource::<TextureArrayCache>()
+            .add_system_to_stage(RenderStage::Prepare, prepare_textures);
     }
 }
 
@@ -160,4 +178,26 @@ fn clear_removed(mut commands: Commands, removed_query: Query<Entity, With<Remov
     for entity in removed_query.iter() {
         commands.entity(entity).despawn();
     }
+}
+
+#[cfg(not(feature = "atlas"))]
+fn prepare_textures(
+    render_device: Res<RenderDevice>,
+    mut texture_array_cache: ResMut<TextureArrayCache>,
+    extracted_tilemaps: Query<&ExtractedTilemapTexture>,
+) {
+    for tilemap in extracted_tilemaps.iter() {
+        let tile_size: Vec2 = tilemap.tile_size.into();
+        let texture_size: Vec2 = tilemap.texture_size.into();
+        let spacing: Vec2 = tilemap.spacing.into();
+        texture_array_cache.add(
+            &tilemap.texture.0,
+            tile_size,
+            texture_size,
+            spacing,
+            FilterMode::Nearest,
+        );
+    }
+
+    texture_array_cache.prepare(&render_device);
 }

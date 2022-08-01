@@ -35,8 +35,8 @@ struct VertexOutput {
 [[stage(vertex)]]
 fn vertex(
     [[builtin(vertex_index)]] v_index: u32,
-    [[location(0)]] vertex_position: vec3<f32>,
-    [[location(1)]] vertex_uv: vec4<i32>,
+    [[location(0)]] vertex_uv: vec4<f32>,
+    [[location(1)]] vertex_position: vec3<f32>,
     [[location(2)]] color: vec4<f32>,
 ) -> VertexOutput {
     var out: VertexOutput;
@@ -48,7 +48,7 @@ fn vertex(
 
     var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
 
-    current_animation_frame = clamp(current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
+    current_animation_frame = clamp(f32(vertex_uv.z) + current_animation_frame, f32(vertex_uv.z), f32(vertex_uv.w));
 
     var texture_index: u32 = u32(current_animation_frame);
 
@@ -109,10 +109,10 @@ fn vertex(
     );
 
     atlas_uvs = array<vec2<f32>, 4>(
-        x1[vertex_uv.y],
-        x2[vertex_uv.y],
-        x3[vertex_uv.y],
-        x4[vertex_uv.y]
+        x1[u32(vertex_uv.y)],
+        x2[u32(vertex_uv.y)],
+        x3[u32(vertex_uv.y)],
+        x4[u32(vertex_uv.y)]
     );
 
     out.uv = vec3<f32>(atlas_uvs[v_index % 4u], f32(texture_index));

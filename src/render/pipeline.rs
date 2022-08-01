@@ -99,30 +99,30 @@ impl FromWorld for TilemapPipeline {
             label: Some("tilemap_material_layout"),
         });
 
-        // #[cfg(not(feature = "atlas"))]
-        // let material_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-        //     entries: &[
-        //         BindGroupLayoutEntry {
-        //             binding: 0,
-        //             visibility: ShaderStages::FRAGMENT,
-        //             ty: BindingType::Texture {
-        //                 multisampled: false,
-        //                 sample_type: TextureSampleType::Float { filterable: true },
-        //                 view_dimension: TextureViewDimension::D2Array,
-        //             },
-        //             count: None,
-        //         },
-        //         BindGroupLayoutEntry {
-        //             binding: 1,
-        //             visibility: ShaderStages::FRAGMENT,
-        //             ty: BindingType::Sampler(SamplerBindingType::Filtering),
-        //             count: None,
-        //         },
-        //     ],
-        //     label: Some("tilemap_material_layout"),
-        // });
+        #[cfg(not(feature = "atlas"))]
+        let material_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            entries: &[
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Texture {
+                        multisampled: false,
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2Array,
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("tilemap_material_layout"),
+        });
 
-        // #[cfg(feature = "atlas")]
+        #[cfg(feature = "atlas")]
         let material_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             entries: &[
                 BindGroupLayoutEntry {

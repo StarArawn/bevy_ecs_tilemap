@@ -16,14 +16,13 @@ use bevy::{
     utils::{HashMap, HashSet},
 };
 
-use crate::{TextureSize, TileSize};
-
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<Handle<Image>, GpuImage>,
-    sizes: HashMap<Handle<Image>, (TileSize, TextureSize, Vec2, FilterMode)>,
+    sizes: HashMap<Handle<Image>, (Vec2, Vec2, Vec2, FilterMode)>,
     prepare_queue: HashSet<Handle<Image>>,
     queue_queue: HashSet<Handle<Image>>,
+    bad_flag_queue: HashSet<Handle<Image>>,
 }
 
 impl TextureArrayCache {
@@ -31,8 +30,8 @@ impl TextureArrayCache {
     pub fn add(
         &mut self,
         atlas_texture: &Handle<Image>,
-        tile_size: TileSize,
-        texture_size: TextureSize,
+        tile_size: Vec2,
+        texture_size: Vec2,
         tile_spacing: Vec2,
         filter: FilterMode,
     ) {
@@ -57,11 +56,11 @@ impl TextureArrayCache {
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for item in prepare_queue {
-            let (tile_size, atlas_size, _, filter) = self.sizes.get(&item).unwrap();
+            let (tile_size, atlas_size, spacing, filter) = self.sizes.get(&item).unwrap();
             let tile_count_x =
-                ((atlas_size.0 as f32 + spacing.x) / (tile_size.0 + spacing.x)).floor();
+                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
             let tile_count_y =
-                ((atlas_size.1 as f32 + spacing.y) / (tile_size.1 + spacing.y)).floor();
+                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
             let mut count = (tile_count_x * tile_count_y) as u32;
 
             // Fixes weird cubemap bug.
@@ -72,8 +71,8 @@ impl TextureArrayCache {
             let texture = render_device.create_texture(&TextureDescriptor {
                 label: Some("texture_array"),
                 size: Extent3d {
-                    width: tile_size.0 as u32,
-                    height: tile_size.1 as u32,
+                    width: tile_size.x as u32,
+                    height: tile_size.y as u32,
                     depth_or_array_layers: count,
                 },
                 mip_level_count: 1,
@@ -113,7 +112,8 @@ impl TextureArrayCache {
                 texture,
                 sampler,
                 texture_view,
-                size: Size::new(tile_size.0, tile_size.1),
+                size: Size::new(tile_size.x, tile_size.y),
+                texture_format: TextureFormat::Rgba8UnormSrgb,
             };
 
             self.textures.insert(item.clone_weak(), gpu_image);
@@ -139,8 +139,10 @@ impl TextureArrayCache {
 
             let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
-            let tile_count_x = (atlas_size.0 as f32 / tile_size.0).floor();
-            let tile_count_y = (atlas_size.1 as f32 / tile_size.1).floor();
+            let tile_count_x =
+                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
+            let tile_count_y =
+                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
             let count = (tile_count_x * tile_count_y) as u32;
 
             let mut command_encoder =
@@ -149,9 +151,9 @@ impl TextureArrayCache {
                 });
 
             for i in 0..count {
-                let columns = (atlas_size.0 as f32 + spacing.x) / (tile_size.0 + spacing.x);
-                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.0 + spacing.x);
-                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.1 + spacing.y);
+                let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
+                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.x + spacing.x);
+                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.y + spacing.y);
 
                 command_encoder.copy_texture_to_texture(
                     ImageCopyTexture {
@@ -175,8 +177,8 @@ impl TextureArrayCache {
                         aspect: TextureAspect::All,
                     },
                     Extent3d {
-                        width: tile_size.0 as u32,
-                        height: tile_size.1 as u32,
+                        width: tile_size.x as u32,
+                        height: tile_size.y as u32,
                         depth_or_array_layers: 1,
                     },
                 );

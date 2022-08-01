@@ -1,6 +1,9 @@
 use bevy::{
     math::Vec4,
-    prelude::{Added, Bundle, Changed, Commands, Component, Entity, GlobalTransform, Or, Query},
+    prelude::{
+        Added, Assets, Bundle, Changed, Commands, Component, Entity, GlobalTransform, Image, Or,
+        Query, Res,
+    },
     utils::HashMap,
 };
 
@@ -13,6 +16,9 @@ use crate::{
 };
 
 use super::{chunk::PackedTileData, RemovedTileEntity};
+
+#[cfg(not(feature = "atlas"))]
+use bevy::render::render_resource::TextureUsages;
 
 #[derive(Component)]
 pub struct ExtractedTile {
@@ -48,6 +54,19 @@ pub struct ExtractedTilemapBundle {
     map_size: Tilemap2dSize,
 }
 
+#[derive(Component)]
+pub struct ExtractedTilemapTexture {
+    pub tile_size: Tilemap2dTileSize,
+    pub texture_size: Tilemap2dTextureSize,
+    pub spacing: Tilemap2dSpacing,
+    pub texture: TilemapTexture,
+}
+
+#[derive(Bundle)]
+pub struct ExtractedTilemapTextureBundle {
+    data: ExtractedTilemapTexture,
+}
+
 pub fn extract(
     mut commands: Commands,
     changed_tiles_query: Query<
@@ -79,10 +98,19 @@ pub fn extract(
         &TilemapTexture,
         &Tilemap2dSize,
     )>,
-    changed_tilemap_query: Query<Entity, Or<(Changed<TilemapMeshType>, Changed<GlobalTransform>)>>,
+    changed_tilemap_query: Query<
+        Entity,
+        Or<(
+            Added<TilemapMeshType>,
+            Changed<TilemapMeshType>,
+            Changed<GlobalTransform>,
+        )>,
+    >,
+    images: Res<Assets<Image>>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
+    let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color) in
         changed_tiles_query.iter()
@@ -101,6 +129,7 @@ pub fn extract(
         };
 
         let data = tilemap_query.get(tilemap_id.0).unwrap();
+
         extracted_tilemaps.insert(
             data.0,
             (
@@ -132,7 +161,6 @@ pub fn extract(
 
     for tilemap_entity in changed_tilemap_query.iter() {
         if let Ok(data) = tilemap_query.get(tilemap_entity) {
-            dbg!(data.5);
             extracted_tilemaps.insert(
                 data.0,
                 (
@@ -154,8 +182,36 @@ pub fn extract(
     let extracted_tilemaps: Vec<(Entity, ExtractedTilemapBundle)> =
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
+    // Extracts tilemap textures.
+    for (entity, _, tile_size, texture_size, spacing, _, texture, _) in tilemap_query.iter() {
+        if let Some(_atlas_image) = images.get(&texture.0) {
+            #[cfg(not(feature = "atlas"))]
+            if !_atlas_image
+                .texture_descriptor
+                .usage
+                .contains(TextureUsages::COPY_SRC)
+            {
+                log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! You may ignore this warning if the atlas already has the COPY_SRC usage flag. Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
+                continue;
+            }
+        }
+
+        extracted_tilemap_textures.push((
+            entity,
+            ExtractedTilemapTextureBundle {
+                data: ExtractedTilemapTexture {
+                    tile_size: *tile_size,
+                    texture_size: *texture_size,
+                    spacing: *spacing,
+                    texture: texture.clone(),
+                },
+            },
+        ));
+    }
+
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
+    commands.insert_or_spawn_batch(extracted_tilemap_textures);
 }
 
 pub fn extract_removal(
