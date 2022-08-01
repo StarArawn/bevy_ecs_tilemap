@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    let mut camera_bundle = OrthographicCameraBundle::new_2d();
+    let mut camera_bundle = Camera2dBundle::default();
     camera_bundle.orthographic_projection.scale = 0.5;
     commands.spawn_bundle(camera_bundle);
 

@@ -1,6 +1,6 @@
-use bevy::core::Time;
 use bevy::prelude::Res;
-use bevy::{math::Vec4, prelude::*, utils::HashMap};
+use bevy::prelude::Time;
+use bevy::{math::Vec4, prelude::*, utils::HashMap, render::Extract};
 
 use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
@@ -66,7 +66,7 @@ pub struct ExtractedTilemapTextureBundle {
 
 pub fn extract(
     mut commands: Commands,
-    changed_tiles_query: Query<
+    changed_tiles_query: Extract<Query<
         (
             Entity,
             &TilePos2d,
@@ -85,8 +85,8 @@ pub fn extract(
             Changed<TileFlip>,
             Changed<TileColor>,
         )>,
-    >,
-    tilemap_query: Query<(
+    >>,
+    tilemap_query: Extract<Query<(
         Entity,
         &GlobalTransform,
         &Tilemap2dTileSize,
@@ -95,17 +95,17 @@ pub fn extract(
         &TilemapMeshType,
         &TilemapTexture,
         &Tilemap2dSize,
-    )>,
-    changed_tilemap_query: Query<
+    )>>,
+    changed_tilemap_query: Extract<Query<
         Entity,
         Or<(
             Added<TilemapMeshType>,
             Changed<TilemapMeshType>,
             Changed<GlobalTransform>,
         )>,
-    >,
-    images: Res<Assets<Image>>,
-    time: Res<Time>,
+    >>,
+    images: Extract<Res<Assets<Image>>>,
+    time: Extract<Res<Time>>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
@@ -229,8 +229,7 @@ pub fn extract(
 
 pub fn extract_removal(
     mut commands: Commands,
-    // removed_tiles_query: Query<(Entity, &, &TilemapId), With<RemoveTile>>,
-    removed_tiles_query: Query<&RemovedTileEntity>,
+    removed_tiles_query: Extract<Query<&RemovedTileEntity>>,
 ) {
     let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
     for entity in removed_tiles_query.iter() {

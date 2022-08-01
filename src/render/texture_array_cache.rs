@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 
 use bevy::{
-    math::{Size, Vec2},
+    math::Vec2,
     prelude::{Handle, Image, Res},
     render::{
         render_asset::RenderAssets,
@@ -112,7 +112,7 @@ impl TextureArrayCache {
                 texture,
                 sampler,
                 texture_view,
-                size: Size::new(tile_size.x, tile_size.y),
+                size: Vec2::new(tile_size.x, tile_size.y),
                 texture_format: TextureFormat::Rgba8UnormSrgb,
             };
 

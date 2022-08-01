@@ -5,7 +5,7 @@ use bevy::{
     prelude::{Component, Entity, GlobalTransform, Mesh},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
-        render_resource::{std140::AsStd140, BufferInitDescriptor, BufferUsages},
+        render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
         renderer::RenderDevice,
     },
     utils::HashMap,
@@ -302,7 +302,7 @@ impl RenderChunk2d {
 }
 
 // Used to transfer info to the GPU for tile building.
-#[derive(Debug, Default, Copy, Component, Clone, AsStd140)]
+#[derive(Debug, Default, Copy, Component, Clone, ShaderType)]
 pub struct TilemapUniformData {
     pub texture_size: Vec2,
     pub tile_size: Vec2,

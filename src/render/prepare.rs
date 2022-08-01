@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    math::{const_uvec2, Mat4, UVec2, UVec4, Vec3Swizzles},
+    math::{Mat4, UVec2, UVec4, Vec3Swizzles},
     prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Transform},
     render::{
-        render_resource::{std140::AsStd140, DynamicUniformVec},
+        render_resource::{DynamicUniformBuffer, ShaderType},
         renderer::{RenderDevice, RenderQueue},
     },
 };
@@ -19,7 +19,7 @@ use crate::{
     tiles::TilePos2d,
 };
 
-pub const CHUNK_SIZE_2D: UVec2 = const_uvec2!([64, 64]);
+pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 
 fn map_tile_to_chunk(tile_position: &TilePos2d) -> UVec2 {
     let tile_pos: UVec2 = tile_position.into();
@@ -37,7 +37,7 @@ use super::{
     DynamicUniformIndex,
 };
 
-#[derive(AsStd140, Component, Clone)]
+#[derive(ShaderType, Component, Clone)]
 pub struct MeshUniform {
     pub transform: Mat4,
 }
@@ -45,8 +45,8 @@ pub struct MeshUniform {
 pub fn prepare(
     mut commands: Commands,
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
-    mut mesh_uniforms: ResMut<DynamicUniformVec<MeshUniform>>,
-    mut tilemap_uniforms: ResMut<DynamicUniformVec<TilemapUniformData>>,
+    mut mesh_uniforms: ResMut<DynamicUniformBuffer<MeshUniform>>,
+    mut tilemap_uniforms: ResMut<DynamicUniformBuffer<TilemapUniformData>>,
     extracted_tiles: Query<&ExtractedTile>,
     extracted_tilemaps: Query<(
         Entity,
@@ -70,7 +70,7 @@ pub fn prepare(
         let chunk_data = UVec4::new(
             chunk_pos.x,
             chunk_pos.y,
-            transform.translation.z as u32,
+            transform.translation().z as u32,
             tile.tilemap_id.0.id(),
         );
 

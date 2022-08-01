@@ -43,7 +43,7 @@ fn startup(
     mut textures: ResMut<Assets<Image>>,
     mut map_query: MapQuery,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let tile_size = Vec2::new(16.0, 16.0);
 

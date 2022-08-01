@@ -1,13 +1,13 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     prelude::*,
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            DynamicUniformVec, FilterMode, SpecializedRenderPipelines, VertexFormat,
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
         },
         RenderApp, RenderStage,
     },
@@ -136,8 +136,8 @@ impl Plugin for Tilemap2dRenderingPlugin {
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
-            .init_resource::<DynamicUniformVec<MeshUniform>>()
-            .init_resource::<DynamicUniformVec<TilemapUniformData>>();
+            .init_resource::<DynamicUniformBuffer<MeshUniform>>()
+            .init_resource::<DynamicUniformBuffer<TilemapUniformData>>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
 

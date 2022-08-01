@@ -1,5 +1,5 @@
 use bevy::{
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     ecs::system::{
         lifetimeless::{Read, SQuery, SRes},
         SystemParamItem,

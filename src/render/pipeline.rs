@@ -202,7 +202,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 shader,
                 shader_defs: vec![],
                 entry_point: "fragment".into(),
-                targets: vec![ColorTargetState {
+                targets: vec![Some(ColorTargetState {
                     format: TextureFormat::bevy_default(),
                     blend: Some(BlendState {
                         color: BlendComponent {
@@ -217,7 +217,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                         },
                     }),
                     write_mask: ColorWrites::ALL,
-                }],
+                })],
             }),
             layout: Some(vec![
                 self.view_layout.clone(),

@@ -14,7 +14,7 @@ struct Materials {
 }
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle_a = asset_server.load("tiles.png");
     let texture_handle_b = asset_server.load("tiles2.png");

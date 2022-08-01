@@ -8,9 +8,9 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle {
+    commands.spawn_bundle(Camera2dBundle {
         transform: Transform::from_xyz(1042.0, 1024.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
+        ..Camera2dBundle::default()
     });
 
     let texture_handle = asset_server.load("tiles.png");

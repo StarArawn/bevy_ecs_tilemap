@@ -138,7 +138,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 }
 
 fn main() {

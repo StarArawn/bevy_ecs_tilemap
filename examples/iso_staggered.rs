@@ -11,7 +11,7 @@ use bevy_ecs_tilemap::{
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
 

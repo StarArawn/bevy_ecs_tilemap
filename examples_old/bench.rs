@@ -11,7 +11,7 @@ fn startup(
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle = asset_server.load("tiles.png");
 

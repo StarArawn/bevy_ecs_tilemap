@@ -4,7 +4,7 @@ use bevy_ecs_tilemap::Tilemap2dPlugin;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("map.tmx");
 

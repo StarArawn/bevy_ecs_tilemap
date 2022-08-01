@@ -1,18 +1,18 @@
 use bevy::{
-    core::FloatOrd,
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     math::UVec4,
     prelude::{Commands, Component, Entity, Handle, Image, Msaa, Query, Res, ResMut, Transform},
     render::{
         render_asset::RenderAssets,
         render_phase::{DrawFunctions, RenderPhase},
         render_resource::{
-            BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, DynamicUniformVec,
+            BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, DynamicUniformBuffer,
             PipelineCache, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
         view::{ExtractedView, ViewUniforms},
     },
+    utils::FloatOrd,
     utils::HashMap,
 };
 
@@ -39,7 +39,7 @@ pub fn queue_transform_bind_group(
     mut commands: Commands,
     tilemap_pipeline: Res<TilemapPipeline>,
     render_device: Res<RenderDevice>,
-    transform_uniforms: Res<DynamicUniformVec<MeshUniform>>,
+    transform_uniforms: Res<DynamicUniformBuffer<MeshUniform>>,
 ) {
     if let Some(binding) = transform_uniforms.binding() {
         commands.insert_resource(TransformBindGroup {
@@ -63,7 +63,7 @@ pub fn queue_tilemap_bind_group(
     mut commands: Commands,
     tilemap_pipeline: Res<TilemapPipeline>,
     render_device: Res<RenderDevice>,
-    tilemap_uniforms: Res<DynamicUniformVec<TilemapUniformData>>,
+    tilemap_uniforms: Res<DynamicUniformBuffer<TilemapUniformData>>,
 ) {
     if let Some(binding) = tilemap_uniforms.binding() {
         commands.insert_resource(TilemapUniformDataBindGroup {
