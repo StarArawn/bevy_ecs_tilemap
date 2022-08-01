@@ -1,9 +1,9 @@
 use bevy::{
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     prelude::*,
     render::{
+        extract_component::UniformComponentPlugin,
         mesh::MeshVertexAttribute,
-        render_component::UniformComponentPlugin,
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         RenderApp, RenderStage,

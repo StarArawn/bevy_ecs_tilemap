@@ -1,5 +1,5 @@
 struct Output {
-    world_position: vec4<f32>;
+    world_position: vec4<f32>,
 };
 
 fn project_iso(pos: vec2<f32>, tile_width: f32, tile_height: f32) -> vec2<f32> {
@@ -20,7 +20,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
         vec2<f32>(position.x + 1.0, position.y + 1.0),
         vec2<f32>(position.x + 1.0, position.y)
     );
-        
+
     position = positions[v_index % 4u];
     position = position * tilemap_data.tile_size;
 
@@ -32,7 +32,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     }
     position.y = position.y - (world_pos.y * (tilemap_data.grid_size.y / 2.0));
     position.x = position.x + world_translation.x;
-    
+
     out.world_position = vec4<f32>(position.xy, world_pos.zw);
 
     return out;

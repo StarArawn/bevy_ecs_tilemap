@@ -14,14 +14,14 @@ default = []
 atlas = []
 
 [dependencies]
-bevy = { version = "0.7", default-features = false, features = ["bevy_render","bevy_core_pipeline","bevy_sprite"] }
+bevy = { version = "0.8", default-features = false, features = ["bevy_asset","bevy_render","bevy_core_pipeline","bevy_sprite"] }
 log = "0.4"
 regex = "1.5.4"
 bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { version = "0.7" }
+bevy = { version = "0.8" }
 ldtk_rust = { version = "0.5" }
 rand = "0.8"
 env_logger = "0.9"

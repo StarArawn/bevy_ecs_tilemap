@@ -1,5 +1,5 @@
 struct Output {
-    world_position: vec4<f32>;
+    world_position: vec4<f32>,
 };
 
 fn project_iso(pos: vec2<f32>, tile_width: f32, tile_height: f32) -> vec2<f32> {

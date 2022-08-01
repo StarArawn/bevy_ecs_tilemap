@@ -1,10 +1,8 @@
 use std::collections::HashSet;
 
 use bevy::{
-    core::Time,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
-    render::camera::OrthographicCameraBundle,
     window::WindowDescriptor,
 };
 use bevy_ecs_tilemap::prelude::*;
@@ -13,7 +11,7 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle = asset_server.load("tiles.png");
 

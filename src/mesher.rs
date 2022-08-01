@@ -16,7 +16,7 @@ impl ChunkMesher {
         tile_query: &Query<(&TilePos, &Tile, Option<&GPUAnimated>)>,
         meshes: &mut ResMut<Assets<Mesh>>,
     ) {
-        let mesh = meshes.get_mut(chunk.mesh_handle.clone()).unwrap();
+        let mesh = meshes.get_mut(&chunk.mesh_handle).unwrap();
         let size = ((chunk.settings.chunk_size.0 * chunk.settings.chunk_size.1) * 4) as usize;
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(size);
         let mut textures: Vec<[i32; 4]> = Vec::with_capacity(size);

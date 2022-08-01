@@ -1,7 +1,5 @@
-use bevy::render::render_resource::std140::AsStd140;
 use bevy::{
-    core::FloatOrd,
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     ecs::system::{
         lifetimeless::{Read, SQuery, SRes},
         SystemParamItem,
@@ -10,9 +8,9 @@ use bevy::{
     prelude::*,
     reflect::TypeUuid,
     render::{
+        extract_component::{ComponentUniforms, DynamicUniformIndex},
         mesh::GpuBufferInfo,
         render_asset::RenderAssets,
-        render_component::{ComponentUniforms, DynamicUniformIndex},
         render_phase::{
             DrawFunctions, RenderCommand, RenderCommandResult, RenderPhase, TrackedRenderPass,
         },
@@ -22,7 +20,7 @@ use bevy::{
             BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType, BufferSize,
             ColorTargetState, ColorWrites, Face, FragmentState, FrontFace, MultisampleState,
             PipelineCache, PolygonMode, PrimitiveState, PrimitiveTopology,
-            RenderPipelineDescriptor, SamplerBindingType, Shader, ShaderStages,
+            RenderPipelineDescriptor, SamplerBindingType, Shader, ShaderStages, ShaderType,
             SpecializedRenderPipeline, SpecializedRenderPipelines, TextureFormat,
             TextureSampleType, TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState,
             VertexStepMode,
@@ -30,7 +28,9 @@ use bevy::{
         renderer::RenderDevice,
         texture::BevyDefault,
         view::{ExtractedView, ViewUniformOffset, ViewUniforms},
+        Extract,
     },
+    utils::FloatOrd,
     utils::HashMap,
 };
 
@@ -69,14 +69,16 @@ pub struct LayerId(u16);
 
 pub fn extract_tilemaps(
     mut commands: Commands,
-    query: Query<(
-        Entity,
-        &GlobalTransform,
-        &Chunk,
-        &TilemapUniformData,
-        &Handle<Mesh>,
-    )>,
-    images: Res<Assets<Image>>,
+    query: Extract<
+        Query<(
+            Entity,
+            &GlobalTransform,
+            &Chunk,
+            &TilemapUniformData,
+            &Handle<Mesh>,
+        )>,
+    >,
+    images: Extract<Res<Assets<Image>>>,
 ) {
     let mut extracted_tilemaps = Vec::new();
     for (entity, transform, chunk, tilemap_uniform, mesh_handle) in query.iter() {
@@ -119,7 +121,7 @@ pub struct TilemapPipeline {
     pub mesh_layout: BindGroupLayout,
 }
 
-#[derive(AsStd140, Component, Clone)]
+#[derive(Component, Clone, ShaderType)]
 pub struct MeshUniform {
     pub transform: Mat4,
 }
@@ -282,7 +284,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 shader,
                 shader_defs: vec![],
                 entry_point: "fragment".into(),
-                targets: vec![ColorTargetState {
+                targets: vec![Some(ColorTargetState {
                     format: TextureFormat::bevy_default(),
                     blend: Some(BlendState {
                         color: BlendComponent {
@@ -297,7 +299,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                         },
                     }),
                     write_mask: ColorWrites::ALL,
-                }],
+                })],
             }),
             layout: Some(vec![
                 self.view_layout.clone(),
@@ -477,11 +479,12 @@ pub fn queue_meshes(
                 };
 
                 let pipeline_id = pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
+                let (_scale, _rotation, translation) = transform.to_scale_rotation_translation();
                 transparent_phase.add(Transparent2d {
                     entity,
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
-                    sort_key: FloatOrd(transform.translation.z as f32),
+                    sort_key: FloatOrd(translation.z),
                     batch_range: None,
                 });
             }

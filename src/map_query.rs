@@ -442,9 +442,10 @@ impl<'w, 's> MapQuery<'w, 's> {
                     let grid_size = layer.settings.grid_size;
                     let layer_size_in_tiles: Vec2 = layer.get_layer_size_in_tiles().into();
                     let map_size: Vec2 = layer_size_in_tiles * grid_size;
+                    let (_scale, _rotation, translation) =
+                        transform.to_scale_rotation_translation();
                     let local_z =
-                        (transform.translation.y + (grid_size.y / 2.0) + pixel_position.y)
-                            / map_size.y;
+                        (translation.y + (grid_size.y / 2.0) + pixel_position.y) / map_size.y;
                     return pixel_position.z + (1.0 - local_z);
                 }
             }
