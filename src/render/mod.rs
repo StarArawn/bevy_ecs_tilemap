@@ -51,6 +51,8 @@ use self::texture_array_cache::TextureArrayCache;
 pub(crate) struct ExtractedFilterMode(FilterMode);
 
 pub struct Tilemap2dRenderingPlugin;
+#[derive(Default, Deref, DerefMut)]
+pub struct SecondsSinceStartup(f32);
 
 impl Plugin for Tilemap2dRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -119,7 +121,9 @@ impl Plugin for Tilemap2dRenderingPlugin {
         shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
 
         let render_app = app.sub_app_mut(RenderApp);
-        render_app.insert_resource(RenderChunk2dStorage::default());
+        render_app
+            .insert_resource(RenderChunk2dStorage::default())
+            .insert_resource(SecondsSinceStartup);
         render_app
             .add_system_to_stage(RenderStage::Extract, extract::extract)
             .add_system_to_stage(RenderStage::Extract, extract::extract_removal);

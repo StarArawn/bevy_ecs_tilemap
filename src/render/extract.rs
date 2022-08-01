@@ -1,12 +1,9 @@
-use bevy::{
-    math::Vec4,
-    prelude::{
-        Added, Assets, Bundle, Changed, Commands, Component, Entity, GlobalTransform, Image, Or,
-        Query, Res,
-    },
-    utils::HashMap,
-};
+use bevy::core::Time;
+use bevy::prelude::Res;
+use bevy::{math::Vec4, prelude::*, utils::HashMap};
 
+use crate::render::SecondsSinceStartup;
+use crate::tiles::AnimatedTile;
 use crate::{
     map::{
         Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
@@ -78,6 +75,7 @@ pub fn extract(
             &TileVisible,
             &TileFlip,
             &TileColor,
+            Option<&AnimatedTile>,
         ),
         Or<(
             Added<TilePos2d>,
@@ -107,12 +105,13 @@ pub fn extract(
         )>,
     >,
     images: Res<Assets<Image>>,
+    time: Res<Time>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
-    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color) in
+    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color, animated) in
         changed_tiles_query.iter()
     {
         // flipping and rotation packed in bits
@@ -121,10 +120,21 @@ pub fn extract(
         // bit 2 : flip_d (anti diagonal)
         let tile_flip_bits = flip.x as i32 | (flip.y as i32) << 1 | (flip.d as i32) << 2;
 
+        let mut position = Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0);
+        let mut texture = Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0);
+        if let Some(animation_data) = animated {
+            position.z = animation_data.speed;
+            texture.z = animation_data.start as f32;
+            texture.w = animation_data.end as f32;
+        } else {
+            texture.z = tile_texture.0 as f32;
+            texture.w = tile_texture.0 as f32;
+        }
+
         let tile = PackedTileData {
             visible: visible.0,
-            position: Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0),
-            texture: Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0),
+            position,
+            texture,
             color: color.0.into(),
         };
 
@@ -194,6 +204,8 @@ pub fn extract(
                 log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! You may ignore this warning if the atlas already has the COPY_SRC usage flag. Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
                 continue;
             }
+        } else {
+            continue;
         }
 
         extracted_tilemap_textures.push((
@@ -212,6 +224,7 @@ pub fn extract(
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
     commands.insert_or_spawn_batch(extracted_tilemap_textures);
+    commands.insert_resource(SecondsSinceStartup(time.seconds_since_startup() as f32));
 }
 
 pub fn extract_removal(

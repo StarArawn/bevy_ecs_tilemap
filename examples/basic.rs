@@ -16,9 +16,21 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = Tilemap2dSize { x: 32, y: 32 };
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+
+    // Create a tilemap entity a little early.
+    // We want this entity early because we need to tell each tile which tilemap entity
+    // it is associated with. This is done with the TilemapId component on each tile.
+    // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
+    // will contain various necessary components, such as `Tile2dStorage`.
     let tilemap_entity = commands.spawn().id();
 
+    // To begin creating the map we will need a `Tile2dStorage` component.
+    // This component is a grid of tile entities and is used to help keep track of individual
+    // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
+    // per layer, each with their own `Tile2dStorage` component.
+    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+
+    // Spawn the elements of the tilemap.
     for x in 0..32u32 {
         for y in 0..32u32 {
             let tile_pos = TilePos2d { x, y };

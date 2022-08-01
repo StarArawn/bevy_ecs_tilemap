@@ -82,8 +82,6 @@ impl RenderChunk2dStorage {
     }
 
     pub fn get_mut_from_entity(&mut self, entity: Entity) -> Option<(&mut RenderChunk2d, UVec2)> {
-        // dbg!(&self.entity_to_chunk_tile);
-
         if !self.entity_to_chunk_tile.contains_key(&entity) {
             return None;
         }
@@ -247,7 +245,8 @@ impl RenderChunk2d {
                 // let tile_flip_bits =
                 //     tile.flip_x as i32 | (tile.flip_y as i32) << 1 | (tile.flip_d as i32) << 2;
 
-                let texture: [f32; 4] = tile.texture.xyxx().into();
+                //let texture: [f32; 4] = tile.texture.xyxx().into();
+                let texture: [f32; 4] = tile.texture.to_array();
                 textures.extend([texture, texture, texture, texture].into_iter());
 
                 indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
