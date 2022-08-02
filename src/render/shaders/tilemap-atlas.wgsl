@@ -20,6 +20,7 @@ struct TilemapData {
     chunk_pos: vec2<f32>,
     map_size: vec2<f32>,
     time: f32,
+    _padding: vec3<f32>, // hack for webgl2 16 byte alignment
 };
 @group(2) @binding(0)
 var<uniform> tilemap_data: TilemapData;

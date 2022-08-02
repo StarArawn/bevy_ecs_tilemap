@@ -2,7 +2,7 @@ use std::hash::{Hash, Hasher};
 
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, Entity, GlobalTransform, Mesh},
+    prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
@@ -311,6 +311,7 @@ pub struct TilemapUniformData {
     pub chunk_pos: Vec2,
     pub map_size: Vec2,
     pub time: f32,
+    pub pad: Vec3,
 }
 
 impl From<&RenderChunk2d> for TilemapUniformData {
@@ -326,6 +327,7 @@ impl From<&RenderChunk2d> for TilemapUniformData {
             chunk_pos: chunk_pos * chunk_size,
             map_size: map_size * chunk.tile_size,
             time: 0.0,
+            pad: Vec3::ZERO,
         }
     }
 }
@@ -343,6 +345,7 @@ impl From<&mut RenderChunk2d> for TilemapUniformData {
             chunk_pos: chunk_pos * chunk_size,
             map_size: map_size * chunk.tile_size,
             time: 0.0,
+            pad: Vec3::ZERO,
         }
     }
 }

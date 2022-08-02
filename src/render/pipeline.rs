@@ -4,19 +4,22 @@ use bevy::{
     render::{
         render_resource::{
             BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType,
-            BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType, BufferSize,
+            BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType,
             ColorTargetState, ColorWrites, Face, FragmentState, FrontFace, MultisampleState,
             PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipelineDescriptor,
-            SamplerBindingType, ShaderStages, SpecializedRenderPipeline, TextureFormat,
+            SamplerBindingType, ShaderStages, ShaderType, SpecializedRenderPipeline, TextureFormat,
             TextureSampleType, TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState,
             VertexStepMode,
         },
         renderer::RenderDevice,
         texture::BevyDefault,
+        view::ViewUniform,
     },
 };
 
 use crate::map::{HexType, IsoType, TilemapMeshType};
+
+use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
 pub const SQUARE_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
@@ -61,7 +64,7 @@ impl FromWorld for TilemapPipeline {
                         has_dynamic_offset: true,
                         // TODO: change this to ViewUniform::std140_size_static once crevice fixes this!
                         // Context: https://github.com/LPGhatguy/crevice/issues/29
-                        min_binding_size: BufferSize::new(144),
+                        min_binding_size: Some(ViewUniform::min_size()),
                     },
                     count: None,
                 },
@@ -78,7 +81,7 @@ impl FromWorld for TilemapPipeline {
                     has_dynamic_offset: true,
                     // TODO: change this to MeshUniform::std140_size_static once crevice fixes this!
                     // Context: https://github.com/LPGhatguy/crevice/issues/29
-                    min_binding_size: BufferSize::new(64),
+                    min_binding_size: Some(MeshUniform::min_size()),
                 },
                 count: None,
             }],
@@ -92,7 +95,7 @@ impl FromWorld for TilemapPipeline {
                 ty: BindingType::Buffer {
                     ty: BufferBindingType::Uniform,
                     has_dynamic_offset: true,
-                    min_binding_size: BufferSize::new(56),
+                    min_binding_size: Some(TilemapUniformData::min_size()),
                 },
                 count: None,
             }],
