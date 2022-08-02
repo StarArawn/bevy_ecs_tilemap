@@ -1,5 +1,5 @@
 use bevy::{asset::AssetServerSettings, prelude::*};
-use bevy_ecs_tilemap::Tilemap2dPlugin;
+use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 

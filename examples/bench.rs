@@ -2,14 +2,7 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_ecs_tilemap::{
-    map::{
-        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapTexture,
-    },
-    tiles::{Tile2dStorage, TileTexture},
-    Tilemap2dPlugin, TilemapBundle,
-};
+use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 

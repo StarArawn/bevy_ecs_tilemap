@@ -2,10 +2,7 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_ecs_tilemap::map::{
-    Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-    TilemapTexture,
-};
+use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, Tile2dStorage, TileBundle, TilePos2d, TileTexture};
 use bevy_ecs_tilemap::{Tilemap2dPlugin, TilemapBundle};
 use rand::seq::IteratorRandom;

@@ -1,12 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::{
-    map::{
-        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapTexture,
-    },
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileVisible},
-    Tilemap2dPlugin, TilemapBundle,
-};
+use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;

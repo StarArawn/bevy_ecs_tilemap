@@ -1,12 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::{
-    map::{
-        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapMeshType, TilemapTexture,
-    },
-    tiles::{Tile2dStorage, TileBundle, TileColor, TilePos2d, TileTexture},
-    Tilemap2dPlugin, TilemapBundle,
-};
+use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
