@@ -131,60 +131,63 @@ pub fn queue_meshes(
                 .unwrap();
 
             for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
-                let chunk = chunk_storage.get(&UVec4::new(
+                if let Some(chunk) = chunk_storage.get(&UVec4::new(
                     chunk_id.0.x,
                     chunk_id.0.y,
                     chunk_id.0.z,
                     tilemap_id.0.id(),
-                ));
+                )) {
+                    #[cfg(not(feature = "atlas"))]
+                    if !texture_array_cache.contains(&chunk.texture.0) {
+                        continue;
+                    }
 
-                #[cfg(not(feature = "atlas"))]
-                if !texture_array_cache.contains(&chunk.texture.0) {
-                    continue;
-                }
+                    #[cfg(feature = "atlas")]
+                    if gpu_images.get(&chunk.texture.0).is_none() {
+                        continue;
+                    }
 
-                #[cfg(feature = "atlas")]
-                if gpu_images.get(&chunk.texture.0).is_none() {
-                    continue;
-                }
+                    image_bind_groups
+                        .values
+                        .entry(chunk.texture.0.clone_weak())
+                        .or_insert_with(|| {
+                            #[cfg(not(feature = "atlas"))]
+                            let gpu_image = texture_array_cache.get(&chunk.texture.0);
+                            #[cfg(feature = "atlas")]
+                            let gpu_image = gpu_images.get(&chunk.texture.0).unwrap();
+                            render_device.create_bind_group(&BindGroupDescriptor {
+                                entries: &[
+                                    BindGroupEntry {
+                                        binding: 0,
+                                        resource: BindingResource::TextureView(
+                                            &gpu_image.texture_view,
+                                        ),
+                                    },
+                                    BindGroupEntry {
+                                        binding: 1,
+                                        resource: BindingResource::Sampler(&gpu_image.sampler),
+                                    },
+                                ],
+                                label: Some("sprite_material_bind_group"),
+                                layout: &tilemap_pipeline.material_layout,
+                            })
+                        });
 
-                image_bind_groups
-                    .values
-                    .entry(chunk.texture.0.clone_weak())
-                    .or_insert_with(|| {
-                        #[cfg(not(feature = "atlas"))]
-                        let gpu_image = texture_array_cache.get(&chunk.texture.0);
-                        #[cfg(feature = "atlas")]
-                        let gpu_image = gpu_images.get(&chunk.texture.0).unwrap();
-                        render_device.create_bind_group(&BindGroupDescriptor {
-                            entries: &[
-                                BindGroupEntry {
-                                    binding: 0,
-                                    resource: BindingResource::TextureView(&gpu_image.texture_view),
-                                },
-                                BindGroupEntry {
-                                    binding: 1,
-                                    resource: BindingResource::Sampler(&gpu_image.sampler),
-                                },
-                            ],
-                            label: Some("sprite_material_bind_group"),
-                            layout: &tilemap_pipeline.material_layout,
-                        })
+                    let key = TilemapPipelineKey {
+                        msaa: msaa.samples,
+                        mesh_type: chunk.mesh_type,
+                    };
+
+                    let pipeline_id =
+                        pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
+                    transparent_phase.add(Transparent2d {
+                        entity,
+                        draw_function: draw_tilemap,
+                        pipeline: pipeline_id,
+                        sort_key: FloatOrd(transform.translation.z as f32),
+                        batch_range: None,
                     });
-
-                let key = TilemapPipelineKey {
-                    msaa: msaa.samples,
-                    mesh_type: chunk.mesh_type,
-                };
-
-                let pipeline_id = pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
-                transparent_phase.add(Transparent2d {
-                    entity,
-                    draw_function: draw_tilemap,
-                    pipeline: pipeline_id,
-                    sort_key: FloatOrd(transform.translation.z as f32),
-                    batch_range: None,
-                });
+                }
             }
         }
     }

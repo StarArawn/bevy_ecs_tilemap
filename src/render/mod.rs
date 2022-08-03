@@ -16,7 +16,7 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::tiles::TilePos2d;
+use crate::tiles::{Tile2dStorage, TilePos2d};
 
 use self::{
     chunk::{RenderChunk2dStorage, TilemapUniformData},
@@ -57,6 +57,7 @@ pub struct SecondsSinceStartup(f32);
 impl Plugin for Tilemap2dRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system_to_stage(CoreStage::First, clear_removed);
+        app.add_system_to_stage(CoreStage::PostUpdate, removal_helper_tilemap);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper);
 
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
@@ -172,14 +173,31 @@ pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
 #[derive(Component)]
 pub struct RemovedTileEntity(pub Entity);
 
+#[derive(Component)]
+pub struct RemovedMapEntity(pub Entity);
+
 fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos2d>) {
     for entity in removed_query.iter() {
         commands.spawn().insert(RemovedTileEntity(entity));
     }
 }
 
-fn clear_removed(mut commands: Commands, removed_query: Query<Entity, With<RemovedTileEntity>>) {
+fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<Tile2dStorage>) {
     for entity in removed_query.iter() {
+        commands.spawn().insert(RemovedMapEntity(entity));
+    }
+}
+
+fn clear_removed(
+    mut commands: Commands,
+    removed_query: Query<Entity, With<RemovedTileEntity>>,
+    removed_map_query: Query<Entity, With<RemovedMapEntity>>,
+) {
+    for entity in removed_query.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in removed_map_query.iter() {
         commands.entity(entity).despawn();
     }
 }

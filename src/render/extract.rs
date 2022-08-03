@@ -1,6 +1,6 @@
 use bevy::prelude::Res;
 use bevy::prelude::Time;
-use bevy::{math::Vec4, prelude::*, utils::HashMap, render::Extract};
+use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 
 use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
@@ -12,6 +12,7 @@ use crate::{
     tiles::{TileColor, TileFlip, TilePos2d, TileTexture, TileVisible},
 };
 
+use super::RemovedMapEntity;
 use super::{chunk::PackedTileData, RemovedTileEntity};
 
 #[cfg(not(feature = "atlas"))]
@@ -40,6 +41,16 @@ pub struct ExtractedRemovedTileBundle {
     tile: ExtractedRemovedTile,
 }
 
+#[derive(Component)]
+pub struct ExtractedRemovedMap {
+    pub entity: Entity,
+}
+
+#[derive(Bundle)]
+pub struct ExtractedRemovedMapBundle {
+    map: ExtractedRemovedMap,
+}
+
 #[derive(Bundle)]
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
@@ -66,44 +77,50 @@ pub struct ExtractedTilemapTextureBundle {
 
 pub fn extract(
     mut commands: Commands,
-    changed_tiles_query: Extract<Query<
-        (
+    changed_tiles_query: Extract<
+        Query<
+            (
+                Entity,
+                &TilePos2d,
+                &TilemapId,
+                &TileTexture,
+                &TileVisible,
+                &TileFlip,
+                &TileColor,
+                Option<&AnimatedTile>,
+            ),
+            Or<(
+                Added<TilePos2d>,
+                Changed<TilePos2d>,
+                Changed<TileVisible>,
+                Changed<TileTexture>,
+                Changed<TileFlip>,
+                Changed<TileColor>,
+            )>,
+        >,
+    >,
+    tilemap_query: Extract<
+        Query<(
             Entity,
-            &TilePos2d,
-            &TilemapId,
-            &TileTexture,
-            &TileVisible,
-            &TileFlip,
-            &TileColor,
-            Option<&AnimatedTile>,
-        ),
-        Or<(
-            Added<TilePos2d>,
-            Changed<TilePos2d>,
-            Changed<TileVisible>,
-            Changed<TileTexture>,
-            Changed<TileFlip>,
-            Changed<TileColor>,
+            &GlobalTransform,
+            &Tilemap2dTileSize,
+            &Tilemap2dTextureSize,
+            &Tilemap2dSpacing,
+            &TilemapMeshType,
+            &TilemapTexture,
+            &Tilemap2dSize,
         )>,
-    >>,
-    tilemap_query: Extract<Query<(
-        Entity,
-        &GlobalTransform,
-        &Tilemap2dTileSize,
-        &Tilemap2dTextureSize,
-        &Tilemap2dSpacing,
-        &TilemapMeshType,
-        &TilemapTexture,
-        &Tilemap2dSize,
-    )>>,
-    changed_tilemap_query: Extract<Query<
-        Entity,
-        Or<(
-            Added<TilemapMeshType>,
-            Changed<TilemapMeshType>,
-            Changed<GlobalTransform>,
-        )>,
-    >>,
+    >,
+    changed_tilemap_query: Extract<
+        Query<
+            Entity,
+            Or<(
+                Added<TilemapMeshType>,
+                Changed<TilemapMeshType>,
+                Changed<GlobalTransform>,
+            )>,
+        >,
+    >,
     images: Extract<Res<Assets<Image>>>,
     time: Extract<Res<Time>>,
 ) {
@@ -230,6 +247,7 @@ pub fn extract(
 pub fn extract_removal(
     mut commands: Commands,
     removed_tiles_query: Extract<Query<&RemovedTileEntity>>,
+    removed_maps_query: Extract<Query<&RemovedMapEntity>>,
 ) {
     let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
     for entity in removed_tiles_query.iter() {
@@ -242,4 +260,16 @@ pub fn extract_removal(
     }
 
     commands.insert_or_spawn_batch(removed_tiles);
+
+    let mut removed_maps: Vec<(Entity, ExtractedRemovedMapBundle)> = Vec::new();
+    for entity in removed_maps_query.iter() {
+        removed_maps.push((
+            entity.0,
+            ExtractedRemovedMapBundle {
+                map: ExtractedRemovedMap { entity: entity.0 },
+            },
+        ));
+    }
+
+    commands.insert_or_spawn_batch(removed_maps);
 }

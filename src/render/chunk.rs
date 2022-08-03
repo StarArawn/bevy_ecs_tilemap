@@ -20,6 +20,7 @@ use crate::{
 pub struct RenderChunk2dStorage {
     chunks: HashMap<u32, HashMap<UVec3, RenderChunk2d>>,
     entity_to_chunk_tile: HashMap<Entity, (u32, UVec3, UVec2)>,
+    entity_to_chunk: HashMap<Entity, UVec3>,
 }
 
 #[derive(Default, Component, Clone, Copy, Debug)]
@@ -45,7 +46,13 @@ impl RenderChunk2dStorage {
         self.entity_to_chunk_tile
             .insert(tile_entity, (position.w, pos, tile_pos));
 
-        let chunk_storage = self.get_chunk_storage(position);
+        let chunk_storage = if self.chunks.contains_key(&position.w) {
+            self.chunks.get_mut(&position.w).unwrap()
+        } else {
+            let hash_map = HashMap::default();
+            self.chunks.insert(position.w, hash_map);
+            self.chunks.get_mut(&position.w).unwrap()
+        };
 
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         position.hash(&mut hasher);
@@ -66,14 +73,18 @@ impl RenderChunk2dStorage {
                 map_size,
                 transform,
             );
+            self.entity_to_chunk
+                .insert(Entity::from_raw(position.w), pos);
             chunk_storage.insert(pos, chunk);
             chunk_storage.get_mut(&pos).unwrap()
         }
     }
 
-    pub fn get(&self, position: &UVec4) -> &RenderChunk2d {
-        let chunk_storage = self.chunks.get(&position.w).unwrap();
-        chunk_storage.get(&position.xyz()).unwrap()
+    pub fn get(&self, position: &UVec4) -> Option<&RenderChunk2d> {
+        if let Some(chunk_storage) = self.chunks.get(&position.w) {
+            return chunk_storage.get(&position.xyz());
+        }
+        None
     }
 
     pub fn get_mut(&mut self, position: &UVec4) -> &mut RenderChunk2d {
@@ -122,6 +133,10 @@ impl RenderChunk2dStorage {
         self.chunks
             .iter_mut()
             .flat_map(|(_, x)| x.iter_mut().map(|x| x.1))
+    }
+
+    pub fn remove_map(&mut self, entity: Entity) {
+        self.chunks.remove(&entity.id());
     }
 }
 

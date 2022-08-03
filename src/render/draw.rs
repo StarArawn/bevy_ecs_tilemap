@@ -157,26 +157,26 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let (chunk_id, tilemap_id) = chunk_query.get(item.entity).unwrap();
-        let chunk = chunk_storage.into_inner().get(&UVec4::new(
+        if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
             chunk_id.0.x,
             chunk_id.0.y,
             chunk_id.0.z,
             tilemap_id.0.id(),
-        ));
-
-        if let Some(gpu_mesh) = &chunk.gpu_mesh {
-            pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-            match &gpu_mesh.buffer_info {
-                GpuBufferInfo::Indexed {
-                    buffer,
-                    index_format,
-                    count,
-                } => {
-                    pass.set_index_buffer(buffer.slice(..), 0, *index_format);
-                    pass.draw_indexed(0..*count, 0, 0..1);
-                }
-                GpuBufferInfo::NonIndexed { vertex_count } => {
-                    pass.draw(0..*vertex_count, 0..1);
+        )) {
+            if let Some(gpu_mesh) = &chunk.gpu_mesh {
+                pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
+                match &gpu_mesh.buffer_info {
+                    GpuBufferInfo::Indexed {
+                        buffer,
+                        index_format,
+                        count,
+                    } => {
+                        pass.set_index_buffer(buffer.slice(..), 0, *index_format);
+                        pass.draw_indexed(0..*count, 0, 0..1);
+                    }
+                    GpuBufferInfo::NonIndexed { vertex_count } => {
+                        pass.draw(0..*vertex_count, 0..1);
+                    }
                 }
             }
         }

@@ -33,7 +33,7 @@ pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos2d, chunk_position: 
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
-    extract::{ExtractedRemovedTile, ExtractedTile},
+    extract::{ExtractedRemovedMap, ExtractedRemovedTile, ExtractedTile},
     DynamicUniformIndex,
 };
 
@@ -153,10 +153,15 @@ pub fn prepare(
 pub fn prepare_removal(
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
     removed_tiles: Query<&ExtractedRemovedTile>,
+    removed_maps: Query<&ExtractedRemovedMap>,
 ) {
     for removed_tile in removed_tiles.iter() {
         if let Some((chunk, tile_pos)) = chunk_storage.get_mut_from_entity(removed_tile.entity) {
             chunk.set(&tile_pos.into(), None);
         }
+    }
+
+    for removed_map in removed_maps.iter() {
+        chunk_storage.remove_map(removed_map.entity);
     }
 }
