@@ -15,13 +15,13 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     // Size of the tile map in tiles.
-    let tilemap_size = Tilemap2dSize { x: 128, y: 128 };
+    let tilemap_size = TilemapSize { x: 128, y: 128 };
 
-    // To create a map we use the Tile2dStorage component.
+    // To create a map we use the TileStorage component.
     // This component is a grid of tile entities and is used to help keep track of individual
     // tiles in the world. If you have multiple layers of tiles you would have a Tilemap2dStorage
     // component per layer.
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity
@@ -31,7 +31,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn a 32 by 32 tilemap.
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -46,10 +46,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // We can grab a list of neighbors.
-    let neighbors = tile_storage.get_tile_neighbors(&TilePos2d { x: 0, y: 0 });
+    let neighbors = tile_storage.get_tile_neighbors(&TilePos { x: 0, y: 0 });
 
     // We can access tiles using:
-    assert!(tile_storage.get(&TilePos2d { x: 0, y: 0 }).is_some());
+    assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
     assert!(neighbors.len() == 8);
     let neighbor_count = neighbors.iter().filter(|n| n.is_some()).count();
     assert!(neighbor_count == 3); // Only 3 neighbors since negative is outside of map.
@@ -60,7 +60,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors = tile_storage.get_neighboring_pos(&TilePos2d { x, y });
+            let neighbors = tile_storage.get_neighboring_pos(&TilePos { x, y });
             for pos in neighbors.iter().filter_map(|pos| pos.as_ref()) {
                 // We can replace the tile texture component like so:
                 commands
@@ -71,17 +71,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // This is the size of each individual tiles in pixels.
-    let tile_size = Tilemap2dTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
     // Spawns a tilemap.
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
             size: tilemap_size,
             storage: tile_storage,
-            texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
+            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle),
             tile_size,
             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
@@ -98,7 +98,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 // A system that manipulates tile colors.
 fn update_map(
     time: Res<Time>,
-    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &Tile2dStorage)>,
+    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &TileStorage)>,
     mut tile_query: Query<&mut TileTexture>,
 ) {
     let current_time = time.seconds_since_startup();
@@ -114,7 +114,7 @@ fn update_map(
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     // Grab the neighboring tiles
-                    let neighboring_entities = tile_storage.get_tile_neighbors(&TilePos2d { x, y });
+                    let neighboring_entities = tile_storage.get_tile_neighbors(&TilePos { x, y });
 
                     // Iterate over neighbors
                     for i in 0..8 {
@@ -145,7 +145,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)

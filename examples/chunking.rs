@@ -2,17 +2,17 @@ use bevy::{math::Vec3Swizzles, prelude::*, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
-const TILE_SIZE: Tilemap2dTileSize = Tilemap2dTileSize { x: 16.0, y: 16.0 };
-const TEXTURE_SIZE: Tilemap2dTextureSize = Tilemap2dTextureSize { x: 96.0, y: 16.0 };
-const CHUNK_SIZE: Tilemap2dSize = Tilemap2dSize { x: 32, y: 32 };
+const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
+const TEXTURE_SIZE: TilemapTextureSize = TilemapTextureSize { x: 96.0, y: 16.0 };
+const CHUNK_SIZE: TilemapSize = TilemapSize { x: 32, y: 32 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
     let tilemap_entity = commands.spawn().id();
-    let mut tile_storage = Tile2dStorage::empty(CHUNK_SIZE);
+    let mut tile_storage = TileStorage::empty(CHUNK_SIZE);
     // Spawn the elements of the tilemap.
     for x in 0..32u32 {
         for y in 0..32u32 {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -78,7 +78,7 @@ fn spawn_chunks_around_camera(
 fn despawn_outofrange_chunks(
     mut commands: Commands,
     camera_query: Query<&Transform, With<Camera>>,
-    chunks_query: Query<(Entity, &Transform), With<Tile2dStorage>>,
+    chunks_query: Query<(Entity, &Transform), With<TileStorage>>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
     for camera_transform in camera_query.iter() {
@@ -109,7 +109,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .insert_resource(ChunkManager::default())
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

@@ -1,35 +1,42 @@
 use bevy::prelude::*;
 
-use crate::map::Tilemap2dSize;
+use crate::map::TilemapSize;
 
-use super::TilePos2d;
+use super::TilePos;
 
+/// Used to store tile entities for fast look up.
+/// Tile entities are stored in a grid. The grid is always filled with None.
 #[derive(Component, Default, Debug, Clone)]
-pub struct Tile2dStorage {
-    pub tiles: Vec<Option<Entity>>,
-    size: Tilemap2dSize,
+pub struct TileStorage {
+    tiles: Vec<Option<Entity>>,
+    size: TilemapSize,
 }
 
-impl Tile2dStorage {
-    pub fn empty(size: Tilemap2dSize) -> Self {
+impl TileStorage {
+    /// Creates a new tile storage that is empty.
+    pub fn empty(size: TilemapSize) -> Self {
         Self {
             tiles: vec![None; size.count()],
             size,
         }
     }
 
-    pub fn get(&self, tile_pos: &TilePos2d) -> Option<Entity> {
+    /// Gets a tile entity for the given tile position.
+    pub fn get(&self, tile_pos: &TilePos) -> Option<Entity> {
         self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size)]
     }
 
-    pub fn set(&mut self, tile_pos: &TilePos2d, tile_entity: Option<Entity>) {
+    /// Sets a tile entity for the given tile position.
+    pub fn set(&mut self, tile_pos: &TilePos, tile_entity: Option<Entity>) {
         self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size)] = tile_entity;
     }
 
+    /// Returns an iterator with all of the positions in the grid.
     pub fn iter(&self) -> impl std::iter::Iterator<Item = &Option<Entity>> {
         self.tiles.iter()
     }
 
+    /// Returns an immutable iterator with all of the positions in the grid.
     pub fn iter_mut(&mut self) -> impl std::iter::Iterator<Item = &mut Option<Entity>> {
         self.tiles.iter_mut()
     }
@@ -39,8 +46,8 @@ impl Tile2dStorage {
     ///
     /// None will be returned if no valid entity is found at the appropriate coordinate,
     /// including if the tile is at the edge of the map.
-    /// ```
-    pub fn get_tile_neighbors(&self, tile_pos: &TilePos2d) -> Vec<Option<Entity>> {
+    ///
+    pub fn get_tile_neighbors(&self, tile_pos: &TilePos) -> Vec<Option<Entity>> {
         let neighboring_tile_pos = self.get_neighboring_pos(tile_pos);
 
         neighboring_tile_pos
@@ -56,9 +63,9 @@ impl Tile2dStorage {
     /// Order: N, S, W, E, NW, NE, SW, SE.
     ///
     /// Tile positions are bounded between 0 and u32::MAX, so None may be returned
-    pub fn get_neighboring_pos(&self, tile_pos: &TilePos2d) -> [Option<TilePos2d>; 8] {
+    pub fn get_neighboring_pos(&self, tile_pos: &TilePos) -> [Option<TilePos>; 8] {
         let north = if tile_pos.y < self.size.y - 1 {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x,
                 y: tile_pos.y + 1,
             })
@@ -67,7 +74,7 @@ impl Tile2dStorage {
         };
 
         let south = if tile_pos.y != 0 {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x,
                 y: tile_pos.y - 1,
             })
@@ -76,7 +83,7 @@ impl Tile2dStorage {
         };
 
         let west = if tile_pos.x != 0 {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x - 1,
                 y: tile_pos.y,
             })
@@ -85,7 +92,7 @@ impl Tile2dStorage {
         };
 
         let east = if tile_pos.x < self.size.x - 1 {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x + 1,
                 y: tile_pos.y,
             })
@@ -94,7 +101,7 @@ impl Tile2dStorage {
         };
 
         let northwest = if (tile_pos.x != 0) & (tile_pos.y < self.size.y - 1) {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x - 1,
                 y: tile_pos.y + 1,
             })
@@ -103,7 +110,7 @@ impl Tile2dStorage {
         };
 
         let northeast = if (tile_pos.x < self.size.x - 1) & (tile_pos.y < self.size.y - 1) {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x + 1,
                 y: tile_pos.y + 1,
             })
@@ -112,7 +119,7 @@ impl Tile2dStorage {
         };
 
         let southwest = if (tile_pos.x != 0) & (tile_pos.y != 0) {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x - 1,
                 y: tile_pos.y - 1,
             })
@@ -121,7 +128,7 @@ impl Tile2dStorage {
         };
 
         let southeast = if (tile_pos.x < self.size.x - 1) & (tile_pos.y != 0) {
-            Some(TilePos2d {
+            Some(TilePos {
                 x: tile_pos.x + 1,
                 y: tile_pos.y - 1,
             })

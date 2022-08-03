@@ -6,10 +6,10 @@ use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
 use crate::{
     map::{
-        Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapMeshType, TilemapTexture,
+        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
+        TilemapTextureSize, TilemapTileSize,
     },
-    tiles::{TileColor, TileFlip, TilePos2d, TileTexture, TileVisible},
+    tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
 };
 
 use super::RemovedMapEntity;
@@ -21,7 +21,7 @@ use bevy::render::render_resource::TextureUsages;
 #[derive(Component)]
 pub struct ExtractedTile {
     pub entity: Entity,
-    pub position: TilePos2d,
+    pub position: TilePos,
     pub tile: PackedTileData,
     pub tilemap_id: TilemapId,
 }
@@ -54,19 +54,19 @@ pub struct ExtractedRemovedMapBundle {
 #[derive(Bundle)]
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
-    size: Tilemap2dTileSize,
-    texture_size: Tilemap2dTextureSize,
-    spacing: Tilemap2dSpacing,
+    size: TilemapTileSize,
+    texture_size: TilemapTextureSize,
+    spacing: TilemapSpacing,
     mesh_type: TilemapMeshType,
     texture: TilemapTexture,
-    map_size: Tilemap2dSize,
+    map_size: TilemapSize,
 }
 
 #[derive(Component)]
 pub struct ExtractedTilemapTexture {
-    pub tile_size: Tilemap2dTileSize,
-    pub texture_size: Tilemap2dTextureSize,
-    pub spacing: Tilemap2dSpacing,
+    pub tile_size: TilemapTileSize,
+    pub texture_size: TilemapTextureSize,
+    pub spacing: TilemapSpacing,
     pub texture: TilemapTexture,
 }
 
@@ -81,7 +81,7 @@ pub fn extract(
         Query<
             (
                 Entity,
-                &TilePos2d,
+                &TilePos,
                 &TilemapId,
                 &TileTexture,
                 &TileVisible,
@@ -90,8 +90,8 @@ pub fn extract(
                 Option<&AnimatedTile>,
             ),
             Or<(
-                Added<TilePos2d>,
-                Changed<TilePos2d>,
+                Added<TilePos>,
+                Changed<TilePos>,
                 Changed<TileVisible>,
                 Changed<TileTexture>,
                 Changed<TileFlip>,
@@ -103,12 +103,12 @@ pub fn extract(
         Query<(
             Entity,
             &GlobalTransform,
-            &Tilemap2dTileSize,
-            &Tilemap2dTextureSize,
-            &Tilemap2dSpacing,
+            &TilemapTileSize,
+            &TilemapTextureSize,
+            &TilemapSpacing,
             &TilemapMeshType,
             &TilemapTexture,
-            &Tilemap2dSize,
+            &TilemapSize,
         )>,
     >,
     changed_tilemap_query: Extract<

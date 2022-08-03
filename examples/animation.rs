@@ -3,34 +3,34 @@ use bevy::{
     prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
-use bevy_ecs_tilemap::tiles::{AnimatedTile, Tile2dStorage, TileBundle, TilePos2d, TileTexture};
-use bevy_ecs_tilemap::{Tilemap2dPlugin, TilemapBundle};
+use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTexture};
+use bevy_ecs_tilemap::{TilemapBundle, TilemapPlugin};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
 mod helpers;
 
 struct TilemapMetadata {
-    texture_size: Tilemap2dTextureSize,
-    size: Tilemap2dSize,
-    tile_size: Tilemap2dTileSize,
-    grid_size: Tilemap2dGridSize,
+    texture_size: TilemapTextureSize,
+    size: TilemapSize,
+    tile_size: TilemapTileSize,
+    grid_size: TilemapGridSize,
 }
 
 const BACKGROUND: &'static str = "tiles.png";
 const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
-    texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
-    size: Tilemap2dSize { x: 20, y: 20 },
-    tile_size: Tilemap2dTileSize { x: 16.0, y: 16.0 },
-    grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+    texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
+    size: TilemapSize { x: 20, y: 20 },
+    tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
+    grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
 
 const FLOWERS: &'static str = "flower_sheet.png";
 const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
-    texture_size: Tilemap2dTextureSize { x: 32.0, y: 448.0 },
-    size: Tilemap2dSize { x: 10, y: 10 },
-    tile_size: Tilemap2dTileSize { x: 32.0, y: 32.0 },
-    grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+    texture_size: TilemapTextureSize { x: 32.0, y: 448.0 },
+    size: TilemapSize { x: 10, y: 10 },
+    tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
+    grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
 
 fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -45,11 +45,11 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         tile_size,
     } = BACKGROUND_METADATA;
 
-    let mut tilemap_storage = Tile2dStorage::empty(size);
+    let mut tilemap_storage = TileStorage::empty(size);
 
     for x in 0..size.x {
         for y in 0..size.y {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -87,7 +87,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         tile_size,
     } = FLOWERS_METADATA;
 
-    let mut tilemap_storage = Tile2dStorage::empty(size);
+    let mut tilemap_storage = TileStorage::empty(size);
 
     let tilemap_entity = commands.spawn().id();
 
@@ -100,7 +100,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         }
     }
     for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
-        let tile_pos = TilePos2d { x, y };
+        let tile_pos = TilePos { x, y };
         let tile_entity = commands
             .spawn()
             .insert_bundle(TileBundle {
@@ -149,7 +149,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_startup_system(create_background)
         .add_startup_system(create_animated_flowers)

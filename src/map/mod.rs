@@ -3,7 +3,7 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image},
 };
 
-// A component which stores a reference to the tilemap entity.
+/// A component which stores a reference to the tilemap entity.
 #[derive(Component, Clone, Copy, Debug)]
 pub struct TilemapId(pub Entity);
 
@@ -15,54 +15,55 @@ impl Default for TilemapId {
 
 /// Size of the tilemap in tiles.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct Tilemap2dSize {
+pub struct TilemapSize {
     pub x: u32,
     pub y: u32,
 }
 
-impl Tilemap2dSize {
+impl TilemapSize {
     pub fn count(&self) -> usize {
         (self.x * self.y) as usize
     }
 }
 
-impl Into<UVec2> for Tilemap2dSize {
+impl Into<UVec2> for TilemapSize {
     fn into(self) -> UVec2 {
         UVec2::new(self.x, self.y)
     }
 }
 
-impl Into<Vec2> for Tilemap2dSize {
+impl Into<Vec2> for TilemapSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.x as f32, self.y as f32)
     }
 }
 
-impl From<UVec2> for Tilemap2dSize {
+impl From<UVec2> for TilemapSize {
     fn from(vec: UVec2) -> Self {
-        Tilemap2dSize { x: vec.x, y: vec.y }
+        TilemapSize { x: vec.x, y: vec.y }
     }
 }
 
+/// A bevy asset handle linking to the tilemap atlas image file.
 #[derive(Component, Clone, Default, Debug)]
 pub struct TilemapTexture(pub Handle<Image>);
 
 /// Size of the tiles in pixels
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct Tilemap2dTileSize {
+pub struct TilemapTileSize {
     pub x: f32,
     pub y: f32,
 }
 
-impl Into<Vec2> for Tilemap2dTileSize {
+impl Into<Vec2> for TilemapTileSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
 }
 
-impl Into<Tilemap2dGridSize> for Tilemap2dTileSize {
-    fn into(self) -> Tilemap2dGridSize {
-        Tilemap2dGridSize {
+impl Into<TilemapGridSize> for TilemapTileSize {
+    fn into(self) -> TilemapGridSize {
+        TilemapGridSize {
             x: self.x,
             y: self.y,
         }
@@ -74,12 +75,12 @@ impl Into<Tilemap2dGridSize> for Tilemap2dTileSize {
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
 /// a grid size of 16x8.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct Tilemap2dGridSize {
+pub struct TilemapGridSize {
     pub x: f32,
     pub y: f32,
 }
 
-impl Into<Vec2> for Tilemap2dGridSize {
+impl Into<Vec2> for TilemapGridSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
@@ -87,18 +88,18 @@ impl Into<Vec2> for Tilemap2dGridSize {
 
 /// Spacing between tiles inside of the texture atlas.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct Tilemap2dSpacing {
+pub struct TilemapSpacing {
     pub x: f32,
     pub y: f32,
 }
 
-impl Into<Vec2> for Tilemap2dSpacing {
+impl Into<Vec2> for TilemapSpacing {
     fn into(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
 }
 
-impl Tilemap2dSpacing {
+impl TilemapSpacing {
     pub fn zero() -> Self {
         Self { x: 0.0, y: 0.0 }
     }
@@ -106,18 +107,18 @@ impl Tilemap2dSpacing {
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct Tilemap2dTextureSize {
+pub struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
 }
 
-impl Into<Vec2> for Tilemap2dTextureSize {
+impl Into<Vec2> for TilemapTextureSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
 }
 
-/// Different hex coordinate systems. You can find out more at this link: https://www.redblobgames.com/grids/hexagons/
+/// Different hex coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HexType {
     RowEven,
@@ -138,8 +139,11 @@ pub enum IsoType {
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapMeshType {
+    /// Used to change the rendering mode to typical square tilemaps which is the default.
     Square,
+    /// Used to change the rendering mode to hexagons. Note: The HexType determines the position strategy.
     Hexagon(HexType),
+    /// Used to change the rendering mode to Isometric. Note: The IsoType determines the positioning strategy.
     Isometric(IsoType),
 }
 

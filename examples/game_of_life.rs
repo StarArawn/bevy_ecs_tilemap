@@ -8,14 +8,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    let tilemap_size = Tilemap2dSize { x: 512, y: 512 };
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+    let tilemap_size = TilemapSize { x: 512, y: 512 };
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     let mut i = 0;
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -30,15 +30,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         }
     }
 
-    let tile_size = Tilemap2dTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
             size: tilemap_size,
             storage: tile_storage,
-            texture_size: Tilemap2dTextureSize { x: 96.0, y: 16.0 },
+            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle),
             tile_size,
             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
@@ -57,8 +57,8 @@ pub struct LastUpdate(f64);
 fn update(
     mut commands: Commands,
     time: Res<Time>,
-    mut tile_storage_query: Query<(&Tile2dStorage, &mut LastUpdate)>,
-    tile_query: Query<(Entity, &TilePos2d, &TileVisible)>,
+    mut tile_storage_query: Query<(&TileStorage, &mut LastUpdate)>,
+    tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
     let current_time = time.seconds_since_startup();
     let (tile_storage, mut last_update) = tile_storage_query.single_mut();
@@ -108,7 +108,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)

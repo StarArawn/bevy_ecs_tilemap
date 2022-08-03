@@ -12,8 +12,8 @@ use bevy::{
 };
 
 use crate::{
-    map::{Tilemap2dSize, TilemapMeshType, TilemapTexture},
-    tiles::TilePos2d,
+    map::{TilemapMeshType, TilemapSize, TilemapTexture},
+    tiles::TilePos,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -38,7 +38,7 @@ impl RenderChunk2dStorage {
         texture_size: Vec2,
         spacing: Vec2,
         texture: TilemapTexture,
-        map_size: Tilemap2dSize,
+        map_size: TilemapSize,
         transform: GlobalTransform,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
@@ -160,7 +160,7 @@ pub struct RenderChunk2d {
     pub tiles: Vec<Option<PackedTileData>>,
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
-    pub map_size: Tilemap2dSize,
+    pub map_size: TilemapSize,
     pub mesh: Mesh,
     pub gpu_mesh: Option<GpuMesh>,
     pub dirty_mesh: bool,
@@ -178,7 +178,7 @@ impl RenderChunk2d {
         spacing: Vec2,
         texture: TilemapTexture,
         texture_size: Vec2,
-        map_size: Tilemap2dSize,
+        map_size: TilemapSize,
         transform: GlobalTransform,
     ) -> Self {
         Self {
@@ -200,16 +200,16 @@ impl RenderChunk2d {
         }
     }
 
-    pub fn get(&self, tile_pos: &TilePos2d) -> &Option<PackedTileData> {
+    pub fn get(&self, tile_pos: &TilePos) -> &Option<PackedTileData> {
         &self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())]
     }
 
-    pub fn get_mut(&mut self, tile_pos: &TilePos2d) -> &mut Option<PackedTileData> {
+    pub fn get_mut(&mut self, tile_pos: &TilePos) -> &mut Option<PackedTileData> {
         self.dirty_mesh = true;
         &mut self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())]
     }
 
-    pub fn set(&mut self, tile_pos: &TilePos2d, tile: Option<PackedTileData>) {
+    pub fn set(&mut self, tile_pos: &TilePos, tile: Option<PackedTileData>) {
         self.dirty_mesh = true;
         self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())] = tile;
     }

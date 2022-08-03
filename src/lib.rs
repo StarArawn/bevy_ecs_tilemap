@@ -1,43 +1,50 @@
 #![allow(dead_code)]
 
-use bevy::prelude::{Bundle, Plugin, Transform, GlobalTransform};
+use bevy::prelude::{Bundle, GlobalTransform, Plugin, Transform};
 use map::{
-    Tilemap2dGridSize, Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize,
-    TilemapMeshType, TilemapTexture,
+    TilemapGridSize, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
+    TilemapTextureSize, TilemapTileSize,
 };
-use tiles::Tile2dStorage;
+use tiles::TileStorage;
 
+/// A module which provides helper functions.
 pub mod helpers;
+/// A module which contains tilemap components.
 pub mod map;
 pub(crate) mod render;
+/// A module which contains tile components.
 pub mod tiles;
 
-pub struct Tilemap2dPlugin;
+/// A bevy tilemap plugin. This must be included in order for everything to be rendered.
+/// But is not necessary if you are running without a renderer.
+pub struct TilemapPlugin;
 
-impl Plugin for Tilemap2dPlugin {
+impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(render::Tilemap2dRenderingPlugin);
+        app.add_plugin(render::TilemapRenderingPlugin);
     }
 }
 
+/// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
 pub struct TilemapBundle {
-    pub grid_size: Tilemap2dGridSize,
+    pub grid_size: TilemapGridSize,
     pub mesh_type: TilemapMeshType,
-    pub size: Tilemap2dSize,
-    pub spacing: Tilemap2dSpacing,
-    pub storage: Tile2dStorage,
-    pub texture_size: Tilemap2dTextureSize,
+    pub size: TilemapSize,
+    pub spacing: TilemapSpacing,
+    pub storage: TileStorage,
+    pub texture_size: TilemapTextureSize,
     pub texture: TilemapTexture,
-    pub tile_size: Tilemap2dTileSize,
+    pub tile_size: TilemapTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
 }
 
+/// A module which exports commonly used dependencies.
 pub mod prelude {
-    pub use crate::Tilemap2dPlugin;
-    pub use crate::TilemapBundle;
     pub use crate::helpers::*;
     pub use crate::map::*;
     pub use crate::tiles::*;
+    pub use crate::TilemapBundle;
+    pub use crate::TilemapPlugin;
 }

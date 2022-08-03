@@ -16,7 +16,7 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::tiles::{Tile2dStorage, TilePos2d};
+use crate::tiles::{TilePos, TileStorage};
 
 use self::{
     chunk::{RenderChunk2dStorage, TilemapUniformData},
@@ -50,11 +50,11 @@ use self::texture_array_cache::TextureArrayCache;
 #[derive(Copy, Clone, Debug, Component)]
 pub(crate) struct ExtractedFilterMode(FilterMode);
 
-pub struct Tilemap2dRenderingPlugin;
+pub struct TilemapRenderingPlugin;
 #[derive(Default, Deref, DerefMut)]
 pub struct SecondsSinceStartup(f32);
 
-impl Plugin for Tilemap2dRenderingPlugin {
+impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system_to_stage(CoreStage::First, clear_removed);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper_tilemap);
@@ -176,13 +176,13 @@ pub struct RemovedTileEntity(pub Entity);
 #[derive(Component)]
 pub struct RemovedMapEntity(pub Entity);
 
-fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos2d>) {
+fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos>) {
     for entity in removed_query.iter() {
         commands.spawn().insert(RemovedTileEntity(entity));
     }
 }
 
-fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<Tile2dStorage>) {
+fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<TileStorage>) {
     for entity in removed_query.iter() {
         commands.spawn().insert(RemovedMapEntity(entity));
     }

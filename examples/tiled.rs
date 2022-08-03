@@ -29,7 +29,7 @@ fn main() {
             ..default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_plugin(helpers::tiled::TiledMapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

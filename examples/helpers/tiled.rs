@@ -3,14 +3,13 @@ use std::io::BufReader;
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
     prelude::{
-        AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, Entity, EventReader,
-        GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
+        AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
+        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
     },
     reflect::TypeUuid,
     utils::HashMap,
 };
-use bevy_ecs_tilemap::tiles::*;
-use bevy_ecs_tilemap::{map::*, TilemapBundle};
+use bevy_ecs_tilemap::prelude::*;
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -90,7 +89,7 @@ pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
-    tile_storage_query: Query<(Entity, &Tile2dStorage)>,
+    tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
 ) {
@@ -134,7 +133,7 @@ pub fn process_loaded_maps(
                     if let Ok((_, layer_tile_storage)) = tile_storage_query.get(*layer_entity) {
                         for tile in layer_tile_storage.iter() {
                             if let Some(tile) = tile {
-                                commands.entity(*tile).insert(RemoveTile);
+                                commands.entity(*tile).despawn_recursive()
                             }
                         }
                     }
@@ -144,11 +143,11 @@ pub fn process_loaded_maps(
                 for tileset in tiled_map.map.tilesets.iter() {
                     // Once materials have been created/added we need to then create the layers.
                     for layer in tiled_map.map.layers.iter() {
-                        let tile_size = Tilemap2dTileSize {
+                        let tile_size = TilemapTileSize {
                             x: tileset.tile_width as f32,
                             y: tileset.tile_height as f32,
                         };
-                        let tile_spacing = Tilemap2dSpacing {
+                        let tile_spacing = TilemapSpacing {
                             x: tileset.spacing as f32,
                             y: tileset.spacing as f32,
                         };
@@ -156,17 +155,17 @@ pub fn process_loaded_maps(
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
-                        let map_size = Tilemap2dSize {
+                        let map_size = TilemapSize {
                             x: tiled_map.map.width,
                             y: tiled_map.map.height,
                         };
 
-                        let texture_size = Tilemap2dTextureSize {
+                        let texture_size = TilemapTextureSize {
                             x: tileset.images[0].width as f32,
                             y: tileset.images[0].height as f32,
                         };
 
-                        let grid_size = Tilemap2dGridSize {
+                        let grid_size = TilemapGridSize {
                             x: tiled_map.map.tile_width as f32,
                             y: tiled_map.map.tile_height as f32,
                         };
@@ -182,7 +181,7 @@ pub fn process_loaded_maps(
                             tiled::Orientation::Orthogonal => TilemapMeshType::Square,
                         };
 
-                        let mut tile_storage = Tile2dStorage::empty(map_size);
+                        let mut tile_storage = TileStorage::empty(map_size);
                         let layer_entity = commands.spawn().id();
 
                         for x in 0..map_size.x {
@@ -209,7 +208,7 @@ pub fn process_loaded_maps(
 
                                 let tile_id = map_tile.gid - tileset.first_gid;
 
-                                let tile_pos = TilePos2d { x, y };
+                                let tile_pos = TilePos { x, y };
                                 let tile_entity = commands
                                     .spawn()
                                     .insert_bundle(TileBundle {

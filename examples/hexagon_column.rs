@@ -8,15 +8,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let texture_handle: Handle<Image> = asset_server.load("flat_hex_tiles.png");
 
-    let tilemap_size = Tilemap2dSize { x: 128, y: 128 };
-    let mut tile_storage = Tile2dStorage::empty(tilemap_size);
+    let tilemap_size = TilemapSize { x: 128, y: 128 };
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(0),
-        TilePos2d { x: 0, y: 0 },
-        Tilemap2dSize { x: 128, y: 128 },
+        TilePos { x: 0, y: 0 },
+        TilemapSize { x: 128, y: 128 },
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -24,8 +24,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(1),
-        TilePos2d { x: 64, y: 0 },
-        Tilemap2dSize { x: 128, y: 64 },
+        TilePos { x: 64, y: 0 },
+        TilemapSize { x: 128, y: 64 },
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -33,8 +33,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(2),
-        TilePos2d { x: 0, y: 64 },
-        Tilemap2dSize { x: 64, y: 128 },
+        TilePos { x: 0, y: 64 },
+        TilemapSize { x: 64, y: 128 },
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -42,14 +42,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(3),
-        TilePos2d { x: 64, y: 64 },
-        Tilemap2dSize { x: 128, y: 128 },
+        TilePos { x: 64, y: 64 },
+        TilemapSize { x: 128, y: 128 },
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    let tile_size = Tilemap2dTileSize { x: 17.0, y: 15.0 };
+    let tile_size = TilemapTileSize { x: 17.0, y: 15.0 };
 
     commands
         .entity(tilemap_entity)
@@ -57,7 +57,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size: tile_size.into(),
             size: tilemap_size,
             storage: tile_storage,
-            texture_size: Tilemap2dTextureSize { x: 17.0, y: 105.0 },
+            texture_size: TilemapTextureSize { x: 17.0, y: 105.0 },
             texture: TilemapTexture(texture_handle),
             tile_size,
             mesh_type: TilemapMeshType::Hexagon(HexType::Column),
@@ -93,7 +93,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)

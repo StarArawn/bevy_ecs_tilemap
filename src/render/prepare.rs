@@ -13,20 +13,20 @@ use crate::render::SecondsSinceStartup;
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
-        Tilemap2dSize, Tilemap2dSpacing, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapMeshType, TilemapTexture,
+        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
+        TilemapTextureSize, TilemapTileSize,
     },
-    tiles::TilePos2d,
+    tiles::TilePos,
 };
 
 pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 
-fn map_tile_to_chunk(tile_position: &TilePos2d) -> UVec2 {
+fn map_tile_to_chunk(tile_position: &TilePos) -> UVec2 {
     let tile_pos: UVec2 = tile_position.into();
     tile_pos / CHUNK_SIZE_2D
 }
 
-pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos2d, chunk_position: &UVec2) -> UVec2 {
+pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos, chunk_position: &UVec2) -> UVec2 {
     let tile_pos: UVec2 = tile_position.into();
     tile_pos - (*chunk_position * CHUNK_SIZE_2D)
 }
@@ -51,12 +51,12 @@ pub fn prepare(
     extracted_tilemaps: Query<(
         Entity,
         &GlobalTransform,
-        &Tilemap2dTileSize,
-        &Tilemap2dTextureSize,
-        &Tilemap2dSpacing,
+        &TilemapTileSize,
+        &TilemapTextureSize,
+        &TilemapSpacing,
         &TilemapMeshType,
         &TilemapTexture,
-        &Tilemap2dSize,
+        &TilemapSize,
     )>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,

@@ -1,9 +1,9 @@
 use bevy_ecs_tilemap::{
     map::{
-        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapTexture,
+        TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTextureSize,
+        TilemapTileSize,
     },
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
+    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
     TilemapBundle,
 };
 use std::collections::HashMap;
@@ -154,7 +154,7 @@ pub fn process_loaded_tile_maps(
                 let map_tile_count_x = (level.px_wid / default_grid_size) as u32;
                 let map_tile_count_y = (level.px_hei / default_grid_size) as u32;
 
-                let size = Tilemap2dSize {
+                let size = TilemapSize {
                     x: map_tile_count_x,
                     y: map_tile_count_y,
                 };
@@ -172,12 +172,12 @@ pub fn process_loaded_tile_maps(
                         let (texture, tileset) = tilesets.get(&uid).unwrap().clone();
 
                         // Tileset-specific tilemap settings
-                        let tile_size = Tilemap2dTileSize {
+                        let tile_size = TilemapTileSize {
                             x: tileset.tile_grid_size as f32,
                             y: tileset.tile_grid_size as f32,
                         };
 
-                        let texture_size = Tilemap2dTextureSize {
+                        let texture_size = TilemapTextureSize {
                             x: tileset.px_wid as f32,
                             y: tileset.px_hei as f32,
                         };
@@ -186,10 +186,10 @@ pub fn process_loaded_tile_maps(
                         let map_entity = commands.spawn().id();
 
                         // Create tiles for this layer from LDtk's grid_tiles and auto_layer_tiles
-                        let mut storage = Tile2dStorage::empty(size);
+                        let mut storage = TileStorage::empty(size);
 
                         for tile in layer.grid_tiles.iter().chain(layer.auto_layer_tiles.iter()) {
-                            let mut position = TilePos2d {
+                            let mut position = TilePos {
                                 x: (tile.px[0] / default_grid_size) as u32,
                                 y: (tile.px[1] / default_grid_size) as u32,
                             };
@@ -211,7 +211,7 @@ pub fn process_loaded_tile_maps(
 
                         // Create the tilemap
                         commands.entity(map_entity).insert_bundle(TilemapBundle {
-                            grid_size: Tilemap2dGridSize { x: 16.0, y: 16.0 },
+                            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
                             size,
                             storage,
                             texture_size,

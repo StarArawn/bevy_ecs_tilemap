@@ -1,21 +1,21 @@
 use bevy::{
-    math::{UVec3, Vec2},
+    math::Vec2,
     prelude::{Commands, Transform},
 };
 
 use crate::{
-    map::{HexType, IsoType, Tilemap2dSize, Tilemap2dTileSize, TilemapId, TilemapMeshType},
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
+    map::{HexType, IsoType, TilemapId, TilemapMeshType, TilemapSize, TilemapTileSize},
+    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
 };
 
-pub fn pos_2d_to_index(tile_pos: &TilePos2d, size: &Tilemap2dSize) -> usize {
+/// Converts a tile position into an index in a vector.
+pub fn pos_2d_to_index(tile_pos: &TilePos, size: &TilemapSize) -> usize {
     ((tile_pos.y * size.x as u32) + tile_pos.x) as usize
 }
 
-pub fn uvec3_to_index(position: &UVec3, size: UVec3) -> usize {
-    ((position.z * size.x * size.y) + (position.y * size.x) + position.x) as usize
-}
-
+/// Calculates a chunk position with the given information.
+/// Note: The calculation is different depending on the tilemap's mesh type.
+/// This calculation is mostly used internally for rendering but it might be helpful so it's exposed here.
 pub fn get_chunk_2d_transform(
     chunk_position: Vec2,
     grid_size: Vec2,
@@ -69,16 +69,17 @@ pub fn get_chunk_2d_transform(
     Transform::from_xyz(pos.x, pos.y, z_index as f32)
 }
 
+/// Fills an entire tile storage with the given tile.
 pub fn fill_tilemap(
     tile_texture: TileTexture,
-    size: Tilemap2dSize,
+    size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
-    tile_storage: &mut Tile2dStorage,
+    tile_storage: &mut TileStorage,
 ) {
     for x in 0..size.x {
         for y in 0..size.y {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -93,17 +94,18 @@ pub fn fill_tilemap(
     }
 }
 
+/// Fills a rectangular region with the given tile.
 pub fn fill_tilemap_rect(
     tile_texture: TileTexture,
-    pos: TilePos2d,
-    size: Tilemap2dSize,
+    pos: TilePos,
+    size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
-    tile_storage: &mut Tile2dStorage,
+    tile_storage: &mut TileStorage,
 ) {
     for x in pos.x..size.x {
         for y in pos.y..size.y {
-            let tile_pos = TilePos2d { x, y };
+            let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -118,9 +120,10 @@ pub fn fill_tilemap_rect(
     }
 }
 
+/// Calculates a tilemap's centered position.
 pub fn get_centered_transform_2d(
-    size: &Tilemap2dSize,
-    tile_size: &Tilemap2dTileSize,
+    size: &TilemapSize,
+    tile_size: &TilemapTileSize,
     z_index: f32,
 ) -> Transform {
     Transform::from_xyz(
@@ -130,12 +133,14 @@ pub fn get_centered_transform_2d(
     )
 }
 
+/// Projects a 2D screen space point into isometric diamond space.
 pub fn project_iso_diamond(x: f32, y: f32, pixel_width: f32, pixel_height: f32) -> Vec2 {
     let new_x = (x - y) * pixel_width / 2.0;
     let new_y = (x + y) * pixel_height / 2.0;
     Vec2::new(new_x, -new_y)
 }
 
+/// Projects a 2D screen space point into isometric staggered space.
 pub fn project_iso_staggered(x: f32, y: f32, pixel_width: f32, pixel_height: f32) -> Vec2 {
     let new_x = x * pixel_width;
     let new_y = y * pixel_height;

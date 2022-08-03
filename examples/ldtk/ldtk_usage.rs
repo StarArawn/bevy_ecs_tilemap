@@ -37,7 +37,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(Tilemap2dPlugin)
+        .add_plugin(TilemapPlugin)
         .add_plugin(LdtkPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
