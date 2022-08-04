@@ -58,6 +58,24 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
+fn swap_texture(
+    asset_server: Res<AssetServer>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<&mut TilemapTexture>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        let texture_handle_a: Handle<Image> = asset_server.load("tiles.png");
+        let texture_handle_b: Handle<Image> = asset_server.load("tiles2.png");
+        for mut tilemap_tex in &mut query {
+            if &tilemap_tex.0 == &texture_handle_a {
+                tilemap_tex.0 = texture_handle_b.clone();
+            } else {
+                tilemap_tex.0 = texture_handle_a.clone();
+            }
+        }
+    }
+}
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
@@ -71,5 +89,6 @@ fn main() {
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(swap_texture)
         .run();
 }
