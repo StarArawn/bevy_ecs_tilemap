@@ -58,19 +58,28 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn swap_texture(
+fn swap_texture_or_hide(
     asset_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<&mut TilemapTexture>,
+    mut query: Query<(&mut TilemapTexture, &mut Visibility)>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         let texture_handle_a: Handle<Image> = asset_server.load("tiles.png");
         let texture_handle_b: Handle<Image> = asset_server.load("tiles2.png");
-        for mut tilemap_tex in &mut query {
+        for (mut tilemap_tex, _) in &mut query {
             if &tilemap_tex.0 == &texture_handle_a {
                 tilemap_tex.0 = texture_handle_b.clone();
             } else {
                 tilemap_tex.0 = texture_handle_a.clone();
+            }
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::H) {
+        for (_, mut visibility) in &mut query {
+            if visibility.is_visible {
+                visibility.is_visible = false;
+            } else {
+                visibility.is_visible = true;
             }
         }
     }
@@ -81,7 +90,9 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Basic Example"),
+            title: String::from(
+                "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
+            ),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
@@ -89,6 +100,6 @@ fn main() {
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
-        .add_system(swap_texture)
+        .add_system(swap_texture_or_hide)
         .run();
 }

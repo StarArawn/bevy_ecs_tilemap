@@ -2,7 +2,10 @@ use std::marker::PhantomData;
 
 use bevy::{
     math::{Mat4, UVec2, UVec4, Vec3Swizzles},
-    prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Transform},
+    prelude::{
+        Commands, Component, ComputedVisibility, Entity, GlobalTransform, Query, Res, ResMut,
+        Transform,
+    },
     render::{
         render_resource::{DynamicUniformBuffer, ShaderType},
         renderer::{RenderDevice, RenderQueue},
@@ -57,6 +60,7 @@ pub fn prepare(
         &TilemapMeshType,
         &TilemapTexture,
         &TilemapSize,
+        &ComputedVisibility,
     )>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
@@ -64,8 +68,17 @@ pub fn prepare(
 ) {
     for tile in extracted_tiles.iter() {
         let chunk_pos = map_tile_to_chunk(&tile.position);
-        let (_entity, transform, tile_size, texture_size, spacing, mesh_type, texture, map_size) =
-            extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
+        let (
+            _entity,
+            transform,
+            tile_size,
+            texture_size,
+            spacing,
+            mesh_type,
+            texture,
+            map_size,
+            visibility,
+        ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
 
         let chunk_data = UVec4::new(
             chunk_pos.x,
@@ -86,6 +99,7 @@ pub fn prepare(
             texture.clone(),
             *map_size,
             *transform,
+            visibility,
         );
         chunk.set(
             &map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
@@ -100,8 +114,17 @@ pub fn prepare(
     }
 
     // Copies transform changes from tilemap to chunks.
-    for (entity, transform, tile_size, texture_size, spacing, mesh_type, texture, map_size) in
-        extracted_tilemaps.iter()
+    for (
+        entity,
+        transform,
+        tile_size,
+        texture_size,
+        spacing,
+        mesh_type,
+        texture,
+        map_size,
+        visibility,
+    ) in extracted_tilemaps.iter()
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
         for chunk in chunks.values_mut() {
@@ -112,6 +135,7 @@ pub fn prepare(
             chunk.tile_size = (*tile_size).into();
             chunk.texture_size = (*texture_size).into();
             chunk.spacing = (*spacing).into();
+            chunk.visible = visibility.is_visible();
         }
     }
 
@@ -119,6 +143,10 @@ pub fn prepare(
     tilemap_uniforms.clear();
 
     for chunk in chunk_storage.iter_mut() {
+        if !chunk.visible {
+            continue;
+        }
+
         chunk.prepare(&render_device);
 
         let chunk_global_transform: Transform = chunk.transform.into();

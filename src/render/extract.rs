@@ -60,6 +60,7 @@ pub struct ExtractedTilemapBundle {
     mesh_type: TilemapMeshType,
     texture: TilemapTexture,
     map_size: TilemapSize,
+    visibility: ComputedVisibility,
 }
 
 #[derive(Component)]
@@ -109,6 +110,7 @@ pub fn extract(
             &TilemapMeshType,
             &TilemapTexture,
             &TilemapSize,
+            &ComputedVisibility,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -124,6 +126,7 @@ pub fn extract(
                 Changed<TilemapSpacing>,
                 Changed<TilemapMeshType>,
                 Changed<TilemapSize>,
+                Changed<ComputedVisibility>,
             )>,
         >,
     >,
@@ -175,6 +178,7 @@ pub fn extract(
                     mesh_type: *data.5,
                     texture: data.6.clone(),
                     map_size: *data.7,
+                    visibility: data.8.clone(),
                 },
             ),
         );
@@ -206,6 +210,7 @@ pub fn extract(
                         mesh_type: *data.5,
                         texture: data.6.clone(),
                         map_size: *data.7,
+                        visibility: data.8.clone(),
                     },
                 ),
             );
@@ -216,7 +221,7 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, texture_size, spacing, _, texture, _) in tilemap_query.iter() {
+    for (entity, _, tile_size, texture_size, spacing, _, texture, _, _) in tilemap_query.iter() {
         if let Some(_atlas_image) = images.get(&texture.0) {
             #[cfg(not(feature = "atlas"))]
             if !_atlas_image

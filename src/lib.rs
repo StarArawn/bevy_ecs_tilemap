@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use bevy::prelude::{Bundle, GlobalTransform, Plugin, Transform};
+use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
 use map::{
     TilemapGridSize, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
     TilemapTextureSize, TilemapTileSize,
@@ -38,6 +38,10 @@ pub struct TilemapBundle {
     pub tile_size: TilemapTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
+    /// User indication of whether an entity is visible
+    pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
 }
 
 /// A module which exports commonly used dependencies.

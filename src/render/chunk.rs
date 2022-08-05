@@ -2,7 +2,7 @@ use std::hash::{Hash, Hasher};
 
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
+    prelude::{Component, ComputedVisibility, Entity, GlobalTransform, Mesh, Vec3},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
@@ -40,6 +40,7 @@ impl RenderChunk2dStorage {
         texture: TilemapTexture,
         map_size: TilemapSize,
         transform: GlobalTransform,
+        visibility: &ComputedVisibility,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
 
@@ -72,6 +73,7 @@ impl RenderChunk2dStorage {
                 texture_size,
                 map_size,
                 transform,
+                visibility.is_visible(),
             );
             self.entity_to_chunk
                 .insert(Entity::from_raw(position.w), pos);
@@ -165,6 +167,7 @@ pub struct RenderChunk2d {
     pub gpu_mesh: Option<GpuMesh>,
     pub dirty_mesh: bool,
     pub transform: GlobalTransform,
+    pub visible: bool,
 }
 
 impl RenderChunk2d {
@@ -180,6 +183,7 @@ impl RenderChunk2d {
         texture_size: Vec2,
         map_size: TilemapSize,
         transform: GlobalTransform,
+        visible: bool,
     ) -> Self {
         Self {
             dirty_mesh: true,
@@ -197,6 +201,7 @@ impl RenderChunk2d {
             tilemap_id,
             tiles: vec![None; (size.x * size.y) as usize],
             transform,
+            visible,
         }
     }
 
