@@ -4,7 +4,7 @@ use bevy::{
 };
 
 /// A component which stores a reference to the tilemap entity.
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Debug, Hash)]
 pub struct TilemapId(pub Entity);
 
 impl Default for TilemapId {
@@ -14,7 +14,7 @@ impl Default for TilemapId {
 }
 
 /// Size of the tilemap in tiles.
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Default, Clone, Copy, Debug, Hash)]
 pub struct TilemapSize {
     pub x: u32,
     pub y: u32,
@@ -45,7 +45,7 @@ impl From<UVec2> for TilemapSize {
 }
 
 /// A bevy asset handle linking to the tilemap atlas image file.
-#[derive(Component, Clone, Default, Debug)]
+#[derive(Component, Clone, Default, Debug, Hash)]
 pub struct TilemapTexture(pub Handle<Image>);
 
 /// Size of the tiles in pixels
