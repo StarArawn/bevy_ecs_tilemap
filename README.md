@@ -49,28 +49,27 @@ fn update_damage(
 ## Examples
  - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
  - [`animation`](examples/animation.rs) – Basic CPU animation example.
- - [`atlas_spacing`](examples/atlas_spacing.rs) – Usage of atlas textures with multiple rows and spacing.
+ - [`basic`](examples/map.rs) - The simplest example of how to create a tile map.
  - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
- - [`dynamic_map`](examples/dynamic_map.rs) - A random map that is only partial filled with tiles that changes every so often.
+ - [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
+ - [`colors`](examples/colors.rs) - Showcases how each tile can have an individual color.
  - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
- - [`hex_column`](examples/hex_column.rs) - A map that is meshed using “pointy” hexagons.
- - [`hex_row`](examples/hex_row.rs) - A map that is meshed using flat hexagons.
+ - [`hex_column`](examples/hexagon_column.rs) - A map that is meshed using “pointy” hexagons.
+ - [`hex_row`](examples/hexagon_row.rs) - A map that is meshed using flat hexagons.
  - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
  - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
  - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
- - [`ldtk`](examples/ldtk/ldtk.rs) - An example of loading and rendering of a LDTK map which requires the `ldtk` feature. Use: `cargo run --example ldtk --features ldtk`
- - [`map`](examples/map.rs) - The simplest example of how to create a tile map.
+ - [`ldtk`](examples/ldtk/ldtk.rs) - An example of loading and rendering of a LDTK map. Use: `cargo run --example ldtk`. We recommend checking out: [`bevy_ecs_ldtk`](https://crates.io/crates/bevy_ecs_ldtk).
  - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
- - [`sparse_tiles`](examples/sparse_tiles.rs) - An example showing how to generate a map where not all of the tiles exist for a given square in the tile map.
- - [`tiled`](examples/tiled/tiled.rs) - An example of loading and rendering of a tiled map editor map which requires the `tiled_map` feature. Use: `cargo run --example tiled`
  - [`tiled_rotate`](examples/tiled/tiled_rotate.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation.requires the `tiled_map` feature. Use: `cargo run --example tiled_rotate`
+ - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map. Use: `cargo run --example tiled`
  - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
 ### Running Examples
 
 ```
-cargo run --release --example map
+cargo run --release --example basic
 ```
 
 ### Running examples on web!

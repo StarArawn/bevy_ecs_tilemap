@@ -1,11 +1,14 @@
+use std::marker::PhantomData;
+
 use bevy::{
-    core_pipeline::Transparent2d,
+    core_pipeline::core_2d::Transparent2d,
     prelude::*,
     render::{
         mesh::MeshVertexAttribute,
-        render_component::UniformComponentPlugin,
         render_phase::AddRenderCommand,
-        render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
+        render_resource::{
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
+        },
         RenderApp, RenderStage,
     },
 };
@@ -13,41 +16,50 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-#[cfg(not(feature = "atlas"))]
-use crate::{TextureSize, TileSize};
+use crate::tiles::{TilePos, TileStorage};
 
-use crate::render::pipeline::{
-    DrawTilemap, ImageBindGroups, MeshUniform, TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE,
-    HEX_COLUMN_ODD_SHADER_HANDLE, HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE,
-    HEX_ROW_ODD_SHADER_HANDLE, HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE,
-    ISO_STAGGERED_SHADER_HANDLE, SQUARE_SHADER_HANDLE,
+use self::{
+    chunk::{RenderChunk2dStorage, TilemapUniformData},
+    draw::DrawTilemap,
+    pipeline::{
+        TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE, HEX_COLUMN_ODD_SHADER_HANDLE,
+        HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE, HEX_ROW_ODD_SHADER_HANDLE,
+        HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE, ISO_STAGGERED_SHADER_HANDLE,
+        SQUARE_SHADER_HANDLE,
+    },
+    prepare::MeshUniform,
+    queue::ImageBindGroups,
 };
 
+mod chunk;
+mod draw;
+mod extract;
 mod include_shader;
 mod pipeline;
-mod tilemap_data;
-
-pub use tilemap_data::TilemapUniformData;
+pub(crate) mod prepare;
+mod queue;
 
 #[cfg(not(feature = "atlas"))]
 mod texture_array_cache;
 
 #[cfg(not(feature = "atlas"))]
+use self::extract::ExtractedTilemapTexture;
+#[cfg(not(feature = "atlas"))]
 use self::texture_array_cache::TextureArrayCache;
-
-#[derive(Default)]
-pub struct TilemapRenderPlugin;
 
 #[derive(Copy, Clone, Debug, Component)]
 pub(crate) struct ExtractedFilterMode(FilterMode);
 
-pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
-    MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Sint32x4);
-pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
-    MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
+pub struct TilemapRenderingPlugin;
+#[derive(Default, Deref, DerefMut)]
+pub struct SecondsSinceStartup(f32);
 
-impl Plugin for TilemapRenderPlugin {
-    fn build(&self, app: &mut App) {
+impl Plugin for TilemapRenderingPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_system_to_stage(CoreStage::First, clear_removed);
+        app.add_system_to_stage(CoreStage::PostUpdate, removal_helper_tilemap);
+        app.add_system_to_stage(CoreStage::PostUpdate, removal_helper);
+
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
 
         #[cfg(not(feature = "atlas"))]
@@ -109,25 +121,84 @@ impl Plugin for TilemapRenderPlugin {
         ));
         shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
 
-        app.add_plugin(UniformComponentPlugin::<MeshUniform>::default());
-        app.add_plugin(UniformComponentPlugin::<TilemapUniformData>::default());
-
         let render_app = app.sub_app_mut(RenderApp);
         render_app
-            .add_system_to_stage(RenderStage::Extract, pipeline::extract_tilemaps)
-            .add_system_to_stage(RenderStage::Queue, pipeline::queue_meshes)
-            .add_system_to_stage(RenderStage::Queue, pipeline::queue_transform_bind_group)
-            .add_system_to_stage(RenderStage::Queue, pipeline::queue_tilemap_bind_group)
+            .insert_resource(RenderChunk2dStorage::default())
+            .insert_resource(SecondsSinceStartup);
+        render_app
+            .add_system_to_stage(RenderStage::Extract, extract::extract)
+            .add_system_to_stage(RenderStage::Extract, extract::extract_removal);
+        render_app
+            .add_system_to_stage(RenderStage::Prepare, prepare::prepare)
+            .add_system_to_stage(RenderStage::Prepare, prepare::prepare_removal)
+            .add_system_to_stage(RenderStage::Queue, queue::queue_meshes)
+            .add_system_to_stage(RenderStage::Queue, queue::queue_transform_bind_group)
+            .add_system_to_stage(RenderStage::Queue, queue::queue_tilemap_bind_group)
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
-            .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>();
+            .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
+            .init_resource::<DynamicUniformBuffer<MeshUniform>>()
+            .init_resource::<DynamicUniformBuffer<TilemapUniformData>>();
+
+        render_app.add_render_command::<Transparent2d, DrawTilemap>();
 
         #[cfg(not(feature = "atlas"))]
         render_app
             .init_resource::<TextureArrayCache>()
             .add_system_to_stage(RenderStage::Prepare, prepare_textures);
+    }
+}
 
-        render_app.add_render_command::<Transparent2d, DrawTilemap>();
+/// Stores the index of a uniform inside of [`ComponentUniforms`].
+#[derive(Component)]
+pub struct DynamicUniformIndex<C: Component> {
+    index: u32,
+    marker: PhantomData<C>,
+}
+
+impl<C: Component> DynamicUniformIndex<C> {
+    #[inline]
+    pub fn index(&self) -> u32 {
+        self.index
+    }
+}
+
+pub const ATTRIBUTE_POSITION: MeshVertexAttribute =
+    MeshVertexAttribute::new("Position", 229221259, VertexFormat::Float32x4);
+pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
+    MeshVertexAttribute::new("Texture", 222922753, VertexFormat::Float32x4);
+pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
+    MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
+
+#[derive(Component)]
+pub struct RemovedTileEntity(pub Entity);
+
+#[derive(Component)]
+pub struct RemovedMapEntity(pub Entity);
+
+fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos>) {
+    for entity in removed_query.iter() {
+        commands.spawn().insert(RemovedTileEntity(entity));
+    }
+}
+
+fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<TileStorage>) {
+    for entity in removed_query.iter() {
+        commands.spawn().insert(RemovedMapEntity(entity));
+    }
+}
+
+fn clear_removed(
+    mut commands: Commands,
+    removed_query: Query<Entity, With<RemovedTileEntity>>,
+    removed_map_query: Query<Entity, With<RemovedMapEntity>>,
+) {
+    for entity in removed_query.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in removed_map_query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 
@@ -135,15 +206,18 @@ impl Plugin for TilemapRenderPlugin {
 fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
-    extracted_query: Query<(&Handle<Image>, &TilemapUniformData, &ExtractedFilterMode)>,
+    extracted_tilemaps: Query<&ExtractedTilemapTexture>,
 ) {
-    for (atlas_image, tilemap_data, filter) in extracted_query.iter() {
+    for tilemap in extracted_tilemaps.iter() {
+        let tile_size: Vec2 = tilemap.tile_size.into();
+        let texture_size: Vec2 = tilemap.texture_size.into();
+        let spacing: Vec2 = tilemap.spacing.into();
         texture_array_cache.add(
-            atlas_image,
-            TileSize(tilemap_data.tile_size.x, tilemap_data.tile_size.y),
-            TextureSize(tilemap_data.texture_size.x, tilemap_data.texture_size.y),
-            tilemap_data.spacing,
-            filter.0,
+            &tilemap.texture.0,
+            tile_size,
+            texture_size,
+            spacing,
+            FilterMode::Nearest,
         );
     }
 

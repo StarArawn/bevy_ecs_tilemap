@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{thread_rng, Rng};
-
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -10,9 +8,21 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 32, y: 32 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+
+    // Create a tilemap entity a little early.
+    // We want this entity early because we need to tell each tile which tilemap entity
+    // it is associated with. This is done with the TilemapId component on each tile.
+    // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
+    // will contain various necessary components, such as `TileStorage`.
     let tilemap_entity = commands.spawn().id();
 
+    // To begin creating the map we will need a `TileStorage` component.
+    // This component is a grid of tile entities and is used to help keep track of individual
+    // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
+    // per layer, each with their own `TileStorage` component.
+    let mut tile_storage = TileStorage::empty(tilemap_size);
+
+    // Spawn the elements of the tilemap.
     for x in 0..32u32 {
         for y in 0..32u32 {
             let tile_pos = TilePos { x, y };
@@ -45,37 +55,32 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 0.0,
             ),
             ..Default::default()
-        })
-        .insert(LastUpdate::default());
+        });
 }
 
-#[derive(Default, Component)]
-struct LastUpdate {
-    value: f64,
-}
-
-fn remove_tiles(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut last_update_query: Query<(&mut LastUpdate, &mut TileStorage)>,
+fn swap_texture_or_hide(
+    asset_server: Res<AssetServer>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut TilemapTexture, &mut Visibility)>,
 ) {
-    let current_time = time.seconds_since_startup();
-    for (mut last_update, mut tile_storage) in last_update_query.iter_mut() {
-        // Remove a tile every half second.
-        if (current_time - last_update.value) > 0.1 {
-            let mut random = thread_rng();
-            let position = TilePos {
-                x: random.gen_range(0..32),
-                y: random.gen_range(0..32),
-            };
-
-            if let Some(tile_entity) = tile_storage.get(&position) {
-                commands.entity(tile_entity).despawn_recursive();
-                // Don't forget to remove tiles from the tile storage!
-                tile_storage.set(&position, None);
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        let texture_handle_a: Handle<Image> = asset_server.load("tiles.png");
+        let texture_handle_b: Handle<Image> = asset_server.load("tiles2.png");
+        for (mut tilemap_tex, _) in &mut query {
+            if &tilemap_tex.0 == &texture_handle_a {
+                tilemap_tex.0 = texture_handle_b.clone();
+            } else {
+                tilemap_tex.0 = texture_handle_a.clone();
             }
-
-            last_update.value = current_time;
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::H) {
+        for (_, mut visibility) in &mut query {
+            if visibility.is_visible {
+                visibility.is_visible = false;
+            } else {
+                visibility.is_visible = true;
+            }
         }
     }
 }
@@ -85,7 +90,9 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Remove Tiles Example"),
+            title: String::from(
+                "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
+            ),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
@@ -93,6 +100,6 @@ fn main() {
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
-        .add_system(remove_tiles)
+        .add_system(swap_texture_or_hide)
         .run();
 }

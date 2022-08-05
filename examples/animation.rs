@@ -3,86 +3,139 @@ use bevy::{
     prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
-use rand::{thread_rng, Rng};
+use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTexture};
+use bevy_ecs_tilemap::{TilemapBundle, TilemapPlugin};
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
 
 mod helpers;
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle {
-        transform: Transform::from_xyz(1042.0, 1024.0, 1000.0 - 0.1),
-        ..OrthographicCameraBundle::new_2d()
-    });
+struct TilemapMetadata {
+    texture_size: TilemapTextureSize,
+    size: TilemapSize,
+    tile_size: TilemapTileSize,
+    grid_size: TilemapGridSize,
+}
 
-    let texture_handle = asset_server.load("tiles.png");
+const BACKGROUND: &'static str = "tiles.png";
+const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
+    texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
+    size: TilemapSize { x: 20, y: 20 },
+    tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
+    grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+};
 
-    let map_size = MapSize(20, 20);
+const FLOWERS: &'static str = "flower_sheet.png";
+const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
+    texture_size: TilemapTextureSize { x: 32.0, y: 448.0 },
+    size: TilemapSize { x: 10, y: 10 },
+    tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
+    grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+};
 
-    let layer_settings = LayerSettings::new(
-        map_size,
-        ChunkSize(32, 32),
-        TileSize(16.0, 16.0),
-        TextureSize(96.0, 16.0),
-    );
+fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let texture_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
-    let (mut layer_builder, layer_0_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 0u16);
+    let tilemap_entity = commands.spawn().id();
 
-    layer_builder.set_all(Tile::default().into());
+    let TilemapMetadata {
+        texture_size,
+        size,
+        grid_size,
+        tile_size,
+    } = BACKGROUND_METADATA;
 
-    map_query.build_layer(&mut commands, layer_builder, texture_handle);
+    let mut tilemap_storage = TileStorage::empty(size);
 
-    let texture_handle = asset_server.load("flower_sheet.png");
-
-    let map_size = MapSize(map_size.0 / 2, map_size.1 / 2);
-    let layer_settings = LayerSettings::new(
-        map_size,
-        ChunkSize(32, 32),
-        TileSize(32.0, 32.0),
-        TextureSize(32.0, 448.0),
-    );
-    let (mut layer_builder, layer_1_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings.clone(), 0u16, 1u16);
-
-    let mut random = thread_rng();
-
-    for _ in 0..10000 {
-        let position = TilePos(
-            random.gen_range(0..map_size.0 * 32),
-            random.gen_range(0..map_size.1 * 32),
-        );
-        let _ = layer_builder.set_tile(
-            position,
-            Tile {
-                texture_index: 0,
-                ..Default::default()
-            }
-            .into(),
-        );
-
-        if let Ok(entity) = layer_builder.get_tile_entity(&mut commands, position) {
-            commands
-                .entity(entity)
-                .insert(GPUAnimated::new(0, 13, 0.95));
+    for x in 0..size.x {
+        for y in 0..size.y {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    ..Default::default()
+                })
+                .id();
+            // Here we let the tile storage component know what tiles we have.
+            tilemap_storage.set(&tile_pos, Some(tile_entity));
         }
     }
 
-    map_query.build_layer(&mut commands, layer_builder, texture_handle);
-
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
-
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_0_entity);
-    map.add_layer(&mut commands, 1u16, layer_1_entity);
-
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
     commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-5120.0, -5120.0, 0.0))
-        .insert(GlobalTransform::default());
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            size,
+            grid_size,
+            texture_size,
+            tile_size,
+            storage: tilemap_storage,
+            texture: TilemapTexture(texture_handle.clone()),
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 0.0),
+            ..Default::default()
+        });
+}
+
+fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let texture_handle: Handle<Image> = asset_server.load(FLOWERS);
+
+    let TilemapMetadata {
+        texture_size,
+        size,
+        grid_size,
+        tile_size,
+    } = FLOWERS_METADATA;
+
+    let mut tilemap_storage = TileStorage::empty(size);
+
+    let tilemap_entity = commands.spawn().id();
+
+    // Choose 10 random tiles to contain flowers.
+    let mut rng = thread_rng();
+    let mut indices: Vec<(u32, u32)> = Vec::with_capacity((size.x * size.y) as usize);
+    for x in 0..size.x {
+        for y in 0..size.y {
+            indices.push((x, y));
+        }
+    }
+    for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
+        let tile_pos = TilePos { x, y };
+        let tile_entity = commands
+            .spawn()
+            .insert_bundle(TileBundle {
+                position: tile_pos,
+                tilemap_id: TilemapId(tilemap_entity),
+                texture: TileTexture(0),
+                ..Default::default()
+            })
+            .id();
+        tilemap_storage.set(&tile_pos, Some(tile_entity));
+        // To enable animation, we must insert the `AnimatedTile` component on
+        // each tile that is to be animated.
+        commands.entity(tile_entity).insert(AnimatedTile {
+            start: 0,
+            end: 13,
+            speed: 0.95,
+        });
+    }
+
+    commands
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size,
+            size,
+            storage: tilemap_storage,
+            texture_size,
+            texture: TilemapTexture(texture_handle.clone()),
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 1.0),
+            ..Default::default()
+        });
+}
+
+fn startup(mut commands: Commands) {
+    commands.spawn_bundle(Camera2dBundle::default());
 }
 
 fn main() {
@@ -98,6 +151,8 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
+        .add_startup_system(create_background)
+        .add_startup_system(create_animated_flowers)
         .add_system(helpers::camera::movement)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();

@@ -1,71 +1,73 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{thread_rng, Rng};
-
 mod helpers;
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(Camera2dBundle::default());
 
-    let texture_handle = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
+    let tilemap_size = TilemapSize { x: 32, y: 32 };
 
-    let map_settings = LayerSettings::new(
-        MapSize(2, 2),
-        ChunkSize(8, 8),
-        TileSize(16.0, 16.0),
-        TextureSize(96.0, 16.0),
+    // Layer 1
+    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let tilemap_entity = commands.spawn().id();
+
+    bevy_ecs_tilemap::helpers::fill_tilemap(
+        TileTexture(0),
+        tilemap_size,
+        TilemapId(tilemap_entity),
+        &mut commands,
+        &mut tile_storage,
     );
 
-    // Layer 0
-    let (mut layer_0, layer_0_entity) =
-        LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_0_entity);
-
-    layer_0.set_all(TileBundle::default());
-
-    map_query.build_layer(&mut commands, layer_0, texture_handle.clone());
-
-    // Make 2 layers on "top" of the base map.
-    for z in 0..2 {
-        let (mut layer_builder, layer_entity) =
-            LayerBuilder::new(&mut commands, map_settings.clone(), 0u16, z + 1);
-
-        let mut random = thread_rng();
-
-        for _ in 0..100 {
-            let position = TilePos(random.gen_range(0..16), random.gen_range(0..16));
-            // Ignore errors for demo sake.
-            let _ = layer_builder.set_tile(
-                position,
-                TileBundle {
-                    tile: Tile {
-                        texture_index: z + 1,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-            );
-        }
-
-        map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
-
-        // Required to keep track of layers for a map internally.
-        map.add_layer(&mut commands, z + 1, layer_entity);
-    }
-
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
     commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-128.0, -128.0, 0.0))
-        .insert(GlobalTransform::default());
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
+            texture: TilemapTexture(texture_handle.clone()),
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
+            ..Default::default()
+        });
+
+    // Layer 2
+    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let tilemap_entity = commands.spawn().id();
+
+    bevy_ecs_tilemap::helpers::fill_tilemap(
+        TileTexture(2),
+        tilemap_size,
+        TilemapId(tilemap_entity),
+        &mut commands,
+        &mut tile_storage,
+    );
+
+    commands
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
+            texture: TilemapTexture(texture_handle),
+            tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                1.0,
+            ) * Transform::from_xyz(32.0, 32.0, 0.0),
+            ..Default::default()
+        });
 }
 
 fn main() {
@@ -73,7 +75,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Layed Map Example"),
+            title: String::from("Layers Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)

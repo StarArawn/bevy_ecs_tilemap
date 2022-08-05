@@ -1,81 +1,79 @@
-use bevy::{core::Time, prelude::*};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;
+
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(Camera2dBundle::default());
+
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
+
+    let tilemap_size = TilemapSize { x: 32, y: 32 };
+    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let tilemap_entity = commands.spawn().id();
+
+    for x in 0..32u32 {
+        for y in 0..32u32 {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, Some(tile_entity));
+        }
+    }
+
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+
+    commands
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
+            texture: TilemapTexture(texture_handle),
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
+            ..Default::default()
+        })
+        .insert(LastUpdate::default());
+}
 
 #[derive(Default, Component)]
 struct LastUpdate {
     value: f64,
 }
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-
-    let texture_handle = asset_server.load("tiles.png");
-
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
-
-    let layer_settings = LayerSettings::new(
-        MapSize(4, 4),
-        ChunkSize(8, 8),
-        TileSize(16.0, 16.0),
-        TextureSize(96.0, 16.0),
-    );
-    let center = layer_settings.get_pixel_center();
-
-    let (mut layer_builder, layer_entity) =
-        LayerBuilder::new(&mut commands, layer_settings, 0u16, 0u16);
-    map.add_layer(&mut commands, 0u16, layer_entity);
-
-    layer_builder.set_all(TileBundle {
-        tile: Tile {
-            texture_index: 1,
-            ..Default::default()
-        },
-        ..Default::default()
-    });
-
-    map_query.build_layer(&mut commands, layer_builder, texture_handle);
-
-    commands.entity(layer_entity).insert(LastUpdate::default());
-
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
-    commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
-        .insert(GlobalTransform::default());
-}
-
 fn remove_tiles(
     time: Res<Time>,
-    mut last_update_query: Query<&mut LastUpdate>,
-    mut tile_query: Query<&mut Tile>,
-    mut map_query: MapQuery,
+    mut last_update_query: Query<(&mut LastUpdate, &TileStorage)>,
+    mut tile_query: Query<&mut TileVisible>,
 ) {
     let current_time = time.seconds_since_startup();
-    for mut last_update in last_update_query.iter_mut() {
+    for (mut last_update, tile_storage) in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
             let mut random = thread_rng();
-            let position = TilePos(random.gen_range(0..32), random.gen_range(0..32));
+            let position = TilePos {
+                x: random.gen_range(0..32),
+                y: random.gen_range(0..32),
+            };
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
-            if let Ok(tile_entity) = map_query.get_tile_entity(position, 0u16, 0u16) {
-                if let Ok(mut tile) = tile_query.get_mut(tile_entity) {
-                    if tile.visible {
-                        tile.visible = false;
-                    } else {
-                        tile.visible = true;
-                    }
-                }
+            if let Some(tile_entity) = tile_storage.get(&position) {
+                let mut visibility = tile_query.get_mut(tile_entity).unwrap();
+                visibility.0 = !visibility.0;
             }
-
-            map_query.notify_chunk_for_tile(position, 0u16, 0u16);
 
             last_update.value = current_time;
         }
@@ -83,22 +81,18 @@ fn remove_tiles(
 }
 
 fn main() {
-    // env_logger::Builder::from_default_env()
-    //     .filter_module("bevy_ecs_tilemap", log::LevelFilter::Trace)
-    //     .init();
-
     App::new()
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Remove Tiles Example"),
+            title: String::from("Visibility Example"),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(remove_tiles)
         .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(remove_tiles)
         .run();
 }
