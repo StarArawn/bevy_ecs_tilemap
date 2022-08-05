@@ -1,5 +1,20 @@
 #![allow(dead_code)]
 
+//! Bevy ECS Tilemap plugin is a ECS driven tilemap rendering library. It's designed to be fast and highly customizable. Each tile is considered a unique entity and all tiles are stored in the game world.
+//!
+//!
+//! ## Features
+//! - A tile per entity.
+//! - Fast rendering using a chunked approach.
+//! - Layers and sparse tile maps.
+//! - GPU powered animations.
+//! - Isometric and Hexagonal tile maps.
+//! - Initial support for Tiled file exports.
+//! - Support for isometric and hexagon rendering.
+//! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
+//! - Texture array support.
+//! - Layers and add/remove tiles.
+
 use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
 use map::{
     TilemapGridSize, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
