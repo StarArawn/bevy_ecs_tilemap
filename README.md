@@ -86,6 +86,7 @@ wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wa
 
 |bevy|bevy_ecs_tilemap|
 |---|---|
+|0.8|0.7|
 |0.7|0.6|
 |0.6|0.5|
 
