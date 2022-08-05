@@ -10,11 +10,12 @@ edition = "2021"
 exclude = ["assets/*", "screenshots/*"]
 
 [features]
-default = []
+default = ["render"]
 atlas = []
+render = []
 
 [dependencies]
-bevy = { version = "0.8", default-features = false, features = ["bevy_core_pipeline", "bevy_render"] }
+bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset"] }
 log = "0.4"
 regex = "1.5.4"
 

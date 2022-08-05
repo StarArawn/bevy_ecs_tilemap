@@ -11,6 +11,7 @@ use tiles::TileStorage;
 pub mod helpers;
 /// A module which contains tilemap components.
 pub mod map;
+#[cfg(feature = "render")]
 pub(crate) mod render;
 /// A module which contains tile components.
 pub mod tiles;
@@ -20,8 +21,9 @@ pub mod tiles;
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(render::TilemapRenderingPlugin);
+    fn build(&self, _app: &mut bevy::prelude::App) {
+        #[cfg(feature = "render")]
+        _app.add_plugin(render::TilemapRenderingPlugin);
     }
 }
 
