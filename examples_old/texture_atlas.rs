@@ -140,11 +140,11 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_state(AppState::Setup)
-        .add_system_set(SystemSet::on_enter(AppState::Setup).with_system(load_textures.system()))
-        .add_system_set(SystemSet::on_update(AppState::Setup).with_system(check_textures.system()))
-        .add_system_set(SystemSet::on_enter(AppState::Finished).with_system(startup.system()))
-        .add_system_set(SystemSet::on_update(AppState::Finished).with_system(update_map.system()))
-        .add_system(helpers::camera::movement.system())
-        .add_system(helpers::texture::set_texture_filters_to_nearest.system())
+        .add_system_set(SystemSet::on_enter(AppState::Setup).with_system(load_textures))
+        .add_system_set(SystemSet::on_update(AppState::Setup).with_system(check_textures))
+        .add_system_set(SystemSet::on_enter(AppState::Finished).with_system(startup))
+        .add_system_set(SystemSet::on_update(AppState::Finished).with_system(update_map))
+        .add_system(helpers::camera::movement)
+        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

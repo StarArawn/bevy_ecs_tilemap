@@ -104,17 +104,6 @@ pub struct Layer {
     pub(crate) chunks: Vec<Option<Entity>>,
 }
 
-/// General errors that are returned by bevy_ecs_tilemap.
-#[derive(Debug, Copy, Clone)]
-pub enum MapTileError {
-    /// The tile was out of bounds.
-    OutOfBounds,
-    /// The tile already exists.
-    AlreadyExists,
-    /// Doesn't exist
-    NonExistent,
-}
-
 impl Layer {
     /// Creates a new map component.
     ///
@@ -173,7 +162,7 @@ pub(crate) fn update_chunk_hashmap_for_added_tiles(
             ) {
                 chunk.tiles[get_tile_index(*tile_pos, chunk_width)] = Some(tile_entity);
             } else {
-                let tile_pos = chunk.to_chunk_pos(*tile_pos);
+                let tile_pos = chunk.to_chunk_pos(*tile_pos).unwrap();
                 chunk.tiles[get_tile_index(tile_pos, chunk_width)] = Some(tile_entity);
             }
         }

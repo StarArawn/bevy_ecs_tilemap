@@ -1,4 +1,5 @@
-use crate::layer::{LayerId, MapTileError};
+use crate::error::MapTileError;
+use crate::layer::LayerId;
 use crate::layer_builder::LayerBuilder;
 use crate::map::MapId;
 use crate::map_query::MapQuery;
@@ -54,7 +55,7 @@ impl<'w, 's> MapQuery<'w, 's> {
             .iter_mut()
             .map(|maybe_pos| match maybe_pos {
                 Some(pos) => self.get_tile_entity(*pos, map_id, layer_id),
-                _ => Err(MapTileError::OutOfBounds),
+                _ => Err(MapTileError::OutOfBounds(tile_pos)),
             })
             .collect::<Vec<_>>()
     }

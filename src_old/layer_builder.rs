@@ -91,8 +91,14 @@ where
 
                 let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
+                mesh.insert_attribute(
+                    Mesh::ATTRIBUTE_POSITION,
+                    VertexAttributeValues::Float32x3(vec![]),
+                );
+                mesh.insert_attribute(
+                    crate::render::ATTRIBUTE_TEXTURE,
+                    VertexAttributeValues::Sint32x4(vec![]),
+                );
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let chunk = Chunk::new(
@@ -155,8 +161,7 @@ where
         };
 
         let layer = layer_bundle.layer;
-        let mut transform = layer_bundle.transform;
-        transform.translation.z = 0.0; //layer.settings.layer_id as f32;
+        let transform = layer_bundle.transform;
         commands.entity(layer_entity).insert_bundle(LayerBundle {
             layer,
             transform,
@@ -174,7 +179,7 @@ where
             self.tiles[morton_tile_index].1 = Some(tile);
             return Ok(());
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Returns an existing tile entity or spawns a new one.
@@ -196,7 +201,7 @@ where
             return Ok(tile_entity.unwrap());
         }
 
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Returns an existing tile entity if it exists
@@ -229,10 +234,10 @@ where
             if let Some(tile) = &self.tiles[morton_tile_index].1 {
                 return Ok(tile);
             } else {
-                return Err(MapTileError::NonExistent);
+                return Err(MapTileError::NonExistent(tile_pos));
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Gets a mutable reference to the tile data using the a tile position.
@@ -242,10 +247,10 @@ where
             if let Some(tile) = &mut self.tiles[morton_tile_index].1 {
                 return Ok(tile);
             } else {
-                return Err(MapTileError::NonExistent);
+                return Err(MapTileError::NonExistent(tile_pos));
             }
         }
-        Err(MapTileError::OutOfBounds)
+        Err(MapTileError::OutOfBounds(tile_pos))
     }
 
     /// Loops through each tile entity and tile bundle in the builder.
@@ -320,8 +325,14 @@ where
 
                 let chunk_pos = ChunkPos(x, y);
                 let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-                mesh.set_attribute("Vertex_Position", VertexAttributeValues::Float32x3(vec![]));
-                mesh.set_attribute("Vertex_Texture", VertexAttributeValues::Sint32x4(vec![]));
+                mesh.insert_attribute(
+                    Mesh::ATTRIBUTE_POSITION,
+                    VertexAttributeValues::Float32x3(vec![]),
+                );
+                mesh.insert_attribute(
+                    crate::render::ATTRIBUTE_TEXTURE,
+                    VertexAttributeValues::Sint32x4(vec![]),
+                );
                 mesh.set_indices(Some(Indices::U32(vec![])));
                 let mesh_handle = meshes.add(mesh);
                 let mut chunk = Chunk::new(

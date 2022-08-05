@@ -82,5 +82,12 @@ wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wa
  - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
  - Besides the above no known issues.
 
+## Bevy Compatibility
+
+|bevy|bevy_ecs_tilemap|
+|---|---|
+|0.7|0.6|
+|0.6|0.5|
+
 ## Asset credits
  - Field of green by [GuttyKreum](https://guttykreum.itch.io/).

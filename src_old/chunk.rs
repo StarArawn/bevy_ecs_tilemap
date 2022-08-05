@@ -2,13 +2,13 @@ use crate::{
     get_tile_index, get_tile_pos_from_index,
     render::TilemapUniformData,
     tile::{GPUAnimated, Tile},
-    ChunkPos, IsoType, LayerSettings, LocalTilePos, TilePos, TilemapMeshType,
+    ChunkPos, IsoType, LayerSettings, LocalTilePos, MapTileError, TilePos, TilemapMeshType,
 };
 use bevy::{
     core::Time,
     math::{Vec2, Vec4},
     prelude::*,
-    render::camera::CameraPlugin,
+    render::camera::Camera2d,
     tasks::AsyncComputeTaskPool,
 };
 use std::sync::Mutex;
@@ -167,11 +167,22 @@ impl Chunk {
     /// Returns the local coordinates of a tile
     ///
     /// Coordinates are relative to the origin of the chunk that this method is called on
-    pub fn to_chunk_pos(&self, global_tile_position: TilePos) -> LocalTilePos {
-        LocalTilePos(
-            global_tile_position.0 - (self.position.0 * self.settings.chunk_size.0),
-            global_tile_position.1 - (self.position.1 * self.settings.chunk_size.1),
-        )
+    pub fn to_chunk_pos(
+        &self,
+        global_tile_position: TilePos,
+    ) -> Result<LocalTilePos, MapTileError> {
+        let x = global_tile_position
+            .0
+            .checked_sub(self.position.0 * self.settings.chunk_size.0);
+        let y = global_tile_position
+            .1
+            .checked_sub(self.position.1 * self.settings.chunk_size.1);
+
+        if x.is_none() || y.is_none() {
+            return Err(MapTileError::OutOfBounds(TilePos(0, 0)));
+        }
+
+        Ok(LocalTilePos(x.unwrap(), y.unwrap()))
     }
 }
 
@@ -206,16 +217,10 @@ pub(crate) fn update_chunk_mesh(
 }
 
 pub(crate) fn update_chunk_visibility(
-    camera: Query<(&Camera, &OrthographicProjection, &Transform)>,
+    camera: Query<(&OrthographicProjection, &Transform), With<Camera2d>>,
     mut chunks: Query<(&GlobalTransform, &Chunk, &mut Visibility)>,
 ) {
-    if let Some((_current_camera, ortho, camera_transform)) = camera.iter().find(|data| {
-        if let Some(name) = &data.0.name {
-            name == CameraPlugin::CAMERA_2D
-        } else {
-            false
-        }
-    }) {
+    for (ortho, camera_transform) in camera.iter() {
         // Transform camera into world space.
         let left =
             camera_transform.translation.x + (ortho.left * ortho.scale * camera_transform.scale.x);

@@ -11,7 +11,7 @@ use bevy::{
             TextureFormat, TextureUsages, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::GpuImage,
+        texture::{BevyDefault, GpuImage},
     },
     utils::{HashMap, HashSet},
 };
@@ -109,6 +109,7 @@ impl TextureArrayCache {
             });
 
             let gpu_image = GpuImage {
+                texture_format: TextureFormat::bevy_default(),
                 texture,
                 sampler,
                 texture_view,

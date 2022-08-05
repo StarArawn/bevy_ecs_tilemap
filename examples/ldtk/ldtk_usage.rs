@@ -36,6 +36,10 @@ fn main() {
             title: String::from("LDTK Example"),
             ..Default::default()
         })
+        .insert_resource(AssetServerSettings {
+            watch_for_changes: true,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(LdtkPlugin)
