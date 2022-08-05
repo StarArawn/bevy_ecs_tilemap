@@ -114,7 +114,6 @@ impl TextureArrayCache {
                 sampler,
                 texture_view,
                 size: Vec2::new(tile_size.x, tile_size.y),
-                texture_format: TextureFormat::Rgba8UnormSrgb,
             };
 
             self.textures.insert(item.clone_weak(), gpu_image);
