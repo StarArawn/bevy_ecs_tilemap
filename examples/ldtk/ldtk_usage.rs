@@ -9,7 +9,7 @@
 //! For a more comprehensive LDtk solution, consider [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk), which uses bevy_ecs_tilemap internally.
 
 use crate::ldtk::*;
-use bevy::prelude::*;
+use bevy::{asset::AssetServerSettings, prelude::*};
 use bevy_ecs_tilemap::*;
 
 #[path = "../helpers/mod.rs"]
