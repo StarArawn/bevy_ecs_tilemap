@@ -19,7 +19,6 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
  - [x] Support for isometric and hexagon rendering.
  - [x] Built in animation support  – see [`animation` example](examples/animation.rs).
  - [x] Texture array support.
- - [x] Layers and add/remove tiles.
 
 
 ## Screenshots
@@ -86,6 +85,7 @@ wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wa
 
 |bevy|bevy_ecs_tilemap|
 |---|---|
+|0.8|0.7|
 |0.7|0.6|
 |0.6|0.5|
 

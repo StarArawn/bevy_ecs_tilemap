@@ -13,7 +13,6 @@
 //! - Support for isometric and hexagon rendering.
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
-//! - Layers and add/remove tiles.
 
 use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
 use map::{
