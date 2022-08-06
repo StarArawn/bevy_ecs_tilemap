@@ -107,7 +107,7 @@ impl TilemapSpacing {
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub struct TilemapTextureSize {
+pub(crate) struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
 }
@@ -115,6 +115,15 @@ pub struct TilemapTextureSize {
 impl Into<Vec2> for TilemapTextureSize {
     fn into(self) -> Vec2 {
         Vec2::new(self.x, self.y)
+    }
+}
+
+impl From<Vec2> for TilemapTextureSize {
+    fn from(size: Vec2) -> Self {
+        TilemapTextureSize {
+            x: size.x,
+            y: size.y,
+        }
     }
 }
 

@@ -7,7 +7,8 @@ use bevy::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, TextureUsages,
+            VertexFormat,
         },
         RenderApp, RenderStage,
     },
@@ -16,7 +17,10 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::tiles::{TilePos, TileStorage};
+use crate::{
+    prelude::TilemapTexture,
+    tiles::{TilePos, TileStorage},
+};
 
 use self::{
     chunk::{RenderChunk2dStorage, TilemapUniformData},
@@ -56,6 +60,9 @@ pub struct SecondsSinceStartup(f32);
 
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        #[cfg(not(feature = "atlas"))]
+        app.add_system(set_texture_to_copy_src);
+
         app.add_system_to_stage(CoreStage::First, clear_removed);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper_tilemap);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper);
@@ -146,6 +153,23 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .init_resource::<TextureArrayCache>()
             .add_system_to_stage(RenderStage::Prepare, prepare_textures);
+    }
+}
+
+pub fn set_texture_to_copy_src(mut textures: ResMut<Assets<Image>>, query: Query<&TilemapTexture>) {
+    // quick and dirty, run this for all textures anytime a texture component is created.
+    for texture in query.iter() {
+        if let Some(mut texture) = textures.get_mut(&texture.0) {
+            if !texture
+                .texture_descriptor
+                .usage
+                .contains(TextureUsages::COPY_SRC)
+            {
+                texture.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+                    | TextureUsages::COPY_SRC
+                    | TextureUsages::COPY_DST;
+            }
+        }
     }
 }
 

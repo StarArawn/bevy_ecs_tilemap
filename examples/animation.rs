@@ -1,6 +1,7 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
+    render::texture::ImageSettings,
 };
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTexture};
@@ -11,7 +12,6 @@ use rand::thread_rng;
 mod helpers;
 
 struct TilemapMetadata {
-    texture_size: TilemapTextureSize,
     size: TilemapSize,
     tile_size: TilemapTileSize,
     grid_size: TilemapGridSize,
@@ -19,7 +19,6 @@ struct TilemapMetadata {
 
 const BACKGROUND: &'static str = "tiles.png";
 const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
-    texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
     size: TilemapSize { x: 20, y: 20 },
     tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
@@ -27,7 +26,6 @@ const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
 
 const FLOWERS: &'static str = "flower_sheet.png";
 const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
-    texture_size: TilemapTextureSize { x: 32.0, y: 448.0 },
     size: TilemapSize { x: 10, y: 10 },
     tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
@@ -39,7 +37,6 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn().id();
 
     let TilemapMetadata {
-        texture_size,
         size,
         grid_size,
         tile_size,
@@ -68,7 +65,6 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert_bundle(TilemapBundle {
             size,
             grid_size,
-            texture_size,
             tile_size,
             storage: tilemap_storage,
             texture: TilemapTexture(texture_handle.clone()),
@@ -81,7 +77,6 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     let texture_handle: Handle<Image> = asset_server.load(FLOWERS);
 
     let TilemapMetadata {
-        texture_size,
         size,
         grid_size,
         tile_size,
@@ -126,7 +121,6 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             grid_size,
             size,
             storage: tilemap_storage,
-            texture_size,
             texture: TilemapTexture(texture_handle.clone()),
             tile_size,
             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 1.0),
@@ -146,6 +140,7 @@ fn main() {
             title: String::from("Animated Map Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -154,6 +149,5 @@ fn main() {
         .add_startup_system(create_background)
         .add_startup_system(create_animated_flowers)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

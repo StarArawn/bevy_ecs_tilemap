@@ -1,4 +1,4 @@
-use bevy::{asset::AssetServerSettings, prelude::*};
+use bevy::{asset::AssetServerSettings, prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -28,11 +28,11 @@ fn main() {
             watch_for_changes: true,
             ..default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(helpers::tiled::TiledMapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

@@ -1,9 +1,8 @@
-use bevy::{math::Vec3Swizzles, prelude::*, utils::HashSet};
+use bevy::{math::Vec3Swizzles, prelude::*, render::texture::ImageSettings, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
-const TEXTURE_SIZE: TilemapTextureSize = TilemapTextureSize { x: 96.0, y: 16.0 };
 const CHUNK_SIZE: TilemapSize = TilemapSize { x: 32, y: 32 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
@@ -37,7 +36,6 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
             grid_size: TILE_SIZE.into(),
             size: CHUNK_SIZE,
             storage: tile_storage,
-            texture_size: TEXTURE_SIZE,
             texture: TilemapTexture(texture_handle),
             tile_size: TILE_SIZE,
             transform,
@@ -108,12 +106,12 @@ fn main() {
             title: String::from("Basic Chunking Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .insert_resource(ChunkManager::default())
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .add_system(spawn_chunks_around_camera)
         .add_system(despawn_outofrange_chunks)
         .run();
