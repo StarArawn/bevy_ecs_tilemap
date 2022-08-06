@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
@@ -36,7 +36,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
             size: tilemap_size,
             storage: tile_storage,
-            texture_size: TilemapTextureSize { x: 96.0, y: 16.0 },
             texture: TilemapTexture(texture_handle),
             tile_size,
             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
@@ -88,11 +87,11 @@ fn main() {
             title: String::from("Remove Tiles Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .add_system(remove_tiles)
         .run();
 }

@@ -64,7 +64,8 @@ pub struct ExtractedTilemapBundle {
 }
 
 #[derive(Component)]
-pub struct ExtractedTilemapTexture {
+pub(crate) struct ExtractedTilemapTexture {
+    pub tilemap_id: TilemapId,
     pub tile_size: TilemapTileSize,
     pub texture_size: TilemapTextureSize,
     pub spacing: TilemapSpacing,
@@ -72,7 +73,7 @@ pub struct ExtractedTilemapTexture {
 }
 
 #[derive(Bundle)]
-pub struct ExtractedTilemapTextureBundle {
+pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
 }
 
@@ -105,7 +106,6 @@ pub fn extract(
             Entity,
             &GlobalTransform,
             &TilemapTileSize,
-            &TilemapTextureSize,
             &TilemapSpacing,
             &TilemapMeshType,
             &TilemapTexture,
@@ -122,7 +122,6 @@ pub fn extract(
                 Changed<GlobalTransform>,
                 Changed<TilemapTexture>,
                 Changed<TilemapTileSize>,
-                Changed<TilemapTextureSize>,
                 Changed<TilemapSpacing>,
                 Changed<TilemapMeshType>,
                 Changed<TilemapSize>,
@@ -173,12 +172,12 @@ pub fn extract(
                 ExtractedTilemapBundle {
                     transform: *data.1,
                     size: *data.2,
-                    texture_size: *data.3,
-                    spacing: *data.4,
-                    mesh_type: *data.5,
-                    texture: data.6.clone(),
-                    map_size: *data.7,
-                    visibility: data.8.clone(),
+                    texture_size: TilemapTextureSize::default(),
+                    spacing: *data.3,
+                    mesh_type: *data.4,
+                    texture: data.5.clone(),
+                    map_size: *data.6,
+                    visibility: data.7.clone(),
                 },
             ),
         );
@@ -205,12 +204,12 @@ pub fn extract(
                     ExtractedTilemapBundle {
                         transform: *data.1,
                         size: *data.2,
-                        texture_size: *data.3,
-                        spacing: *data.4,
-                        mesh_type: *data.5,
-                        texture: data.6.clone(),
-                        map_size: *data.7,
-                        visibility: data.8.clone(),
+                        texture_size: TilemapTextureSize::default(),
+                        spacing: *data.3,
+                        mesh_type: *data.4,
+                        texture: data.5.clone(),
+                        map_size: *data.6,
+                        visibility: data.7.clone(),
                     },
                 ),
             );
@@ -221,27 +220,29 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, texture_size, spacing, _, texture, _, _) in tilemap_query.iter() {
-        if let Some(_atlas_image) = images.get(&texture.0) {
+    for (entity, _, tile_size, spacing, _, texture, _, _) in tilemap_query.iter() {
+        let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
             #[cfg(not(feature = "atlas"))]
             if !_atlas_image
                 .texture_descriptor
                 .usage
                 .contains(TextureUsages::COPY_SRC)
             {
-                log::warn!("Texture atlas MUST have COPY_SRC texture usages defined! You may ignore this warning if the atlas already has the COPY_SRC usage flag. Please see: https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/helpers/texture.rs");
                 continue;
             }
+
+            _atlas_image.size().into()
         } else {
             continue;
-        }
+        };
 
         extracted_tilemap_textures.push((
             entity,
             ExtractedTilemapTextureBundle {
                 data: ExtractedTilemapTexture {
+                    tilemap_id: TilemapId(entity),
                     tile_size: *tile_size,
-                    texture_size: *texture_size,
+                    texture_size: texture_size,
                     spacing: *spacing,
                     texture: texture.clone(),
                 },

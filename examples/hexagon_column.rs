@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -57,7 +57,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size: tile_size.into(),
             size: tilemap_size,
             storage: tile_storage,
-            texture_size: TilemapTextureSize { x: 17.0, y: 105.0 },
             texture: TilemapTexture(texture_handle),
             tile_size,
             mesh_type: TilemapMeshType::Hexagon(HexType::Column),
@@ -92,11 +91,11 @@ fn main() {
             title: String::from("Hexagon Column Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .add_system(swap_mesh_type)
         .run();
 }

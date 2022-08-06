@@ -1,8 +1,5 @@
 use bevy_ecs_tilemap::{
-    map::{
-        TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTextureSize,
-        TilemapTileSize,
-    },
+    map::{TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTexture},
     TilemapBundle,
 };
@@ -177,11 +174,6 @@ pub fn process_loaded_tile_maps(
                             y: tileset.tile_grid_size as f32,
                         };
 
-                        let texture_size = TilemapTextureSize {
-                            x: tileset.px_wid as f32,
-                            y: tileset.px_hei as f32,
-                        };
-
                         // Pre-emptively create a map entity for tile creation
                         let map_entity = commands.spawn().id();
 
@@ -214,7 +206,6 @@ pub fn process_loaded_tile_maps(
                             grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
                             size,
                             storage,
-                            texture_size,
                             texture: TilemapTexture(texture),
                             tile_size,
                             transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(

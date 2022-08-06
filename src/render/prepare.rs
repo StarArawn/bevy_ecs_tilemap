@@ -4,7 +4,7 @@ use bevy::{
     math::{Mat4, UVec2, UVec4, Vec3Swizzles},
     prelude::{
         Commands, Component, ComputedVisibility, Entity, GlobalTransform, Query, Res, ResMut,
-        Transform,
+        Transform, Vec2,
     },
     render::{
         render_resource::{DynamicUniformBuffer, ShaderType},
@@ -36,7 +36,7 @@ pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos, chunk_position: &U
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
-    extract::{ExtractedRemovedMap, ExtractedRemovedTile, ExtractedTile},
+    extract::{ExtractedRemovedMap, ExtractedRemovedTile, ExtractedTile, ExtractedTilemapTexture},
     DynamicUniformIndex,
 };
 
@@ -45,7 +45,7 @@ pub struct MeshUniform {
     pub transform: Mat4,
 }
 
-pub fn prepare(
+pub(crate) fn prepare(
     mut commands: Commands,
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
     mut mesh_uniforms: ResMut<DynamicUniformBuffer<MeshUniform>>,
@@ -62,6 +62,7 @@ pub fn prepare(
         &TilemapSize,
         &ComputedVisibility,
     )>,
+    extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     seconds_since_startup: Res<SecondsSinceStartup>,
@@ -136,6 +137,15 @@ pub fn prepare(
             chunk.texture_size = (*texture_size).into();
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.is_visible();
+        }
+    }
+
+    for tilemap in extracted_tilemap_textures.iter() {
+        let texture_size: Vec2 = tilemap.texture_size.into();
+        let chunks =
+            chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, tilemap.tilemap_id.0.id()));
+        for chunk in chunks.values_mut() {
+            chunk.texture_size = texture_size;
         }
     }
 

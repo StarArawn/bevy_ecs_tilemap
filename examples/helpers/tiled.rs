@@ -160,11 +160,6 @@ pub fn process_loaded_maps(
                             y: tiled_map.map.height,
                         };
 
-                        let texture_size = TilemapTextureSize {
-                            x: tileset.images[0].width as f32,
-                            y: tileset.images[0].height as f32,
-                        };
-
                         let grid_size = TilemapGridSize {
                             x: tiled_map.map.tile_width as f32,
                             y: tiled_map.map.tile_height as f32,
@@ -231,7 +226,6 @@ pub fn process_loaded_maps(
                             grid_size,
                             size: map_size,
                             storage: tile_storage,
-                            texture_size,
                             texture: TilemapTexture(
                                 tiled_map
                                     .tilesets
