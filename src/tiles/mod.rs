@@ -9,7 +9,7 @@ pub use storage::*;
 use crate::map::TilemapId;
 
 /// A tile position in the tilemap grid.
-#[derive(Component, Default, Clone, Copy, Debug, Hash, PartialEq, PartialOrd)]
+#[derive(Component, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub struct TilePos {
     pub x: u32,
     pub y: u32,
