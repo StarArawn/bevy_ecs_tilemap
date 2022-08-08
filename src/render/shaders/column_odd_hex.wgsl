@@ -1,6 +1,6 @@
 struct Output {
-    world_position: vec4<f32>;
-    uv: vec2<f32>;
+    world_position: vec4<f32>,
+    uv: vec2<f32>,
 };
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
@@ -18,7 +18,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
 
     var position = position * tilemap_data.tile_size;
 
-    var offset = floor(0.25 * tilemap_data.tile_size.y);   
+    var offset = floor(0.25 * tilemap_data.tile_size.y);
     if (u32(vertex_position.x) % 2u == 0u) {
         position.y = position.y + offset;
     } else {

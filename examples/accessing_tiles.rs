@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -9,140 +9,118 @@ struct CurrentColor(u16);
 #[derive(Component)]
 struct LastUpdate(f64);
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(Camera2dBundle::default());
 
-    let texture_handle = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    // We can create maps by using the LayerBuilder
-    // LayerBuilder creates the tile entities and makes sure they are attached to chunks correctly.
-    // It also provides a way of accessing and viewing tiles during the creation phase.
-    // Once a LayerBuilder is passed to the map_query.build_layer function it is consumed and
-    // can no longer be accessed.
-    // Layer builder accepts a generic bundle that must implement the `TileBundleTrait`.
-    // This is used internally to access the tile in the bundle to attach the chunk correctly.
+    // Size of the tile map in tiles.
+    let tilemap_size = TilemapSize { x: 128, y: 128 };
 
-    // Create the layer builder
-    let (mut layer_builder, layer_entity) = LayerBuilder::<TileBundle>::new(
-        &mut commands,
-        LayerSettings::new(
-            MapSize(4, 4),
-            ChunkSize(32, 32),
-            TileSize(16.0, 16.0),
-            TextureSize(96.0, 16.0),
-        ),
-        0u16,
-        0u16,
-    );
+    // To create a map we use the TileStorage component.
+    // This component is a grid of tile entities and is used to help keep track of individual
+    // tiles in the world. If you have multiple layers of tiles you would have a Tilemap2dStorage
+    // component per layer.
+    let mut tile_storage = TileStorage::empty(tilemap_size);
 
-    // We can easily fill the entire map by using set_all
-    layer_builder.set_all(Tile::default().into());
+    // Create a tilemap entity a little early
+    // We want this entity early because we need to tell each tile which tilemap entity
+    // it is associated with. This is done with the TilemapId component on each tile.
+    let tilemap_entity = commands.spawn().id();
 
-    // You can also fill in a portion of the map
-    layer_builder.fill(
-        TilePos(0, 0),
-        TilePos(10, 10),
-        Tile {
-            texture_index: 1,
-            ..Default::default()
+    // Spawn a 32 by 32 tilemap.
+    for x in 0..tilemap_size.x {
+        for y in 0..tilemap_size.y {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    ..Default::default()
+                })
+                .id();
+            // Here we let the tile storage component know what tiles we have.
+            tile_storage.set(&tile_pos, Some(tile_entity));
         }
-        .into(),
-    );
+    }
 
-    let neighbors = layer_builder.get_tile_neighbors(TilePos(0, 0));
+    // We can grab a list of neighbors.
+    let neighbors = tile_storage.get_tile_neighbors(&TilePos { x: 0, y: 0 });
 
-    // We can access tiles like normal using:
-    assert!(layer_builder.get_tile(TilePos(0, 0)).is_ok());
+    // We can access tiles using:
+    assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
     assert!(neighbors.len() == 8);
     let neighbor_count = neighbors.iter().filter(|n| n.is_some()).count();
     assert!(neighbor_count == 3); // Only 3 neighbors since negative is outside of map.
 
+    // This changes some of our tiles by looking at neighbors.
     let mut color = 0;
     for x in (2..128).step_by(4) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors = get_neighboring_pos(TilePos(x, y));
-            for &pos in neighbors.iter() {
-                // We can set specific tiles like this:
-                let _ = layer_builder.set_tile(
-                    pos.expect("Tile position does not exist."),
-                    Tile {
-                        texture_index: color,
-                        ..Default::default()
-                    }
-                    .into(),
-                );
+            let neighbors = tile_storage.get_neighboring_pos(&TilePos { x, y });
+            for pos in neighbors.iter().filter_map(|pos| pos.as_ref()) {
+                // We can replace the tile texture component like so:
+                commands
+                    .entity(tile_storage.get(pos).unwrap())
+                    .insert(TileTexture(color));
             }
         }
     }
 
-    // Once build_layer is called you can no longer access the tiles in this system.
-    map_query.build_layer(&mut commands, layer_builder, texture_handle);
+    // This is the size of each individual tiles in pixels.
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
+    // Spawns a tilemap.
+    // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands
-        .entity(layer_entity)
-        .insert(CurrentColor(1))
-        .insert(LastUpdate(0.0));
-
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
-
-    // Required to keep track of layers for a map internally.
-    map.add_layer(&mut commands, 0u16, layer_entity);
-
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
-    commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-1024.0, -1024.0, 0.0))
-        .insert(GlobalTransform::default());
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture: TilemapTexture(texture_handle),
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
+            ..Default::default()
+        })
+        .insert(LastUpdate(0.0))
+        .insert(CurrentColor(1));
 }
 
-// Should run after the commands from startup have been processed.
-// An example of how to manipulate tiles.
+// A system that manipulates tile colors.
 fn update_map(
     time: Res<Time>,
-    mut extra_data_query: Query<(&mut CurrentColor, &mut LastUpdate)>,
-    mut tile_query: Query<&mut Tile>,
-    mut map_query: MapQuery,
+    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &TileStorage)>,
+    mut tile_query: Query<&mut TileTexture>,
 ) {
     let current_time = time.seconds_since_startup();
-    for (mut current_color, mut last_update) in extra_data_query.iter_mut() {
-        if (current_time - last_update.0) > 0.1 {
+    for (mut current_color, mut last_update, tile_storage) in tilemap_query.iter_mut() {
+        if current_time - last_update.0 > 0.1 {
             current_color.0 += 1;
             if current_color.0 > 5 {
                 current_color.0 = 1;
             }
+
             let mut color = current_color.0;
+
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
-                    // First we get the neighboring entities for the given tile.
-                    let neighboring_tile_pos = get_neighboring_pos(TilePos(x, y));
-                    let neighboring_entities =
-                        map_query.get_tile_neighbors(TilePos(x, y), 0u16, 0u16);
+                    // Grab the neighboring tiles
+                    let neighboring_entities = tile_storage.get_tile_neighbors(&TilePos { x, y });
 
-                    // Iterating over each neighbor
+                    // Iterate over neighbors
                     for i in 0..8 {
-                        if neighboring_entities[i].is_ok() {
-                            // We query tiles using a query coming from this system.
-                            // This has the add advantage of being able to query "extra" data per tile.
-                            if let Ok(mut tile) =
-                                tile_query.get_mut(neighboring_entities[i].unwrap())
-                            {
-                                *tile = Tile {
-                                    texture_index: color,
-                                    ..Default::default()
-                                };
-                                // Finally after mutating the tile we can tell the internal systems to "remesh" the tilemap.
-                                // This sends the new tile data to the gpu.
-                                map_query.notify_chunk_for_tile(
-                                    neighboring_tile_pos[i].unwrap(),
-                                    0u16,
-                                    0u16,
-                                );
+                        if let Some(neighbor) = neighboring_entities[i] {
+                            // Query the tile entities to change the colors
+                            if let Ok(mut tile_texture) = tile_query.get_mut(neighbor) {
+                                tile_texture.0 = color as u32;
                             }
                         }
                     }
@@ -152,7 +130,6 @@ fn update_map(
                     color = 1;
                 }
             }
-
             last_update.0 = current_time;
         }
     }
@@ -163,14 +140,14 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Accessing tiles"),
+            title: String::from("Basic Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
-        .add_system(update_map)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(update_map)
         .run();
 }

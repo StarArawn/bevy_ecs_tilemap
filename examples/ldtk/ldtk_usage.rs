@@ -1,21 +1,28 @@
+//! This example is capable of spawning tilemaps from [LDtk](https://ldtk.io) files.
+//!
+//! It can load the AutoTile and Tile layers of simple LDtk levels.
+//! However, it does have limitations.
+//! Some edge cases around tileset definitions and layer definitions haven't been considered here.
+//! Furthermore, since this example is primarily concerned with the tilemap functionality,
+//! there's no solution built in for Entity or Intgrid layers.
+//!
+//! For a more comprehensive LDtk solution, consider [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk), which uses bevy_ecs_tilemap internally.
+
 use crate::ldtk::*;
-use bevy::{asset::AssetServerSettings, prelude::*};
-use bevy_ecs_tilemap::prelude::*;
+use bevy::{asset::AssetServerSettings, prelude::*, render::texture::ImageSettings};
+use bevy_ecs_tilemap::*;
 
 #[path = "../helpers/mod.rs"]
 mod helpers;
 mod ldtk;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     let handle: Handle<LdtkMap> = asset_server.load("map.ldtk");
 
-    let map_entity = commands.spawn().id();
-
-    commands.entity(map_entity).insert_bundle(LdtkMapBundle {
+    commands.spawn().insert_bundle(LdtkMapBundle {
         ldtk_map: handle,
-        map: Map::new(0u16, map_entity),
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()
     });
@@ -33,11 +40,11 @@ fn main() {
             watch_for_changes: true,
             ..default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(LdtkPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
         .run();
 }

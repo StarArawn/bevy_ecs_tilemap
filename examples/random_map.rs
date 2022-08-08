@@ -1,61 +1,55 @@
-use std::collections::HashSet;
-
 use bevy::{
-    core::Time,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
-    render::camera::OrthographicCameraBundle,
-    window::WindowDescriptor,
+    render::texture::ImageSettings,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 mod helpers;
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(Camera2dBundle::default());
 
-    let texture_handle = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    // Create map entity and component:
-    let map_entity = commands.spawn().id();
-    let mut map = Map::new(0u16, map_entity);
+    let tilemap_size = TilemapSize { x: 320, y: 320 };
+    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let tilemap_entity = commands.spawn().id();
 
-    let layer_settings = LayerSettings::new(
-        MapSize(10, 10),
-        ChunkSize(64, 64),
-        TileSize(16.0, 16.0),
-        TextureSize(96.0, 16.0),
-    );
-
-    let center = layer_settings.get_pixel_center();
-
-    // Chunk sizes of 64x64 seem optimal for meshing updates.
-    let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, layer_settings, 0u16, 0u16);
-    map.add_layer(&mut commands, 0u16, layer_entity);
-
-    layer_builder.for_each_tiles_mut(|tile_entity, tile_data| {
-        // True here refers to tile visibility.
-        *tile_data = Some(TileBundle::default());
-        // Tile entity might not exist at this point so you'll need to create it.
-        if tile_entity.is_none() {
-            *tile_entity = Some(commands.spawn().id());
+    for x in 0..320u32 {
+        for y in 0..320u32 {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    ..Default::default()
+                })
+                .insert(LastUpdate::default())
+                .id();
+            tile_storage.set(&tile_pos, Some(tile_entity));
         }
-        commands
-            .entity(tile_entity.unwrap())
-            .insert(LastUpdate::default());
-    });
+    }
 
-    map_query.build_layer(&mut commands, layer_builder, texture_handle);
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
-    // Spawn Map
-    // Required in order to use map_query to retrieve layers/tiles.
     commands
-        .entity(map_entity)
-        .insert(map)
-        .insert(Transform::from_xyz(-center.x, -center.y, 0.0))
-        .insert(GlobalTransform::default());
+        .entity(tilemap_entity)
+        .insert_bundle(TilemapBundle {
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            size: tilemap_size,
+            storage: tile_storage,
+            texture: TilemapTexture(texture_handle),
+            tile_size,
+            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                &tilemap_size,
+                &tile_size,
+                0.0,
+            ),
+            ..Default::default()
+        });
 }
 
 #[derive(Default, Component)]
@@ -65,25 +59,13 @@ struct LastUpdate {
 
 // In this example it's better not to use the default `MapQuery` SystemParam as
 // it's faster to do it this way:
-fn random(
-    time: ResMut<Time>,
-    mut query: Query<(&mut Tile, &TileParent, &mut LastUpdate)>,
-    mut chunk_query: Query<&mut Chunk>,
-) {
+fn random(time: ResMut<Time>, mut query: Query<(&mut TileTexture, &mut LastUpdate)>) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
-    let mut chunks = HashSet::new();
-    for (mut tile, tile_parent, mut last_update) in query.iter_mut() {
-        if (current_time - last_update.value) > 0.05 {
-            tile.texture_index = random.gen_range(0..6);
+    for (mut tile, mut last_update) in query.iter_mut() {
+        if (current_time - last_update.value) > 0.2 {
+            tile.0 = random.gen_range(0..6);
             last_update.value = current_time;
-            chunks.insert(tile_parent.chunk);
-        }
-    }
-
-    for chunk_entity in chunks.drain() {
-        if let Ok(mut chunk) = chunk_query.get_mut(chunk_entity) {
-            chunk.needs_remesh = true;
         }
     }
 }
@@ -96,13 +78,13 @@ fn main() {
             title: String::from("Random Map Example"),
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
-        .add_system(random)
         .add_system(helpers::camera::movement)
-        .add_system(helpers::texture::set_texture_filters_to_nearest)
+        .add_system(random)
         .run();
 }

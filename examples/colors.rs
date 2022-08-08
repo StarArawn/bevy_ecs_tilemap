@@ -1,64 +1,96 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
+
 mod helpers;
+
+fn fill_tilemap_rect_color(
+    tile_texture: TileTexture,
+    pos: TilePos,
+    size: TilemapSize,
+    color: Color,
+    tilemap_id: TilemapId,
+    commands: &mut Commands,
+    tile_storage: &mut TileStorage,
+) {
+    for x in pos.x..size.x {
+        for y in pos.y..size.y {
+            let tile_pos = TilePos { x, y };
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: tilemap_id,
+                    texture: tile_texture,
+                    color: TileColor(color),
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, Some(tile_entity));
+        }
+    }
+}
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
-    let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
+    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
     let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(0),
+    fill_tilemap_rect_color(
+        TileTexture(5),
         TilePos { x: 0, y: 0 },
         TilemapSize { x: 128, y: 128 },
+        Color::rgba(1.0, 0.0, 0.0, 1.0),
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(1),
+    fill_tilemap_rect_color(
+        TileTexture(5),
         TilePos { x: 64, y: 0 },
         TilemapSize { x: 128, y: 64 },
+        Color::rgba(1.0, 1.0, 0.0, 1.0),
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(2),
+    fill_tilemap_rect_color(
+        TileTexture(5),
         TilePos { x: 0, y: 64 },
         TilemapSize { x: 64, y: 128 },
+        Color::rgba(0.0, 1.0, 0.0, 1.0),
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(3),
+    fill_tilemap_rect_color(
+        TileTexture(5),
         TilePos { x: 64, y: 64 },
         TilemapSize { x: 128, y: 128 },
+        Color::rgba(0.0, 0.0, 1.0, 1.0),
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
+    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 64.0, y: 32.0 },
+            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Isometric(IsoType::Diamond),
+            mesh_type: TilemapMeshType::Square,
             ..Default::default()
         });
 }

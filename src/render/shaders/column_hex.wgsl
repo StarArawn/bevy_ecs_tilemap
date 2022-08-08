@@ -1,6 +1,6 @@
 struct Output {
-    world_position: vec4<f32>;
-    uv: vec2<f32>;
+    world_position: vec4<f32>,
+    uv: vec2<f32>,
 };
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {

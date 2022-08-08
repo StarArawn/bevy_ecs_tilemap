@@ -1,7 +1,7 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.6.0"
+version = "0.7.0"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
@@ -10,35 +10,27 @@ edition = "2021"
 exclude = ["assets/*", "screenshots/*"]
 
 [features]
-default = []
+default = ["render"]
 atlas = []
+render = []
 
 [dependencies]
-bevy = { version = "0.7", default-features = false, features = ["bevy_render","bevy_core_pipeline","bevy_sprite"] }
+bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset"] }
 log = "0.4"
 regex = "1.5.4"
-bytemuck = "1.7.2"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { version = "0.7" }
-ldtk_rust = { version = "0.5" }
+bevy = { version = "0.8" }
+ldtk_rust = { version = "0.6" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
-tiled = { version = "0.10.1", default-features = false }
+tiled = { version = "0.9", default-features = false }
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
 
 [[example]]
 name = "ldtk"
 path = "examples/ldtk/ldtk_usage.rs"
-
-[[example]]
-name = "tiled"
-path = "examples/tiled/tiled_usage.rs"
-
-[[example]]
-name = "tiled_rotate"
-path = "examples/tiled/tiled_rotate.rs"
-
-[target.wasm32-unknown-unknown]
-runner = "wasm-server-runner"

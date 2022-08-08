@@ -5,7 +5,7 @@ mod helpers;
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
-    let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
+    let texture_handle: Handle<Image> = asset_server.load("pointy_hex_tiles.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
     let mut tile_storage = TileStorage::empty(tilemap_size);
@@ -48,19 +48,38 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
+    let tile_size = TilemapTileSize { x: 15.0, y: 17.0 };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 64.0, y: 32.0 },
+            grid_size: tile_size.into(),
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Isometric(IsoType::Diamond),
+            mesh_type: TilemapMeshType::Hexagon(HexType::Row),
             ..Default::default()
         });
+}
+
+fn swap_mesh_type(mut query: Query<&mut TilemapMeshType>, keyboard_input: Res<Input<KeyCode>>) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        for mut tilemap_mesh_type in query.iter_mut() {
+            match *tilemap_mesh_type {
+                TilemapMeshType::Hexagon(HexType::Row) => {
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowEven);
+                }
+                TilemapMeshType::Hexagon(HexType::RowEven) => {
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowOdd);
+                }
+                TilemapMeshType::Hexagon(HexType::RowOdd) => {
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::Row);
+                }
+                _ => {}
+            }
+        }
+    }
 }
 
 fn main() {
@@ -68,7 +87,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Iso Diamond Example"),
+            title: String::from("Hexagon Row Example"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
@@ -76,5 +95,6 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
+        .add_system(swap_mesh_type)
         .run();
 }
