@@ -8,7 +8,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
 
     var offset = vec2<f32>(
         vertex_position.x * floor(-0.25 * tilemap_data.grid_size.x),
-        ceil(0.5 * tilemap_data.grid_size.y)
+        vertex_position.x * ceil(0.5 * tilemap_data.grid_size.y)
     );
     var position = vertex_position.xy * tilemap_data.grid_size + offset;
 
