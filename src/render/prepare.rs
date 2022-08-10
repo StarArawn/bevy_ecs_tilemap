@@ -12,7 +12,6 @@ use bevy::{
     },
 };
 
-use crate::render::SecondsSinceStartup;
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
@@ -21,6 +20,7 @@ use crate::{
     },
     tiles::TilePos,
 };
+use crate::{prelude::TilemapGridSize, render::SecondsSinceStartup};
 
 pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 
@@ -57,6 +57,7 @@ pub(crate) fn prepare(
         &TilemapTileSize,
         &TilemapTextureSize,
         &TilemapSpacing,
+        &TilemapGridSize,
         &TilemapMeshType,
         &TilemapTexture,
         &TilemapSize,
@@ -75,6 +76,7 @@ pub(crate) fn prepare(
             tile_size,
             texture_size,
             spacing,
+            grid_size,
             mesh_type,
             texture,
             map_size,
@@ -97,6 +99,7 @@ pub(crate) fn prepare(
             (*tile_size).into(),
             (*texture_size).into(),
             (*spacing).into(),
+            (*grid_size).into(),
             texture.clone(),
             *map_size,
             *transform,
@@ -121,6 +124,7 @@ pub(crate) fn prepare(
         tile_size,
         texture_size,
         spacing,
+        grid_size,
         mesh_type,
         texture,
         map_size,
@@ -136,6 +140,7 @@ pub(crate) fn prepare(
             chunk.tile_size = (*tile_size).into();
             chunk.texture_size = (*texture_size).into();
             chunk.spacing = (*spacing).into();
+            chunk.grid_size = (*grid_size).into();
             chunk.visible = visibility.is_visible();
         }
     }

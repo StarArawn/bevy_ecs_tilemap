@@ -49,11 +49,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     let tile_size = TilemapTileSize { x: 15.0, y: 17.0 };
+    let grid_size = TilemapGridSize { x: 15.0, y: 17.0 };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: tile_size.into(),
+            grid_size,
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
