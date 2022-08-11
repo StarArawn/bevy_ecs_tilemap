@@ -1,6 +1,6 @@
 use bevy::{
     math::Vec2,
-    prelude::{Commands, Transform},
+    prelude::{BuildChildren, Commands, Transform},
 };
 
 use crate::{
@@ -89,6 +89,7 @@ pub fn fill_tilemap(
                     ..Default::default()
                 })
                 .id();
+            commands.entity(tilemap_id.0).add_child(tile_entity);
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
     }

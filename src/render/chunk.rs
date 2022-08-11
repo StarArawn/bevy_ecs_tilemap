@@ -96,6 +96,15 @@ impl RenderChunk2dStorage {
         chunk_storage.get_mut(&position.xyz()).unwrap()
     }
 
+    pub fn remove_tile_with_entity(&mut self, entity: Entity) {
+        if let Some((chunk, tile_pos)) = self.get_mut_from_entity(entity) {
+            chunk.set(&tile_pos.into(), None);
+        }
+
+        self.entity_to_chunk.remove(&entity);
+        self.entity_to_chunk_tile.remove(&entity);
+    }
+
     pub fn get_mut_from_entity(&mut self, entity: Entity) -> Option<(&mut RenderChunk2d, UVec2)> {
         if !self.entity_to_chunk_tile.contains_key(&entity) {
             return None;
