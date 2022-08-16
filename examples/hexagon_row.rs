@@ -8,7 +8,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("pointy_hex_tiles.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage =
+        TilemapStorage::empty(TilemapMeshType::Hexagon(HexType::Row), tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
@@ -59,23 +60,22 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Hexagon(HexType::Row),
             ..Default::default()
         });
 }
 
-fn swap_mesh_type(mut query: Query<&mut TilemapMeshType>, keyboard_input: Res<Input<KeyCode>>) {
+fn swap_mesh_type(mut query: Query<&mut TilemapStorage>, keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for mut tilemap_mesh_type in query.iter_mut() {
-            match *tilemap_mesh_type {
+        for mut tilemap_storage in query.iter_mut() {
+            match tilemap_storage.get_mesh_type() {
                 TilemapMeshType::Hexagon(HexType::Row) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowEven);
+                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::RowEven));
                 }
                 TilemapMeshType::Hexagon(HexType::RowEven) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowOdd);
+                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::RowOdd));
                 }
                 TilemapMeshType::Hexagon(HexType::RowOdd) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::Row);
+                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::Row));
                 }
                 _ => {}
             }

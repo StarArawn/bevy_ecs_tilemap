@@ -89,7 +89,7 @@ pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
-    tile_storage_query: Query<(Entity, &TileStorage)>,
+    tile_storage_query: Query<(Entity, &TilemapStorage)>,
     mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
 ) {
@@ -176,7 +176,7 @@ pub fn process_loaded_maps(
                             tiled::Orientation::Orthogonal => TilemapMeshType::Square,
                         };
 
-                        let mut tile_storage = TileStorage::empty(map_size);
+                        let mut tile_storage = TilemapStorage::empty(mesh_type, map_size);
                         let layer_entity = commands.spawn().id();
 
                         for x in 0..map_size.x {
@@ -240,7 +240,6 @@ pub fn process_loaded_maps(
                                 &tile_size,
                                 layer.layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
-                            mesh_type,
                             ..Default::default()
                         });
 

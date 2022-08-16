@@ -9,7 +9,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 512, y: 512 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     let mut i = 0;
@@ -56,7 +56,7 @@ pub struct LastUpdate(f64);
 fn update(
     mut commands: Commands,
     time: Res<Time>,
-    mut tile_storage_query: Query<(&TileStorage, &mut LastUpdate)>,
+    mut tile_storage_query: Query<(&TilemapStorage, &mut LastUpdate)>,
     tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
     let current_time = time.seconds_since_startup();

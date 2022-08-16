@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::{
     map::{HexType, IsoType, TilemapId, TilemapMeshType, TilemapSize, TilemapTileSize},
-    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
+    tiles::{TileBundle, TilePos, TileTexture, TilemapStorage},
 };
 
 /// Converts a tile position into an index in a vector.
@@ -75,7 +75,7 @@ pub fn fill_tilemap(
     size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
-    tile_storage: &mut TileStorage,
+    tile_storage: &mut TilemapStorage,
 ) {
     for x in 0..size.x {
         for y in 0..size.y {
@@ -101,7 +101,7 @@ pub fn fill_tilemap_rect(
     size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
-    tile_storage: &mut TileStorage,
+    tile_storage: &mut TilemapStorage,
 ) {
     for x in pos.x..size.x {
         for y in pos.y..size.y {

@@ -10,7 +10,7 @@ fn fill_tilemap_rect_color(
     color: Color,
     tilemap_id: TilemapId,
     commands: &mut Commands,
-    tile_storage: &mut TileStorage,
+    tile_storage: &mut TilemapStorage,
 ) {
     for x in pos.x..size.x {
         for y in pos.y..size.y {
@@ -36,7 +36,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
@@ -90,7 +90,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Square,
             ..Default::default()
         });
 }

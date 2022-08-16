@@ -13,7 +13,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 1280, y: 1280 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     bevy_ecs_tilemap::helpers::fill_tilemap(

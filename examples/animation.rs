@@ -4,7 +4,7 @@ use bevy::{
     render::texture::ImageSettings,
 };
 use bevy_ecs_tilemap::prelude::*;
-use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTexture};
+use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileTexture, TilemapStorage};
 use bevy_ecs_tilemap::{TilemapBundle, TilemapPlugin};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
@@ -15,6 +15,7 @@ struct TilemapMetadata {
     size: TilemapSize,
     tile_size: TilemapTileSize,
     grid_size: TilemapGridSize,
+    mesh_type: TilemapMeshType,
 }
 
 const BACKGROUND: &'static str = "tiles.png";
@@ -22,6 +23,7 @@ const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
     size: TilemapSize { x: 20, y: 20 },
     tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+    mesh_type: TilemapMeshType::Square,
 };
 
 const FLOWERS: &'static str = "flower_sheet.png";
@@ -29,6 +31,7 @@ const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
     size: TilemapSize { x: 10, y: 10 },
     tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+    mesh_type: TilemapMeshType::Square,
 };
 
 fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -40,9 +43,10 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         size,
         grid_size,
         tile_size,
+        mesh_type,
     } = BACKGROUND_METADATA;
 
-    let mut tilemap_storage = TileStorage::empty(size);
+    let mut tilemap_storage = TilemapStorage::empty(mesh_type, size);
 
     for x in 0..size.x {
         for y in 0..size.y {
@@ -80,9 +84,10 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         size,
         grid_size,
         tile_size,
+        mesh_type,
     } = FLOWERS_METADATA;
 
-    let mut tilemap_storage = TileStorage::empty(size);
+    let mut tilemap_storage = TilemapStorage::empty(mesh_type, size);
 
     let tilemap_entity = commands.spawn().id();
 

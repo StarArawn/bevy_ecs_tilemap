@@ -20,7 +20,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // This component is a grid of tile entities and is used to help keep track of individual
     // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
     // per layer, each with their own `TileStorage` component.
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
 
     // Spawn the elements of the tilemap.
     for x in 0..32u32 {

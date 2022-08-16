@@ -1,24 +1,35 @@
 use bevy::prelude::*;
 
 use crate::map::TilemapSize;
+use crate::TilemapMeshType;
 
 use super::TilePos;
 
 /// Used to store tile entities for fast look up.
 /// Tile entities are stored in a grid. The grid is always filled with None.
 #[derive(Component, Default, Debug, Clone)]
-pub struct TileStorage {
+pub struct TilemapStorage {
+    mesh_type: TilemapMeshType,
     tiles: Vec<Option<Entity>>,
     size: TilemapSize,
 }
 
-impl TileStorage {
+impl TilemapStorage {
     /// Creates a new tile storage that is empty.
-    pub fn empty(size: TilemapSize) -> Self {
+    pub fn empty(mesh_type: TilemapMeshType, size: TilemapSize) -> Self {
         Self {
+            mesh_type,
             tiles: vec![None; size.count()],
             size,
         }
+    }
+
+    pub fn get_mesh_type(&self) -> TilemapMeshType {
+        self.mesh_type
+    }
+
+    pub fn set_mesh_type(&mut self, mesh_type: TilemapMeshType) {
+        self.mesh_type = mesh_type;
     }
 
     /// Gets a tile entity for the given tile position.
@@ -32,12 +43,12 @@ impl TileStorage {
     }
 
     /// Returns an iterator with all of the positions in the grid.
-    pub fn iter(&self) -> impl std::iter::Iterator<Item = &Option<Entity>> {
+    pub fn iter(&self) -> impl Iterator<Item = &Option<Entity>> {
         self.tiles.iter()
     }
 
     /// Returns an immutable iterator with all of the positions in the grid.
-    pub fn iter_mut(&mut self) -> impl std::iter::Iterator<Item = &mut Option<Entity>> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Option<Entity>> {
         self.tiles.iter_mut()
     }
 
@@ -46,7 +57,6 @@ impl TileStorage {
     ///
     /// None will be returned if no valid entity is found at the appropriate coordinate,
     /// including if the tile is at the edge of the map.
-    ///
     pub fn get_tile_neighbors(&self, tile_pos: &TilePos) -> Vec<Option<Entity>> {
         let neighboring_tile_pos = self.get_neighboring_pos(tile_pos);
 

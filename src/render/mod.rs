@@ -19,7 +19,7 @@ use bevy::render::renderer::RenderDevice;
 
 use crate::{
     prelude::TilemapTexture,
-    tiles::{TilePos, TileStorage},
+    tiles::{TilePos, TilemapStorage},
 };
 
 use self::{
@@ -206,7 +206,10 @@ fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TileP
     }
 }
 
-fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<TileStorage>) {
+fn removal_helper_tilemap(
+    mut commands: Commands,
+    removed_query: RemovedComponents<TilemapStorage>,
+) {
     for entity in removed_query.iter() {
         commands.spawn().insert(RemovedMapEntity(entity));
     }
