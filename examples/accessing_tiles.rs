@@ -21,7 +21,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // This component is a grid of tile entities and is used to help keep track of individual
     // tiles in the world. If you have multiple layers of tiles you would have a Tilemap2dStorage
     // component per layer.
-    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity
@@ -97,7 +97,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 // A system that manipulates tile colors.
 fn update_map(
     time: Res<Time>,
-    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &TilemapStorage)>,
+    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &TileStorage)>,
     mut tile_query: Query<&mut TileTexture>,
 ) {
     let current_time = time.seconds_since_startup();

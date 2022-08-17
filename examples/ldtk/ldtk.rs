@@ -1,6 +1,6 @@
 use bevy_ecs_tilemap::{
     map::{TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
-    tiles::{TileBundle, TilePos, TileTexture, TilemapStorage},
+    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
     TilemapBundle,
 };
 use std::collections::HashMap;
@@ -178,7 +178,7 @@ pub fn process_loaded_tile_maps(
                         let map_entity = commands.spawn().id();
 
                         // Create tiles for this layer from LDtk's grid_tiles and auto_layer_tiles
-                        let mut storage = TilemapStorage::empty(size);
+                        let mut storage = TileStorage::empty(size);
 
                         for tile in layer.grid_tiles.iter().chain(layer.auto_layer_tiles.iter()) {
                             let mut position = TilePos {

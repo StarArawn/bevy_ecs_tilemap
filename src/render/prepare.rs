@@ -15,10 +15,10 @@ use bevy::{
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
-        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
+        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
+        TilemapTextureSize, TilemapTileSize,
     },
     tiles::TilePos,
-    TilemapMeshType,
 };
 use crate::{prelude::TilemapGridSize, render::SecondsSinceStartup};
 

@@ -10,7 +10,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_size = TilemapSize { x: 32, y: 32 };
 
     // Layer 1
-    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     bevy_ecs_tilemap::helpers::fill_tilemap(
@@ -40,7 +40,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 
     // Layer 2
-    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     bevy_ecs_tilemap::helpers::fill_tilemap(

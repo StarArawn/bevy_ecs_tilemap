@@ -7,7 +7,7 @@ const CHUNK_SIZE: TilemapSize = TilemapSize { x: 32, y: 32 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
     let tilemap_entity = commands.spawn().id();
-    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, CHUNK_SIZE);
+    let mut tile_storage = TileStorage::empty(CHUNK_SIZE);
     // Spawn the elements of the tilemap.
     for x in 0..32u32 {
         for y in 0..32u32 {
@@ -76,7 +76,7 @@ fn spawn_chunks_around_camera(
 fn despawn_outofrange_chunks(
     mut commands: Commands,
     camera_query: Query<&Transform, With<Camera>>,
-    chunks_query: Query<(Entity, &Transform), With<TilemapStorage>>,
+    chunks_query: Query<(Entity, &Transform), With<TileStorage>>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
     for camera_transform in camera_query.iter() {

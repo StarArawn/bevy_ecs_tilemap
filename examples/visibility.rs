@@ -10,7 +10,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 32, y: 32 };
-    let mut tile_storage = TilemapStorage::empty(TilemapMeshType::Square, tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
     for x in 0..32u32 {
@@ -55,7 +55,7 @@ struct LastUpdate {
 
 fn remove_tiles(
     time: Res<Time>,
-    mut last_update_query: Query<(&mut LastUpdate, &TilemapStorage)>,
+    mut last_update_query: Query<(&mut LastUpdate, &TileStorage)>,
     mut tile_query: Query<&mut TileVisible>,
 ) {
     let current_time = time.seconds_since_startup();

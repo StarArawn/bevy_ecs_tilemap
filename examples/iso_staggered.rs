@@ -9,8 +9,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage =
-        TilemapStorage::empty(TilemapMeshType::Isometric(IsoType::Staggered), tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
@@ -60,6 +59,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
+            mesh_type: TilemapMeshType::Isometric(IsoType::Staggered),
             ..Default::default()
         });
 }

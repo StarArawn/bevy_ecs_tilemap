@@ -11,7 +11,6 @@ use crate::{
         TilemapTextureSize, TilemapTileSize,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
-    TilemapStorage,
 };
 
 use super::RemovedMapEntity;
@@ -56,7 +55,7 @@ pub struct ExtractedRemovedMapBundle {
 #[derive(Bundle)]
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
-    tile_size: TilemapTileSize,
+    size: TilemapTileSize,
     grid_size: TilemapGridSize,
     texture_size: TilemapTextureSize,
     spacing: TilemapSpacing,
@@ -111,7 +110,7 @@ pub fn extract(
             &TilemapTileSize,
             &TilemapSpacing,
             &TilemapGridSize,
-            &TilemapStorage,
+            &TilemapMeshType,
             &TilemapTexture,
             &TilemapSize,
             &ComputedVisibility,
@@ -121,11 +120,14 @@ pub fn extract(
         Query<
             Entity,
             Or<(
+                Added<TilemapMeshType>,
+                Changed<TilemapMeshType>,
                 Changed<GlobalTransform>,
                 Changed<TilemapTexture>,
                 Changed<TilemapTileSize>,
                 Changed<TilemapSpacing>,
                 Changed<TilemapGridSize>,
+                Changed<TilemapMeshType>,
                 Changed<TilemapSize>,
                 Changed<ComputedVisibility>,
             )>,
@@ -168,16 +170,16 @@ pub fn extract(
         let data = tilemap_query.get(tilemap_id.0).unwrap();
 
         extracted_tilemaps.insert(
-            entity,
+            data.0,
             (
                 data.0,
                 ExtractedTilemapBundle {
                     transform: *data.1,
-                    tile_size: *data.2,
+                    size: *data.2,
                     texture_size: TilemapTextureSize::default(),
                     spacing: *data.3,
                     grid_size: *data.4,
-                    mesh_type: (*data.5).get_mesh_type(),
+                    mesh_type: *data.5,
                     texture: data.6.clone(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
@@ -206,11 +208,11 @@ pub fn extract(
                     data.0,
                     ExtractedTilemapBundle {
                         transform: *data.1,
-                        tile_size: *data.2,
+                        size: *data.2,
                         texture_size: TilemapTextureSize::default(),
                         spacing: *data.3,
                         grid_size: *data.4,
-                        mesh_type: (*data.5).get_mesh_type(),
+                        mesh_type: *data.5,
                         texture: data.6.clone(),
                         map_size: *data.7,
                         visibility: data.8.clone(),

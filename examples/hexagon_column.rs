@@ -9,8 +9,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("flat_hex_tiles.png");
 
     let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage =
-        TilemapStorage::empty(TilemapMeshType::Hexagon(HexType::Column), tilemap_size);
+    let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
@@ -61,22 +60,23 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
+            mesh_type: TilemapMeshType::Hexagon(HexType::Column),
             ..Default::default()
         });
 }
 
-fn swap_mesh_type(mut query: Query<&mut TilemapStorage>, keyboard_input: Res<Input<KeyCode>>) {
+fn swap_mesh_type(mut query: Query<&mut TilemapMeshType>, keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for mut tilemap_storage in query.iter_mut() {
-            match tilemap_storage.get_mesh_type() {
+        for mut tilemap_mesh_type in query.iter_mut() {
+            match *tilemap_mesh_type {
                 TilemapMeshType::Hexagon(HexType::Column) => {
-                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::ColumnEven));
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::ColumnEven);
                 }
                 TilemapMeshType::Hexagon(HexType::ColumnEven) => {
-                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::ColumnOdd));
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::ColumnOdd);
                 }
                 TilemapMeshType::Hexagon(HexType::ColumnOdd) => {
-                    tilemap_storage.set_mesh_type(TilemapMeshType::Hexagon(HexType::Column));
+                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::Column);
                 }
                 _ => {}
             }

@@ -150,14 +150,13 @@ pub enum IsoType {
 pub enum TilemapMeshType {
     /// Used to change the rendering mode to typical square tilemaps which is the default.
     Square,
-    /// Used to change the rendering mode to hexagons. Note: The HexType determines the positioning strategy.
+    /// Used to change the rendering mode to hexagons. Note: The HexType determines the position strategy.
     Hexagon(HexType),
     /// Used to change the rendering mode to Isometric. Note: The IsoType determines the positioning strategy.
     Isometric(IsoType),
 }
 
 impl Default for TilemapMeshType {
-    /// The default is `TilemapMeshType::Square`.
     fn default() -> Self {
         Self::Square
     }
