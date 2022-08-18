@@ -3,14 +3,14 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
-const CHUNK_SIZE: TilemapSize = TilemapSize { x: 32, y: 32 };
+const CHUNK_SIZE: TilemapSize = TilemapSize { x: 4, y: 4 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
     let tilemap_entity = commands.spawn().id();
     let mut tile_storage = TileStorage::empty(CHUNK_SIZE);
     // Spawn the elements of the tilemap.
-    for x in 0..32u32 {
-        for y in 0..32u32 {
+    for x in 0..CHUNK_SIZE.x {
+        for y in 0..CHUNK_SIZE.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
@@ -20,6 +20,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
                     ..Default::default()
                 })
                 .id();
+            commands.entity(tilemap_entity).add_child(tile_entity);
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
     }
@@ -76,14 +77,14 @@ fn spawn_chunks_around_camera(
 fn despawn_outofrange_chunks(
     mut commands: Commands,
     camera_query: Query<&Transform, With<Camera>>,
-    chunks_query: Query<(Entity, &Transform), With<TileStorage>>,
+    chunks_query: Query<(Entity, &Transform, &TileStorage)>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
     for camera_transform in camera_query.iter() {
-        for (entity, chunk_transform) in chunks_query.iter() {
+        for (entity, chunk_transform, tile_storage) in chunks_query.iter() {
             let chunk_pos = chunk_transform.translation.xy();
             let distance = camera_transform.translation.xy().distance(chunk_pos);
-            if distance > 2048.0 {
+            if distance > 320.0 {
                 let x = (chunk_pos.x as f32 / (CHUNK_SIZE.x as f32 * TILE_SIZE.x)).floor() as i32;
                 let y = (chunk_pos.y as f32 / (CHUNK_SIZE.y as f32 * TILE_SIZE.y)).floor() as i32;
                 chunk_manager.spawned_chunks.remove(&IVec2::new(x, y));
