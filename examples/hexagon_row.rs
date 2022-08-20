@@ -59,23 +59,23 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Hexagon(HexType::Row),
+            map_type: TilemapType::Hexagon(HexCoordSystem::Row),
             ..Default::default()
         });
 }
 
-fn swap_mesh_type(mut query: Query<&mut TilemapMeshType>, keyboard_input: Res<Input<KeyCode>>) {
+fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut tilemap_mesh_type in query.iter_mut() {
             match *tilemap_mesh_type {
-                TilemapMeshType::Hexagon(HexType::Row) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowEven);
+                TilemapType::Hexagon(HexCoordSystem::Row) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
                 }
-                TilemapMeshType::Hexagon(HexType::RowEven) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowOdd);
+                TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::RowOdd);
                 }
-                TilemapMeshType::Hexagon(HexType::RowOdd) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::Row);
+                TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::Row);
                 }
                 _ => {}
             }

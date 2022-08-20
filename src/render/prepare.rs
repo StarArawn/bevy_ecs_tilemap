@@ -15,8 +15,8 @@ use bevy::{
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
-        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
-        TilemapTextureSize, TilemapTileSize,
+        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
+        TilemapTileSize, TilemapType,
     },
     tiles::TilePos,
 };
@@ -58,7 +58,7 @@ pub(crate) fn prepare(
         &TilemapTextureSize,
         &TilemapSpacing,
         &TilemapGridSize,
-        &TilemapMeshType,
+        &TilemapType,
         &TilemapTexture,
         &TilemapSize,
         &ComputedVisibility,

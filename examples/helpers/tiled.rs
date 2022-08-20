@@ -166,14 +166,18 @@ pub fn process_loaded_maps(
                         };
 
                         let mesh_type = match tiled_map.map.orientation {
-                            tiled::Orientation::Hexagonal => TilemapMeshType::Hexagon(HexType::Row),
+                            tiled::Orientation::Hexagonal => {
+                                TilemapType::Hexagon(HexCoordSystem::Row)
+                            }
                             tiled::Orientation::Isometric => {
-                                TilemapMeshType::Isometric(IsoType::Diamond)
+                                TilemapType::Isometric(IsoCoordSystem::Diamond)
                             }
                             tiled::Orientation::Staggered => {
-                                TilemapMeshType::Isometric(IsoType::Staggered)
+                                TilemapType::Isometric(IsoCoordSystem::Staggered)
                             }
-                            tiled::Orientation::Orthogonal => TilemapMeshType::Square,
+                            tiled::Orientation::Orthogonal => TilemapType::Square {
+                                neighbors_include_diagonals: false,
+                            },
                         };
 
                         let mut tile_storage = TileStorage::empty(map_size);
@@ -240,7 +244,7 @@ pub fn process_loaded_maps(
                                 &tile_size,
                                 layer.layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
-                            mesh_type,
+                            map_type: mesh_type,
                             ..Default::default()
                         });
 

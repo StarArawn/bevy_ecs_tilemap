@@ -7,8 +7,8 @@ use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
 use crate::{
     map::{
-        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
-        TilemapTextureSize, TilemapTileSize,
+        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
+        TilemapTileSize, TilemapType,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
 };
@@ -59,7 +59,7 @@ pub struct ExtractedTilemapBundle {
     grid_size: TilemapGridSize,
     texture_size: TilemapTextureSize,
     spacing: TilemapSpacing,
-    mesh_type: TilemapMeshType,
+    mesh_type: TilemapType,
     texture: TilemapTexture,
     map_size: TilemapSize,
     visibility: ComputedVisibility,
@@ -110,7 +110,7 @@ pub fn extract(
             &TilemapTileSize,
             &TilemapSpacing,
             &TilemapGridSize,
-            &TilemapMeshType,
+            &TilemapType,
             &TilemapTexture,
             &TilemapSize,
             &ComputedVisibility,
@@ -120,14 +120,14 @@ pub fn extract(
         Query<
             Entity,
             Or<(
-                Added<TilemapMeshType>,
-                Changed<TilemapMeshType>,
+                Added<TilemapType>,
+                Changed<TilemapType>,
                 Changed<GlobalTransform>,
                 Changed<TilemapTexture>,
                 Changed<TilemapTileSize>,
                 Changed<TilemapSpacing>,
                 Changed<TilemapGridSize>,
-                Changed<TilemapMeshType>,
+                Changed<TilemapType>,
                 Changed<TilemapSize>,
                 Changed<ComputedVisibility>,
             )>,
