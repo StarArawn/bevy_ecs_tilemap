@@ -106,9 +106,9 @@ pub fn get_tile_pos_in_world_space(
         TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
             let offset = (0.25 * grid_size.x).floor();
             if tile_pos.y % 2 == 0 {
-                pos.x = pos.x + offset;
+                pos.x += offset;
             } else {
-                pos.x = pos.x - offset;
+                pos.x -= offset;
             }
             pos.y -= tile_pos_f32.y * (0.25 * grid_size.y).ceil();
         }
