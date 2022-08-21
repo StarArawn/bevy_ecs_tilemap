@@ -153,7 +153,10 @@ pub enum TilemapType {
     /// Used to specify rendering of tilemaps on hexagons. Note: The `HexCoordSystem` determines the coordinate system.
     Hexagon(HexCoordSystem),
     /// Used to change the rendering mode to Isometric. Note: The `IsoCoordSystem` determines the coordinate system.
-    Isometric(IsoCoordSystem),
+    Isometric {
+        neighbors_include_diagonals: bool,
+        coord_system: IsoCoordSystem,
+    },
 }
 
 impl Default for TilemapType {

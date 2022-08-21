@@ -1,3 +1,4 @@
+use bevy::log::info;
 use bevy::{
     math::Vec2,
     prelude::{Commands, Entity, Transform},
@@ -14,16 +15,16 @@ pub fn pos_2d_to_index(tile_pos: &TilePos, size: &TilemapSize) -> usize {
 }
 
 /// Calculates a chunk position with the given information.
-/// Note: The calculation is different depending on the tilemap's mesh type.
+/// Note: The calculation is different depending on the tilemap's type.
 /// This calculation is mostly used internally for rendering but it might be helpful so it's exposed here.
 pub fn get_chunk_2d_transform(
     chunk_position: Vec2,
     grid_size: Vec2,
     chunk_size: Vec2,
     z_index: u32,
-    graph_type: TilemapType,
+    map_type: TilemapType,
 ) -> Transform {
-    let pos = match graph_type {
+    let pos = match map_type {
         TilemapType::Square { .. } => {
             let chunk_pos_x = chunk_position.x * chunk_size.x * grid_size.x;
             let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
@@ -53,13 +54,19 @@ pub fn get_chunk_2d_transform(
             let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
             Vec2::new(chunk_pos_x, chunk_pos_y)
         }
-        TilemapType::Isometric(IsoCoordSystem::Diamond) => project_iso_diamond(
+        TilemapType::Isometric {
+            coord_system: IsoCoordSystem::Diamond,
+            ..
+        } => project_iso_diamond(
             chunk_position.x,
             chunk_position.y,
             chunk_size.x * grid_size.x,
             chunk_size.y * grid_size.y,
         ),
-        TilemapType::Isometric(IsoCoordSystem::Staggered) => project_iso_staggered(
+        TilemapType::Isometric {
+            coord_system: IsoCoordSystem::Staggered,
+            ..
+        } => project_iso_staggered(
             chunk_position.x,
             chunk_position.y,
             chunk_size.x * grid_size.x,
@@ -68,6 +75,81 @@ pub fn get_chunk_2d_transform(
     };
 
     Transform::from_xyz(pos.x, pos.y, z_index as f32)
+}
+
+/// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.
+fn get_tile_pos_in_world_space(
+    tile_pos: &TilePos,
+    grid_size: Vec2,
+    tilemap_type: &TilemapType,
+) -> Vec2 {
+    let tile_pos_f32 = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
+    let mut pos = Vec2::new(grid_size.x * tile_pos_f32.x, grid_size.y * tile_pos_f32.y);
+
+    match tilemap_type {
+        TilemapType::Hexagon(HexCoordSystem::Row) => {
+            let x_offset = tile_pos_f32.y * (0.5 * grid_size.x).floor();
+            let y_offset = -1.0 * tile_pos_f32.y * (0.25 * grid_size.y).ceil();
+            pos.x += x_offset;
+            pos.y += y_offset;
+        }
+        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+            let offset = (0.25 * grid_size.x).floor();
+            if tile_pos.y % 2 == 0 {
+                pos.x -= offset;
+            } else {
+                pos.x += offset;
+            }
+            pos.y -= tile_pos_f32.y * (0.25 * grid_size.y as f32).ceil();
+        }
+        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+            let offset = (0.25 * grid_size.x).floor();
+            if tile_pos.y % 2 == 0 {
+                pos.x = pos.x + offset;
+            } else {
+                pos.x = pos.x - offset;
+            }
+            pos.y -= tile_pos_f32.y * (0.25 * grid_size.y).ceil();
+        }
+        TilemapType::Hexagon(HexCoordSystem::Column) => {
+            let x_offset = -1.0 * tile_pos_f32.x * (0.25 * grid_size.x).floor();
+            let y_offset = tile_pos_f32.x * (0.5 * grid_size.y).ceil();
+            pos.x += x_offset;
+            pos.y += y_offset;
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
+            let offset = (0.25 * grid_size.y).floor();
+            if tile_pos.x % 2 == 0 {
+                pos.y -= offset;
+            } else {
+                pos.y += offset;
+            }
+            pos.x -= tile_pos_f32.x * (0.25 * grid_size.x as f32).ceil();
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
+            let offset = (0.25 * grid_size.y).floor();
+            if tile_pos.x % 2 == 0 {
+                pos.y += offset;
+            } else {
+                pos.y -= offset;
+            }
+            pos.x -= tile_pos_f32.x * (0.25 * grid_size.x).ceil();
+        }
+        TilemapType::Isometric {
+            coord_system: IsoCoordSystem::Diamond,
+            ..
+        } => {
+            pos = project_iso_diamond(tile_pos_f32.x, tile_pos_f32.y, grid_size.x, grid_size.y);
+        }
+        TilemapType::Isometric {
+            coord_system: IsoCoordSystem::Staggered,
+            ..
+        } => {
+            pos = project_iso_staggered(tile_pos_f32.x, tile_pos_f32.y, grid_size.x, grid_size.y);
+        }
+        TilemapType::Square { .. } => {}
+    };
+    pos
 }
 
 /// Fills an entire tile storage with the given tile.
@@ -96,17 +178,24 @@ pub fn fill_tilemap(
 }
 
 /// Fills a rectangular region with the given tile.
+///
+/// The rectangular region is defined by an `origin` in `TilePos`, and a size
+/// in tiles (`TilemapSize`).  
 pub fn fill_tilemap_rect(
     tile_texture: TileTexture,
-    pos: TilePos,
+    origin: TilePos,
     size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
     tile_storage: &mut TileStorage,
 ) {
-    for x in pos.x..size.x {
-        for y in pos.y..size.y {
-            let tile_pos = TilePos { x, y };
+    for x in 0..size.x {
+        for y in 0..size.y {
+            let tile_pos = TilePos {
+                x: origin.x + x,
+                y: origin.y + y,
+            };
+            info!("creating tile at {:?} with {:?}", tile_pos, tile_texture);
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -135,16 +224,20 @@ pub fn get_centered_transform_2d(
 }
 
 /// Projects a 2D screen space point into isometric diamond space.
-pub fn project_iso_diamond(x: f32, y: f32, pixel_width: f32, pixel_height: f32) -> Vec2 {
-    let new_x = (x - y) * pixel_width / 2.0;
-    let new_y = (x + y) * pixel_height / 2.0;
+///
+/// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
+pub fn project_iso_diamond(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
+    let new_x = (x - y) * grid_width / 2.0;
+    let new_y = (x + y) * grid_height / 2.0;
     Vec2::new(new_x, -new_y)
 }
 
 /// Projects a 2D screen space point into isometric staggered space.
-pub fn project_iso_staggered(x: f32, y: f32, pixel_width: f32, pixel_height: f32) -> Vec2 {
-    let new_x = x * pixel_width;
-    let new_y = y * pixel_height;
+///
+/// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
+pub fn project_iso_staggered(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
+    let new_x = x * grid_width;
+    let new_y = y * grid_height;
     Vec2::new(new_x, new_y)
 }
 
@@ -293,22 +386,47 @@ pub fn get_neighboring_pos(
 ) -> Neighbors<TilePos> {
     match map_type {
         TilemapType::Square {
+            neighbors_include_diagonals: true,
+        } => square_neighbor_pos_with_diagonals(tile_pos, tilemap_size),
+        TilemapType::Square {
+            neighbors_include_diagonals: false,
+        } => square_neighbor_pos(tile_pos, tilemap_size),
+        TilemapType::Isometric {
             neighbors_include_diagonals,
+            coord_system: IsoCoordSystem::Diamond,
         } => {
             if neighbors_include_diagonals {
-                square_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
+                diamond_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
             } else {
-                square_neighbor_pos(tile_pos, tilemap_size)
+                diamond_neighbor_pos(tile_pos, tilemap_size)
             }
         }
-        _ => unimplemented!(),
-        // TilemapType::Hexagon(HexCoordSystem::Column) => {}
-        // TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {}
-        // TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {}
-        // TilemapType::Hexagon(HexCoordSystem::Row) => {}
-        // TilemapType::Hexagon(HexCoordSystem::RowEven) => {}
-        // TilemapType::Hexagon(HexCoordSystem::RowOdd) => {}
-        // TilemapType::Isometric(_) => {}
+        TilemapType::Isometric {
+            neighbors_include_diagonals,
+            coord_system: IsoCoordSystem::Staggered,
+        } => {
+            if neighbors_include_diagonals {
+                staggered_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
+            } else {
+                staggered_neighbor_pos(tile_pos, tilemap_size)
+            }
+        }
+        TilemapType::Hexagon(HexCoordSystem::Row) => hex_row_neighbor_pos(tile_pos, tilemap_size),
+        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+            hex_row_even_neighbor_pos(tile_pos, tilemap_size)
+        }
+        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+            hex_row_odd_neighbor_pos(tile_pos, tilemap_size)
+        }
+        TilemapType::Hexagon(HexCoordSystem::Column) => {
+            hex_col_neighbor_pos(tile_pos, tilemap_size)
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
+            hex_col_even_neighbor_pos(tile_pos, tilemap_size)
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
+            hex_col_odd_neighbor_pos(tile_pos, tilemap_size)
+        }
     }
 }
 
@@ -398,11 +516,35 @@ impl TilePos {
     }
 
     #[inline]
+    fn plus_x_minus_2y(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        if self.x < tilemap_size.x - 1 && self.y > 1 {
+            Some(TilePos {
+                x: self.x + 1,
+                y: self.y - 2,
+            })
+        } else {
+            None
+        }
+    }
+
+    #[inline]
     fn minus_x_plus_y(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y < tilemap_size.y - 1 && self.x != 0 {
             Some(TilePos {
                 x: self.x - 1,
                 y: self.y + 1,
+            })
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn minus_x_plus_2y(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        if self.y < tilemap_size.y - 2 && self.x != 0 {
+            Some(TilePos {
+                x: self.x - 1,
+                y: self.y + 2,
             })
         } else {
             None
@@ -648,11 +790,43 @@ impl TilePos {
             self.plus_x(tilemap_size)
         }
     }
+
+    fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.plus_y(tilemap_size)
+    }
+
+    fn iso_staggered_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.minus_x_plus_2y(tilemap_size)
+    }
+
+    fn iso_staggered_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.minus_x_plus_y(tilemap_size)
+    }
+
+    fn iso_staggered_south_west(&self) -> Option<TilePos> {
+        self.minus_x()
+    }
+
+    fn iso_staggered_south(&self) -> Option<TilePos> {
+        self.minus_y()
+    }
+
+    fn iso_staggered_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.plus_x_minus_2y(tilemap_size)
+    }
+
+    fn iso_staggered_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.plus_x_minus_y(tilemap_size)
+    }
+
+    fn iso_staggered_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+        self.plus_x(tilemap_size)
+    }
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap with square grid, where neighbors include tiles located
-/// diagonally across from the specified position.
+/// that 1) the tile exists on [`Square`](crate::map::TilemapType::Square) tilemap
+/// and 2) neighbors **do** include tiles located diagonally across from the specified position.
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -664,18 +838,62 @@ pub fn square_neighbor_pos_with_diagonals(
 ) -> Neighbors<TilePos> {
     Neighbors {
         north: tile_pos.square_north(tilemap_size),
-        south: tile_pos.square_south(),
-        east: tile_pos.square_east(tilemap_size),
-        west: tile_pos.square_west(),
-        north_east: tile_pos.square_north_east(tilemap_size),
         north_west: tile_pos.square_north_west(tilemap_size),
-        south_east: tile_pos.square_south_east(tilemap_size),
+        west: tile_pos.square_west(),
         south_west: tile_pos.square_south_west(),
+        south: tile_pos.square_south(),
+        south_east: tile_pos.square_south_east(tilemap_size),
+        east: tile_pos.square_east(tilemap_size),
+        north_east: tile_pos.square_north_east(tilemap_size),
     }
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of [`TilemapType::Square`](crate::map::TilemapType::Square).
+/// the 1) tile exists on a [`Isometric`](crate::map::Isometric) tilemap with [`Diamond`](crate::map::IsoCoordSystem::Staggered) coordinate system,
+/// and 2) neighbors **do** include tiles located diagonally across from the specified position.
+///
+/// Tile positions are bounded:
+///     * between `0` and `tilemap_size.x` in the `x` position,
+///     * between `0` and `tilemap_size.y` in the `y` position.
+/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
+pub fn staggered_neighbor_pos_with_diagonals(
+    tile_pos: &TilePos,
+    tilemap_size: &TilemapSize,
+) -> Neighbors<TilePos> {
+    Neighbors {
+        north: tile_pos.iso_staggered_north(tilemap_size),
+        north_west: tile_pos.iso_staggered_north_west(tilemap_size),
+        west: tile_pos.iso_staggered_west(tilemap_size),
+        south_west: tile_pos.iso_staggered_south_west(),
+        south: tile_pos.iso_staggered_south(),
+        south_east: tile_pos.iso_staggered_south_east(tilemap_size),
+        east: tile_pos.iso_staggered_east(tilemap_size),
+        north_east: tile_pos.iso_staggered_north_east(tilemap_size),
+    }
+}
+
+/// Retrieves the positions of neighbors of the tile with the specified position, assuming
+/// the 1) tile exists on a [`Isometric`](crate::map::Isometric) tilemap with [`Diamond`](crate::map::IsoCoordSystem::Diamond) coordinate system,
+/// and 2) neighbors **do** include tiles located diagonally across from the specified position.
+///
+/// Tile positions are bounded:
+///     * between `0` and `tilemap_size.x` in the `x` position,
+///     * between `0` and `tilemap_size.y` in the `y` position.
+/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
+///
+/// Note that is equivalent to calling [`square_neighbor_pos_with_diagonals`](crate::helpers::square_neighbor_pos_with_diagonals) as the connectivity of the graph underlying
+/// [`Square`](crate::map::TilemapType::Square) is the same as the connectivity of the graph underlying
+/// [`Isometric`](crate::map::TilemapType::Isometric) with coordinate system [`Diamond`](crate::map::IsoCoordSystem::Diamond).
+pub fn diamond_neighbor_pos_with_diagonals(
+    tile_pos: &TilePos,
+    tilemap_size: &TilemapSize,
+) -> Neighbors<TilePos> {
+    square_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
+}
+
+/// Retrieves the positions of neighbors of the tile with the specified position, assuming
+/// that 1) the tile exists on [`Square`](crate::map::TilemapType::Square) tilemap
+/// and 2) neighbors **do not** include tiles located diagonally across from the specified position.
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -684,19 +902,59 @@ pub fn square_neighbor_pos_with_diagonals(
 pub fn square_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> Neighbors<TilePos> {
     Neighbors {
         north: tile_pos.square_north(tilemap_size),
-        south: tile_pos.square_south(),
-        east: tile_pos.square_east(tilemap_size),
-        west: tile_pos.square_west(),
-        north_east: None,
         north_west: None,
-        south_east: None,
+        west: tile_pos.square_west(),
         south_west: None,
+        south: tile_pos.square_south(),
+        south_east: None,
+        east: tile_pos.square_east(tilemap_size),
+        north_east: None,
     }
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon) with
-/// [`HexCoordSystem::Row`](crate::map::HexCoordSystem::Row).
+/// the 1) tile exists on a [`Isometric`](crate::map::Isometric) tilemap with [`Diamond`](crate::map::IsoCoordSystem::Diamond) coordinate system,
+/// and 2) neighbors **do not** include tiles located diagonally across from the specified position.
+///
+/// Tile positions are bounded:
+///     * between `0` and `tilemap_size.x` in the `x` position,
+///     * between `0` and `tilemap_size.y` in the `y` position.
+/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
+///
+/// Note that is equivalent to calling [`square_neighbor_pos`](crate::helpers::square_neighbor_pos) as the connectivity of the graph underlying
+/// [`TilemapType::Square`](crate::map::TilemapType::Square) is the same as the connectivity of the graph underlying
+/// [`TilemapType::Isometric`](crate::map::TilemapType::Isometric) with coordinate system [`Diamond`](crate::map::IsoCoordSystem::Diamond).
+pub fn diamond_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> Neighbors<TilePos> {
+    square_neighbor_pos(tile_pos, tilemap_size)
+}
+
+/// Retrieves the positions of neighbors of the tile with the specified position, assuming
+/// the 1) tile exists on a [`Isometric`](crate::map::Isometric) tilemap with [`Diamond`](crate::map::IsoCoordSystem::Staggered) coordinate system,
+/// and 2) neighbors **do not** include tiles located diagonally across from the specified position.
+///
+/// Tile positions are bounded:
+///     * between `0` and `tilemap_size.x` in the `x` position,
+///     * between `0` and `tilemap_size.y` in the `y` position.
+/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
+pub fn staggered_neighbor_pos(
+    tile_pos: &TilePos,
+    tilemap_size: &TilemapSize,
+) -> Neighbors<TilePos> {
+    Neighbors {
+        north: tile_pos.iso_staggered_north(tilemap_size),
+        north_west: None,
+        west: tile_pos.iso_staggered_west(tilemap_size),
+        south_west: None,
+        south: tile_pos.iso_staggered_south(),
+        south_east: None,
+        east: tile_pos.iso_staggered_east(tilemap_size),
+        north_east: None,
+    }
+}
+
+/// Retrieves the positions of neighbors of the tile with the specified position, assuming
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
+/// coordinate system [`HexCoordSystem::Row`](crate::map::HexCoordSystem::Row).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -716,8 +974,8 @@ pub fn hex_row_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> N
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon)
-/// with [`HexCoordSystem::RowOdd`](crate::map::HexCoordSystem::RowOdd).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap
+/// with coordinate system [`HexCoordSystem::RowOdd`](crate::map::HexCoordSystem::RowOdd).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -740,8 +998,8 @@ pub fn hex_row_odd_neighbor_pos(
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon) with
-/// [`HexCoordSystem::Row`](crate::map::HexCoordSystem::RowEven).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
+/// coordinate system [`HexCoordSystem::Row`](crate::map::HexCoordSystem::RowEven).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -764,8 +1022,8 @@ pub fn hex_row_even_neighbor_pos(
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon) with
-/// [`HexCoordSystem::Col`](crate::map::HexCoordSystem::Col).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
+/// coordinate system [`HexCoordSystem::Col`](crate::map::HexCoordSystem::Col).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -785,8 +1043,8 @@ pub fn hex_col_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> N
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon) with
-/// [`HexCoordSystem::ColOdd`](crate::map::HexCoordSystem::ColOdd).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
+/// coordinate system [`HexCoordSystem::ColOdd`](crate::map::HexCoordSystem::ColOdd).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -809,8 +1067,8 @@ pub fn hex_col_odd_neighbor_pos(
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a tilemap of type [`TilemapType::Hexagon`](crate::map::TilemapType::Hexagon) with
-/// [`HexCoordSystem::ColEven`](crate::map::HexCoordSystem::ColEven).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
+/// coordinate system [`HexCoordSystem::ColEven`](crate::map::HexCoordSystem::ColEven).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
@@ -830,71 +1088,4 @@ pub fn hex_col_even_neighbor_pos(
         east: None,
         north_east: tile_pos.hex_col_even_north_east(tilemap_size),
     }
-}
-
-/// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.
-fn get_tile_pos_in_world_space(
-    tile_pos: &TilePos,
-    grid_size: Vec2,
-    tilemap_type: &TilemapType,
-) -> Vec2 {
-    let tile_pos_f32 = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
-    let mut pos = Vec2::default();
-    pos.x = grid_size.x * tile_pos_f32.x;
-    pos.y = grid_size.y * tile_pos_f32.y;
-
-    match tilemap_type {
-        TilemapType::Hexagon(HexCoordSystem::Row) => {
-            let x_offset = tile_pos_f32.y * (0.5 * grid_size.x).floor();
-            let y_offset = -1.0 * tile_pos_f32.y * (0.25 * grid_size.y).ceil();
-            pos.x += x_offset;
-            pos.y += y_offset;
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
-            let offset = (0.25 * grid_size.x).floor();
-            if tile_pos.y % 2 == 0 {
-                pos.x = pos.x - offset;
-            } else {
-                pos.x = pos.x + offset;
-            }
-            pos.y = pos.y - tile_pos_f32.y * (0.25 * grid_size.y as f32).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
-            let offset = (0.25 * grid_size.x).floor();
-            if tile_pos.y % 2 == 0 {
-                pos.x = pos.x + offset;
-            } else {
-                pos.x = pos.x - offset;
-            }
-            pos.y = pos.y - tile_pos_f32.y * (0.25 * grid_size.y).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::Column) => {
-            let x_offset = -1.0 * tile_pos_f32.x * (0.25 * grid_size.x).floor();
-            let y_offset = tile_pos_f32.x * (0.5 * grid_size.y).ceil();
-            pos.x += x_offset;
-            pos.y += y_offset;
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-            let offset = (0.25 * grid_size.y).floor();
-            if tile_pos.x % 2 == 0 {
-                pos.y = pos.y - offset;
-            } else {
-                pos.y = pos.y + offset;
-            }
-            pos.x = pos.x - tile_pos_f32.x * (0.25 * grid_size.x as f32).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-            let offset = (0.25 * grid_size.y).floor();
-            if tile_pos.x % 2 == 0 {
-                pos.y = pos.y + offset;
-            } else {
-                pos.y = pos.y - offset;
-            }
-            pos.x = pos.x - tile_pos_f32.x * (0.25 * grid_size.x).ceil();
-        }
-        _ => unimplemented!(
-            "get_tile_pos_in_world_space is unimplemented for graph type: {tilemap_type:?}"
-        ),
-    };
-    pos
 }
