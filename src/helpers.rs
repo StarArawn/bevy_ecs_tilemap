@@ -78,12 +78,13 @@ pub fn get_chunk_2d_transform(
 }
 
 /// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.
-fn get_tile_pos_in_world_space(
+pub fn get_tile_pos_in_world_space(
     tile_pos: &TilePos,
-    grid_size: Vec2,
+    grid_size: &TilemapSize,
     tilemap_type: &TilemapType,
 ) -> Vec2 {
-    let tile_pos_f32 = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
+    let tile_pos_f32: Vec2 = tile_pos.into();
+    let grid_size: Vec2 = (*grid_size).into();
     let mut pos = Vec2::new(grid_size.x * tile_pos_f32.x, grid_size.y * tile_pos_f32.y);
 
     match tilemap_type {

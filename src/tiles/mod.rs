@@ -1,7 +1,7 @@
 mod storage;
 
 use bevy::{
-    math::UVec2,
+    math::{UVec2, Vec2},
     prelude::{Bundle, Color, Component},
 };
 pub use storage::*;
@@ -36,6 +36,12 @@ impl Into<UVec2> for &TilePos {
 impl From<UVec2> for TilePos {
     fn from(v: UVec2) -> Self {
         Self { x: v.x, y: v.y }
+    }
+}
+
+impl Into<Vec2> for TilePos {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.x as f32, self.y as f32)
     }
 }
 
