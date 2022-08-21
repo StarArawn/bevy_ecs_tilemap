@@ -26,15 +26,15 @@ impl TilemapSize {
     }
 }
 
-impl Into<UVec2> for TilemapSize {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.x, self.y)
+impl From<TilemapSize> for Vec2 {
+    fn from(tilemap_size: TilemapSize) -> Self {
+        Vec2::new(tilemap_size.x as f32, tilemap_size.y as f32)
     }
 }
 
-impl Into<Vec2> for TilemapSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x as f32, self.y as f32)
+impl From<&TilemapSize> for Vec2 {
+    fn from(tilemap_size: &TilemapSize) -> Self {
+        Vec2::new(tilemap_size.x as f32, tilemap_size.y as f32)
     }
 }
 
@@ -55,18 +55,24 @@ pub struct TilemapTileSize {
     pub y: f32,
 }
 
-impl Into<Vec2> for TilemapTileSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
+impl From<TilemapTileSize> for TilemapGridSize {
+    fn from(tile_size: TilemapTileSize) -> Self {
+        TilemapGridSize {
+            x: tile_size.x,
+            y: tile_size.y,
+        }
     }
 }
 
-impl Into<TilemapGridSize> for TilemapTileSize {
-    fn into(self) -> TilemapGridSize {
-        TilemapGridSize {
-            x: self.x,
-            y: self.y,
-        }
+impl From<TilemapTileSize> for Vec2 {
+    fn from(tile_size: TilemapTileSize) -> Self {
+        Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<&TilemapTileSize> for Vec2 {
+    fn from(tile_size: &TilemapTileSize) -> Self {
+        Vec2::new(tile_size.x, tile_size.y)
     }
 }
 
@@ -80,9 +86,15 @@ pub struct TilemapGridSize {
     pub y: f32,
 }
 
-impl Into<Vec2> for TilemapGridSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
+impl From<TilemapGridSize> for Vec2 {
+    fn from(grid_size: TilemapGridSize) -> Self {
+        Vec2::new(grid_size.x, grid_size.y)
+    }
+}
+
+impl From<&TilemapGridSize> for Vec2 {
+    fn from(grid_size: &TilemapGridSize) -> Self {
+        Vec2::new(grid_size.x, grid_size.y)
     }
 }
 
@@ -93,9 +105,9 @@ pub struct TilemapSpacing {
     pub y: f32,
 }
 
-impl Into<Vec2> for TilemapSpacing {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
+impl From<TilemapSpacing> for Vec2 {
+    fn from(spacing: TilemapSpacing) -> Self {
+        Vec2::new(spacing.x, spacing.y)
     }
 }
 

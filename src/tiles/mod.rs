@@ -21,15 +21,15 @@ impl TilePos {
     }
 }
 
-impl Into<UVec2> for TilePos {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.x, self.y)
+impl From<TilePos> for UVec2 {
+    fn from(pos: TilePos) -> Self {
+        UVec2::new(pos.x, pos.y)
     }
 }
 
-impl Into<UVec2> for &TilePos {
-    fn into(self) -> UVec2 {
-        UVec2::new(self.x, self.y)
+impl From<&TilePos> for UVec2 {
+    fn from(pos: &TilePos) -> Self {
+        UVec2::new(pos.x, pos.y)
     }
 }
 
@@ -39,9 +39,15 @@ impl From<UVec2> for TilePos {
     }
 }
 
-impl Into<Vec2> for TilePos {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x as f32, self.y as f32)
+impl From<TilePos> for Vec2 {
+    fn from(pos: TilePos) -> Self {
+        Vec2::new(pos.x as f32, pos.y as f32)
+    }
+}
+
+impl From<&TilePos> for Vec2 {
+    fn from(pos: &TilePos) -> Self {
+        Vec2::new(pos.x as f32, pos.y as f32)
     }
 }
 

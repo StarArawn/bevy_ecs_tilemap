@@ -6,6 +6,7 @@ use bevy::{
 use crate::{
     map::{HexCoordSystem, IsoCoordSystem, TilemapId, TilemapSize, TilemapTileSize, TilemapType},
     tiles::{TileBundle, TilePos, TileStorage, TileTexture},
+    TilemapGridSize,
 };
 
 /// Converts a tile position into an index in a vector.
@@ -79,11 +80,11 @@ pub fn get_chunk_2d_transform(
 /// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.
 pub fn get_tile_pos_in_world_space(
     tile_pos: &TilePos,
-    grid_size: &TilemapSize,
+    grid_size: &TilemapGridSize,
     tilemap_type: &TilemapType,
 ) -> Vec2 {
     let tile_pos_f32: Vec2 = tile_pos.into();
-    let grid_size: Vec2 = (*grid_size).into();
+    let grid_size: Vec2 = grid_size.into();
     let mut pos = Vec2::new(grid_size.x * tile_pos_f32.x, grid_size.y * tile_pos_f32.y);
 
     match tilemap_type {
