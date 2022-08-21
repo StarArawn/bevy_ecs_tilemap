@@ -52,7 +52,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // We can grab a list of neighbors.
-    let neighbors = get_tile_neighbors(&TilePos { x: 0, y: 0 }, &tile_storage, tilemap_type);
+    let neighbors = get_tile_neighbors(&TilePos { x: 0, y: 0 }, &tile_storage, &tilemap_type);
 
     // We can access tiles using:
     assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
@@ -64,7 +64,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors = get_neighboring_pos(&TilePos { x, y }, &tilemap_size, tilemap_type);
+            let neighbors = get_neighboring_pos(&TilePos { x, y }, &tilemap_size, &tilemap_type);
             for pos in neighbors.into_iter() {
                 // We can replace the tile texture component like so:
                 commands
@@ -125,7 +125,7 @@ fn update_map(
                 for y in (2..128).step_by(4) {
                     // Grab the neighboring tiles
                     let neighboring_entities =
-                        get_tile_neighbors(&TilePos { x, y }, tile_storage, *tilemap_type);
+                        get_tile_neighbors(&TilePos { x, y }, tile_storage, tilemap_type);
 
                     // Iterate over neighbors
                     for neighbor_entity in neighboring_entities.into_iter() {

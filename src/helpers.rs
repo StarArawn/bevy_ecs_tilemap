@@ -367,7 +367,7 @@ impl Neighbors<Entity> {
 pub fn get_tile_neighbors(
     tile_pos: &TilePos,
     tile_storage: &TileStorage,
-    tilemap_type: TilemapType,
+    tilemap_type: &TilemapType,
 ) -> Neighbors<Entity> {
     Neighbors::from_neighboring_pos(
         &get_neighboring_pos(tile_pos, &tile_storage.size, tilemap_type),
@@ -384,7 +384,7 @@ pub fn get_tile_neighbors(
 pub fn get_neighboring_pos(
     tile_pos: &TilePos,
     tilemap_size: &TilemapSize,
-    map_type: TilemapType,
+    map_type: &TilemapType,
 ) -> Neighbors<TilePos> {
     match map_type {
         TilemapType::Square {
@@ -397,7 +397,7 @@ pub fn get_neighboring_pos(
             neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Diamond,
         } => {
-            if neighbors_include_diagonals {
+            if *neighbors_include_diagonals {
                 diamond_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
             } else {
                 diamond_neighbor_pos(tile_pos, tilemap_size)
@@ -407,7 +407,7 @@ pub fn get_neighboring_pos(
             neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Staggered,
         } => {
-            if neighbors_include_diagonals {
+            if *neighbors_include_diagonals {
                 staggered_neighbor_pos_with_diagonals(tile_pos, tilemap_size)
             } else {
                 staggered_neighbor_pos(tile_pos, tilemap_size)
