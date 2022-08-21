@@ -195,7 +195,7 @@ pub fn fill_tilemap_rect(
                 x: origin.x + x,
                 y: origin.y + y,
             };
-            info!("creating tile at {:?} with {:?}", tile_pos, tile_texture);
+
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {

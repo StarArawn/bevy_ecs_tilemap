@@ -168,7 +168,10 @@ impl SpecializedRenderPipeline for TilemapPipeline {
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
         let shader = match key.mesh_type {
             TilemapType::Square { .. } => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-            TilemapType::Isometric(iso_type) => match iso_type {
+            TilemapType::Isometric {
+                coord_system: iso_type,
+                ..
+            } => match iso_type {
                 IsoCoordSystem::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
                 IsoCoordSystem::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },

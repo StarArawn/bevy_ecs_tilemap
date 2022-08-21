@@ -159,6 +159,28 @@ pub enum TilemapType {
     },
 }
 
+impl TilemapType {
+    pub fn square(neighbors_include_diagonals: bool) -> TilemapType {
+        TilemapType::Square {
+            neighbors_include_diagonals,
+        }
+    }
+
+    pub fn isometric_diamond(neighbors_include_diagonals: bool) -> TilemapType {
+        TilemapType::Isometric {
+            neighbors_include_diagonals,
+            coord_system: IsoCoordSystem::Diamond,
+        }
+    }
+
+    pub fn isometric_staggered(neighbors_include_diagonals: bool) -> TilemapType {
+        TilemapType::Isometric {
+            neighbors_include_diagonals,
+            coord_system: IsoCoordSystem::Staggered,
+        }
+    }
+}
+
 impl Default for TilemapType {
     fn default() -> Self {
         Self::Square {
