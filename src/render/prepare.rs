@@ -206,9 +206,7 @@ pub fn prepare_removal(
     removed_maps: Query<&ExtractedRemovedMap>,
 ) {
     for removed_tile in removed_tiles.iter() {
-        if let Some((chunk, tile_pos)) = chunk_storage.get_mut_from_entity(removed_tile.entity) {
-            chunk.set(&tile_pos.into(), None);
-        }
+        chunk_storage.remove_tile_with_entity(removed_tile.entity)
     }
 
     for removed_map in removed_maps.iter() {
