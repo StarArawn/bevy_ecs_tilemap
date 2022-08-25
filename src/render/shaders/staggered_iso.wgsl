@@ -6,6 +6,7 @@ fn project_iso(pos: vec2<f32>, tile_width: f32, tile_height: f32) -> vec2<f32> {
     var dx = tile_width / 2.0;
     var dy = tile_height / 2.0;
 
+    // ux/uy is the effect of moving one tile (ux: in the x direction, uy: in the y direction) on our position
     var ux = vec2<f32>(tile_width, 0.0);
     var uy = vec2<f32>(dx, dy);
 
@@ -28,7 +29,6 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     );
 
     out.world_position = mesh.model * vec4<f32>(vec3<f32>(positions[v_index % 4u], 1.0 - (tile_z.y / tilemap_data.map_size.y)), 1.0);
-
 
     return out;
 }

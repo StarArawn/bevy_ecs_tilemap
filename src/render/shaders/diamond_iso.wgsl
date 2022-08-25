@@ -6,6 +6,7 @@ fn project_iso(pos: vec2<f32>, tile_width: f32, tile_height: f32) -> vec2<f32> {
     var dx = tile_width / 2.0;
     var dy = tile_height / 2.0;
 
+    // ux/uy is the effect of moving one tile (ux: in the x direction, uy: in the y direction) on our position
     var ux = vec2<f32>(dx, -dy);
     var uy = vec2<f32>(dx, dy);
     

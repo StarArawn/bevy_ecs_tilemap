@@ -98,6 +98,18 @@ impl From<&TilemapGridSize> for Vec2 {
     }
 }
 
+impl From<Vec2> for TilemapGridSize {
+    fn from(v: Vec2) -> Self {
+        TilemapGridSize { x: v.x, y: v.y }
+    }
+}
+
+impl From<&Vec2> for TilemapGridSize {
+    fn from(v: &Vec2) -> Self {
+        TilemapGridSize { x: v.x, y: v.y }
+    }
+}
+
 /// Spacing between tiles inside of the texture atlas.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TilemapSpacing {

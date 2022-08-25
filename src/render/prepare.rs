@@ -133,7 +133,7 @@ pub(crate) fn prepare(
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
         for chunk in chunks.values_mut() {
-            chunk.mesh_type = *mesh_type;
+            chunk.map_type = *mesh_type;
             chunk.transform = *transform;
             chunk.texture = texture.clone();
             chunk.map_size = *map_size;
@@ -167,11 +167,11 @@ pub(crate) fn prepare(
         let chunk_global_transform: Transform = chunk.transform.into();
 
         let transform = get_chunk_2d_transform(
-            chunk.position.as_vec3().xy(),
-            chunk.tile_size,
-            chunk.size.as_vec2(),
+            chunk.position.xy(),
+            chunk.size,
             0,
-            chunk.mesh_type,
+            chunk.grid_size,
+            &chunk.map_type,
         ) * chunk_global_transform;
 
         let mut chunk_uniform: TilemapUniformData = chunk.into();
@@ -182,7 +182,7 @@ pub(crate) fn prepare(
             .insert(chunk.texture.0.clone_weak())
             .insert(transform)
             .insert(ChunkId(chunk.position))
-            .insert(chunk.mesh_type)
+            .insert(chunk.map_type)
             .insert(TilemapId(Entity::from_raw(chunk.tilemap_id)))
             .insert(DynamicUniformIndex::<MeshUniform> {
                 index: mesh_uniforms.push(MeshUniform {

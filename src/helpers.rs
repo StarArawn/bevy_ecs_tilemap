@@ -1,5 +1,5 @@
 use bevy::{
-    math::Vec2,
+    math::{UVec2, Vec2},
     prelude::{BuildChildren, Commands, Entity, Transform},
 };
 
@@ -14,67 +14,25 @@ pub fn pos_2d_to_index(tile_pos: &TilePos, size: &TilemapSize) -> usize {
     ((tile_pos.y * size.x as u32) + tile_pos.x) as usize
 }
 
-/// Calculates a chunk position with the given information.
-/// Note: The calculation is different depending on the tilemap's type.
+/// Calculates the position of the bottom-left of a chunk with the specified position.
+///
 /// This calculation is mostly used internally for rendering but it might be helpful so it's exposed here.
 pub fn get_chunk_2d_transform(
-    chunk_position: Vec2,
-    grid_size: Vec2,
-    chunk_size: Vec2,
+    chunk_position: UVec2,
+    chunk_size: UVec2,
     z_index: u32,
-    map_type: TilemapType,
+    grid_size: Vec2,
+    map_type: &TilemapType,
 ) -> Transform {
-    let pos = match map_type {
-        TilemapType::Square { .. } => {
-            let chunk_pos_x = chunk_position.x * chunk_size.x * grid_size.x;
-            let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
-            Vec2::new(chunk_pos_x, chunk_pos_y)
-        }
-        TilemapType::Hexagon(HexCoordSystem::Row) => {
-            let chunk_pos_x = (chunk_position.y * chunk_size.x * (0.5 * grid_size.x).floor())
-                + (chunk_position.x * chunk_size.x * grid_size.x);
-            let chunk_pos_y = chunk_position.y * chunk_size.y * (0.75 * grid_size.y).floor();
-            Vec2::new(chunk_pos_x, chunk_pos_y)
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowOdd)
-        | TilemapType::Hexagon(HexCoordSystem::RowEven) => {
-            let chunk_pos_x = chunk_position.x * chunk_size.x * grid_size.x;
-            let chunk_pos_y = chunk_position.y * chunk_size.y * (0.75 * grid_size.y).floor();
-            Vec2::new(chunk_pos_x, chunk_pos_y)
-        }
-        TilemapType::Hexagon(HexCoordSystem::Column) => {
-            let chunk_pos_x = chunk_position.x * chunk_size.x * (0.75 * grid_size.x).floor();
-            let chunk_pos_y = (chunk_position.x * chunk_size.y * (0.5 * grid_size.y).ceil())
-                + chunk_position.y * chunk_size.y * grid_size.y;
-            Vec2::new(chunk_pos_x, chunk_pos_y)
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnOdd)
-        | TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-            let chunk_pos_x = chunk_position.x * chunk_size.x * (0.75 * grid_size.x).floor();
-            let chunk_pos_y = chunk_position.y * chunk_size.y * grid_size.y;
-            Vec2::new(chunk_pos_x, chunk_pos_y)
-        }
-        TilemapType::Isometric {
-            coord_system: IsoCoordSystem::Diamond,
-            ..
-        } => project_iso_diamond(
-            chunk_position.x,
-            chunk_position.y,
-            chunk_size.x * grid_size.x,
-            chunk_size.y * grid_size.y,
-        ),
-        TilemapType::Isometric {
-            coord_system: IsoCoordSystem::Staggered,
-            ..
-        } => project_iso_staggered(
-            chunk_position.x,
-            chunk_position.y,
-            chunk_size.x * grid_size.x,
-            chunk_size.y,
-        ),
+    // Get the position of the bottom left tile of the chunk: the "anchor tile".
+    let anchor_tile_pos = TilePos {
+        x: chunk_position.x * chunk_size.x,
+        y: chunk_position.y * chunk_size.y,
     };
-
-    Transform::from_xyz(pos.x, pos.y, z_index as f32)
+    let grid_size: TilemapGridSize = grid_size.into();
+    // Now get the position of the anchor tile.
+    let r = get_tile_pos_in_world_space(&anchor_tile_pos, &grid_size, map_type);
+    Transform::from_xyz(r.x, r.y, z_index as f32)
 }
 
 /// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.

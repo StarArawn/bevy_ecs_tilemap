@@ -5,7 +5,9 @@ mod helpers;
 // This example demonstrates a tilemap laid out isometrically using the "Staggered" coordinate system.
 
 // Side length of a colored quadrant (in "number of tiles").
-const QUADRANT_SIDE_LENGTH: u32 = 4;
+// Note: the chunk size is currently hardcoded to 64. Therefore, it is good to choose a size that is above 32 for this
+// example, as it makes sure chunking-related interactions work.
+const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
@@ -14,9 +16,13 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
     let total_size = TilemapSize {
-        x: QUADRANT_SIDE_LENGTH * 2,
-        y: QUADRANT_SIDE_LENGTH * 2,
+        x: QUADRANT_SIDE_LENGTH,
+        y: QUADRANT_SIDE_LENGTH,
     };
+    // let total_size = TilemapSize {
+    //     x: QUADRANT_SIDE_LENGTH * 2,
+    //     y: QUADRANT_SIDE_LENGTH * 2,
+    // };
     let quadrant_size = TilemapSize {
         x: QUADRANT_SIDE_LENGTH,
         y: QUADRANT_SIDE_LENGTH,
@@ -34,41 +40,41 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(1),
-        TilePos {
-            x: QUADRANT_SIDE_LENGTH,
-            y: 0,
-        },
-        quadrant_size,
-        tilemap_id,
-        &mut commands,
-        &mut tile_storage,
-    );
-
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(2),
-        TilePos {
-            x: 0,
-            y: QUADRANT_SIDE_LENGTH,
-        },
-        quadrant_size,
-        tilemap_id,
-        &mut commands,
-        &mut tile_storage,
-    );
-
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
-        TileTexture(3),
-        TilePos {
-            x: QUADRANT_SIDE_LENGTH,
-            y: QUADRANT_SIDE_LENGTH,
-        },
-        quadrant_size,
-        tilemap_id,
-        &mut commands,
-        &mut tile_storage,
-    );
+    // bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    //     TileTexture(1),
+    //     TilePos {
+    //         x: QUADRANT_SIDE_LENGTH,
+    //         y: 0,
+    //     },
+    //     quadrant_size,
+    //     tilemap_id,
+    //     &mut commands,
+    //     &mut tile_storage,
+    // );
+    //
+    // bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    //     TileTexture(2),
+    //     TilePos {
+    //         x: 0,
+    //         y: QUADRANT_SIDE_LENGTH,
+    //     },
+    //     quadrant_size,
+    //     tilemap_id,
+    //     &mut commands,
+    //     &mut tile_storage,
+    // );
+    //
+    // bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    //     TileTexture(3),
+    //     TilePos {
+    //         x: QUADRANT_SIDE_LENGTH,
+    //         y: QUADRANT_SIDE_LENGTH,
+    //     },
+    //     quadrant_size,
+    //     tilemap_id,
+    //     &mut commands,
+    //     &mut tile_storage,
+    // );
 
     let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
     let grid_size = tile_size.into();
