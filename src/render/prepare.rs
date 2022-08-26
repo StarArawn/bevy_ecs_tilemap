@@ -90,9 +90,10 @@ pub(crate) fn prepare(
             tile.tilemap_id.0.id(),
         );
 
+        let relative_tile_pos = map_tile_to_chunk_tile(&tile.position, &chunk_pos).into();
         let chunk = chunk_storage.get_or_add(
             tile.entity,
-            map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
+            relative_tile_pos,
             &chunk_data,
             CHUNK_SIZE_2D,
             *mesh_type,
@@ -106,7 +107,7 @@ pub(crate) fn prepare(
             visibility,
         );
         chunk.set(
-            &map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
+            &relative_tile_pos.into(),
             Some(PackedTileData {
                 position: map_tile_to_chunk_tile(&tile.position, &chunk_pos)
                     .as_vec2()
