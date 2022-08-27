@@ -1,11 +1,11 @@
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{BuildChildren, Commands, Entity, Transform},
+    prelude::{BuildChildren, Color, Commands, Entity, Transform},
 };
 
 use crate::{
     map::{HexCoordSystem, IsoCoordSystem, TilemapId, TilemapSize, TilemapTileSize, TilemapType},
-    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
+    tiles::{TileBundle, TileColor, TilePos, TileStorage, TileTexture},
     TilemapGridSize,
 };
 
@@ -162,6 +162,41 @@ pub fn fill_tilemap_rect(
                     position: tile_pos,
                     tilemap_id,
                     texture: tile_texture,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.set(&tile_pos, Some(tile_entity));
+        }
+    }
+}
+
+/// Fills a rectangular region with colored versions of the given tile.
+///
+/// The rectangular region is defined by an `origin` in `TilePos`, and a size
+/// in tiles (`TilemapSize`).  
+pub fn fill_tilemap_rect_color(
+    tile_texture: TileTexture,
+    origin: TilePos,
+    size: TilemapSize,
+    color: Color,
+    tilemap_id: TilemapId,
+    commands: &mut Commands,
+    tile_storage: &mut TileStorage,
+) {
+    for x in 0..size.x {
+        for y in 0..size.y {
+            let tile_pos = TilePos {
+                x: origin.x + x,
+                y: origin.y + y,
+            };
+
+            let tile_entity = commands
+                .spawn()
+                .insert_bundle(TileBundle {
+                    position: tile_pos,
+                    tilemap_id,
+                    texture: tile_texture,
+                    color: TileColor(color),
                     ..Default::default()
                 })
                 .id();
