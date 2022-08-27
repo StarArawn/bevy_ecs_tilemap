@@ -8,7 +8,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    let tilemap_size = TilemapSize { x: 512, y: 512 };
+    let tilemap_size = TilemapSize { x: 32, y: 32 };
     let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
