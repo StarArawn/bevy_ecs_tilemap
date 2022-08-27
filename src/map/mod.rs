@@ -162,7 +162,7 @@ pub enum HexCoordSystem {
     Column,
 }
 
-/// Different square coordinate systems.
+/// Different isometric square coordinate systems.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoCoordSystem {
     Diamond,

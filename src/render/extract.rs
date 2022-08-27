@@ -127,7 +127,6 @@ pub fn extract(
                 Changed<TilemapTileSize>,
                 Changed<TilemapSpacing>,
                 Changed<TilemapGridSize>,
-                Changed<TilemapType>,
                 Changed<TilemapSize>,
                 Changed<ComputedVisibility>,
             )>,
