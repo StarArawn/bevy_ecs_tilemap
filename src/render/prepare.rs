@@ -83,9 +83,11 @@ pub(crate) fn prepare(
             visibility,
         ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
 
+        let scale = transform.compute_transform().scale;
+
         let chunk_data = UVec4::new(
-            chunk_pos.x,
-            chunk_pos.y,
+            chunk_pos.x * scale.x as u32,
+            chunk_pos.y * scale.y as u32,
             transform.translation().z as u32,
             tile.tilemap_id.0.id(),
         );
