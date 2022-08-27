@@ -2,20 +2,32 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
+// Side length of a colored quadrant (in "number of tiles").
+const QUADRANT_SIDE_LENGTH: u32 = 32;
+
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("pointy_hex_tiles.png");
 
-    let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
+    let total_size = TilemapSize {
+        x: QUADRANT_SIDE_LENGTH * 2,
+        y: QUADRANT_SIDE_LENGTH * 2,
+    };
+    let quadrant_size = TilemapSize {
+        x: QUADRANT_SIDE_LENGTH,
+        y: QUADRANT_SIDE_LENGTH,
+    };
+
+    let mut tile_storage = TileStorage::empty(total_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(0),
         TilePos { x: 0, y: 0 },
-        TilemapSize { x: 128, y: 128 },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -23,8 +35,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(1),
-        TilePos { x: 64, y: 0 },
-        TilemapSize { x: 128, y: 64 },
+        TilePos {
+            x: QUADRANT_SIDE_LENGTH,
+            y: 0,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -32,8 +47,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(2),
-        TilePos { x: 0, y: 64 },
-        TilemapSize { x: 64, y: 128 },
+        TilePos {
+            x: 0,
+            y: QUADRANT_SIDE_LENGTH,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -41,8 +59,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     bevy_ecs_tilemap::helpers::fill_tilemap_rect(
         TileTexture(3),
-        TilePos { x: 64, y: 64 },
-        TilemapSize { x: 128, y: 128 },
+        TilePos {
+            x: QUADRANT_SIDE_LENGTH,
+            y: QUADRANT_SIDE_LENGTH,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -55,27 +76,27 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             grid_size,
-            size: tilemap_size,
+            size: total_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Hexagon(HexType::Row),
+            map_type: TilemapType::Hexagon(HexCoordSystem::Row),
             ..Default::default()
         });
 }
 
-fn swap_mesh_type(mut query: Query<&mut TilemapMeshType>, keyboard_input: Res<Input<KeyCode>>) {
+fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<Input<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut tilemap_mesh_type in query.iter_mut() {
             match *tilemap_mesh_type {
-                TilemapMeshType::Hexagon(HexType::Row) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowEven);
+                TilemapType::Hexagon(HexCoordSystem::Row) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
                 }
-                TilemapMeshType::Hexagon(HexType::RowEven) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::RowOdd);
+                TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::RowOdd);
                 }
-                TilemapMeshType::Hexagon(HexType::RowOdd) => {
-                    *tilemap_mesh_type = TilemapMeshType::Hexagon(HexType::Row);
+                TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::Row);
                 }
                 _ => {}
             }

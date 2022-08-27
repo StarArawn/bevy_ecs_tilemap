@@ -23,8 +23,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Spawn the elements of the tilemap.
-    for x in 0..32u32 {
-        for y in 0..32u32 {
+    for x in 0..tilemap_size.x {
+        for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()

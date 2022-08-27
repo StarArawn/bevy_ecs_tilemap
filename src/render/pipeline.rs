@@ -17,7 +17,7 @@ use bevy::{
     },
 };
 
-use crate::map::{HexType, IsoType, TilemapMeshType};
+use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
@@ -159,7 +159,7 @@ impl FromWorld for TilemapPipeline {
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TilemapPipelineKey {
     pub msaa: u32,
-    pub mesh_type: TilemapMeshType,
+    pub mesh_type: TilemapType,
 }
 
 impl SpecializedRenderPipeline for TilemapPipeline {
@@ -167,18 +167,21 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
         let shader = match key.mesh_type {
-            TilemapMeshType::Square => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-            TilemapMeshType::Isometric(iso_type) => match iso_type {
-                IsoType::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
-                IsoType::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
+            TilemapType::Square { .. } => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+            TilemapType::Isometric {
+                coord_system: iso_type,
+                ..
+            } => match iso_type {
+                IsoCoordSystem::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
+                IsoCoordSystem::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
             },
-            TilemapMeshType::Hexagon(hex_type) => match hex_type {
-                HexType::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
-                HexType::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
-                HexType::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
-                HexType::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
-                HexType::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
-                HexType::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
+            TilemapType::Hexagon(hex_type) => match hex_type {
+                HexCoordSystem::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
             },
         };
 

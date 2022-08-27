@@ -15,8 +15,8 @@ use bevy::{
 use crate::{
     helpers::get_chunk_2d_transform,
     map::{
-        TilemapId, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture,
-        TilemapTextureSize, TilemapTileSize,
+        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
+        TilemapTileSize, TilemapType,
     },
     tiles::TilePos,
 };
@@ -58,7 +58,7 @@ pub(crate) fn prepare(
         &TilemapTextureSize,
         &TilemapSpacing,
         &TilemapGridSize,
-        &TilemapMeshType,
+        &TilemapType,
         &TilemapTexture,
         &TilemapSize,
         &ComputedVisibility,
@@ -90,9 +90,10 @@ pub(crate) fn prepare(
             tile.tilemap_id.0.id(),
         );
 
+        let relative_tile_pos = map_tile_to_chunk_tile(&tile.position, &chunk_pos).into();
         let chunk = chunk_storage.get_or_add(
             tile.entity,
-            map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
+            relative_tile_pos,
             &chunk_data,
             CHUNK_SIZE_2D,
             *mesh_type,
@@ -106,7 +107,7 @@ pub(crate) fn prepare(
             visibility,
         );
         chunk.set(
-            &map_tile_to_chunk_tile(&tile.position, &chunk_pos).into(),
+            &relative_tile_pos.into(),
             Some(PackedTileData {
                 position: map_tile_to_chunk_tile(&tile.position, &chunk_pos)
                     .as_vec2()
@@ -133,7 +134,7 @@ pub(crate) fn prepare(
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
         for chunk in chunks.values_mut() {
-            chunk.mesh_type = *mesh_type;
+            chunk.map_type = *mesh_type;
             chunk.transform = *transform;
             chunk.texture = texture.clone();
             chunk.map_size = *map_size;
@@ -167,11 +168,11 @@ pub(crate) fn prepare(
         let chunk_global_transform: Transform = chunk.transform.into();
 
         let transform = get_chunk_2d_transform(
-            chunk.position.as_vec3().xy(),
-            chunk.tile_size,
-            chunk.size.as_vec2(),
+            chunk.position.xy(),
+            chunk.size,
             0,
-            chunk.mesh_type,
+            chunk.grid_size,
+            &chunk.map_type,
         ) * chunk_global_transform;
 
         let mut chunk_uniform: TilemapUniformData = chunk.into();
@@ -182,7 +183,7 @@ pub(crate) fn prepare(
             .insert(chunk.texture.0.clone_weak())
             .insert(transform)
             .insert(ChunkId(chunk.position))
-            .insert(chunk.mesh_type)
+            .insert(chunk.map_type)
             .insert(TilemapId(Entity::from_raw(chunk.tilemap_id)))
             .insert(DynamicUniformIndex::<MeshUniform> {
                 index: mesh_uniforms.push(MeshUniform {

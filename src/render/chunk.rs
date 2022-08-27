@@ -12,7 +12,7 @@ use bevy::{
 };
 
 use crate::{
-    map::{TilemapMeshType, TilemapSize, TilemapTexture},
+    map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
 };
 
@@ -33,7 +33,7 @@ impl RenderChunk2dStorage {
         tile_pos: UVec2,
         position: &UVec4,
         chunk_size: UVec2,
-        mesh_type: TilemapMeshType,
+        mesh_type: TilemapType,
         tile_size: Vec2,
         texture_size: Vec2,
         spacing: Vec2,
@@ -166,7 +166,7 @@ pub struct RenderChunk2d {
     pub id: u64,
     pub position: UVec3,
     pub size: UVec2,
-    pub mesh_type: TilemapMeshType,
+    pub map_type: TilemapType,
     pub tile_size: Vec2,
     pub tilemap_id: u32,
     pub spacing: Vec2,
@@ -188,7 +188,7 @@ impl RenderChunk2d {
         tilemap_id: u32,
         position: &UVec3,
         size: UVec2,
-        mesh_type: TilemapMeshType,
+        mesh_type: TilemapType,
         tile_size: Vec2,
         spacing: Vec2,
         grid_size: Vec2,
@@ -203,7 +203,7 @@ impl RenderChunk2d {
             gpu_mesh: None,
             id,
             map_size,
-            mesh_type,
+            map_type: mesh_type,
             mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
             position: *position,
             size,
