@@ -17,9 +17,8 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
     var position = vertex_position.xy;
 
-    let vertex_position = tilemap_data.chunk_pos + vertex_position.xy;
-    var bot_left = project_iso(vertex_position, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var tile_z = project_iso(vertex_position, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    var bot_left = project_iso(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    var tile_z = project_iso(tilemap_data.chunk_pos + vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
     var top_right = vec2<f32>(bot_left.x + tilemap_data.tile_size.x, bot_left.y + tilemap_data.tile_size.y);
 
     var positions = array<vec2<f32>, 4>(

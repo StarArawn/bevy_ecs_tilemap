@@ -5,7 +5,7 @@ mod helpers;
 // This example demonstrates a tilemap laid out isometrically using the "Diamond" coordinate system.
 
 // Side length of a colored quadrant (in "number of tiles").
-const QUADRANT_SIDE_LENGTH: u32 = 32;
+const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
