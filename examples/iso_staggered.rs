@@ -7,7 +7,7 @@ mod helpers;
 // Side length of a colored quadrant (in "number of tiles").
 // Note: the chunk size is currently hardcoded to 64. Therefore, it is good to choose a size that is above 32 for this
 // example, as it makes sure chunking-related interactions work.
-const QUADRANT_SIDE_LENGTH: u32 = 32;
+const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
