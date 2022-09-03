@@ -40,4 +40,33 @@ jobs:
           command: check
           args: --all-targets
 
+  test:
+    name: Tests
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        
+      - name: Install Linux dependencies
+        run: |
+             if [ "$RUNNER_OS" == "Linux" ]; then
+                  sudo apt-get update; sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
+             fi
+        shell: bash
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
