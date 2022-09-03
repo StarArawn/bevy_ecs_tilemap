@@ -12,7 +12,7 @@ use bevy::{
 };
 
 use crate::{
-    map::{TilemapMeshType, TilemapSize, TilemapTexture},
+    map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
 };
 
@@ -27,16 +27,18 @@ pub struct RenderChunk2dStorage {
 pub struct ChunkId(pub UVec3);
 
 impl RenderChunk2dStorage {
+    #[allow(clippy::too_many_arguments)]
     pub fn get_or_add(
         &mut self,
         tile_entity: Entity,
         tile_pos: UVec2,
         position: &UVec4,
         chunk_size: UVec2,
-        mesh_type: TilemapMeshType,
+        mesh_type: TilemapType,
         tile_size: Vec2,
         texture_size: Vec2,
         spacing: Vec2,
+        grid_size: Vec2,
         texture: TilemapTexture,
         map_size: TilemapSize,
         transform: GlobalTransform,
@@ -69,6 +71,7 @@ impl RenderChunk2dStorage {
                 mesh_type,
                 tile_size,
                 spacing,
+                grid_size,
                 texture,
                 texture_size,
                 map_size,
@@ -94,6 +97,15 @@ impl RenderChunk2dStorage {
         chunk_storage.get_mut(&position.xyz()).unwrap()
     }
 
+    pub fn remove_tile_with_entity(&mut self, entity: Entity) {
+        if let Some((chunk, tile_pos)) = self.get_mut_from_entity(entity) {
+            chunk.set(&tile_pos.into(), None);
+        }
+
+        self.entity_to_chunk.remove(&entity);
+        self.entity_to_chunk_tile.remove(&entity);
+    }
+
     pub fn get_mut_from_entity(&mut self, entity: Entity) -> Option<(&mut RenderChunk2d, UVec2)> {
         if !self.entity_to_chunk_tile.contains_key(&entity) {
             return None;
@@ -101,7 +113,7 @@ impl RenderChunk2dStorage {
 
         let (tilemap_id, chunk_pos, tile_pos) = self.entity_to_chunk_tile.get(&entity).unwrap();
 
-        let chunk_storage = self.chunks.get_mut(&tilemap_id).unwrap();
+        let chunk_storage = self.chunks.get_mut(tilemap_id).unwrap();
         Some((chunk_storage.get_mut(&chunk_pos.xyz()).unwrap(), *tile_pos))
     }
 
@@ -127,11 +139,11 @@ impl RenderChunk2dStorage {
         self.chunks.len()
     }
 
-    pub fn iter(&self) -> impl std::iter::Iterator<Item = &RenderChunk2d> {
+    pub fn iter(&self) -> impl Iterator<Item = &RenderChunk2d> {
         self.chunks.iter().flat_map(|(_, x)| x.iter().map(|x| x.1))
     }
 
-    pub fn iter_mut(&mut self) -> impl std::iter::Iterator<Item = &mut RenderChunk2d> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut RenderChunk2d> {
         self.chunks
             .iter_mut()
             .flat_map(|(_, x)| x.iter_mut().map(|x| x.1))
@@ -155,10 +167,11 @@ pub struct RenderChunk2d {
     pub id: u64,
     pub position: UVec3,
     pub size: UVec2,
-    pub mesh_type: TilemapMeshType,
+    pub map_type: TilemapType,
     pub tile_size: Vec2,
     pub tilemap_id: u32,
     pub spacing: Vec2,
+    pub grid_size: Vec2,
     pub tiles: Vec<Option<PackedTileData>>,
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
@@ -171,14 +184,16 @@ pub struct RenderChunk2d {
 }
 
 impl RenderChunk2d {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: u64,
         tilemap_id: u32,
         position: &UVec3,
         size: UVec2,
-        mesh_type: TilemapMeshType,
+        mesh_type: TilemapType,
         tile_size: Vec2,
         spacing: Vec2,
+        grid_size: Vec2,
         texture: TilemapTexture,
         texture_size: Vec2,
         map_size: TilemapSize,
@@ -190,11 +205,12 @@ impl RenderChunk2d {
             gpu_mesh: None,
             id,
             map_size,
-            mesh_type,
+            map_type: mesh_type,
             mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
             position: *position,
             size,
             spacing,
+            grid_size,
             texture_size,
             texture,
             tile_size,
@@ -269,7 +285,7 @@ impl RenderChunk2d {
                 let texture: [f32; 4] = tile.texture.to_array();
                 textures.extend([texture, texture, texture, texture].into_iter());
 
-                indices.extend_from_slice(&[i + 0, i + 2, i + 1, i + 0, i + 3, i + 2]);
+                indices.extend_from_slice(&[i, i + 2, i + 1, i, i + 3, i + 2]);
                 i += 4;
             }
 
@@ -340,10 +356,10 @@ impl From<&RenderChunk2d> for TilemapUniformData {
         let chunk_size: Vec2 = chunk.size.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         Self {
-            texture_size: chunk.texture_size.into(),
-            tile_size: chunk.tile_size.into(),
-            grid_size: chunk.tile_size.into(),
-            spacing: chunk.spacing.into(),
+            texture_size: chunk.texture_size,
+            tile_size: chunk.tile_size,
+            grid_size: chunk.grid_size,
+            spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,
             map_size: map_size * chunk.tile_size,
             time: 0.0,
@@ -358,10 +374,10 @@ impl From<&mut RenderChunk2d> for TilemapUniformData {
         let chunk_size: Vec2 = chunk.size.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         Self {
-            texture_size: chunk.texture_size.into(),
-            tile_size: chunk.tile_size.into(),
-            grid_size: chunk.tile_size.into(),
-            spacing: chunk.spacing.into(),
+            texture_size: chunk.texture_size,
+            tile_size: chunk.tile_size,
+            grid_size: chunk.grid_size,
+            spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,
             map_size: map_size * chunk.tile_size,
             time: 0.0,

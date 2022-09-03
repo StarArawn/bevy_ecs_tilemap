@@ -16,7 +16,7 @@
 
 use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
 use map::{
-    TilemapGridSize, TilemapMeshType, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize,
+    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
 };
 use tiles::TileStorage;
 
@@ -44,7 +44,7 @@ impl Plugin for TilemapPlugin {
 #[derive(Bundle, Debug, Default, Clone)]
 pub struct TilemapBundle {
     pub grid_size: TilemapGridSize,
-    pub mesh_type: TilemapMeshType,
+    pub map_type: TilemapType,
     pub size: TilemapSize,
     pub spacing: TilemapSpacing,
     pub storage: TileStorage,

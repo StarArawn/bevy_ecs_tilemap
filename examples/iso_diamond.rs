@@ -2,63 +2,86 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
+// This example demonstrates a tilemap laid out isometrically using the "Diamond" coordinate system.
+
+// Side length of a colored quadrant (in "number of tiles").
+const QUADRANT_SIDE_LENGTH: u32 = 80;
+
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
 
-    let tilemap_size = TilemapSize { x: 128, y: 128 };
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
+    let total_size = TilemapSize {
+        x: QUADRANT_SIDE_LENGTH * 2,
+        y: QUADRANT_SIDE_LENGTH * 2,
+    };
+    let quadrant_size = TilemapSize {
+        x: QUADRANT_SIDE_LENGTH,
+        y: QUADRANT_SIDE_LENGTH,
+    };
+    let mut tile_storage = TileStorage::empty(total_size);
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(0),
         TilePos { x: 0, y: 0 },
-        TilemapSize { x: 128, y: 128 },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(1),
-        TilePos { x: 64, y: 0 },
-        TilemapSize { x: 128, y: 64 },
+        TilePos {
+            x: QUADRANT_SIDE_LENGTH,
+            y: 0,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(2),
-        TilePos { x: 0, y: 64 },
-        TilemapSize { x: 64, y: 128 },
+        TilePos {
+            x: 0,
+            y: QUADRANT_SIDE_LENGTH,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(3),
-        TilePos { x: 64, y: 64 },
-        TilemapSize { x: 128, y: 128 },
+        TilePos {
+            x: QUADRANT_SIDE_LENGTH,
+            y: QUADRANT_SIDE_LENGTH,
+        },
+        quadrant_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
     );
 
     let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
+    let grid_size = tile_size.into();
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 64.0, y: 32.0 },
-            size: tilemap_size,
+            grid_size,
+            size: total_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            mesh_type: TilemapMeshType::Isometric(IsoType::Diamond),
+            map_type: TilemapType::isometric_diamond(false),
             ..Default::default()
         });
 }

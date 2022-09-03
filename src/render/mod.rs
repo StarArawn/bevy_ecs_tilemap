@@ -59,7 +59,7 @@ pub struct TilemapRenderingPlugin;
 pub struct SecondsSinceStartup(f32);
 
 impl Plugin for TilemapRenderingPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
+    fn build(&self, app: &mut App) {
         #[cfg(not(feature = "atlas"))]
         app.add_system(set_texture_to_copy_src);
 

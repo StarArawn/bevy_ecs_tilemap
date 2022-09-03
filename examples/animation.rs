@@ -68,7 +68,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
             tile_size,
             storage: tilemap_storage,
             texture: TilemapTexture(texture_handle.clone()),
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 0.0),
+            transform: get_centered_transform_2d(&size, &tile_size, 0.0),
             ..Default::default()
         });
 }
@@ -123,7 +123,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             storage: tilemap_storage,
             texture: TilemapTexture(texture_handle.clone()),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 1.0),
+            transform: get_centered_transform_2d(&size, &tile_size, 1.0),
             ..Default::default()
         });
 }

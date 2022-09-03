@@ -23,12 +23,19 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // component per layer.
     let mut tile_storage = TileStorage::empty(tilemap_size);
 
+    // For the purposes of this example, we consider a square tile map,
+    // where diagonals are also considered to be neighbors.
+    let tilemap_type = TilemapType::Square {
+        neighbors_include_diagonals: true,
+    };
+
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity
     // it is associated with. This is done with the TilemapId component on each tile.
     let tilemap_entity = commands.spawn().id();
 
     // Spawn a 32 by 32 tilemap.
+    // Alternatively, you can use helpers::fill_tilemap.
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
@@ -46,13 +53,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // We can grab a list of neighbors.
-    let neighbors = tile_storage.get_tile_neighbors(&TilePos { x: 0, y: 0 });
+    let neighbors = get_tile_neighbors(&TilePos { x: 0, y: 0 }, &tile_storage, &tilemap_type);
 
     // We can access tiles using:
     assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
-    assert!(neighbors.len() == 8);
-    let neighbor_count = neighbors.iter().filter(|n| n.is_some()).count();
-    assert!(neighbor_count == 3); // Only 3 neighbors since negative is outside of map.
+    assert_eq!(neighbors.count(), 3); // Only 3 neighbors since negative is outside of map.
 
     // This changes some of our tiles by looking at neighbors.
     let mut color = 0;
@@ -60,11 +65,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors = tile_storage.get_neighboring_pos(&TilePos { x, y });
-            for pos in neighbors.iter().filter_map(|pos| pos.as_ref()) {
+            let neighbors = get_neighboring_pos(&TilePos { x, y }, &tilemap_size, &tilemap_type);
+            for pos in neighbors.into_iter() {
                 // We can replace the tile texture component like so:
                 commands
-                    .entity(tile_storage.get(pos).unwrap())
+                    .entity(tile_storage.get(&pos).unwrap())
                     .insert(TileTexture(color));
             }
         }
@@ -81,13 +86,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
             size: tilemap_size,
             storage: tile_storage,
+            map_type: tilemap_type,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate(0.0))
@@ -97,11 +99,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 // A system that manipulates tile colors.
 fn update_map(
     time: Res<Time>,
-    mut tilemap_query: Query<(&mut CurrentColor, &mut LastUpdate, &TileStorage)>,
+    mut tilemap_query: Query<(
+        &mut CurrentColor,
+        &mut LastUpdate,
+        &TileStorage,
+        &TilemapType,
+    )>,
     mut tile_query: Query<&mut TileTexture>,
 ) {
     let current_time = time.seconds_since_startup();
-    for (mut current_color, mut last_update, tile_storage) in tilemap_query.iter_mut() {
+    for (mut current_color, mut last_update, tile_storage, tilemap_type) in tilemap_query.iter_mut()
+    {
         if current_time - last_update.0 > 0.1 {
             current_color.0 += 1;
             if current_color.0 > 5 {
@@ -113,15 +121,14 @@ fn update_map(
             for x in (2..128).step_by(4) {
                 for y in (2..128).step_by(4) {
                     // Grab the neighboring tiles
-                    let neighboring_entities = tile_storage.get_tile_neighbors(&TilePos { x, y });
+                    let neighboring_entities =
+                        get_tile_neighbors(&TilePos { x, y }, tile_storage, tilemap_type);
 
                     // Iterate over neighbors
-                    for i in 0..8 {
-                        if let Some(neighbor) = neighboring_entities[i] {
-                            // Query the tile entities to change the colors
-                            if let Ok(mut tile_texture) = tile_query.get_mut(neighbor) {
-                                tile_texture.0 = color as u32;
-                            }
+                    for neighbor_entity in neighboring_entities.into_iter() {
+                        // Query the tile entities to change the colors
+                        if let Ok(mut tile_texture) = tile_query.get_mut(neighbor_entity) {
+                            tile_texture.0 = color as u32;
                         }
                     }
                 }

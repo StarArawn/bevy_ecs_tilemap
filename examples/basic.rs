@@ -23,8 +23,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Spawn the elements of the tilemap.
-    for x in 0..32u32 {
-        for y in 0..32u32 {
+    // Alternatively, you can use helpers::fill_tilemap.
+    for x in 0..tilemap_size.x {
+        for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn()
@@ -39,20 +40,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let grid_size = TilemapGridSize { x: 16.0, y: 16.0 };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            grid_size,
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         });
 }
