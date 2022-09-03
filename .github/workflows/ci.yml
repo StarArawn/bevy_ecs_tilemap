@@ -20,13 +20,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
         
-      - name: Install Linux dependencies
-        run: |
-             if [ "$RUNNER_OS" == "Linux" ]; then
-                  sudo apt-get update; sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
-             fi
-        shell: bash
-
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -51,13 +44,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
         
-      - name: Install Linux dependencies
-        run: |
-             if [ "$RUNNER_OS" == "Linux" ]; then
-                  sudo apt-get update; sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
-             fi
-        shell: bash
-
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
