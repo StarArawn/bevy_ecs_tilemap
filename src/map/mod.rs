@@ -3,7 +3,7 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image},
 };
 
-/// Describes the information needed for creating a window.
+/// Provides a way to set custom Tilemap render pipeline parameters. 
 ///
 /// This should be set up before adding the [`TilemapPlugin`](crate::TilemapPlugin).
 ///
