@@ -18,7 +18,7 @@ use bevy::{
 use bevy::render::renderer::RenderDevice;
 
 use crate::{
-    prelude::TilemapTexture,
+    prelude::{TilemapTexture, TilemapRenderSettings},
     tiles::{TilePos, TileStorage},
 };
 
@@ -51,8 +51,42 @@ use self::extract::ExtractedTilemapTexture;
 #[cfg(not(feature = "atlas"))]
 use self::texture_array_cache::TextureArrayCache;
 
+/// The default chunk_size (in tiles) used per mesh.
+const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
+
 #[derive(Copy, Clone, Debug, Component)]
 pub(crate) struct ExtractedFilterMode(FilterMode);
+
+/// The `ChunkCoordinates` resource provides a utility for converting map tile coordinates into
+/// chunk coordinate space in the render pipeline. It's initialized from the `TilemapRenderSettings`
+/// resource if it exists
+#[derive(Debug, Copy, Clone)]
+pub(crate) struct ChunkCoordinates {
+    chunk_size: UVec2,
+}
+
+impl ChunkCoordinates {
+    pub fn new(chunk_size: UVec2) -> ChunkCoordinates {
+        ChunkCoordinates { chunk_size }
+    }
+
+    #[inline]
+    pub fn chunk_size(&self) -> UVec2 {
+        self.chunk_size
+    }
+
+    #[inline]
+    pub fn map_tile_to_chunk(&self, tile_position: &TilePos) -> UVec2 {
+        let tile_pos: UVec2 = tile_position.into();
+        tile_pos / self.chunk_size
+    }
+
+    #[inline]
+    pub fn map_tile_to_chunk_tile(&self, tile_position: &TilePos, chunk_position: &UVec2) -> UVec2 {
+        let tile_pos: UVec2 = tile_position.into();
+        tile_pos - (*chunk_position * self.chunk_size)
+    }
+}
 
 pub struct TilemapRenderingPlugin;
 #[derive(Default, Deref, DerefMut)]
@@ -66,6 +100,15 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_system_to_stage(CoreStage::First, clear_removed);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper_tilemap);
         app.add_system_to_stage(CoreStage::PostUpdate, removal_helper);
+
+        // Extract the chunk size from the TilemapRenderSettings used to initialize the 
+        // ChunkCoordinate resource to insert into the render pipeline
+        let chunk_size = {
+            match app.world.get_resource::<TilemapRenderSettings>() {
+                Some(settings) => settings.chunk_size,
+                None => CHUNK_SIZE_2D,
+            }
+        };
 
         let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
 
@@ -130,6 +173,7 @@ impl Plugin for TilemapRenderingPlugin {
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app
+            .insert_resource(ChunkCoordinates::new(chunk_size))
             .insert_resource(RenderChunk2dStorage::default())
             .insert_resource(SecondsSinceStartup);
         render_app

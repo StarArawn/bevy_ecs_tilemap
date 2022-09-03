@@ -3,6 +3,18 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image},
 };
 
+/// Describes the information needed for creating a window.
+///
+/// This should be set up before adding the [`TilemapPlugin`](crate::TilemapPlugin).
+///
+/// See [`examples/chunk_size.rs`] for usage in the main fn. 
+#[derive(Debug, Default, Copy, Clone)]
+pub struct TilemapRenderSettings {
+    /// The `chunk_size` is set to the total tile dimensions per chunk, a grouping of 
+    /// tiles combined and rendered as a single mesh by the Tilemap render pipeline.
+    pub chunk_size: UVec2,
+}
+
 /// A component which stores a reference to the tilemap entity.
 #[derive(Component, Clone, Copy, Debug, Hash)]
 pub struct TilemapId(pub Entity);
