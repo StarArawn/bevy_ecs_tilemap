@@ -247,7 +247,7 @@ pub fn extract(
                 data: ExtractedTilemapTexture {
                     tilemap_id: TilemapId(entity),
                     tile_size: *tile_size,
-                    texture_size: texture_size,
+                    texture_size,
                     spacing: *spacing,
                     texture: texture.clone(),
                 },

@@ -14,5 +14,5 @@ pub fn include_shader(shader_includes: Vec<&'static str>, shader: &'static str) 
         final_shader = final_shader.replace(&include_text, shader_includes[include_id]);
     }
 
-    return final_shader;
+    final_shader
 }

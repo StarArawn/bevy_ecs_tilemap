@@ -91,7 +91,7 @@ impl TextureArrayCache {
                 min_filter: *filter,
                 mipmap_filter: *filter,
                 lod_min_clamp: 0.0,
-                lod_max_clamp: std::f32::MAX,
+                lod_max_clamp: f32::MAX,
                 compare: None,
                 anisotropy_clamp: None,
                 border_color: None,

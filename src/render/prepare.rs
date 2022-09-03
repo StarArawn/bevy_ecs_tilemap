@@ -45,6 +45,7 @@ pub struct MeshUniform {
     pub transform: Mat4,
 }
 
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub(crate) fn prepare(
     mut commands: Commands,
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
@@ -92,7 +93,7 @@ pub(crate) fn prepare(
             tile.tilemap_id.0.id(),
         );
 
-        let relative_tile_pos = map_tile_to_chunk_tile(&tile.position, &chunk_pos).into();
+        let relative_tile_pos = map_tile_to_chunk_tile(&tile.position, &chunk_pos);
         let chunk = chunk_storage.get_or_add(
             tile.entity,
             relative_tile_pos,

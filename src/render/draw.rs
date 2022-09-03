@@ -106,7 +106,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
             .values
             .get(image_handle)
             .unwrap();
-        pass.set_bind_group(I, &bind_group, &[]);
+        pass.set_bind_group(I, bind_group, &[]);
 
         RenderCommandResult::Success
     }

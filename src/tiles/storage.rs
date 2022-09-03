@@ -32,12 +32,12 @@ impl TileStorage {
     }
 
     /// Returns an iterator with all of the positions in the grid.
-    pub fn iter(&self) -> impl std::iter::Iterator<Item = &Option<Entity>> {
+    pub fn iter(&self) -> impl Iterator<Item = &Option<Entity>> {
         self.tiles.iter()
     }
 
     /// Returns an immutable iterator with all of the positions in the grid.
-    pub fn iter_mut(&mut self) -> impl std::iter::Iterator<Item = &mut Option<Entity>> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Option<Entity>> {
         self.tiles.iter_mut()
     }
 }
