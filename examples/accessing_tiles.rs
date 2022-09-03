@@ -35,6 +35,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn().id();
 
     // Spawn a 32 by 32 tilemap.
+    // Alternatively, you can use helpers::fill_tilemap.
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
@@ -88,11 +89,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             map_type: tilemap_type,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate(0.0))

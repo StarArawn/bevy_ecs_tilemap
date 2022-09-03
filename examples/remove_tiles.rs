@@ -38,11 +38,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate::default());

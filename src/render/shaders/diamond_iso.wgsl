@@ -15,7 +15,6 @@ fn project_iso(pos: vec2<f32>, tile_width: f32, tile_height: f32) -> vec2<f32> {
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
-    var position = vertex_position.xy;
 
     var bot_left = project_iso(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
     var tile_z = project_iso(tilemap_data.chunk_pos + vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);

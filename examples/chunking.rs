@@ -2,6 +2,8 @@ use bevy::{math::Vec3Swizzles, prelude::*, render::texture::ImageSettings, utils
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
+/// Press WASD to move the camera around, and watch as chunks spawn/despawn in response.
+
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
 const CHUNK_SIZE: TilemapSize = TilemapSize { x: 4, y: 4 };
 
@@ -77,11 +79,11 @@ fn spawn_chunks_around_camera(
 fn despawn_outofrange_chunks(
     mut commands: Commands,
     camera_query: Query<&Transform, With<Camera>>,
-    chunks_query: Query<(Entity, &Transform, &TileStorage)>,
+    chunks_query: Query<(Entity, &Transform)>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
     for camera_transform in camera_query.iter() {
-        for (entity, chunk_transform, tile_storage) in chunks_query.iter() {
+        for (entity, chunk_transform) in chunks_query.iter() {
             let chunk_pos = chunk_transform.translation.xy();
             let distance = camera_transform.translation.xy().distance(chunk_pos);
             if distance > 320.0 {

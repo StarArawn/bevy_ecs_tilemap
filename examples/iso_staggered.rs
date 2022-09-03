@@ -27,7 +27,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(0),
         TilePos { x: 0, y: 0 },
         quadrant_size,
@@ -36,7 +36,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(1),
         TilePos {
             x: QUADRANT_SIDE_LENGTH,
@@ -48,7 +48,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(2),
         TilePos {
             x: 0,
@@ -60,7 +60,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    bevy_ecs_tilemap::helpers::fill_tilemap_rect(
+    fill_tilemap_rect(
         TileTexture(3),
         TilePos {
             x: QUADRANT_SIDE_LENGTH,

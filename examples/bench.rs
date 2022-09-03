@@ -16,7 +16,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut tile_storage = TileStorage::empty(tilemap_size);
     let tilemap_entity = commands.spawn().id();
 
-    bevy_ecs_tilemap::helpers::fill_tilemap(
+    fill_tilemap(
         TileTexture(0),
         tilemap_size,
         TilemapId(tilemap_entity),
@@ -34,11 +34,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         });
 }

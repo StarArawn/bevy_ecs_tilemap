@@ -69,7 +69,7 @@ impl Default for TileVisible {
     }
 }
 
-/// Flips the tiles texture along the X, Y or diagonal axises
+/// Flips the tiles texture along the X, Y or diagonal axes
 #[derive(Component, Default, Clone, Copy, Debug, Hash)]
 pub struct TileFlip {
     /// Flip tile along the x axis.

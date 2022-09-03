@@ -136,9 +136,9 @@ pub(crate) struct TilemapTextureSize {
     pub y: f32,
 }
 
-impl Into<Vec2> for TilemapTextureSize {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
+impl From<TilemapTextureSize> for Vec2 {
+    fn from(texture_size: TilemapTextureSize) -> Self {
+        Vec2::new(texture_size.x, texture_size.y)
     }
 }
 

@@ -5,7 +5,6 @@ struct Output {
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
-    var position = vertex_position.xy;
 
     var position = vertex_position.xy * tilemap_data.grid_size;
     var offset = floor(0.25 * tilemap_data.grid_size.x);
