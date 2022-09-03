@@ -11,9 +11,6 @@ name: Continuous Integration
 jobs:
   check:
     name: Check Code
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
         
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +33,7 @@ jobs:
   test:
     name: Tests
     strategy:
+      # Tests are most likely to have OS-specific behavior
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         
