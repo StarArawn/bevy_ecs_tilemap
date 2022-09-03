@@ -35,7 +35,7 @@ impl TextureArrayCache {
         tile_spacing: Vec2,
         filter: FilterMode,
     ) {
-        if !self.sizes.contains_key(&atlas_texture) {
+        if !self.sizes.contains_key(atlas_texture) {
             self.sizes.insert(
                 atlas_texture.clone_weak(),
                 (tile_size, texture_size, tile_spacing, filter),
