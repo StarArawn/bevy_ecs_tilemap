@@ -21,7 +21,7 @@ regex = "1.5.4"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { version = "0.8" }
+bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset"]}
 ldtk_rust = { version = "0.6" }
 rand = "0.8"
 env_logger = "0.9"
