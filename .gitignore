@@ -13,3 +13,5 @@
 
 # Ignore idea folders.
 .idea
+
+Cargo.lock
