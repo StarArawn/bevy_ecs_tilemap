@@ -5,11 +5,12 @@ mod helpers;
 /// Press WASD to move the camera around, and watch as chunks spawn/despawn in response.
 
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
-const CHUNK_SIZE: TilemapSize = TilemapSize { x: 4, y: 4 };
+// For this example, don't choose too large a chunk size.
+const CHUNK_SIZE: UVec2 = UVec2 { x: 4, y: 4 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
     let tilemap_entity = commands.spawn().id();
-    let mut tile_storage = TileStorage::empty(CHUNK_SIZE);
+    let mut tile_storage = TileStorage::empty(CHUNK_SIZE.into());
     // Spawn the elements of the tilemap.
     for x in 0..CHUNK_SIZE.x {
         for y in 0..CHUNK_SIZE.y {
@@ -37,7 +38,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             grid_size: TILE_SIZE.into(),
-            size: CHUNK_SIZE,
+            size: CHUNK_SIZE.into(),
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size: TILE_SIZE,
@@ -111,6 +112,10 @@ fn main() {
         })
         .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
+        // `TilemapRenderSettings` be added before the `TilemapPlugin`.
+        .insert_resource(TilemapRenderSettings {
+            chunk_size: CHUNK_SIZE,
+        })
         .add_plugin(TilemapPlugin)
         .insert_resource(ChunkManager::default())
         .add_startup_system(startup)

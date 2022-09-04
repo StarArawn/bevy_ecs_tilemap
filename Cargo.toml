@@ -21,12 +21,16 @@ regex = "1.5.4"
 
 [dev-dependencies]
 anyhow = { version = "1.0" }
-bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset"]}
 ldtk_rust = { version = "0.6" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
+
+[target.'cfg(unix)'.dev-dependencies.bevy]
+version = "0.8"
+default-features = false
+features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit", "x11"]
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"

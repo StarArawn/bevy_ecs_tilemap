@@ -3,6 +3,32 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image},
 };
 
+/// Custom parameters for the render pipeline.
+///
+/// It must be added before [`TilemapPlugin`](crate::TilemapPlugin). For example:
+/// ```
+/// App::new()
+///         .insert_resource(WindowDescriptor {
+///             width: 1270.0,
+///             height: 720.0,
+///         })
+///         .insert_resource(TilemapRenderSettings {
+///             chunk_size: UVec2::new(32, 32),
+///         })
+///         .add_plugin(TilemapPlugin)
+///         .run();
+/// ```
+#[derive(Debug, Default, Copy, Clone)]
+pub struct TilemapRenderSettings {
+    /// Dimensions of a "chunk" in tiles. Chunks are grouping of tiles combined and rendered as a
+    /// single mesh by the render pipeline.
+    ///
+    /// Larger chunk sizes are better for tilemaps which change infrequently.
+    ///
+    /// Smaller chunk sizes will benefit tilemaps which change frequently.
+    pub chunk_size: UVec2,
+}
+
 /// A component which stores a reference to the tilemap entity.
 #[derive(Component, Clone, Copy, Debug, Hash)]
 pub struct TilemapId(pub Entity);
