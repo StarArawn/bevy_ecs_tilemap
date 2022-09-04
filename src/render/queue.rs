@@ -103,7 +103,12 @@ pub fn queue_meshes(
     msaa: Res<Msaa>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     standard_tilemap_meshes: Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
-    mut views: Query<(Entity, &ExtractedView, &VisibleEntities, &mut RenderPhase<Transparent2d>)>,
+    mut views: Query<(
+        Entity,
+        &ExtractedView,
+        &VisibleEntities,
+        &mut RenderPhase<Transparent2d>,
+    )>,
     #[cfg(not(feature = "atlas"))] mut texture_array_cache: ResMut<TextureArrayCache>,
     #[cfg(not(feature = "atlas"))] render_queue: Res<RenderQueue>,
 ) {
@@ -132,9 +137,9 @@ pub fn queue_meshes(
 
             for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities.entities.contains(&tilemap_id.0) {
-                    continue
+                    continue;
                 }
-                
+
                 if let Some(chunk) = chunk_storage.get(&UVec4::new(
                     chunk_id.0.x,
                     chunk_id.0.y,
