@@ -93,7 +93,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Iso Diamond Example"),
+            title: String::from("Iso Staggered Example"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
