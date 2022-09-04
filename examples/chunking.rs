@@ -7,6 +7,11 @@ mod helpers;
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
 // For this example, don't choose too large a chunk size.
 const CHUNK_SIZE: UVec2 = UVec2 { x: 4, y: 4 };
+// Render chunk sizes are set to 4 render chunks per user specified chunk.
+const RENDER_CHUNK_SIZE: UVec2 = UVec2 {
+    x: CHUNK_SIZE.x * 2,
+    y: CHUNK_SIZE.y * 2,
+};
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
     let tilemap_entity = commands.spawn().id();
@@ -114,7 +119,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         // `TilemapRenderSettings` be added before the `TilemapPlugin`.
         .insert_resource(TilemapRenderSettings {
-            chunk_size: CHUNK_SIZE,
+            render_chunk_size: RENDER_CHUNK_SIZE,
         })
         .add_plugin(TilemapPlugin)
         .insert_resource(ChunkManager::default())

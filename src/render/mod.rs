@@ -99,7 +99,7 @@ impl Plugin for TilemapRenderingPlugin {
         // ChunkCoordinate resource to insert into the render pipeline
         let chunk_size = {
             match app.world.get_resource::<TilemapRenderSettings>() {
-                Some(settings) => settings.chunk_size,
+                Some(settings) => settings.render_chunk_size,
                 None => CHUNK_SIZE_2D,
             }
         };
