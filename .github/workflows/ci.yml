@@ -10,7 +10,7 @@ name: Continuous Integration
 
 jobs:
   check:
-    name: Check Code
+    name: Run cargo check
         
     runs-on: ubuntu-latest
     steps:
