@@ -10,7 +10,7 @@ use bevy::{
             PipelineCache, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
-        view::{ExtractedView, ViewUniforms},
+        view::{ExtractedView, ViewUniforms, VisibleEntities},
     },
     utils::FloatOrd,
     utils::HashMap,
@@ -103,7 +103,12 @@ pub fn queue_meshes(
     msaa: Res<Msaa>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     standard_tilemap_meshes: Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
-    mut views: Query<(Entity, &ExtractedView, &mut RenderPhase<Transparent2d>)>,
+    mut views: Query<(
+        Entity,
+        &ExtractedView,
+        &VisibleEntities,
+        &mut RenderPhase<Transparent2d>,
+    )>,
     #[cfg(not(feature = "atlas"))] mut texture_array_cache: ResMut<TextureArrayCache>,
     #[cfg(not(feature = "atlas"))] render_queue: Res<RenderQueue>,
 ) {
@@ -111,7 +116,7 @@ pub fn queue_meshes(
     texture_array_cache.queue(&render_device, &render_queue, &gpu_images);
 
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        for (entity, _view, mut transparent_phase) in views.iter_mut() {
+        for (entity, _view, visible_entities, mut transparent_phase) in views.iter_mut() {
             let view_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
                 entries: &[BindGroupEntry {
                     binding: 0,
@@ -131,6 +136,10 @@ pub fn queue_meshes(
                 .unwrap();
 
             for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
+                if !visible_entities.entities.contains(&tilemap_id.0) {
+                    continue;
+                }
+
                 if let Some(chunk) = chunk_storage.get(&UVec4::new(
                     chunk_id.0.x,
                     chunk_id.0.y,
