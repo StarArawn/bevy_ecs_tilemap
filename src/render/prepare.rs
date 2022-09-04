@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    math::{Mat4, UVec2, UVec4, Vec3Swizzles},
+    math::{Mat4, UVec4, Vec3Swizzles},
     prelude::{
         Commands, Component, ComputedVisibility, Entity, GlobalTransform, Query, Res, ResMut,
         Transform, Vec2,
@@ -18,21 +18,8 @@ use crate::{
         TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
         TilemapTileSize, TilemapType,
     },
-    tiles::TilePos,
 };
-use crate::{prelude::TilemapGridSize, render::SecondsSinceStartup};
-
-pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
-
-fn map_tile_to_chunk(tile_position: &TilePos) -> UVec2 {
-    let tile_pos: UVec2 = tile_position.into();
-    tile_pos / CHUNK_SIZE_2D
-}
-
-pub(crate) fn map_tile_to_chunk_tile(tile_position: &TilePos, chunk_position: &UVec2) -> UVec2 {
-    let tile_pos: UVec2 = tile_position.into();
-    tile_pos - (*chunk_position * CHUNK_SIZE_2D)
-}
+use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
@@ -51,6 +38,7 @@ pub(crate) fn prepare(
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
     mut mesh_uniforms: ResMut<DynamicUniformBuffer<MeshUniform>>,
     mut tilemap_uniforms: ResMut<DynamicUniformBuffer<TilemapUniformData>>,
+    chunk_size: Res<RenderChunkSize>,
     extracted_tiles: Query<&ExtractedTile>,
     extracted_tilemaps: Query<(
         Entity,
@@ -70,7 +58,7 @@ pub(crate) fn prepare(
     seconds_since_startup: Res<SecondsSinceStartup>,
 ) {
     for tile in extracted_tiles.iter() {
-        let chunk_pos = map_tile_to_chunk(&tile.position);
+        let chunk_pos = chunk_size.map_tile_to_chunk(&tile.position);
         let (
             _entity,
             transform,
@@ -93,12 +81,12 @@ pub(crate) fn prepare(
             tile.tilemap_id.0.id(),
         );
 
-        let relative_tile_pos = map_tile_to_chunk_tile(&tile.position, &chunk_pos);
+        let relative_tile_pos = chunk_size.map_tile_to_chunk_tile(&tile.position, &chunk_pos);
         let chunk = chunk_storage.get_or_add(
             tile.entity,
             relative_tile_pos,
             &chunk_data,
-            CHUNK_SIZE_2D,
+            **chunk_size,
             *mesh_type,
             (*tile_size).into(),
             (*texture_size).into(),
@@ -112,7 +100,8 @@ pub(crate) fn prepare(
         chunk.set(
             &relative_tile_pos.into(),
             Some(PackedTileData {
-                position: map_tile_to_chunk_tile(&tile.position, &chunk_pos)
+                position: chunk_size
+                    .map_tile_to_chunk_tile(&tile.position, &chunk_pos)
                     .as_vec2()
                     .extend(tile.tile.position.z)
                     .extend(tile.tile.position.w),
