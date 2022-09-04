@@ -5,18 +5,18 @@ use bevy::{
 
 /// Custom parameters for the render pipeline.
 ///
-/// It must be added before [`TilemapPlugin`](crate::TilemapPlugin). For example:
-/// ```
+/// It must be added as a resource before [`TilemapPlugin`](crate::TilemapPlugin). For example:
+/// ```ignore
 /// App::new()
-///         .insert_resource(WindowDescriptor {
-///             width: 1270.0,
-///             height: 720.0,
-///         })
-///         .insert_resource(TilemapRenderSettings {
-///             chunk_size: UVec2::new(32, 32),
-///         })
-///         .add_plugin(TilemapPlugin)
-///         .run();
+///     .insert_resource(WindowDescriptor {
+///         width: 1270.0,
+///         height: 720.0,
+///     })
+///     .insert_resource(TilemapRenderSettings {
+///         render_chunk_size: UVec2::new(32, 32),
+///     })
+///     .add_plugin(TilemapPlugin)
+///     .run();
 /// ```
 #[derive(Debug, Default, Copy, Clone)]
 pub struct TilemapRenderSettings {
