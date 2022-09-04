@@ -15,7 +15,7 @@ atlas = []
 render = []
 
 [dependencies]
-bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset"] }
+bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_asset"] }
 log = "0.4"
 regex = "1.5.4"
 
