@@ -140,9 +140,9 @@ impl TextureArrayCache {
             let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
             let tile_count_x =
-                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
+                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor() as u32;
             let tile_count_y =
-                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
+                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor() as u32;
             let count = (tile_count_x * tile_count_y) as u32;
 
             let mut command_encoder =
@@ -151,17 +151,16 @@ impl TextureArrayCache {
                 });
 
             for i in 0..count {
-                let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
-                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.x + spacing.x);
-                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.y + spacing.y);
+                let sprite_sheet_x: u32 = ((i % tile_count_x) as f32 * (tile_size.x + spacing.x)).min(atlas_size.x - tile_size.x) as u32;
+                let sprite_sheet_y: u32 = ((i / tile_count_x) as f32 * (tile_size.y + spacing.y)).min(atlas_size.x - tile_size.x) as u32;
 
                 command_encoder.copy_texture_to_texture(
                     ImageCopyTexture {
                         texture: &atlas_image.texture,
                         mip_level: 0,
                         origin: Origin3d {
-                            x: sprite_sheet_x as u32,
-                            y: sprite_sheet_y as u32,
+                            x: sprite_sheet_x,
+                            y: sprite_sheet_y,
                             z: 0,
                         },
                         aspect: TextureAspect::All,
