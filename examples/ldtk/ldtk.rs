@@ -10,6 +10,7 @@ use bevy::{
     asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
     prelude::*,
 };
+use bevy_ecs_tilemap::map::TilemapSpacing;
 
 #[derive(Default)]
 pub struct LdtkPlugin;
@@ -174,6 +175,11 @@ pub fn process_loaded_tile_maps(
                             y: tileset.tile_grid_size as f32,
                         };
 
+                        let spacing = TilemapSpacing {
+                            x: tileset.spacing as f32,
+                            y: tileset.spacing as f32,
+                        };
+
                         // Pre-emptively create a map entity for tile creation
                         let map_entity = commands.spawn().id();
 
@@ -213,6 +219,7 @@ pub fn process_loaded_tile_maps(
                                 &tile_size,
                                 layer_id as f32,
                             ),
+                            spacing,
                             ..default()
                         });
                     }
