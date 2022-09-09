@@ -136,7 +136,11 @@ pub fn queue_meshes(
                 .unwrap();
 
             for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
-                if !visible_entities.entities.contains(&tilemap_id.0) {
+                if !visible_entities
+                    .entities
+                    .iter()
+                    .any(|&entity| entity.id() == tilemap_id.0.id())
+                {
                     continue;
                 }
 
