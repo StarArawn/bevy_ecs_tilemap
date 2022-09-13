@@ -3,14 +3,24 @@ struct Output {
     uv: vec2<f32>,
 };
 
+fn project_hex_col_1(xy: vec2<f32>, hex_radius: f32) -> vec2<f32> {
+    let b0 = vec2<f32>(hex_radius * 1.7320508, 0.0);
+    let b1 = vec2<f32>(hex_radius * 0.8660254, hex_radius * 1.5);
+
+    return xy.x * b0 + xy.y * b1;
+}
+
+fn project_hex_col(xy: vec2<f32>, grid_size: vec2<f32>) -> vec2<f32> {
+    let b0 = vec2<f32>(0.0, grid_size.y);
+    let b1 = vec2<f32>(0.75 * grid_size.x, 0.5 * grid_size.y);
+
+    return xy.x * b0 + xy.y * b1;
+}
+
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
 
-    var offset = vec2<f32>(
-        vertex_position.x * floor(-0.25 * tilemap_data.grid_size.x),
-        vertex_position.x * ceil(0.5 * tilemap_data.grid_size.y)
-    );
-    var position = vertex_position.xy * tilemap_data.grid_size + offset;
+    var position = project_hex_col(vertex_position.xy, tilemap_data.grid_size.xy);
 
     var positions: array<vec2<f32>, 4> = array<vec2<f32>, 4>(
         vec2<f32>(position.x, position.y),

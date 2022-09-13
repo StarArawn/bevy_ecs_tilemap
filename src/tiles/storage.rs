@@ -23,12 +23,12 @@ impl TileStorage {
 
     /// Gets a tile entity for the given tile position.
     pub fn get(&self, tile_pos: &TilePos) -> Option<Entity> {
-        self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size)]
+        self.tiles[tile_pos.to_index(&self.size)]
     }
 
     /// Sets a tile entity for the given tile position.
     pub fn set(&mut self, tile_pos: &TilePos, tile_entity: Option<Entity>) {
-        self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size)] = tile_entity;
+        self.tiles[tile_pos.to_index(&self.size)] = tile_entity;
     }
 
     /// Returns an iterator with all of the positions in the grid.

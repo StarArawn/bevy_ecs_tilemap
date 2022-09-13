@@ -31,7 +31,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle.clone()),
             tile_size,
-            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         });
 
@@ -55,7 +55,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 1.0)
+            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 1.0)
                 * Transform::from_xyz(32.0, 32.0, 0.0),
             ..Default::default()
         });

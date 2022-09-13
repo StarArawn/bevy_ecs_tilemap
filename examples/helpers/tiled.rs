@@ -241,7 +241,7 @@ pub fn process_loaded_maps(
                             ),
                             tile_size,
                             spacing: tile_spacing,
-                            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                            transform: get_tilemap_center_transform(
                                 &map_size,
                                 &tile_size,
                                 layer.layer_index as f32,
