@@ -2,16 +2,18 @@ struct Output {
     world_position: vec4<f32>,
 };
 
+let DIAMOND_BASIS_X: vec2<f32> = vec2<f32>(0.5, -0.5);
+let DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);
+
+// Gets the screen space coordinates of the bottom left of an isometric tile position.
+fn diamond_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
+    let scale = mat2x2<f32>(grid_width, 0.0, 0.0, grid_height);
+    return scale * (pos.x * DIAMOND_BASIS_X + pos.y * DIAMOND_BASIS_Y);
+}
+
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn staggered_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
-    var dx = grid_width / 2.0;
-    var dy = grid_height / 2.0;
-
-    // ux/uy is the effect of moving one tile (ux: in the x direction, uy: in the y direction) on our position
-    var ux = vec2<f32>(grid_width, 0.0);
-    var uy = vec2<f32>(dx, dy);
-
-    return pos.x * ux + pos.y * uy;
+    return diamond_tile_pos_to_world_pos(vec2<f32>(pos.x, pos.y + pos.x), grid_width, grid_height);
 }
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {

@@ -3,7 +3,7 @@ use crate::helpers::hexgrid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddP
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, TilemapType};
-use bevy::math::Vec2;
+use bevy::math::{Mat2, Vec2};
 
 /// The worlds ("world space") that our grids live in are defined by the Cartesian coordinate
 /// system. This is the coordinate system behind pixels and mouse positions.
@@ -59,7 +59,7 @@ use bevy::math::Vec2;
 /// indexing of tiles is slightly different.
 
 impl TilePos {
-    fn to_world_pos(self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
+    pub fn to_world_pos(self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
         match map_type {
             TilemapType::Square { .. } => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))
@@ -115,7 +115,7 @@ impl TilePos {
         }
     }
 
-    fn from_world_pos(
+    pub fn from_world_pos(
         world_pos: &Vec2,
         map_size: &TilemapSize,
         grid_size: &TilemapGridSize,
@@ -164,31 +164,19 @@ impl TilePos {
     }
 }
 
-/// The basis vector associated with the positive `x` direction in the isometric diamond coordinate
-/// system.
-pub const DIAMOND_BASIS_X: Vec2 = Vec2::new(0.5, -0.5);
+/// The matrix mapping from tile positions in the diamond isometric system to world space.
+pub const DIAMOND_BASIS: Mat2 = Mat2::from_cols(Vec2::new(0.5, -0.5), Vec2::new(0.5, 0.5));
 
-/// The basis vector associated with the positive `y` direction in the isometric diamond coordinate
-/// system.
-pub const DIAMOND_BASIS_Y: Vec2 = Vec2::new(0.5, 0.5);
-
-/// The basis vector associated with transforming the `x` component of world space to `x` in the
-/// isometric diamond coordinate system. It is the first column of the inverse of the diamond
-/// transform matrix (which has as columns [`DIAMOND_BASIS_X`](DIAMOND_BASIS_X) and
-/// [`DIAMOND_BASIS_Y`](DIAMOND_BASIS_Y)).  
-pub const DIAMOND_BASIS_INV_X: Vec2 = Vec2::new(1.0, 1.0);
-
-/// The basis vector associated with transforming the `y` component of world space to `x` in the
-/// isometric diamond coordinate system. It is the first column of the inverse of the diamond
-/// transform matrix (which has as columns [`DIAMOND_BASIS_X`](DIAMOND_BASIS_X) and
-/// [`DIAMOND_BASIS_Y`](DIAMOND_BASIS_Y)).  
-pub const DIAMOND_BASIS_INV_Y: Vec2 = Vec2::new(-1.0, 1.0);
+/// The inverse of [`DIAMOND_BASIS`](DIAMOND_BASIS).
+pub const INV_DIAMOND_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 1.0), Vec2::new(-1.0, 1.0));
 
 /// Projects an isometric diamond tile position into 2D world space.
 ///
 /// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
 pub fn diamond_pos_to_world_pos(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
-    grid_width * x * DIAMOND_BASIS_X + grid_height * y * DIAMOND_BASIS_Y
+    let pos = DIAMOND_BASIS * Vec2::new(x, y);
+    let scale = Mat2::from_diagonal([grid_width, grid_height].into());
+    scale * pos
 }
 
 pub fn world_pos_to_diamond_pos(
@@ -196,18 +184,16 @@ pub fn world_pos_to_diamond_pos(
     grid_size: &TilemapGridSize,
     map_size: &TilemapSize,
 ) -> Option<TilePos> {
-    let pos_f32 = (world_pos.x / grid_size.x) * DIAMOND_BASIS_INV_X
-        + (world_pos.y / grid_size.y) * DIAMOND_BASIS_INV_Y;
-    let x = pos_f32.x as i32;
-    let y = pos_f32.y as i32;
-    TilePos::from_i32_pair(x, y, map_size)
+    let inv_scale = Mat2::from_diagonal(Vec2::new(1.0 / grid_size.x, 1.0 / grid_size.y));
+    let pos_f32 = INV_DIAMOND_BASIS * inv_scale * (*world_pos);
+    TilePos::from_i32_pair(pos_f32.x as i32, pos_f32.y as i32, map_size)
 }
 
 /// Projects an isometric staggered tile position into 2D world space.
 ///
 /// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
 pub fn staggered_pos_to_world_pos(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
-    diamond_pos_to_world_pos(x, y - x, grid_width, grid_height)
+    diamond_pos_to_world_pos(x, y + x, grid_width, grid_height)
 }
 
 pub fn world_pos_to_staggered_pos(
@@ -215,9 +201,9 @@ pub fn world_pos_to_staggered_pos(
     grid_size: &TilemapGridSize,
     map_size: &TilemapSize,
 ) -> Option<TilePos> {
-    let pos_f32 = (world_pos.x / grid_size.x) * DIAMOND_BASIS_INV_X
-        + (world_pos.y / grid_size.y) * DIAMOND_BASIS_INV_Y;
+    let inv_scale = Mat2::from_diagonal(Vec2::new(1.0 / grid_size.x, 1.0 / grid_size.y));
+    let pos_f32 = INV_DIAMOND_BASIS * inv_scale * (*world_pos);
     let x = pos_f32.x as i32;
     let y = pos_f32.y as i32;
-    TilePos::from_i32_pair(x, x + y, map_size)
+    TilePos::from_i32_pair(x, y - x, map_size)
 }
