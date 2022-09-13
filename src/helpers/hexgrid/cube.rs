@@ -114,7 +114,7 @@ impl CubePos {
 
     /// Returns the hex distance between `self` and `other`.
     pub fn distance_from(&self, other: &CubePos) -> i32 {
-        let cube_pos: CubePos = (self - other).into();
+        let cube_pos: CubePos = self - other;
         cube_pos.magnitude()
     }
 }

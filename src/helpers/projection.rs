@@ -59,34 +59,34 @@ use bevy::math::Vec2;
 /// indexing of tiles is slightly different.
 
 impl TilePos {
-    fn to_world_pos(&self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
+    fn to_world_pos(self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
         match map_type {
             TilemapType::Square { .. } => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))
             }
             TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
                 HexCoordSystem::RowEven => {
-                    let pos = RowEvenPos::try_from(self).unwrap();
+                    let pos = RowEvenPos::try_from(&self).unwrap();
                     pos.to_world_pos(grid_size)
                 }
                 HexCoordSystem::RowOdd => {
-                    let pos = RowOddPos::try_from(self).unwrap();
+                    let pos = RowOddPos::try_from(&self).unwrap();
                     pos.to_world_pos(grid_size)
                 }
                 HexCoordSystem::ColumnEven => {
-                    let pos = ColEvenPos::try_from(self).unwrap();
+                    let pos = ColEvenPos::try_from(&self).unwrap();
                     pos.to_world_pos(grid_size)
                 }
                 HexCoordSystem::ColumnOdd => {
-                    let pos = ColOddPos::try_from(self).unwrap();
+                    let pos = ColOddPos::try_from(&self).unwrap();
                     pos.to_world_pos(grid_size)
                 }
                 HexCoordSystem::Row => {
-                    let pos = AxialPos::try_from(self).unwrap();
+                    let pos = AxialPos::try_from(&self).unwrap();
                     pos.to_world_pos_row(grid_size)
                 }
                 HexCoordSystem::Column => {
-                    let pos = AxialPos::try_from(self).unwrap();
+                    let pos = AxialPos::try_from(&self).unwrap();
                     pos.to_world_pos_col(grid_size)
                 }
             },
