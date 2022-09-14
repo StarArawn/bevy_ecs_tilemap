@@ -3,7 +3,7 @@ use crate::helpers::hexgrid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hexgrid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::tiles::TilePos;
 use crate::TilemapGridSize;
-use bevy::math::Vec2;
+use bevy::math::{Mat2, Vec2};
 use std::ops::{Add, Sub};
 
 #[derive(Clone, Copy, Debug)]
@@ -163,65 +163,29 @@ impl From<ColEvenPos> for AxialPos {
     }
 }
 
-/// The basis vector associated with the `alpha` component of [`AxialPos`](AxialPos), when hexagons
-/// are arranged in row format ("pointy top" per Red Blob Games). It corresponds with moving
-/// one tile to the east. See
+/// The matrix for mapping from [`AxialPos`](AxialPos), to world position when hexes are arranged
+/// in row format ("pointy top" per Red Blob Games). See
 /// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const ROW_BASIS_ALPHA: Vec2 = Vec2::new(SQRT_3, 0.0);
+/// at Red Blob Games for an interactive visual explanation, but note that:
+///     1) we consider increasing-y to be the same as "going up", while RBG considers increasing-y to be "going down",
+///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
+pub const ROW_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 0.0), Vec2::new(0.5, HALF_SQRT_3));
 
-/// The basis vector associated with the `beta` component of [`AxialPos`](AxialPos), when hexagons
-/// are arranged in row format ("pointy top" per Red Blob Games). It corresponds with moving one
-/// tile to the north east. See
+/// The inverse of [`ROW_BASIS`](ROW_BASIS).
+pub const INV_ROW_BASIS: Mat2 =
+    Mat2::from_cols(Vec2::new(INV_SQRT_3, 0.0), Vec2::new(-1.0 / 3.0, 2.0 / 3.0));
+
+/// The matrix for mapping from [`AxialPos`](AxialPos), to world position when hexes are arranged
+/// in column format ("flat top" per Red Blob Games). See
 /// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const ROW_BASIS_BETA: Vec2 = Vec2::new(HALF_SQRT_3, 1.5);
+/// at Red Blob Games for an interactive visual explanation, but note that:
+///     1) we consider increasing-y to be the same as "going up", while RBG considers increasing-y to be "going down",
+///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
+pub const COL_BASIS: Mat2 = Mat2::from_cols(Vec2::new(HALF_SQRT_3, 0.5), Vec2::new(0.0, 1.0));
 
-/// The basis vector associated with the `x` component of a world position, when hexagons
-/// are arranged in row format ("pointy top" per Red Blob Games). See
-/// [Pixel to Hex](https://www.redblobgames.com/grids/hexagons/#pixel-to-hex)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const ROW_BASIS_X: Vec2 = Vec2::new(INV_SQRT_3, 0.0);
-
-/// The basis vector associated with the `y` component of a world position, when hexagons
-/// are arranged in row format ("pointy top" per Red Blob Games). See
-/// [Pixel to Hex](https://www.redblobgames.com/grids/hexagons/#pixel-to-hex)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const ROW_BASIS_Y: Vec2 = Vec2::new(-1.0 / 3.0, 2.0 / 3.0);
-
-/// The basis vector associated with the `alpha` component of [`AxialPos`](AxialPos), when hexagons
-/// are arranged in column format ("flat top" per Red Blob Games). It corresponds with moving one
-/// tile to the north east. See
-/// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const COL_BASIS_ALPHA: Vec2 = Vec2::new(1.5, HALF_SQRT_3);
-
-/// The basis vector associated with the `beta` component of [`AxialPos`](AxialPos), when hexagons
-/// are arranged in column format ("flat top" per Red Blob Games). It corresponds with moving
-/// one tile to the north. See
-/// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const COL_BASIS_BETA: Vec2 = Vec2::new(0.0, SQRT_3);
-
-/// The basis vector associated with the `x` component of a world position, when hexagons
-/// are arranged in column format ("flat top" per Red Blob Games). See
-/// [Pixel to Hex](https://www.redblobgames.com/grids/hexagons/#pixel-to-hex)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const COL_BASIS_X: Vec2 = Vec2::new(2.0 / 3.0, -1.0 / 3.0);
-
-/// The basis vector associated with the `y` component of a world position, when hexagons
-/// are arranged in column format ("flat top" per Red Blob Games). See
-/// [Pixel to Hex](https://www.redblobgames.com/grids/hexagons/#pixel-to-hex)
-/// at Red Blob Games for an interactive visual explanation, but note that we consider increasing-y
-/// to be the same as "going up", while RBG considers increasing-y to be "going down".
-pub const COL_BASIS_Y: Vec2 = Vec2::new(0.0, INV_SQRT_3);
+/// The inverse of [`COL_BASIS`](COL_BASIS).
+pub const INV_COL_BASIS: Mat2 =
+    Mat2::from_cols(Vec2::new(2.0 / 3.0, -1.0 / 3.0), Vec2::new(0.0, INV_SQRT_3));
 
 impl AxialPos {
     /// The magnitude of a cube position is its distance away from the `(0, 0)` hex.
@@ -241,16 +205,24 @@ impl AxialPos {
     ///     1) tiles are row-oriented ("pointy top"),
     ///     2) the center of the hex with index `(0, 0)` is located at `[0.0, 0.0]`.
     pub fn to_world_pos_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        grid_size.x * (self.alpha as f32) * ROW_BASIS_ALPHA
-            + grid_size.y * (self.beta as f32) * ROW_BASIS_BETA
+        let pos_vec = Vec2::new(self.alpha as f32, self.beta as f32);
+        let transformed_vec = ROW_BASIS * pos_vec;
+        Vec2::new(
+            transformed_vec.x * grid_size.x,
+            transformed_vec.y * grid_size.y,
+        )
     }
 
     /// Returns the center of the hex in world space, assuming that:
     ///     1) tiles are column-oriented ("flat top"),
     ///     2) the center of the hex with index `(0, 0)` is located at `[0.0, 0.0]`.
     pub fn to_world_pos_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        grid_size.x * (self.alpha as f32) * COL_BASIS_ALPHA
-            + grid_size.y * (self.beta as f32) * COL_BASIS_BETA
+        let pos_vec = Vec2::new(self.alpha as f32, self.beta as f32);
+        let transformed_vec = COL_BASIS * pos_vec;
+        Vec2::new(
+            transformed_vec.x * grid_size.x,
+            transformed_vec.y * grid_size.y,
+        )
     }
 
     /// Returns the axial position of the hex containing the given world position, assuming that:
@@ -258,9 +230,7 @@ impl AxialPos {
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex indexed `(0, 0)`.
     pub fn from_world_pos_row(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
-        let frac_pos = FractionalAxialPos::from(
-            normalized_world_pos.x * ROW_BASIS_X + normalized_world_pos.y * ROW_BASIS_Y,
-        );
+        let frac_pos = FractionalAxialPos::from(INV_ROW_BASIS * normalized_world_pos);
         frac_pos.round()
     }
 
@@ -269,9 +239,7 @@ impl AxialPos {
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex indexed `(0, 0)`.
     pub fn from_world_pos_col(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
-        let frac_pos = FractionalAxialPos::from(
-            normalized_world_pos.x * COL_BASIS_X + normalized_world_pos.y * COL_BASIS_Y,
-        );
+        let frac_pos = FractionalAxialPos::from(INV_ROW_BASIS * normalized_world_pos);
         frac_pos.round()
     }
 }

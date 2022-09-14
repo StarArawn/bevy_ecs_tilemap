@@ -7,8 +7,8 @@ let DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn diamond_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
-    let scale = mat2x2<f32>(grid_width, 0.0, 0.0, grid_height);
-    return scale * (pos.x * DIAMOND_BASIS_X + pos.y * DIAMOND_BASIS_Y);
+    let unscaled_pos = pos.x * DIAMOND_BASIS_X + pos.y * DIAMOND_BASIS_Y;
+    return vec2<f32>(grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
 }
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
