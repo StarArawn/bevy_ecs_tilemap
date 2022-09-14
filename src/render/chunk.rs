@@ -222,17 +222,17 @@ impl RenderChunk2d {
     }
 
     pub fn get(&self, tile_pos: &TilePos) -> &Option<PackedTileData> {
-        &self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())]
+        &self.tiles[tile_pos.to_index(&self.size.into())]
     }
 
     pub fn get_mut(&mut self, tile_pos: &TilePos) -> &mut Option<PackedTileData> {
         self.dirty_mesh = true;
-        &mut self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())]
+        &mut self.tiles[tile_pos.to_index(&self.size.into())]
     }
 
     pub fn set(&mut self, tile_pos: &TilePos, tile: Option<PackedTileData>) {
         self.dirty_mesh = true;
-        self.tiles[crate::helpers::pos_2d_to_index(tile_pos, &self.size.into())] = tile;
+        self.tiles[tile_pos.to_index(&self.size.into())] = tile;
     }
 
     pub fn prepare(&mut self, device: &RenderDevice) {
