@@ -21,24 +21,10 @@ use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
-pub const SQUARE_SHADER_HANDLE: HandleUntyped =
+pub const TILEMAP_SHADER_VERTEX: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
-pub const ISO_DIAMOND_SHADER_HANDLE: HandleUntyped =
+pub const TILEMAP_SHADER_FRAGMENT: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
-pub const ISO_STAGGERED_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6571326172373592468);
-pub const HEX_COLUMN_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 12158158650956014109);
-pub const HEX_COLUMN_ODD_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 11472021184100190415);
-pub const HEX_COLUMN_EVEN_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5336568075571462317);
-pub const HEX_ROW_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 15900471900964169180);
-pub const HEX_ROW_ODD_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 14864388685772956547);
-pub const HEX_ROW_EVEN_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 14433932828806852042);
 
 #[derive(Clone)]
 pub struct TilemapPipeline {
@@ -166,24 +152,49 @@ impl SpecializedRenderPipeline for TilemapPipeline {
     type Key = TilemapPipelineKey;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
-        let shader = match key.mesh_type {
-            TilemapType::Square { .. } => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+        let mut shader_defs = Vec::new();
+
+        #[cfg(feature = "atlas")]
+        shader_defs.push("ATLAS".into());
+
+        let mesh_string = match key.mesh_type {
+            TilemapType::Square { .. } => "SQUARE",
             TilemapType::Isometric {
                 coord_system: iso_type,
                 ..
             } => match iso_type {
-                IsoCoordSystem::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
-                IsoCoordSystem::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
+                IsoCoordSystem::Diamond => "ISO_DIAMOND",
+                IsoCoordSystem::Staggered => "ISO_STAGGERED",
             },
             TilemapType::Hexagon(hex_type) => match hex_type {
-                HexCoordSystem::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
-                HexCoordSystem::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
-                HexCoordSystem::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
-                HexCoordSystem::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
-                HexCoordSystem::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
-                HexCoordSystem::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
+                HexCoordSystem::Column => "COLUMN_HEX",
+                HexCoordSystem::ColumnEven => "COLUMN_EVEN_HEX",
+                HexCoordSystem::ColumnOdd => "COLUMN_ODD_HEX",
+                HexCoordSystem::Row => "ROW_HEX",
+                HexCoordSystem::RowEven => "ROW_EVEN_HEX",
+                HexCoordSystem::RowOdd => "ROW_ODD_HEX",
             },
         };
+        shader_defs.push(mesh_string.into());
+
+        // let shader = match key.mesh_type {
+        // TilemapType::Square { .. } => SQUARE_SHADER_HANDLE.typed::<Shader>(),
+        // TilemapType::Isometric {
+        //     coord_system: iso_type,
+        //     ..
+        // } => match iso_type {
+        //     IsoCoordSystem::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
+        //     IsoCoordSystem::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
+        // },
+        // TilemapType::Hexagon(hex_type) => match hex_type {
+        //     HexCoordSystem::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
+        //     HexCoordSystem::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
+        //     HexCoordSystem::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
+        //     HexCoordSystem::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
+        //     HexCoordSystem::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
+        //     HexCoordSystem::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
+        // },
+        // };
 
         let formats = vec![
             // Position
@@ -199,14 +210,14 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: shader.clone(),
+                shader: TILEMAP_SHADER_VERTEX.typed::<Shader>(),
                 entry_point: "vertex".into(),
-                shader_defs: vec![],
+                shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader,
-                shader_defs: vec![],
+                shader: TILEMAP_SHADER_FRAGMENT.typed::<Shader>(),
+                shader_defs: shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {
                     format: TextureFormat::bevy_default(),
