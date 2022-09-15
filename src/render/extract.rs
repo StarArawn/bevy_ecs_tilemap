@@ -5,6 +5,7 @@ use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 use crate::prelude::TilemapGridSize;
 use crate::render::SecondsSinceStartup;
 use crate::tiles::AnimatedTile;
+use crate::tiles::TilePosOld;
 use crate::{
     map::{
         TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -23,6 +24,7 @@ use bevy::render::render_resource::TextureUsages;
 pub struct ExtractedTile {
     pub entity: Entity,
     pub position: TilePos,
+    pub old_position: TilePosOld,
     pub tile: PackedTileData,
     pub tilemap_id: TilemapId,
 }
@@ -86,6 +88,7 @@ pub fn extract(
             (
                 Entity,
                 &TilePos,
+                &TilePosOld,
                 &TilemapId,
                 &TileTexture,
                 &TileVisible,
@@ -94,7 +97,6 @@ pub fn extract(
                 Option<&AnimatedTile>,
             ),
             Or<(
-                Added<TilePos>,
                 Changed<TilePos>,
                 Changed<TileVisible>,
                 Changed<TileTexture>,
@@ -139,8 +141,17 @@ pub fn extract(
     let mut extracted_tilemaps = HashMap::default();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
-    for (entity, tile_pos, tilemap_id, tile_texture, visible, flip, color, animated) in
-        changed_tiles_query.iter()
+    for (
+        entity,
+        tile_pos,
+        tile_pos_old,
+        tilemap_id,
+        tile_texture,
+        visible,
+        flip,
+        color,
+        animated,
+    ) in changed_tiles_query.iter()
     {
         // flipping and rotation packed in bits
         // bit 0 : flip_x
@@ -192,6 +203,7 @@ pub fn extract(
                 tile: ExtractedTile {
                     entity,
                     position: *tile_pos,
+                    old_position: *tile_pos_old,
                     tile,
                     tilemap_id: *tilemap_id,
                 },

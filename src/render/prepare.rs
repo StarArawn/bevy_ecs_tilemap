@@ -58,6 +58,11 @@ pub(crate) fn prepare(
     seconds_since_startup: Res<SecondsSinceStartup>,
 ) {
     for tile in extracted_tiles.iter() {
+        // First if the tile position has changed remove the tile from the old location.
+        if tile.position != tile.old_position.0 {
+            chunk_storage.remove_tile_with_entity(tile.entity);
+        }
+
         let chunk_pos = chunk_size.map_tile_to_chunk(&tile.position);
         let (
             _entity,
