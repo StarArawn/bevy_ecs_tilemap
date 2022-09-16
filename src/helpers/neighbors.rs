@@ -148,13 +148,13 @@ pub fn get_neighboring_pos(
 ) -> Neighbors<TilePos> {
     match map_type {
         TilemapType::Square {
-            neighbors_include_diagonals: true,
+            diagonal_neighbors: true,
         } => square_neighbor_pos_with_diagonals(tile_pos, tilemap_size),
         TilemapType::Square {
-            neighbors_include_diagonals: false,
+            diagonal_neighbors: false,
         } => square_neighbor_pos(tile_pos, tilemap_size),
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Diamond,
         } => {
             if *neighbors_include_diagonals {
@@ -164,7 +164,7 @@ pub fn get_neighboring_pos(
             }
         }
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Staggered,
         } => {
             if *neighbors_include_diagonals {

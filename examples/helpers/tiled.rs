@@ -168,15 +168,15 @@ pub fn process_loaded_maps(
                                 TilemapType::Hexagon(HexCoordSystem::Row)
                             }
                             tiled::Orientation::Isometric => TilemapType::Isometric {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                                 coord_system: IsoCoordSystem::Diamond,
                             },
                             tiled::Orientation::Staggered => TilemapType::Isometric {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                                 coord_system: IsoCoordSystem::Staggered,
                             },
                             tiled::Orientation::Orthogonal => TilemapType::Square {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                             },
                         };
 

@@ -124,7 +124,7 @@ impl TilePos {
         match map_type {
             TilemapType::Square { .. } => {
                 let x = (world_pos.x / grid_size.x).floor() as i32;
-                let y = (world_pos.x / grid_size.y).floor() as i32;
+                let y = (world_pos.y / grid_size.y).floor() as i32;
 
                 TilePos::from_i32_pair(x, y, map_size)
             }
