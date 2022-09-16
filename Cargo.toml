@@ -35,7 +35,7 @@ features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit"
 [target.'cfg(unix)'.dev-dependencies.bevy]
 version = "0.8"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit", "x11"]
+features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit", "x11", "filesystem_watcher"]
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
