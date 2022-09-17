@@ -148,7 +148,7 @@ impl FractionalCubePos {
         let gamma_diff = (gamma_round - self.gamma).abs();
 
         let (alpha, beta, gamma) = if alpha_diff > beta_diff && alpha_diff > gamma_diff {
-            let beta = alpha_round as i32;
+            let beta = beta_round as i32;
             let gamma = gamma_round as i32;
             let alpha = -(beta + gamma);
             (alpha, beta, gamma)
@@ -159,7 +159,7 @@ impl FractionalCubePos {
             (alpha, beta, gamma)
         } else {
             let alpha = alpha_round as i32;
-            let beta = gamma_round as i32;
+            let beta = beta_round as i32;
             let gamma = -(alpha + beta);
             (alpha, beta, gamma)
         };

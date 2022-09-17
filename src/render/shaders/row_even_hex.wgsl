@@ -11,7 +11,7 @@ let ROW_BASIS_Y: vec2<f32> = vec2<f32>(0.5, HALF_SQRT_3);
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_row_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
     let unscaled_pos = pos.x * ROW_BASIS_X + pos.y * ROW_BASIS_Y;
-    return vec2<f32>(grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
+    return vec2<f32>(grid_width * unscaled_pos.x, ROW_BASIS_Y.y * grid_height * unscaled_pos.y);
 }
 
 fn row_even_to_axial(offset_pos: vec2<f32>) -> vec2<f32> {

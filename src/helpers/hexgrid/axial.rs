@@ -1,8 +1,9 @@
-use crate::helpers::hexgrid::consts::{HALF_SQRT_3, INV_SQRT_3};
+use crate::helpers::hexgrid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
 use crate::helpers::hexgrid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hexgrid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::tiles::TilePos;
 use crate::TilemapGridSize;
+use bevy::log::info;
 use bevy::math::{Mat2, Vec2};
 use std::ops::{Add, Sub};
 
@@ -172,8 +173,10 @@ impl From<ColEvenPos> for AxialPos {
 pub const ROW_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 0.0), Vec2::new(0.5, HALF_SQRT_3));
 
 /// The inverse of [`ROW_BASIS`](ROW_BASIS).
-pub const INV_ROW_BASIS: Mat2 =
-    Mat2::from_cols(Vec2::new(INV_SQRT_3, 0.0), Vec2::new(-1.0 / 3.0, 2.0 / 3.0));
+pub const INV_ROW_BASIS: Mat2 = Mat2::from_cols(
+    Vec2::new(1.0, 0.0),
+    Vec2::new(-1.0 * INV_SQRT_3, DOUBLE_INV_SQRT_3),
+);
 
 /// The matrix for mapping from [`AxialPos`](AxialPos), to world position when hexes are arranged
 /// in column format ("flat top" per Red Blob Games). See
@@ -184,8 +187,10 @@ pub const INV_ROW_BASIS: Mat2 =
 pub const COL_BASIS: Mat2 = Mat2::from_cols(Vec2::new(HALF_SQRT_3, 0.5), Vec2::new(0.0, 1.0));
 
 /// The inverse of [`COL_BASIS`](COL_BASIS).
-pub const INV_COL_BASIS: Mat2 =
-    Mat2::from_cols(Vec2::new(2.0 / 3.0, -1.0 / 3.0), Vec2::new(0.0, INV_SQRT_3));
+pub const INV_COL_BASIS: Mat2 = Mat2::from_cols(
+    Vec2::new(DOUBLE_INV_SQRT_3, -1.0 * INV_SQRT_3),
+    Vec2::new(0.0, 1.0),
+);
 
 impl AxialPos {
     /// The magnitude of a cube position is its distance away from the `(0, 0)` hex.
@@ -205,11 +210,10 @@ impl AxialPos {
     ///     1) tiles are row-oriented ("pointy top"),
     ///     2) the center of the hex with index `(0, 0)` is located at `[0.0, 0.0]`.
     pub fn to_world_pos_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        let pos_vec = Vec2::new(self.alpha as f32, self.beta as f32);
-        let transformed_vec = ROW_BASIS * pos_vec;
+        let unscaled_pos = ROW_BASIS * Vec2::new(self.alpha as f32, self.beta as f32);
         Vec2::new(
-            transformed_vec.x * grid_size.x,
-            transformed_vec.y * grid_size.y,
+            grid_size.x * unscaled_pos.x,
+            ROW_BASIS.y_axis.y * grid_size.y * unscaled_pos.y,
         )
     }
 
@@ -217,11 +221,10 @@ impl AxialPos {
     ///     1) tiles are column-oriented ("flat top"),
     ///     2) the center of the hex with index `(0, 0)` is located at `[0.0, 0.0]`.
     pub fn to_world_pos_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        let pos_vec = Vec2::new(self.alpha as f32, self.beta as f32);
-        let transformed_vec = COL_BASIS * pos_vec;
+        let unscaled_pos = COL_BASIS * Vec2::new(self.alpha as f32, self.beta as f32);
         Vec2::new(
-            transformed_vec.x * grid_size.x,
-            transformed_vec.y * grid_size.y,
+            COL_BASIS.x_axis.x * grid_size.x * unscaled_pos.x,
+            grid_size.y * unscaled_pos.y,
         )
     }
 
@@ -229,7 +232,10 @@ impl AxialPos {
     ///     1) tiles are row-oriented ("pointy top") and that
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex indexed `(0, 0)`.
     pub fn from_world_pos_row(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
-        let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
+        let normalized_world_pos = Vec2::new(
+            world_pos.x / grid_size.x,
+            world_pos.y / (ROW_BASIS.y_axis.y * grid_size.y),
+        );
         let frac_pos = FractionalAxialPos::from(INV_ROW_BASIS * normalized_world_pos);
         frac_pos.round()
     }
@@ -238,8 +244,11 @@ impl AxialPos {
     ///     1) tiles are column-oriented ("flat top") and that
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex indexed `(0, 0)`.
     pub fn from_world_pos_col(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
-        let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
-        let frac_pos = FractionalAxialPos::from(INV_ROW_BASIS * normalized_world_pos);
+        let normalized_world_pos = Vec2::new(
+            world_pos.x / (COL_BASIS.x_axis.x * grid_size.x),
+            world_pos.y / grid_size.y,
+        );
+        let frac_pos = FractionalAxialPos::from(INV_COL_BASIS * normalized_world_pos);
         frac_pos.round()
     }
 }

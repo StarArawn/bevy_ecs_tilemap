@@ -8,8 +8,8 @@ const TILE_SIZE_ISO: TilemapTileSize = TilemapTileSize { x: 100.0, y: 50.0 };
 const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
 const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_SQUARE: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
-const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
-const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
+const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
+const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
 const LABEL_OFFSET_SQUARE: Vec2 = Vec2::new(0.5, 0.5);
 const LABEL_OFFSET_HEX_ROW: Vec2 = Vec2::new(0.0, 0.0);
@@ -138,6 +138,7 @@ fn spawn_tile_labels(
 #[derive(Component)]
 pub struct MapTypeLabel;
 
+#[allow(unused)]
 fn spawn_map_type_label(
     mut commands: Commands,
     font_handle: Res<Handle<Font>>,
@@ -170,6 +171,7 @@ fn spawn_map_type_label(
     }
 }
 
+#[allow(unused)]
 fn spawn_instructions() {}
 
 #[allow(clippy::too_many_arguments)]
@@ -329,8 +331,6 @@ fn highlight_tile_labels(
             for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
                 let map_translation = map_transform.translation.truncate();
                 let world_pos = centered_position - map_translation;
-                info!("map_translation: {map_translation}");
-                info!("World position: {}", &world_pos);
                 if let Some(tile_pos) =
                     TilePos::from_world_pos(&world_pos, map_size, grid_size, map_type)
                 {
@@ -362,8 +362,8 @@ fn main() {
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_instructions)
+        // .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
+        // .add_startup_system_to_stage(StartupStage::PostStartup, spawn_instructions)
         .add_system(helpers::camera::movement)
         .add_system(swap_map_type)
         .add_system(highlight_tile_labels)

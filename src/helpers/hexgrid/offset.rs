@@ -94,7 +94,7 @@ impl ColOddPos {
     }
 
     pub fn from_world_pos(world_pos: &Vec2, grid_size: &TilemapGridSize) -> Self {
-        let axial_pos = AxialPos::from_world_pos_row(world_pos, grid_size);
+        let axial_pos = AxialPos::from_world_pos_col(world_pos, grid_size);
         ColOddPos::from(axial_pos)
     }
 }
@@ -133,7 +133,7 @@ impl ColEvenPos {
     }
 
     pub fn from_world_pos(world_pos: &Vec2, grid_size: &TilemapGridSize) -> Self {
-        let axial_pos = AxialPos::from_world_pos_row(world_pos, grid_size);
+        let axial_pos = AxialPos::from_world_pos_col(world_pos, grid_size);
         ColEvenPos::from(axial_pos)
     }
 }
