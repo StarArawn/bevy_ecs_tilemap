@@ -60,7 +60,7 @@ fn main() {
             width: 1270.0,
             height: 720.0,
             title: String::from(
-                "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
+                "Update tile positions without despawning.",
             ),
             ..Default::default()
         })
