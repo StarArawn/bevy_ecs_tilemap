@@ -14,7 +14,7 @@ const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
 const LABEL_OFFSET_SQUARE: Vec2 = Vec2::new(0.5, 0.5);
 const LABEL_OFFSET_HEX_ROW: Vec2 = Vec2::new(0.0, 0.0);
 const LABEL_OFFSET_HEX_COL: Vec2 = Vec2::new(0.0, 0.0);
-const LABEL_OFFSET_ISO: Vec2 = Vec2::new(0.5, 0.5);
+const LABEL_OFFSET_ISO: Vec2 = Vec2::new(0.5, 0.0);
 
 fn get_label_offset(map_type: &TilemapType) -> Vec2 {
     match map_type {
@@ -60,7 +60,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
 
     // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
     let total_size = TilemapSize {
-        x: MAP_SIDE_LENGTH,
+        x: 250 * MAP_SIDE_LENGTH,
         y: MAP_SIDE_LENGTH,
     };
 
@@ -343,10 +343,8 @@ fn highlight_tile_labels(
 
     for window in windows.iter() {
         if let Some(cursor_world_pos) = cursor_pos_as_world_pos(window, &camera_q) {
-            info!("cursor position: {cursor_world_pos:?}");
             for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
                 let map_translation = map_transform.translation.truncate();
-                info!("map_translation: {map_translation:?}");
                 let world_pos = cursor_world_pos - map_translation;
                 if let Some(tile_pos) =
                     TilePos::from_world_pos(&world_pos, map_size, grid_size, map_type)

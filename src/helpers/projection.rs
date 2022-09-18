@@ -3,7 +3,6 @@ use crate::helpers::hexgrid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddP
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, TilemapType};
-use bevy::log::info;
 use bevy::math::{IVec2, Mat2, Vec2};
 
 /// The worlds ("world space") that our grids live in are defined by the Cartesian coordinate
@@ -124,16 +123,10 @@ impl TilePos {
     ) -> Option<TilePos> {
         match map_type {
             TilemapType::Square { .. } => {
-                let normalized_world_pos =
-                    Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
-                info!("normalized_world_pos: {normalized_world_pos:?}");
                 let x = (world_pos.x / grid_size.x).floor() as i32;
                 let y = (world_pos.y / grid_size.y).floor() as i32;
-                info!("floored coords: ({x}, {y})");
 
-                let r = TilePos::from_i32_pair(x, y, map_size);
-                info!("result: ({r:?})");
-                r
+                TilePos::from_i32_pair(x, y, map_size)
             }
             TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
                 HexCoordSystem::RowEven => {
@@ -155,7 +148,6 @@ impl TilePos {
                 HexCoordSystem::Row => {
                     let pos = AxialPos::from_world_pos_row(world_pos, grid_size);
                     let out_tile = TilePos::from_i32_pair(pos.alpha, pos.beta, map_size);
-                    info!("out_tile: {out_tile:?}");
                     out_tile
                 }
                 HexCoordSystem::Column => {
@@ -201,14 +193,9 @@ pub fn diamond_pos_to_world_pos(x: f32, y: f32, grid_width: f32, grid_height: f3
 }
 
 pub fn world_pos_to_diamond_pos(world_pos: &Vec2, grid_size: &TilemapGridSize) -> IVec2 {
-    info!("world_pos: {world_pos:?}");
     let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
-    info!("normalized_world_pos: {normalized_world_pos:?}");
     let Vec2 { x, y } = INV_DIAMOND_BASIS * normalized_world_pos;
-    info!("inverse pos: {:?}", Vec2::new(x, y));
-    let r = IVec2::new(x.floor() as i32, y.floor() as i32);
-    info!("result: {r:?}");
-    r
+    IVec2::new(x.floor() as i32, y.floor() as i32)
 }
 
 /// Projects an isometric staggered tile position into 2D world space.

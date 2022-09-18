@@ -25,7 +25,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
 
     var axial_pos = row_odd_to_axial(vertex_position.xy);
     var center = hex_row_tile_pos_to_world_pos(axial_pos, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var bot_left = vec2<f32>(center.x - (tilemap_data.grid_size.x / 2.0), center.y - (tilemap_data.grid_size.y / 2.0));
+    var bot_left = center - 0.5 * tilemap_data.grid_size;
     var top_right = vec2<f32>(bot_left.x + tilemap_data.tile_size.x, bot_left.y + tilemap_data.tile_size.y);
 
     var positions = array<vec2<f32>, 4>(
