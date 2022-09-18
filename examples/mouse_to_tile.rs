@@ -367,7 +367,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Hexagon Row Example"),
+            title: String::from("Mouse Position to Tile Position"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())

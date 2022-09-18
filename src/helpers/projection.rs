@@ -147,8 +147,7 @@ impl TilePos {
                 }
                 HexCoordSystem::Row => {
                     let pos = AxialPos::from_world_pos_row(world_pos, grid_size);
-                    let out_tile = TilePos::from_i32_pair(pos.alpha, pos.beta, map_size);
-                    out_tile
+                    TilePos::from_i32_pair(pos.alpha, pos.beta, map_size)
                 }
                 HexCoordSystem::Column => {
                     let pos = AxialPos::from_world_pos_col(world_pos, grid_size);
