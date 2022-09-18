@@ -59,9 +59,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from(
-                "Update tile positions without despawning.",
-            ),
+            title: String::from("Update tile positions without despawning."),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
