@@ -88,7 +88,11 @@ pub struct TileBundle {
     pub visible: TileVisible,
     pub flip: TileFlip,
     pub color: TileColor,
+    pub old_position: TilePosOld,
 }
+
+#[derive(Component, Default, Clone, Copy, Debug)]
+pub struct TilePosOld(pub TilePos);
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
