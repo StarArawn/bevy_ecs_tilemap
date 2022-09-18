@@ -58,9 +58,8 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
-    // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
     let total_size = TilemapSize {
-        x: 250 * MAP_SIDE_LENGTH,
+        x: MAP_SIDE_LENGTH,
         y: MAP_SIDE_LENGTH,
     };
 
