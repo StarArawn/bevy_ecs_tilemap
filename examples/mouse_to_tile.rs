@@ -300,6 +300,22 @@ fn swap_map_type(
 #[derive(Component)]
 struct HighlightedLabel;
 
+pub fn cursor_pos_as_world_pos(
+    window: &Window,
+    camera_q: &Query<(&Transform, &Camera)>,
+) -> Option<Vec2> {
+    window.cursor_position().map(|cursor_pos| {
+        let (cam_t, cam) = camera_q.single();
+        let window_size = Vec2::new(window.width(), window.height());
+
+        // Convert screen position [0..resolution] to ndc [-1..1]
+        let ndc_to_world = cam_t.compute_matrix() * cam.projection_matrix().inverse();
+        let ndc = (Vec2::new(cursor_pos.x, cursor_pos.y) / window_size) * 2.0 - Vec2::ONE;
+        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+        world_pos.truncate()
+    })
+}
+
 fn highlight_tile_labels(
     mut commands: Commands,
     windows: Res<Windows>,
@@ -312,6 +328,7 @@ fn highlight_tile_labels(
     )>,
     highlighted_tiles_q: Query<Entity, With<HighlightedLabel>>,
     mut tile_label_q: Query<&mut Text, (With<TileLabel>, Without<MapTypeLabel>)>,
+    camera_q: Query<(&Transform, &Camera)>,
 ) {
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(mut tile_text) = tile_label_q.get_mut(highlighted_tile_entity) {
@@ -325,12 +342,12 @@ fn highlight_tile_labels(
     }
 
     for window in windows.iter() {
-        if let Some(position) = window.cursor_position() {
-            let centered_position =
-                position - Vec2::new(window.width() / 2.0, window.height() / 2.0);
+        if let Some(cursor_world_pos) = cursor_pos_as_world_pos(window, &camera_q) {
+            info!("cursor position: {cursor_world_pos:?}");
             for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
                 let map_translation = map_transform.translation.truncate();
-                let world_pos = centered_position - map_translation;
+                info!("map_translation: {map_translation:?}");
+                let world_pos = cursor_world_pos - map_translation;
                 if let Some(tile_pos) =
                     TilePos::from_world_pos(&world_pos, map_size, grid_size, map_type)
                 {

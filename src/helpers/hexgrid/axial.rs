@@ -3,7 +3,6 @@ use crate::helpers::hexgrid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hexgrid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::tiles::TilePos;
 use crate::TilemapGridSize;
-use bevy::log::info;
 use bevy::math::{Mat2, Vec2};
 use std::ops::{Add, Sub};
 
