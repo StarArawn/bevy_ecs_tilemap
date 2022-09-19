@@ -13,11 +13,9 @@ use bevy::{
 };
 
 use crate::helpers::transform::chunk_index_to_world_space;
-use crate::{
-    map::{
-        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
-        TilemapTileSize, TilemapType,
-    },
+use crate::map::{
+    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
+    TilemapType,
 };
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
