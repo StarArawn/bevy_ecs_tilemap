@@ -73,7 +73,7 @@ impl TilePos {
                     ColOddPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
                 }
                 HexCoordSystem::Row => {
-                    AxialPos::from_world_pos_col(world_pos, grid_size).as_tile_pos(map_size)
+                    AxialPos::from_world_pos_row(world_pos, grid_size).as_tile_pos(map_size)
                 }
                 HexCoordSystem::Column => {
                     AxialPos::from_world_pos_col(world_pos, grid_size).as_tile_pos(map_size)
