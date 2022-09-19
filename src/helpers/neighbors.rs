@@ -103,7 +103,7 @@ impl<T: Copy> Neighbors<T> {
 }
 
 impl Neighbors<Entity> {
-    fn from_neighboring_pos(
+    pub fn from_neighboring_pos(
         neighbors: &Neighbors<TilePos>,
         tile_storage: &TileStorage,
     ) -> Neighbors<Entity> {
@@ -313,43 +313,43 @@ impl TilePos {
         }
     }
 
-    fn square_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn square_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn square_west(&self) -> Option<TilePos> {
+    pub fn square_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn square_south_west(&self) -> Option<TilePos> {
+    pub fn square_south_west(&self) -> Option<TilePos> {
         self.minus_xy()
     }
 
-    fn square_south(&self) -> Option<TilePos> {
+    pub fn square_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn square_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn square_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn square_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_xy(tilemap_size)
     }
 
-    fn hex_row_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn hex_row_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_y(tilemap_size)
         } else {
@@ -357,7 +357,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_y(tilemap_size)
         } else {
@@ -365,23 +365,23 @@ impl TilePos {
         }
     }
 
-    fn hex_row_west(&self) -> Option<TilePos> {
+    pub fn hex_row_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_odd_west(&self) -> Option<TilePos> {
+    pub fn hex_row_odd_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_even_west(&self) -> Option<TilePos> {
+    pub fn hex_row_even_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_south_west(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_row_odd_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_odd_south_west(&self) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.minus_y()
         } else {
@@ -389,7 +389,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_even_south_west(&self) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.minus_y()
         } else {
@@ -397,11 +397,11 @@ impl TilePos {
         }
     }
 
-    fn hex_row_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn hex_row_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_x_minus_y(tilemap_size)
         } else {
@@ -409,7 +409,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_x_minus_y(tilemap_size)
         } else {
@@ -417,23 +417,23 @@ impl TilePos {
         }
     }
 
-    fn hex_row_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_odd_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_even_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn hex_row_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -441,7 +441,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -449,23 +449,23 @@ impl TilePos {
         }
     }
 
-    fn hex_col_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_odd_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_even_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn hex_col_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.minus_x_plus_y(tilemap_size)
         } else {
@@ -473,7 +473,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.minus_x_plus_y(tilemap_size)
         } else {
@@ -481,11 +481,11 @@ impl TilePos {
         }
     }
 
-    fn hex_col_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_south_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_col_odd_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_odd_south_west(&self) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.minus_x()
         } else {
@@ -493,7 +493,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_even_south_west(&self) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.minus_x()
         } else {
@@ -501,23 +501,23 @@ impl TilePos {
         }
     }
 
-    fn hex_col_south(&self) -> Option<TilePos> {
+    pub fn hex_col_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_odd_south(&self) -> Option<TilePos> {
+    pub fn hex_col_odd_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_even_south(&self) -> Option<TilePos> {
+    pub fn hex_col_even_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn hex_col_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.plus_x(tilemap_size)
         } else {
@@ -525,7 +525,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.plus_x(tilemap_size)
         } else {
@@ -533,11 +533,11 @@ impl TilePos {
         }
     }
 
-    fn hex_col_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -545,7 +545,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -553,35 +553,35 @@ impl TilePos {
         }
     }
 
-    fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn iso_staggered_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_2y(tilemap_size)
     }
 
-    fn iso_staggered_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn iso_staggered_south_west(&self) -> Option<TilePos> {
+    pub fn iso_staggered_south_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn iso_staggered_south(&self) -> Option<TilePos> {
+    pub fn iso_staggered_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn iso_staggered_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_2y(tilemap_size)
     }
 
-    fn iso_staggered_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn iso_staggered_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 }
