@@ -14,11 +14,14 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
+use bevy::prelude::{
+    Bundle, Changed, ComputedVisibility, CoreStage, GlobalTransform, Plugin, Query, Transform,
+    Visibility,
+};
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
 };
-use tiles::TileStorage;
+use tiles::{TilePos, TilePosOld, TileStorage};
 
 /// A module which provides helper functions.
 pub mod helpers;
@@ -34,9 +37,11 @@ pub mod tiles;
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
-    fn build(&self, _app: &mut bevy::prelude::App) {
+    fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
-        _app.add_plugin(render::TilemapRenderingPlugin);
+        app.add_plugin(render::TilemapRenderingPlugin);
+
+        app.add_system_to_stage(CoreStage::First, update_changed_tile_positions);
     }
 }
 
@@ -70,4 +75,11 @@ pub mod prelude {
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
+}
+
+/// Updates old tile positions with the new values from the last frame.
+fn update_changed_tile_positions(mut query: Query<(&TilePos, &mut TilePosOld), Changed<TilePos>>) {
+    for (tile_pos, mut tile_pos_old) in query.iter_mut() {
+        tile_pos_old.0 = *tile_pos;
+    }
 }
