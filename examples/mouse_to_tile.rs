@@ -11,10 +11,10 @@ const GRID_SIZE_SQUARE: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
 const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
-const LABEL_OFFSET_SQUARE: Vec2 = Vec2::new(0.5, 0.5);
+const LABEL_OFFSET_SQUARE: Vec2 = Vec2::new(0.0, 0.0);
 const LABEL_OFFSET_HEX_ROW: Vec2 = Vec2::new(0.0, 0.0);
 const LABEL_OFFSET_HEX_COL: Vec2 = Vec2::new(0.0, 0.0);
-const LABEL_OFFSET_ISO: Vec2 = Vec2::new(0.5, 0.0);
+const LABEL_OFFSET_ISO: Vec2 = Vec2::new(0.0, 0.0);
 
 fn get_label_offset(map_type: &TilemapType) -> Vec2 {
     match map_type {
@@ -114,7 +114,7 @@ fn spawn_tile_labels(
 
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            let tile_center = tile_pos.to_world_pos(grid_size, map_type);
+            let tile_center = tile_pos.center_in_world(grid_size, map_type);
             let text_center = tile_center + label_offset;
             let mut transform = *tilemap_transform;
             transform.translation += text_center.extend(2.0);
@@ -265,7 +265,7 @@ fn swap_map_type(
             let label_offset = get_label_offset(&map_type) * grid_size_vec;
 
             for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
-                let tile_center = tile_pos.to_world_pos(&grid_size, &map_type);
+                let tile_center = tile_pos.center_in_world(&grid_size, &map_type);
                 let text_center = tile_center + label_offset;
                 *tile_label_transform = *map_transform;
                 tile_label_transform.translation += text_center.extend(2.0);
@@ -376,8 +376,8 @@ fn main() {
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
-        // .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        // .add_startup_system_to_stage(StartupStage::PostStartup, spawn_instructions)
+        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
+        //.add_startup_system_to_stage(StartupStage::PostStartup, spawn_instructions)
         .add_system(helpers::camera::movement)
         .add_system(swap_map_type)
         .add_system(highlight_tile_labels)

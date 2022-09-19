@@ -32,8 +32,8 @@ pub fn fill_tilemap(
 
 /// Fills a rectangular region with the given tile.
 ///
-/// The rectangular region is defined by an `origin` in `TilePos`, and a size
-/// in tiles (`TilemapSize`).  
+/// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a 
+/// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).  
 pub fn fill_tilemap_rect(
     tile_texture: TileTexture,
     origin: TilePos,
@@ -65,8 +65,8 @@ pub fn fill_tilemap_rect(
 
 /// Fills a rectangular region with colored versions of the given tile.
 ///
-/// The rectangular region is defined by an `origin` in `TilePos`, and a size
-/// in tiles (`TilemapSize`).  
+/// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a 
+/// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).   
 pub fn fill_tilemap_rect_color(
     tile_texture: TileTexture,
     origin: TilePos,

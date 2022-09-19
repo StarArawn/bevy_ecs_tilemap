@@ -15,5 +15,5 @@ pub fn chunk_index_to_world_space(
         y: chunk_index.y * chunk_size.y,
     };
     let grid_size: TilemapGridSize = grid_size.into();
-    anchor_tile_pos.to_world_pos(&grid_size, map_type)
+    anchor_tile_pos.center_in_world(&grid_size, map_type)
 }

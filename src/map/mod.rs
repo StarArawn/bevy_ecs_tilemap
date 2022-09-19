@@ -151,7 +151,7 @@ impl From<Vec2> for TilemapTextureSize {
     }
 }
 
-/// Different hex coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
+/// Different hex_grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HexCoordSystem {
     RowEven,
@@ -162,7 +162,7 @@ pub enum HexCoordSystem {
     Column,
 }
 
-/// Different isometric square coordinate systems.
+/// Different isometric coordinate systems.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoCoordSystem {
     Diamond,
@@ -172,7 +172,7 @@ pub enum IsoCoordSystem {
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapType {
-    /// A tilemap with square tiles.
+    /// A tilemap with isometric tiles.
     ///
     /// If `diagonal_neighbors` is `true`, then given a specified tile,
     /// any tiles diagonal to it are also considered neighbors by [`get_tile_neighbors`](crate::helpers::neighbors::get_tile_neighbors)

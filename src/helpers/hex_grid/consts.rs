@@ -1,4 +1,4 @@
-/// Various constants that are helpful for hex-grid related calculations.
+/// Various constants that are helpful for hex_grid-grid related calculations.
 
 pub const SQRT_3: f32 = 1.7320508;
 
