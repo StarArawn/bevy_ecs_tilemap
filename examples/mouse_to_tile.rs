@@ -2,6 +2,8 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
+// Press space to change map type. Hover over mouse tiles to highlight their labels.
+
 const MAP_SIDE_LENGTH: u32 = 4;
 const TILE_SIZE_SQUARE: TilemapTileSize = TilemapTileSize { x: 50.0, y: 50.0 };
 const TILE_SIZE_ISO: TilemapTileSize = TilemapTileSize { x: 100.0, y: 50.0 };
@@ -169,9 +171,6 @@ fn spawn_map_type_label(
         }
     }
 }
-
-#[allow(unused)]
-fn spawn_instructions() {}
 
 #[allow(clippy::too_many_arguments)]
 fn swap_map_type(
@@ -377,7 +376,6 @@ fn main() {
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        //.add_startup_system_to_stage(StartupStage::PostStartup, spawn_instructions)
         .add_system(helpers::camera::movement)
         .add_system(swap_map_type)
         .add_system(highlight_tile_labels)
