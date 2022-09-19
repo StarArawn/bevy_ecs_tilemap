@@ -1,7 +1,8 @@
 use crate::{TilemapSize, TilemapTileSize, Transform};
 use bevy::math::Vec2;
 
-/// Calculates a tilemap's centered position as a Bevy [`Vec2`](bevy::math::Vec2).
+/// Calculates a [`Vec2`] position for a tilemap so that when set to this position, it shows up
+/// centered on the screen.
 pub fn get_tilemap_center(size: &TilemapSize, tile_size: &TilemapTileSize) -> Vec2 {
     Vec2::new(
         -(size.x as f32 * tile_size.x as f32) / 2.0,
@@ -9,7 +10,8 @@ pub fn get_tilemap_center(size: &TilemapSize, tile_size: &TilemapTileSize) -> Ve
     )
 }
 
-/// Calculates a tilemap's centered position as a Bevy [`Transform`](bevy::prelude::Transform).
+/// Calculates a [`Transform`] for a tilemap so that when set to this position, it shows up  
+/// centered on the screen.
 pub fn get_tilemap_center_transform(
     size: &TilemapSize,
     tile_size: &TilemapTileSize,

@@ -7,10 +7,19 @@ use bevy::math::{Mat2, Vec2};
 use std::ops::{Add, Mul, Sub};
 
 /// A position in a hex grid labelled according to [`HexCoordSystem::Row`] or
-/// [`HexCoordSystem::Column`]. It is composed of a pair of `i32` digits named `q` and `r`.
+/// [`HexCoordSystem::Column`]. It is composed of a pair of `i32` digits named `q` and `r`. When
+/// converting from a [`TilePos`], `TilePos.x` is mapped to `q`, while `TilePos.y` is mapped to `r`.
 ///
-/// The example `mouse_to_tile.rs` shows
-/// For more information, including interactive explanations, see
+/// It is vector-like. In others: two `AxialPos` can be added/subtracted, and it can be multiplied
+/// by an `i32` scalar.
+///
+/// Since this position type covers both [`HexCoordSystem::Row`] and [`HexCoordSystem::Column`],
+/// it has `*_col` and `*_row` variants for important methods.
+///
+/// It can be converted from/into [`RowOddPos`], [`RowEvenPos`], [`ColOddPos`] and [`ColEvenPos`].
+/// It can also be converted from/into [`CubePos`].
+///
+/// For more information, including interactive diagrams, see
 /// [Red Blob Games](https://www.redblobgames.com/grids/hexagons/#coordinates-axial) (RBG). Note
 /// however, that while positive `r` goes "downward" in RBG's article, we consider it as going
 /// "upward".
@@ -31,10 +40,8 @@ impl From<&TilePos> for AxialPos {
 
 impl From<CubePos> for AxialPos {
     fn from(cube_pos: CubePos) -> Self {
-        let CubePos {
-            q: alpha, r: beta, ..
-        } = cube_pos;
-        AxialPos { q: alpha, r: beta }
+        let CubePos { q, r, .. } = cube_pos;
+        AxialPos { q, r }
     }
 }
 
@@ -81,90 +88,66 @@ fn ceiled_division_by_2(x: i32) -> i32 {
 
 impl From<AxialPos> for RowOddPos {
     fn from(axial_pos: AxialPos) -> Self {
-        let AxialPos { q: alpha, r: beta } = axial_pos;
-        let delta = beta / 2;
-        RowOddPos {
-            alpha: alpha + delta,
-            beta,
-        }
+        let AxialPos { q, r } = axial_pos;
+        let delta = r / 2;
+        RowOddPos { q: q + delta, r }
     }
 }
 
 impl From<RowOddPos> for AxialPos {
     fn from(offset_pos: RowOddPos) -> Self {
-        let RowOddPos { alpha, beta } = offset_pos;
-        let delta = beta / 2;
-        AxialPos {
-            q: alpha - delta,
-            r: beta,
-        }
+        let RowOddPos { q, r } = offset_pos;
+        let delta = r / 2;
+        AxialPos { q: q - delta, r }
     }
 }
 
 impl From<AxialPos> for RowEvenPos {
     fn from(axial_pos: AxialPos) -> Self {
-        let AxialPos { q: alpha, r: beta } = axial_pos;
+        let AxialPos { q, r } = axial_pos;
         // (n + 1) / 2 is a ceil'ed rather than floored division
-        let delta = ceiled_division_by_2(beta);
-        RowEvenPos {
-            alpha: alpha + delta,
-            beta,
-        }
+        let delta = ceiled_division_by_2(r);
+        RowEvenPos { q: q + delta, r }
     }
 }
 
 impl From<RowEvenPos> for AxialPos {
     fn from(offset_pos: RowEvenPos) -> Self {
-        let RowEvenPos { alpha, beta } = offset_pos;
-        let delta = ceiled_division_by_2(beta);
-        AxialPos {
-            q: alpha - delta,
-            r: beta,
-        }
+        let RowEvenPos { q, r } = offset_pos;
+        let delta = ceiled_division_by_2(r);
+        AxialPos { q: q - delta, r }
     }
 }
 
 impl From<AxialPos> for ColOddPos {
     fn from(axial_pos: AxialPos) -> Self {
-        let AxialPos { q: alpha, r: beta } = axial_pos;
-        let delta = alpha / 2;
-        ColOddPos {
-            alpha,
-            beta: beta + delta,
-        }
+        let AxialPos { q, r } = axial_pos;
+        let delta = q / 2;
+        ColOddPos { q, r: r + delta }
     }
 }
 
 impl From<ColOddPos> for AxialPos {
     fn from(offset_pos: ColOddPos) -> Self {
-        let ColOddPos { alpha, beta } = offset_pos;
-        let delta = alpha / 2;
-        AxialPos {
-            q: alpha,
-            r: beta - delta,
-        }
+        let ColOddPos { q, r } = offset_pos;
+        let delta = q / 2;
+        AxialPos { q, r: r - delta }
     }
 }
 
 impl From<AxialPos> for ColEvenPos {
     fn from(axial_pos: AxialPos) -> Self {
-        let AxialPos { q: alpha, r: beta } = axial_pos;
-        let delta = ceiled_division_by_2(alpha);
-        ColEvenPos {
-            alpha,
-            beta: beta + delta,
-        }
+        let AxialPos { q, r } = axial_pos;
+        let delta = ceiled_division_by_2(q);
+        ColEvenPos { q, r: r + delta }
     }
 }
 
 impl From<ColEvenPos> for AxialPos {
     fn from(offset_pos: ColEvenPos) -> Self {
-        let ColEvenPos { alpha, beta } = offset_pos;
-        let delta = ceiled_division_by_2(alpha);
-        AxialPos {
-            q: alpha,
-            r: beta - delta,
-        }
+        let ColEvenPos { q, r } = offset_pos;
+        let delta = ceiled_division_by_2(q);
+        AxialPos { q, r: r - delta }
     }
 }
 
@@ -196,11 +179,11 @@ pub const INV_COL_BASIS: Mat2 = Mat2::from_cols(
     Vec2::new(0.0, 1.0),
 );
 
-pub const UNIT_ALPHA: AxialPos = AxialPos { q: 1, r: 0 };
+pub const UNIT_Q: AxialPos = AxialPos { q: 1, r: 0 };
 
-pub const UNIT_BETA: AxialPos = AxialPos { q: 0, r: -1 };
+pub const UNIT_R: AxialPos = AxialPos { q: 0, r: -1 };
 
-pub const UNIT_GAMMA: AxialPos = AxialPos { q: 1, r: -1 };
+pub const UNIT_S: AxialPos = AxialPos { q: 1, r: -1 };
 
 impl AxialPos {
     /// The magnitude of a cube position is its distance away from the `(0, 0)` hex_grid.
@@ -264,7 +247,7 @@ impl AxialPos {
 
     /// Try converting into a [`TilePos`].
     ///
-    /// Returns `None` if either one of `alpha` or `beta` is negative, or lies out of the bounds of
+    /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
     pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
