@@ -1,8 +1,13 @@
+use bevy::math::Vec4Swizzles;
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
+use helpers::camera::movement as camera_movement;
 
-// Press space to change map type. Hover over mouse tiles to highlight their labels.
+// Press SPACE to change map type. Hover over mouse tiles to highlight their labels.
+//
+// The most important function here is the `highlight_tile_labels` systems, which shows how to
+// convert a mouse cursor position into a tile position.
 
 const MAP_SIDE_LENGTH: u32 = 4;
 const TILE_SIZE_SQUARE: TilemapTileSize = TilemapTileSize { x: 50.0, y: 50.0 };
@@ -43,6 +48,7 @@ pub struct TileHandleSquare(Handle<Image>);
 #[derive(Component, Deref)]
 pub struct TileHandleIso(Handle<Image>);
 
+// Spawns different tiles that are used for this example.
 fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_handle_iso: Handle<Image> = asset_server.load("bw-tile-iso.png");
     let tile_handle_hex_row: Handle<Image> = asset_server.load("bw-tile-hex-row.png");
@@ -57,6 +63,7 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(font);
 }
 
+// Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
@@ -98,6 +105,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
 #[derive(Component)]
 struct TileLabel;
 
+// Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
     tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
@@ -139,7 +147,7 @@ fn spawn_tile_labels(
 #[derive(Component)]
 pub struct MapTypeLabel;
 
-#[allow(unused)]
+// Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
 fn spawn_map_type_label(
     mut commands: Commands,
     font_handle: Res<Handle<Font>>,
@@ -172,6 +180,7 @@ fn spawn_map_type_label(
     }
 }
 
+// Swaps the map type, when user presses SPACE
 #[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
@@ -298,25 +307,54 @@ fn swap_map_type(
 #[derive(Component)]
 struct HighlightedLabel;
 
-pub fn cursor_pos_as_world_pos(
-    window: &Window,
-    camera_q: &Query<(&Transform, &Camera)>,
-) -> Option<Vec2> {
-    window.cursor_position().map(|cursor_pos| {
-        let (cam_t, cam) = camera_q.single();
-        let window_size = Vec2::new(window.width(), window.height());
+// Converts the cursor position into a world position, taking into account any transforms applied
+// the camera.
+pub fn cursor_pos_in_world(
+    windows: &Windows,
+    cursor_pos: Vec2,
+    cam_t: &Transform,
+    cam: &Camera,
+) -> Vec3 {
+    let window = windows.primary();
 
-        // Convert screen position [0..resolution] to ndc [-1..1]
-        let ndc_to_world = cam_t.compute_matrix() * cam.projection_matrix().inverse();
-        let ndc = (Vec2::new(cursor_pos.x, cursor_pos.y) / window_size) * 2.0 - Vec2::ONE;
-        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-        world_pos.truncate()
-    })
+    let window_size = Vec2::new(window.width(), window.height());
+
+    // Convert screen position [0..resolution] to ndc [-1..1]
+    // (ndc = normalized device coordinates)
+    let ndc_to_world = cam_t.compute_matrix() * cam.projection_matrix().inverse();
+    let ndc = (cursor_pos / window_size) * 2.0 - Vec2::ONE;
+    ndc_to_world.project_point3(ndc.extend(0.0))
 }
 
+#[derive(Default)]
+pub struct CursorPos(Vec3);
+
+// We need to keep the cursor position updated based on any `CursorMoved` events.
+pub fn update_cursor_pos(
+    windows: Res<Windows>,
+    camera_q: Query<(&Transform, &Camera)>,
+    mut cursor_moved_events: EventReader<CursorMoved>,
+    mut cursor_pos: ResMut<CursorPos>,
+) {
+    for cursor_moved in cursor_moved_events.iter() {
+        // To get the mouse's world position, we have to transform its window position by
+        // any transforms on the camera. This is done by projecting the cursor position into
+        // camera space (world space).
+        for (cam_t, cam) in camera_q.iter() {
+            *cursor_pos = CursorPos(cursor_pos_in_world(
+                &windows,
+                cursor_moved.position,
+                cam_t,
+                cam,
+            ));
+        }
+    }
+}
+
+// This is where we check which tile the cursor is hovered over.
 fn highlight_tile_labels(
     mut commands: Commands,
-    windows: Res<Windows>,
+    cursor_pos: Res<CursorPos>,
     tilemap_q: Query<(
         &TilemapSize,
         &TilemapGridSize,
@@ -326,8 +364,8 @@ fn highlight_tile_labels(
     )>,
     highlighted_tiles_q: Query<Entity, With<HighlightedLabel>>,
     mut tile_label_q: Query<&mut Text, (With<TileLabel>, Without<MapTypeLabel>)>,
-    camera_q: Query<(&Transform, &Camera)>,
 ) {
+    // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(mut tile_text) = tile_label_q.get_mut(highlighted_tile_entity) {
             for mut section in tile_text.sections.iter_mut() {
@@ -339,22 +377,28 @@ fn highlight_tile_labels(
         }
     }
 
-    for window in windows.iter() {
-        if let Some(cursor_world_pos) = cursor_pos_as_world_pos(window, &camera_q) {
-            for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
-                let map_translation = map_transform.translation.truncate();
-                let world_pos = cursor_world_pos - map_translation;
-                if let Some(tile_pos) =
-                    TilePos::from_world_pos(&world_pos, map_size, grid_size, map_type)
-                {
-                    if let Some(tile_entity) = tile_storage.get(&tile_pos) {
-                        if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
-                            for mut section in tile_text.sections.iter_mut() {
-                                section.style.color = Color::RED;
-                            }
-                            commands.entity(tile_entity).insert(HighlightedLabel);
-                        }
+    for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
+        // Grab the cursor position from the `Res<CursorPos>`
+        let cursor_pos: Vec3 = cursor_pos.0;
+        // We need to make sure that the cursor's world position is correct relative to the map
+        // due to any map transformation.
+        let cursor_in_map_pos: Vec2 = {
+            // Extend the cursor_pos vec3 by 1.0
+            let cursor_pos = Vec4::from((cursor_pos, 1.0));
+            let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
+            cursor_in_map_pos.xy()
+        };
+        // Once we have a world position we can transform it into a possible tile position.
+        if let Some(tile_pos) =
+            TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type)
+        {
+            // Highlight the relevant tile's label
+            if let Some(tile_entity) = tile_storage.get(&tile_pos) {
+                if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
+                    for mut section in tile_text.sections.iter_mut() {
+                        section.style.color = Color::RED;
                     }
+                    commands.entity(tile_entity).insert(HighlightedLabel);
                 }
             }
         }
@@ -370,14 +414,25 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(CursorPos::default())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        .add_system(helpers::camera::movement)
-        .add_system(swap_map_type)
-        .add_system(highlight_tile_labels)
+        .add_startup_system_to_stage(
+            StartupStage::Startup,
+            spawn_tile_labels.after(spawn_tilemap),
+        )
+        .add_startup_system_to_stage(
+            StartupStage::Startup,
+            spawn_map_type_label.after(spawn_tile_labels),
+        )
+        .add_system_to_stage(CoreStage::First, camera_movement)
+        .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
+        .add_system_to_stage(CoreStage::Update, swap_map_type)
+        .add_system_to_stage(
+            CoreStage::Update,
+            highlight_tile_labels.after(swap_map_type),
+        )
         .run();
 }
