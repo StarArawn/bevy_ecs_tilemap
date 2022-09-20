@@ -279,7 +279,7 @@ fn prepare_textures(
             tile_size,
             texture_size,
             spacing,
-            FilterMode::Nearest,
+            tilemap.filtering,
         );
     }
 

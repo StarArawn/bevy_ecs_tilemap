@@ -36,9 +36,8 @@ impl ArrayTextureLoader {
 
     pub(crate) fn drain(&self) -> Vec<TilemapArrayTexture> {
         if let Ok(mut textures) = self.textures.try_write() {
-            return textures.drain(..).collect::<Vec<_>>();
+            return std::mem::take(&mut *textures);
         }
-
         vec![]
     }
 }
