@@ -18,23 +18,6 @@ const GRID_SIZE_SQUARE: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
 const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
-const LABEL_OFFSET_SQUARE: Vec2 = Vec2::new(0.0, 0.0);
-const LABEL_OFFSET_HEX_ROW: Vec2 = Vec2::new(0.0, 0.0);
-const LABEL_OFFSET_HEX_COL: Vec2 = Vec2::new(0.0, 0.0);
-const LABEL_OFFSET_ISO: Vec2 = Vec2::new(0.0, 0.0);
-
-fn get_label_offset(map_type: &TilemapType) -> Vec2 {
-    match map_type {
-        TilemapType::Square { .. } => LABEL_OFFSET_SQUARE,
-        TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
-            HexCoordSystem::Column | HexCoordSystem::ColumnEven | HexCoordSystem::ColumnOdd => {
-                LABEL_OFFSET_HEX_COL
-            }
-            _ => LABEL_OFFSET_HEX_ROW,
-        },
-        TilemapType::Isometric { .. } => LABEL_OFFSET_ISO,
-    }
-}
 
 #[derive(Component, Deref)]
 pub struct TileHandleHexRow(Handle<Image>);
@@ -119,18 +102,22 @@ fn spawn_tile_labels(
         color: Color::BLACK,
     };
     let text_alignment = TextAlignment::CENTER;
-    for (tilemap_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         info!("Found a tilemap!");
         let grid_size_vec: Vec2 = grid_size.into();
-        let label_offset = get_label_offset(map_type) * grid_size_vec;
+        let label_offset = Vec2::new(1.5, 1.5) * grid_size_vec;
 
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            info!("Found a tile: {tile_pos:?}");
+            info!("startup: Found a tile: {tile_pos:?}");
             let tile_center = tile_pos.center_in_world(grid_size, map_type);
-            let text_center = tile_center + label_offset;
-            let mut transform = *tilemap_transform;
-            transform.translation += text_center.extend(2.0);
+            let text_center = (tile_center + label_offset).extend(1.0);
+            let text_transform = Transform::from_translation(text_center);
+            info!("startup: text transform: {text_transform:?}");
+            info!(
+                "startup: total transform: {:?}",
+                *map_transform * text_transform
+            );
             commands
                 .entity(*tile_entity)
                 .insert_bundle(Text2dBundle {
@@ -139,7 +126,7 @@ fn spawn_tile_labels(
                         text_style.clone(),
                     )
                     .with_alignment(text_alignment),
-                    transform,
+                    transform: *map_transform * text_transform,
                     ..default()
                 })
                 .insert(TileLabel);
@@ -166,6 +153,7 @@ fn spawn_map_type_label(
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
+            // Place the map type label somewhere in the top left side of the screen
             let transform = Transform {
                 translation: Vec2::new(-0.5 * window.width() / 2.0, 0.8 * window.height() / 2.0)
                     .extend(0.0),
@@ -273,13 +261,15 @@ fn swap_map_type(
             }
 
             let grid_size_vec: Vec2 = (*grid_size).into();
-            let label_offset = get_label_offset(&map_type) * grid_size_vec;
+            let label_offset = Vec2::new(1.5, 1.5) * grid_size_vec;
 
             for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
+                info!("swap: Found a tile: {tile_pos:?}");
                 let tile_center = tile_pos.center_in_world(&grid_size, &map_type);
-                let text_center = tile_center + label_offset;
-                *tile_label_transform = *map_transform;
-                tile_label_transform.translation += text_center.extend(2.0);
+                let text_center = (tile_center + label_offset).extend(1.0);
+                let text_transform = Transform::from_translation(text_center);
+                info!("swap: text transform: {text_transform:?}");
+                *tile_label_transform = *map_transform * text_transform;
             }
 
             for window in windows.iter() {
@@ -417,20 +407,15 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
+        // Initialize the cursor pos at some far away place. It will get updated
+        // correctly when the cursor moves.
         .insert_resource(CursorPos(Vec3::new(-100.0, -100.0, 0.0)))
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
-        .add_startup_stage_after(
-            StartupStage::Startup,
-            "label_stage",
-            SystemStage::parallel(),
-        )
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
-        // Must add a custom stage, rather than use `StartupStage::PostStartup`, because
-        // `StartupStage::PostStartup` just doesn't seem to work.
-        .add_startup_system_to_stage("label_stage", spawn_tile_labels)
-        .add_startup_system_to_stage("label_stage", spawn_map_type_label)
+        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
+        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
         .add_system_to_stage(CoreStage::First, camera_movement)
         .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
         .add_system_to_stage(CoreStage::Update, swap_map_type)
