@@ -112,6 +112,7 @@ fn spawn_tile_labels(
     tile_q: Query<&mut TilePos>,
     font_handle: Res<Handle<Font>>,
 ) {
+    info!("Generating tile labels.");
     let text_style = TextStyle {
         font: font_handle.clone(),
         font_size: 20.0,
@@ -119,11 +120,13 @@ fn spawn_tile_labels(
     };
     let text_alignment = TextAlignment::CENTER;
     for (tilemap_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+        info!("Found a tilemap!");
         let grid_size_vec: Vec2 = grid_size.into();
         let label_offset = get_label_offset(map_type) * grid_size_vec;
 
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
+            info!("Found a tile: {tile_pos:?}");
             let tile_center = tile_pos.center_in_world(grid_size, map_type);
             let text_center = tile_center + label_offset;
             let mut transform = *tilemap_transform;
@@ -414,19 +417,20 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
-        .insert_resource(CursorPos::default())
+        .insert_resource(CursorPos(Vec3::new(-100.0, -100.0, 0.0)))
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
+        .add_startup_stage_after(
+            StartupStage::Startup,
+            "label_stage",
+            SystemStage::parallel(),
+        )
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
-        .add_startup_system_to_stage(
-            StartupStage::Startup,
-            spawn_tile_labels.after(spawn_tilemap),
-        )
-        .add_startup_system_to_stage(
-            StartupStage::Startup,
-            spawn_map_type_label.after(spawn_tile_labels),
-        )
+        // Must add a custom stage, rather than use `StartupStage::PostStartup`, because
+        // `StartupStage::PostStartup` just doesn't seem to work.
+        .add_startup_system_to_stage("label_stage", spawn_tile_labels)
+        .add_startup_system_to_stage("label_stage", spawn_map_type_label)
         .add_system_to_stage(CoreStage::First, camera_movement)
         .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
         .add_system_to_stage(CoreStage::Update, swap_map_type)
