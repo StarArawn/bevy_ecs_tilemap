@@ -49,7 +49,7 @@ mod texture_array_cache;
 #[cfg(not(feature = "atlas"))]
 use self::extract::ExtractedTilemapTexture;
 #[cfg(not(feature = "atlas"))]
-use self::texture_array_cache::TextureArrayCache;
+pub(crate) use self::texture_array_cache::TextureArrayCache;
 
 /// The default chunk_size (in tiles) used per mesh.
 const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
