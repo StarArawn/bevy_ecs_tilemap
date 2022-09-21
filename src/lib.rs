@@ -23,6 +23,12 @@ use map::{
 };
 use tiles::{TilePos, TilePosOld, TileStorage};
 
+#[cfg(not(feature = "atlas"))]
+use bevy::render::{RenderApp, RenderStage};
+
+/// A module that allows pre-loading of atlases into array textures.
+#[cfg(not(feature = "atlas"))]
+mod array_texture_preload;
 /// A module which provides helper functions.
 pub mod helpers;
 /// A module which contains tilemap components.
@@ -42,6 +48,13 @@ impl Plugin for TilemapPlugin {
         app.add_plugin(render::TilemapRenderingPlugin);
 
         app.add_system_to_stage(CoreStage::First, update_changed_tile_positions);
+
+        #[cfg(not(feature = "atlas"))]
+        {
+            app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
+            let render_app = app.sub_app_mut(RenderApp);
+            render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
+        }
     }
 }
 
@@ -71,6 +84,8 @@ pub mod prelude {
     pub use crate::helpers::projection::*;
     pub use crate::helpers::selection::*;
     pub use crate::helpers::transform::*;
+    #[cfg(not(feature = "atlas"))]
+    pub use crate::array_texture_preload::*;
     pub use crate::map::*;
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;

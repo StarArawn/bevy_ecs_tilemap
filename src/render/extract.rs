@@ -1,5 +1,7 @@
 use bevy::prelude::Res;
 use bevy::prelude::Time;
+use bevy::render::render_resource::FilterMode;
+use bevy::render::texture::ImageSettings;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
@@ -74,6 +76,7 @@ pub(crate) struct ExtractedTilemapTexture {
     pub texture_size: TilemapTextureSize,
     pub spacing: TilemapSpacing,
     pub texture: TilemapTexture,
+    pub filtering: FilterMode,
 }
 
 #[derive(Bundle)]
@@ -83,6 +86,7 @@ pub(crate) struct ExtractedTilemapTextureBundle {
 
 pub fn extract(
     mut commands: Commands,
+    default_image_settings: Extract<Res<ImageSettings>>,
     changed_tiles_query: Extract<
         Query<
             (
@@ -262,6 +266,7 @@ pub fn extract(
                     texture_size,
                     spacing: *spacing,
                     texture: texture.clone(),
+                    filtering: default_image_settings.default_sampler.min_filter,
                 },
             },
         ));
