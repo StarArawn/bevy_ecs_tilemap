@@ -78,14 +78,14 @@ pub struct TilemapBundle {
 
 /// A module which exports commonly used dependencies.
 pub mod prelude {
+    #[cfg(not(feature = "atlas"))]
+    pub use crate::array_texture_preload::*;
     pub use crate::helpers::filling::*;
     pub use crate::helpers::geometry::*;
     pub use crate::helpers::neighbors::*;
     pub use crate::helpers::projection::*;
     pub use crate::helpers::selection::*;
     pub use crate::helpers::transform::*;
-    #[cfg(not(feature = "atlas"))]
-    pub use crate::array_texture_preload::*;
     pub use crate::map::*;
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;
