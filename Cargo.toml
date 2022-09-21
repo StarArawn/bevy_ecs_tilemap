@@ -30,7 +30,7 @@ tiled = { version = "0.9", default-features = false }
 [dev-dependencies.bevy]
 version = "0.8"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit"]
+features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "bevy_winit", "filesystem_watcher"]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
 version = "0.8"
