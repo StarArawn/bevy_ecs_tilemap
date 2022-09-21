@@ -9,7 +9,12 @@ use helpers::camera::movement as camera_movement;
 // The most important function here is the `highlight_tile_labels` systems, which shows how to
 // convert a mouse cursor position into a tile position.
 
-const MAP_SIDE_LENGTH: u32 = 4;
+// You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
+// but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
+// otherwise things might be too slow.
+const MAP_SIDE_LENGTH_X: u32 = 4;
+const MAP_SIDE_LENGTH_Y: u32 = 4;
+
 const TILE_SIZE_SQUARE: TilemapTileSize = TilemapTileSize { x: 50.0, y: 50.0 };
 const TILE_SIZE_ISO: TilemapTileSize = TilemapTileSize { x: 100.0, y: 50.0 };
 const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
@@ -51,8 +56,8 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     commands.spawn_bundle(Camera2dBundle::default());
 
     let total_size = TilemapSize {
-        x: MAP_SIDE_LENGTH,
-        y: MAP_SIDE_LENGTH,
+        x: MAP_SIDE_LENGTH_X,
+        y: MAP_SIDE_LENGTH_Y,
     };
 
     let mut tile_storage = TileStorage::empty(total_size);
@@ -95,7 +100,6 @@ fn spawn_tile_labels(
     tile_q: Query<&mut TilePos>,
     font_handle: Res<Handle<Font>>,
 ) {
-    info!("Generating tile labels.");
     let text_style = TextStyle {
         font: font_handle.clone(),
         font_size: 20.0,
@@ -103,21 +107,10 @@ fn spawn_tile_labels(
     };
     let text_alignment = TextAlignment::CENTER;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
-        info!("Found a tilemap!");
-        let grid_size_vec: Vec2 = grid_size.into();
-        let label_offset = Vec2::new(1.5, 1.5) * grid_size_vec;
-
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            info!("startup: Found a tile: {tile_pos:?}");
-            let tile_center = tile_pos.center_in_world(grid_size, map_type);
-            let text_center = (tile_center + label_offset).extend(1.0);
-            let text_transform = Transform::from_translation(text_center);
-            info!("startup: text transform: {text_transform:?}");
-            info!(
-                "startup: total transform: {:?}",
-                *map_transform * text_transform
-            );
+            let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
+            let transform = *map_transform * Transform::from_translation(tile_center);
             commands
                 .entity(*tile_entity)
                 .insert_bundle(Text2dBundle {
@@ -126,7 +119,7 @@ fn spawn_tile_labels(
                         text_style.clone(),
                     )
                     .with_alignment(text_alignment),
-                    transform: *map_transform * text_transform,
+                    transform,
                     ..default()
                 })
                 .insert(TileLabel);
@@ -156,7 +149,7 @@ fn spawn_map_type_label(
             // Place the map type label somewhere in the top left side of the screen
             let transform = Transform {
                 translation: Vec2::new(-0.5 * window.width() / 2.0, 0.8 * window.height() / 2.0)
-                    .extend(0.0),
+                    .extend(1.0),
                 ..Default::default()
             };
             commands
@@ -260,16 +253,9 @@ fn swap_map_type(
                 }
             }
 
-            let grid_size_vec: Vec2 = (*grid_size).into();
-            let label_offset = Vec2::new(1.5, 1.5) * grid_size_vec;
-
             for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
-                info!("swap: Found a tile: {tile_pos:?}");
-                let tile_center = tile_pos.center_in_world(&grid_size, &map_type);
-                let text_center = (tile_center + label_offset).extend(1.0);
-                let text_transform = Transform::from_translation(text_center);
-                info!("swap: text transform: {text_transform:?}");
-                *tile_label_transform = *map_transform * text_transform;
+                let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
+                *tile_label_transform = *map_transform * Transform::from_translation(tile_center);
             }
 
             for window in windows.iter() {
