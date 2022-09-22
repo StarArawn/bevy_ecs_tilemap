@@ -149,19 +149,19 @@ pub const AXIAL_ROW_NORTH_WEST: AxialPos = AxialPos { q: -1, r: 1 };
 /// ([Row](crate::map::HexCoordSystem::Row),
 /// [RowEven](crate::map::HexCoordSystem::RowEven), and
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
-pub const AXIAL_ROW_WEST: AxialPos = -1 * AXIAL_ROW_EAST;
+pub const AXIAL_ROW_WEST: AxialPos = AxialPos { q: -1, r: 0 };
 
 /// Vector associated with South-West in hexagonal row-oriented coordinate systems
 /// ([Row](crate::map::HexCoordSystem::Row),
 /// [RowEven](crate::map::HexCoordSystem::RowEven), and
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
-pub const AXIAL_ROW_SOUTH_WEST: AxialPos = -1 * AXIAL_ROW_NORTH_EAST;
+pub const AXIAL_ROW_SOUTH_WEST: AxialPos = AxialPos { q: 0, r: -1 };
 
 /// Vector associated with South-East in hexagonal row-oriented coordinate systems
 /// ([Row](crate::map::HexCoordSystem::Row),
 /// [RowEven](crate::map::HexCoordSystem::RowEven), and
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
-pub const AXIAL_ROW_SOUTH_EAST: AxialPos = -1 * AXIAL_ROW_NORTH_WEST;
+pub const AXIAL_ROW_SOUTH_EAST: AxialPos = AxialPos { q: 1, r: -1 };
 
 /// Compass neighbors of a tile in hexagonal column-oriented coordinate systems
 /// ([Column](crate::map::HexCoordSystem::Column),
@@ -312,16 +312,16 @@ pub const AXIAL_COL_NORTH_WEST: AxialPos = AxialPos { q: -1, r: 1 };
 /// ([Column](crate::map::HexCoordSystem::Column),
 /// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
 /// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
-pub const AXIAL_COL_SOUTH_WEST: AxialPos = -1 * AXIAL_COL_NORTH_EAST;
+pub const AXIAL_COL_SOUTH_WEST: AxialPos = AxialPos { q: -1, r: 0 };
 
 /// Vector associated with South in hexagonal column-oriented coordinate systems
 /// ([Column](crate::map::HexCoordSystem::Column),
 /// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
 /// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
-pub const AXIAL_COL_SOUTH: AxialPos = -1 * AXIAL_COL_NORTH;
+pub const AXIAL_COL_SOUTH: AxialPos = AxialPos { q: 0, r: -1 };
 
 /// Vector associated with South-East in hexagonal column-oriented coordinate systems
 /// ([Column](crate::map::HexCoordSystem::Column),
 /// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
 /// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
-pub const AXIAL_COL_SOUTH_EAST: AxialPos = -1 * AXIAL_COL_NORTH_WEST;
+pub const AXIAL_COL_SOUTH_EAST: AxialPos = AxialPos { q: 1, r: -1 };
