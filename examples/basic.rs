@@ -3,7 +3,11 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn startup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    #[cfg(not(feature = "atlas"))] array_texture_loader: Res<ArrayTextureLoader>,
+) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
@@ -54,6 +58,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         });
+
+    // Add atlas to array texture loader so it's preprocessed before we need to use it.
+    // Only used when the atlas feature is off and we are using array textures.
+    #[cfg(not(feature = "atlas"))]
+    {
+        array_texture_loader.add(TilemapArrayTexture {
+            atlas_texture: asset_server.load("tiles.png"),
+            tile_size,
+            ..Default::default()
+        });
+    }
 }
 
 fn swap_texture_or_hide(

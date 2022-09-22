@@ -10,15 +10,16 @@ let COL_BASIS_Y: vec2<f32> = vec2<f32>(0.0, 1.0);
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
     let unscaled_pos = pos.x * COL_BASIS_X + pos.y * COL_BASIS_Y;
-    return vec2<f32>(grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
+    return vec2<f32>(COL_BASIS_X.x * grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
 }
 
+
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
-    var out: MeshOutput;
+    var out: Output;
 
     var center = hex_col_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var bot_left = vec2<f32>(center.x - (tilemap_data.grid_size.x / 2.0), center.y - (tilemap_data.grid_size.y / 2.0));
-    var top_right = vec2<f32>(bot_left.x + tilemap_data.tile_size.x, bot_left.y + tilemap_data.tile_size.y);
+    var bot_left = center - 0.5 * tilemap_data.tile_size;
+    var top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,

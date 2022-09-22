@@ -71,7 +71,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     let tile_size = TilemapTileSize { x: 17.0, y: 15.0 };
-    let grid_size = TilemapGridSize { x: 14.0, y: 14.0 };
+    let grid_size = TilemapGridSize { x: 17.0, y: 15.0 };
 
     commands
         .entity(tilemap_entity)

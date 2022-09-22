@@ -42,7 +42,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             tile_size,
             transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
             map_type: TilemapType::Square {
-                neighbors_include_diagonals: true,
+                diagonal_neighbors: true,
             },
             ..Default::default()
         })

@@ -1,6 +1,9 @@
 #import bevy_ecs_tilemap::common
 
 struct VertexOutput {
+    @location(0) uv: vec2<f32>,
+    @location(1) color: vec4<f32>,
+    @location(2) @interpolate(flat) tile_id: i32,
     @builtin(position) position: vec4<f32>,
     #import bevy_ecs_tilemap::vertex_output
 }
@@ -127,9 +130,24 @@ fn vertex(vertex_input: VertexInput) -> VertexOutput {
         x4[u32(vertex_input.uv.y)]
     );
 
-    out.uv = vec3<f32>(atlas_uvs[vertex_input.v_index % 4u], f32(texture_index));
+    out.uv = vec2<f32>(atlas_uvs[v_index % 4u]);
+    out.tile_id = i32(texture_index);
     // out.uv = out.uv + 1e-5;
     out.position = view.view_proj * mesh_data.world_position;
     out.color = vertex_input.color;
     return out;
+} 
+
+@group(3) @binding(0)
+var sprite_texture: texture_2d_array<f32>;
+@group(3) @binding(1)
+var sprite_sampler: sampler;
+
+@fragment
+fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy, in.tile_id) * in.color;
+    if (color.a < 0.001) {
+        discard;
+    }
+    return color;
 }

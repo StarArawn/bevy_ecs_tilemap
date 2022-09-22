@@ -14,12 +14,21 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::prelude::{Bundle, ComputedVisibility, GlobalTransform, Plugin, Transform, Visibility};
+use bevy::prelude::{
+    Bundle, Changed, ComputedVisibility, CoreStage, GlobalTransform, Plugin, Query, Transform,
+    Visibility,
+};
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
 };
-use tiles::TileStorage;
+use tiles::{TilePos, TilePosOld, TileStorage};
 
+#[cfg(not(feature = "atlas"))]
+use bevy::render::{RenderApp, RenderStage};
+
+/// A module that allows pre-loading of atlases into array textures.
+#[cfg(not(feature = "atlas"))]
+mod array_texture_preload;
 /// A module which provides helper functions.
 pub mod helpers;
 /// A module which contains tilemap components.
@@ -34,9 +43,18 @@ pub mod tiles;
 pub struct TilemapPlugin;
 
 impl Plugin for TilemapPlugin {
-    fn build(&self, _app: &mut bevy::prelude::App) {
+    fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
-        _app.add_plugin(render::TilemapRenderingPlugin);
+        app.add_plugin(render::TilemapRenderingPlugin);
+
+        app.add_system_to_stage(CoreStage::First, update_changed_tile_positions);
+
+        #[cfg(not(feature = "atlas"))]
+        {
+            app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
+            let render_app = app.sub_app_mut(RenderApp);
+            render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
+        }
     }
 }
 
@@ -60,6 +78,8 @@ pub struct TilemapBundle {
 
 /// A module which exports commonly used dependencies.
 pub mod prelude {
+    #[cfg(not(feature = "atlas"))]
+    pub use crate::array_texture_preload::*;
     pub use crate::helpers::filling::*;
     pub use crate::helpers::geometry::*;
     pub use crate::helpers::neighbors::*;
@@ -70,4 +90,11 @@ pub mod prelude {
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
+}
+
+/// Updates old tile positions with the new values from the last frame.
+fn update_changed_tile_positions(mut query: Query<(&TilePos, &mut TilePosOld), Changed<TilePos>>) {
+    for (tile_pos, mut tile_pos_old) in query.iter_mut() {
+        tile_pos_old.0 = *tile_pos;
+    }
 }

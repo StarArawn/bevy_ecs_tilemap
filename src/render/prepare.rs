@@ -13,11 +13,9 @@ use bevy::{
 };
 
 use crate::helpers::transform::chunk_index_to_world_space;
-use crate::{
-    map::{
-        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
-        TilemapTileSize, TilemapType,
-    },
+use crate::map::{
+    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
+    TilemapType,
 };
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
@@ -58,6 +56,11 @@ pub(crate) fn prepare(
     seconds_since_startup: Res<SecondsSinceStartup>,
 ) {
     for tile in extracted_tiles.iter() {
+        // First if the tile position has changed remove the tile from the old location.
+        if tile.position != tile.old_position.0 {
+            chunk_storage.remove_tile_with_entity(tile.entity);
+        }
+
         let chunk_pos = chunk_size.map_tile_to_chunk(&tile.position);
         let (
             _entity,
