@@ -33,7 +33,7 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     }
     return color;
     #else
-    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy, i32(in.uv.z)) * in.color;
+    var color = textureSample(sprite_texture, sprite_sampler, in.uv.xy, in.tile_id) * in.color;
     if (color.a < 0.001) {
             discard;
     }
