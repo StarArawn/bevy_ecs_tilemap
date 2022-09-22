@@ -26,7 +26,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // For the purposes of this example, we consider a square tile map,
     // where diagonals are also considered to be neighbors.
     let tilemap_type = TilemapType::Square {
-        neighbors_include_diagonals: true,
+        diagonal_neighbors: true,
     };
 
     // Create a tilemap entity a little early
@@ -89,7 +89,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             map_type: tilemap_type,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate(0.0))

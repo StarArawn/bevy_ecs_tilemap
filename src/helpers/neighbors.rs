@@ -1,246 +1,7 @@
-use bevy::{
-    math::{UVec2, Vec2},
-    prelude::{BuildChildren, Color, Commands, Entity, Transform},
-};
-
-use crate::{
-    map::{HexCoordSystem, IsoCoordSystem, TilemapId, TilemapSize, TilemapTileSize, TilemapType},
-    tiles::{TileBundle, TileColor, TilePos, TileStorage, TileTexture},
-    TilemapGridSize,
-};
-
-/// Converts a tile position into an index in a vector.
-pub fn pos_2d_to_index(tile_pos: &TilePos, size: &TilemapSize) -> usize {
-    ((tile_pos.y * size.x as u32) + tile_pos.x) as usize
-}
-
-/// Calculates the position of the bottom-left of a chunk with the specified position.
-///
-/// This calculation is mostly used internally for rendering but it might be helpful so it's exposed here.
-pub fn get_chunk_2d_transform(
-    chunk_position: UVec2,
-    chunk_size: UVec2,
-    z_index: u32,
-    grid_size: Vec2,
-    map_type: &TilemapType,
-) -> Transform {
-    // Get the position of the bottom left tile of the chunk: the "anchor tile".
-    let anchor_tile_pos = TilePos {
-        x: chunk_position.x * chunk_size.x,
-        y: chunk_position.y * chunk_size.y,
-    };
-    let grid_size: TilemapGridSize = grid_size.into();
-    // Now get the position of the anchor tile.
-    let r = get_tile_pos_in_world_space(&anchor_tile_pos, &grid_size, map_type);
-    Transform::from_xyz(r.x, r.y, z_index as f32)
-}
-
-/// Returns the bottom-left coordinate of the tile associated with the specified `tile_pos`.
-pub fn get_tile_pos_in_world_space(
-    tile_pos: &TilePos,
-    grid_size: &TilemapGridSize,
-    tilemap_type: &TilemapType,
-) -> Vec2 {
-    let tile_pos_f32: Vec2 = tile_pos.into();
-    let grid_size: Vec2 = grid_size.into();
-    let mut pos = Vec2::new(grid_size.x * tile_pos_f32.x, grid_size.y * tile_pos_f32.y);
-
-    match tilemap_type {
-        TilemapType::Hexagon(HexCoordSystem::Row) => {
-            let x_offset = tile_pos_f32.y * (0.5 * grid_size.x).floor();
-            let y_offset = -1.0 * tile_pos_f32.y * (0.25 * grid_size.y).ceil();
-            pos.x += x_offset;
-            pos.y += y_offset;
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
-            let offset = (0.25 * grid_size.x).floor();
-            if tile_pos.y % 2 == 0 {
-                pos.x -= offset;
-            } else {
-                pos.x += offset;
-            }
-            pos.y -= tile_pos_f32.y * (0.25 * grid_size.y as f32).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
-            let offset = (0.25 * grid_size.x).floor();
-            if tile_pos.y % 2 == 0 {
-                pos.x += offset;
-            } else {
-                pos.x -= offset;
-            }
-            pos.y -= tile_pos_f32.y * (0.25 * grid_size.y).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::Column) => {
-            let x_offset = -1.0 * tile_pos_f32.x * (0.25 * grid_size.x).floor();
-            let y_offset = tile_pos_f32.x * (0.5 * grid_size.y).ceil();
-            pos.x += x_offset;
-            pos.y += y_offset;
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-            let offset = (0.25 * grid_size.y).floor();
-            if tile_pos.x % 2 == 0 {
-                pos.y -= offset;
-            } else {
-                pos.y += offset;
-            }
-            pos.x -= tile_pos_f32.x * (0.25 * grid_size.x as f32).ceil();
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-            let offset = (0.25 * grid_size.y).floor();
-            if tile_pos.x % 2 == 0 {
-                pos.y += offset;
-            } else {
-                pos.y -= offset;
-            }
-            pos.x -= tile_pos_f32.x * (0.25 * grid_size.x).ceil();
-        }
-        TilemapType::Isometric {
-            coord_system: IsoCoordSystem::Diamond,
-            ..
-        } => {
-            pos = project_iso_diamond(tile_pos_f32.x, tile_pos_f32.y, grid_size.x, grid_size.y);
-        }
-        TilemapType::Isometric {
-            coord_system: IsoCoordSystem::Staggered,
-            ..
-        } => {
-            pos = project_iso_staggered(tile_pos_f32.x, tile_pos_f32.y, grid_size.x, grid_size.y);
-        }
-        TilemapType::Square { .. } => {}
-    };
-    pos
-}
-
-/// Fills an entire tile storage with the given tile.
-pub fn fill_tilemap(
-    tile_texture: TileTexture,
-    size: TilemapSize,
-    tilemap_id: TilemapId,
-    commands: &mut Commands,
-    tile_storage: &mut TileStorage,
-) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture: tile_texture,
-                    ..Default::default()
-                })
-                .id();
-            commands.entity(tilemap_id.0).add_child(tile_entity);
-            tile_storage.set(&tile_pos, Some(tile_entity));
-        }
-    }
-}
-
-/// Fills a rectangular region with the given tile.
-///
-/// The rectangular region is defined by an `origin` in `TilePos`, and a size
-/// in tiles (`TilemapSize`).  
-pub fn fill_tilemap_rect(
-    tile_texture: TileTexture,
-    origin: TilePos,
-    size: TilemapSize,
-    tilemap_id: TilemapId,
-    commands: &mut Commands,
-    tile_storage: &mut TileStorage,
-) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos {
-                x: origin.x + x,
-                y: origin.y + y,
-            };
-
-            let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture: tile_texture,
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
-        }
-    }
-}
-
-/// Fills a rectangular region with colored versions of the given tile.
-///
-/// The rectangular region is defined by an `origin` in `TilePos`, and a size
-/// in tiles (`TilemapSize`).  
-pub fn fill_tilemap_rect_color(
-    tile_texture: TileTexture,
-    origin: TilePos,
-    size: TilemapSize,
-    color: Color,
-    tilemap_id: TilemapId,
-    commands: &mut Commands,
-    tile_storage: &mut TileStorage,
-) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos {
-                x: origin.x + x,
-                y: origin.y + y,
-            };
-
-            let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture: tile_texture,
-                    color: TileColor(color),
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
-        }
-    }
-}
-
-/// Calculates a tilemap's centered position.
-pub fn get_centered_transform_2d(
-    size: &TilemapSize,
-    tile_size: &TilemapTileSize,
-    z_index: f32,
-) -> Transform {
-    Transform::from_xyz(
-        -(size.x as f32 * tile_size.x as f32) / 2.0,
-        -(size.y as f32 * tile_size.y as f32) / 2.0,
-        z_index,
-    )
-}
-
-/// Projects a 2D screen space point into isometric diamond space.
-///
-/// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
-pub fn project_iso_diamond(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
-    let dx = grid_width / 2.0;
-    let dy = grid_height / 2.0;
-
-    let new_x = (x + y) * dx;
-    let new_y = (-x + y) * dy;
-    Vec2::new(new_x, new_y)
-}
-
-/// Projects a 2D screen space point into isometric staggered space.
-///
-/// `grid_width` and `grid_height` are the dimensions of the grid in pixels.
-pub fn project_iso_staggered(x: f32, y: f32, grid_width: f32, grid_height: f32) -> Vec2 {
-    let dx = grid_width / 2.0;
-    let dy = grid_height / 2.0;
-
-    let new_x = x * grid_width + y * dx;
-    let new_y = y * dy;
-    Vec2::new(new_x, new_y)
-}
+use crate::map::{HexCoordSystem, IsoCoordSystem};
+use crate::tiles::TilePos;
+use crate::{TileStorage, TilemapSize, TilemapType};
+use bevy::prelude::Entity;
 
 #[derive(Clone, Copy, Debug)]
 pub enum NeighborDirection {
@@ -342,7 +103,7 @@ impl<T: Copy> Neighbors<T> {
 }
 
 impl Neighbors<Entity> {
-    fn from_neighboring_pos(
+    pub fn from_neighboring_pos(
         neighbors: &Neighbors<TilePos>,
         tile_storage: &TileStorage,
     ) -> Neighbors<Entity> {
@@ -387,13 +148,13 @@ pub fn get_neighboring_pos(
 ) -> Neighbors<TilePos> {
     match map_type {
         TilemapType::Square {
-            neighbors_include_diagonals: true,
+            diagonal_neighbors: true,
         } => square_neighbor_pos_with_diagonals(tile_pos, tilemap_size),
         TilemapType::Square {
-            neighbors_include_diagonals: false,
+            diagonal_neighbors: false,
         } => square_neighbor_pos(tile_pos, tilemap_size),
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Diamond,
         } => {
             if *neighbors_include_diagonals {
@@ -403,7 +164,7 @@ pub fn get_neighboring_pos(
             }
         }
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Staggered,
         } => {
             if *neighbors_include_diagonals {
@@ -552,43 +313,43 @@ impl TilePos {
         }
     }
 
-    fn square_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn square_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn square_west(&self) -> Option<TilePos> {
+    pub fn square_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn square_south_west(&self) -> Option<TilePos> {
+    pub fn square_south_west(&self) -> Option<TilePos> {
         self.minus_xy()
     }
 
-    fn square_south(&self) -> Option<TilePos> {
+    pub fn square_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn square_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn square_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn square_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn square_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_xy(tilemap_size)
     }
 
-    fn hex_row_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn hex_row_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_y(tilemap_size)
         } else {
@@ -596,7 +357,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_y(tilemap_size)
         } else {
@@ -604,23 +365,23 @@ impl TilePos {
         }
     }
 
-    fn hex_row_west(&self) -> Option<TilePos> {
+    pub fn hex_row_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_odd_west(&self) -> Option<TilePos> {
+    pub fn hex_row_odd_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_even_west(&self) -> Option<TilePos> {
+    pub fn hex_row_even_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_row_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_south_west(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_row_odd_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_odd_south_west(&self) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.minus_y()
         } else {
@@ -628,7 +389,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_south_west(&self) -> Option<TilePos> {
+    pub fn hex_row_even_south_west(&self) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.minus_y()
         } else {
@@ -636,11 +397,11 @@ impl TilePos {
         }
     }
 
-    fn hex_row_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn hex_row_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_x_minus_y(tilemap_size)
         } else {
@@ -648,7 +409,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_x_minus_y(tilemap_size)
         } else {
@@ -656,23 +417,23 @@ impl TilePos {
         }
     }
 
-    fn hex_row_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_odd_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_even_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_row_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn hex_row_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 == 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -680,7 +441,7 @@ impl TilePos {
         }
     }
 
-    fn hex_row_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_row_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.y % 2 != 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -688,23 +449,23 @@ impl TilePos {
         }
     }
 
-    fn hex_col_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_odd_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_even_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn hex_col_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.minus_x_plus_y(tilemap_size)
         } else {
@@ -712,7 +473,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.minus_x_plus_y(tilemap_size)
         } else {
@@ -720,11 +481,11 @@ impl TilePos {
         }
     }
 
-    fn hex_col_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_south_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn hex_col_odd_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_odd_south_west(&self) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.minus_x()
         } else {
@@ -732,7 +493,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_south_west(&self) -> Option<TilePos> {
+    pub fn hex_col_even_south_west(&self) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.minus_x()
         } else {
@@ -740,23 +501,23 @@ impl TilePos {
         }
     }
 
-    fn hex_col_south(&self) -> Option<TilePos> {
+    pub fn hex_col_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_odd_south(&self) -> Option<TilePos> {
+    pub fn hex_col_odd_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_even_south(&self) -> Option<TilePos> {
+    pub fn hex_col_even_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn hex_col_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn hex_col_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.plus_x(tilemap_size)
         } else {
@@ -764,7 +525,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.plus_x(tilemap_size)
         } else {
@@ -772,11 +533,11 @@ impl TilePos {
         }
     }
 
-    fn hex_col_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 
-    fn hex_col_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 == 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -784,7 +545,7 @@ impl TilePos {
         }
     }
 
-    fn hex_col_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn hex_col_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         if self.x % 2 != 0 {
             self.plus_xy(tilemap_size)
         } else {
@@ -792,35 +553,35 @@ impl TilePos {
         }
     }
 
-    fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_y(tilemap_size)
     }
 
-    fn iso_staggered_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_2y(tilemap_size)
     }
 
-    fn iso_staggered_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.minus_x_plus_y(tilemap_size)
     }
 
-    fn iso_staggered_south_west(&self) -> Option<TilePos> {
+    pub fn iso_staggered_south_west(&self) -> Option<TilePos> {
         self.minus_x()
     }
 
-    fn iso_staggered_south(&self) -> Option<TilePos> {
+    pub fn iso_staggered_south(&self) -> Option<TilePos> {
         self.minus_y()
     }
 
-    fn iso_staggered_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_2y(tilemap_size)
     }
 
-    fn iso_staggered_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x_minus_y(tilemap_size)
     }
 
-    fn iso_staggered_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
+    pub fn iso_staggered_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_x(tilemap_size)
     }
 }

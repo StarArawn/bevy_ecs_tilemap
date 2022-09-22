@@ -12,12 +12,10 @@ use bevy::{
     },
 };
 
-use crate::{
-    helpers::get_chunk_2d_transform,
-    map::{
-        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
-        TilemapTileSize, TilemapType,
-    },
+use crate::helpers::transform::chunk_index_to_world_space;
+use crate::map::{
+    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
+    TilemapType,
 };
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
@@ -164,13 +162,15 @@ pub(crate) fn prepare(
 
         let chunk_global_transform: Transform = chunk.transform.into();
 
-        let transform = get_chunk_2d_transform(
+        let chunk_pos = chunk_index_to_world_space(
             chunk.position.xy(),
             chunk.size,
-            0,
             chunk.grid_size,
             &chunk.map_type,
-        ) * chunk_global_transform;
+        );
+        let chunk_transform = Transform::from_xyz(chunk_pos.x, chunk_pos.y, 0.0);
+
+        let transform = chunk_transform * chunk_global_transform;
 
         let mut chunk_uniform: TilemapUniformData = chunk.into();
         chunk_uniform.time = **seconds_since_startup;

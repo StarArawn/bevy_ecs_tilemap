@@ -3,24 +3,32 @@ struct Output {
     uv: vec2<f32>,
 };
 
+let SQRT_3: f32 = 1.7320508;
+let HALF_SQRT_3: f32 = 0.8660254;
+let ROW_BASIS_X: vec2<f32> = vec2<f32>(1.0, 0.0);
+let ROW_BASIS_Y: vec2<f32> = vec2<f32>(0.5, HALF_SQRT_3);
+
+// Gets the screen space coordinates of the bottom left of an isometric tile position.
+fn hex_row_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
+    let unscaled_pos = pos.x * ROW_BASIS_X + pos.y * ROW_BASIS_Y;
+    return vec2<f32>(grid_width * unscaled_pos.x, ROW_BASIS_Y.y * grid_height * unscaled_pos.y);
+}
+
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
 
-    var offset = vec2<f32>(
-        vertex_position.y * floor(0.5 * tilemap_data.grid_size.x),
-        -1.0 * vertex_position.y * ceil(0.25 * tilemap_data.grid_size.y)
-    );
-    var position = vertex_position.xy * tilemap_data.grid_size + offset;
+    var center = hex_row_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    var bot_left = center - 0.5 * tilemap_data.tile_size;
+    var top_right = bot_left + tilemap_data.tile_size;
 
-    var positions: array<vec2<f32>, 4> = array<vec2<f32>, 4>(
-        vec2<f32>(position.x, position.y),
-        vec2<f32>(position.x, position.y + tilemap_data.tile_size.y),
-        vec2<f32>(position.x + tilemap_data.tile_size.x, position.y + tilemap_data.tile_size.y),
-        vec2<f32>(position.x + tilemap_data.tile_size.x, position.y)
+    var positions = array<vec2<f32>, 4>(
+        bot_left,
+        vec2<f32>(bot_left.x, top_right.y),
+        top_right,
+        vec2<f32>(top_right.x, bot_left.y)
     );
-    position = positions[v_index % 4u];
 
-    out.world_position = mesh.model * vec4<f32>(position, 0.0, 1.0);
+    out.world_position = mesh.model * vec4<f32>(positions[v_index % 4u], 0.0, 1.0);
 
     return out;
 }

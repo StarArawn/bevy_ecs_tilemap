@@ -177,7 +177,7 @@ impl From<Vec2> for TilemapTextureSize {
     }
 }
 
-/// Different hex coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
+/// Different hex_grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HexCoordSystem {
     RowEven,
@@ -188,7 +188,7 @@ pub enum HexCoordSystem {
     Column,
 }
 
-/// Different isometric square coordinate systems.
+/// Different isometric coordinate systems.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IsoCoordSystem {
     Diamond,
@@ -198,13 +198,25 @@ pub enum IsoCoordSystem {
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapType {
-    /// A tilemap with square tiles.
-    Square { neighbors_include_diagonals: bool },
-    /// Used to specify rendering of tilemaps on hexagons. Note: The `HexCoordSystem` determines the coordinate system.
+    /// A tilemap with isometric tiles.
+    ///
+    /// If `diagonal_neighbors` is `true`, then given a specified tile,
+    /// any tiles diagonal to it are also considered neighbors by [`get_tile_neighbors`](crate::helpers::neighbors::get_tile_neighbors)
+    /// and [`get_neighboring_pos`](crate::helpers::neighbors::get_neighboring_pos).
+    Square { diagonal_neighbors: bool },
+    /// Used to specify rendering of tilemaps on hexagons.
+    ///
+    /// The `HexCoordSystem` determines the coordinate system.
     Hexagon(HexCoordSystem),
-    /// Used to change the rendering mode to Isometric. Note: The `IsoCoordSystem` determines the coordinate system.
+    /// Used to change the rendering mode to Isometric.
+    ///
+    /// The `IsoCoordSystem` determines the coordinate system.
+    ///
+    /// If `diagonal_neighbors` is `true`, then given a specified tile,
+    /// any tiles diagonal to it are also considered neighbors by [`get_tile_neighbors`](crate::helpers::neighbors::get_tile_neighbors)
+    /// and [`get_neighboring_pos`](crate::helpers::neighbors::get_neighboring_pos).
     Isometric {
-        neighbors_include_diagonals: bool,
+        diagonal_neighbors: bool,
         coord_system: IsoCoordSystem,
     },
 }
@@ -212,20 +224,20 @@ pub enum TilemapType {
 impl TilemapType {
     pub fn square(neighbors_include_diagonals: bool) -> TilemapType {
         TilemapType::Square {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
         }
     }
 
     pub fn isometric_diamond(neighbors_include_diagonals: bool) -> TilemapType {
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Diamond,
         }
     }
 
     pub fn isometric_staggered(neighbors_include_diagonals: bool) -> TilemapType {
         TilemapType::Isometric {
-            neighbors_include_diagonals,
+            diagonal_neighbors: neighbors_include_diagonals,
             coord_system: IsoCoordSystem::Staggered,
         }
     }
@@ -234,7 +246,7 @@ impl TilemapType {
 impl Default for TilemapType {
     fn default() -> Self {
         Self::Square {
-            neighbors_include_diagonals: false,
+            diagonal_neighbors: false,
         }
     }
 }

@@ -1,5 +1,6 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
+
 mod helpers;
 
 fn startup(
@@ -54,7 +55,7 @@ fn startup(
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_centered_transform_2d(&tilemap_size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
             ..Default::default()
         });
 
@@ -79,7 +80,7 @@ fn swap_texture_or_hide(
         let texture_handle_a: Handle<Image> = asset_server.load("tiles.png");
         let texture_handle_b: Handle<Image> = asset_server.load("tiles2.png");
         for (mut tilemap_tex, _) in &mut query {
-            if &tilemap_tex.0 == &texture_handle_a {
+            if tilemap_tex.0 == texture_handle_a {
                 tilemap_tex.0 = texture_handle_b.clone();
             } else {
                 tilemap_tex.0 = texture_handle_a.clone();

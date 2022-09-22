@@ -131,10 +131,8 @@ pub fn process_loaded_maps(
                 // TODO: Create a RemoveMap component..
                 for layer_entity in layer_storage.storage.values() {
                     if let Ok((_, layer_tile_storage)) = tile_storage_query.get(*layer_entity) {
-                        for tile in layer_tile_storage.iter() {
-                            if let Some(tile) = tile {
-                                commands.entity(*tile).despawn_recursive()
-                            }
+                        for tile in layer_tile_storage.iter().flatten() {
+                            commands.entity(*tile).despawn_recursive()
                         }
                     }
                     // commands.entity(*layer_entity).despawn_recursive();
@@ -170,15 +168,15 @@ pub fn process_loaded_maps(
                                 TilemapType::Hexagon(HexCoordSystem::Row)
                             }
                             tiled::Orientation::Isometric => TilemapType::Isometric {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                                 coord_system: IsoCoordSystem::Diamond,
                             },
                             tiled::Orientation::Staggered => TilemapType::Isometric {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                                 coord_system: IsoCoordSystem::Staggered,
                             },
                             tiled::Orientation::Orthogonal => TilemapType::Square {
-                                neighbors_include_diagonals: false,
+                                diagonal_neighbors: false,
                             },
                         };
 
@@ -241,7 +239,7 @@ pub fn process_loaded_maps(
                             ),
                             tile_size,
                             spacing: tile_spacing,
-                            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                            transform: get_tilemap_center_transform(
                                 &map_size,
                                 &tile_size,
                                 layer.layer_index as f32,

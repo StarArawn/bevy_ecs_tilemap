@@ -85,7 +85,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             texture: TilemapTexture(texture_handle),
             tile_size,
             map_type: TilemapType::Square {
-                neighbors_include_diagonals: false,
+                diagonal_neighbors: false,
             },
             ..Default::default()
         });

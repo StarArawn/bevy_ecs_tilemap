@@ -2,23 +2,26 @@ struct Output {
     world_position: vec4<f32>,
 };
 
-fn project_iso(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
-    var dx = grid_width / 2.0;
-    var dy = grid_height / 2.0;
+let DIAMOND_BASIS_X: vec2<f32> = vec2<f32>(0.5, -0.5);
+let DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);
 
-    // ux/uy is the effect of moving one tile (ux: in the x direction, uy: in the y direction) on our position
-    var ux = vec2<f32>(grid_width, 0.0);
-    var uy = vec2<f32>(dx, dy);
+// Gets the screen space coordinates of the bottom left of an isometric tile position.
+fn diamond_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
+    let unscaled_pos = pos.x * DIAMOND_BASIS_X + pos.y * DIAMOND_BASIS_Y;
+    return vec2<f32>(grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
+}
 
-    return pos.x * ux + pos.y * uy;
+// Gets the screen space coordinates of the bottom left of an isometric tile position.
+fn staggered_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
+    return diamond_tile_pos_to_world_pos(vec2<f32>(pos.x, pos.y + pos.x), grid_width, grid_height);
 }
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
     var out: Output;
 
-    var bot_left = project_iso(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var tile_z = project_iso(tilemap_data.chunk_pos + vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var top_right = vec2<f32>(bot_left.x + tilemap_data.tile_size.x, bot_left.y + tilemap_data.tile_size.y);
+    var center = staggered_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    var bot_left = center - 0.5 * tilemap_data.tile_size;
+    var top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,
@@ -27,7 +30,7 @@ fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
         vec2<f32>(top_right.x, bot_left.y)
     );
 
-    out.world_position = mesh.model * vec4<f32>(vec3<f32>(positions[v_index % 4u], 1.0 - (tile_z.y / tilemap_data.map_size.y)), 1.0);
+    out.world_position = mesh.model * vec4<f32>(positions[v_index % 4u], 0.0, 1.0);
 
     return out;
 }

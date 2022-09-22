@@ -7,6 +7,7 @@ use bevy::{
 pub use storage::*;
 
 use crate::map::TilemapId;
+use crate::TilemapSize;
 
 /// A tile position in the tilemap grid.
 #[derive(Component, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
@@ -18,6 +19,12 @@ pub struct TilePos {
 impl TilePos {
     pub fn new(x: u32, y: u32) -> Self {
         Self { x, y }
+    }
+
+    /// Converts a tile position (2D) into an index in a flattened vector (1D), assuming the
+    /// tile position lies in a tilemap of the specified size.
+    pub fn to_index(&self, tilemap_size: &TilemapSize) -> usize {
+        ((self.y * tilemap_size.x as u32) + self.x) as usize
     }
 }
 

@@ -1,4 +1,5 @@
 use bevy_ecs_tilemap::{
+    helpers::geometry::get_tilemap_center_transform,
     map::{TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTexture},
     TilemapBundle,
@@ -208,7 +209,7 @@ pub fn process_loaded_tile_maps(
                             storage,
                             texture: TilemapTexture(texture),
                             tile_size,
-                            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+                            transform: get_tilemap_center_transform(
                                 &size,
                                 &tile_size,
                                 layer_id as f32,
