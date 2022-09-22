@@ -177,25 +177,6 @@ impl SpecializedRenderPipeline for TilemapPipeline {
         };
         shader_defs.push(mesh_string.into());
 
-        // let shader = match key.mesh_type {
-        // TilemapType::Square { .. } => SQUARE_SHADER_HANDLE.typed::<Shader>(),
-        // TilemapType::Isometric {
-        //     coord_system: iso_type,
-        //     ..
-        // } => match iso_type {
-        //     IsoCoordSystem::Diamond => ISO_DIAMOND_SHADER_HANDLE.typed::<Shader>(),
-        //     IsoCoordSystem::Staggered => ISO_STAGGERED_SHADER_HANDLE.typed::<Shader>(),
-        // },
-        // TilemapType::Hexagon(hex_type) => match hex_type {
-        //     HexCoordSystem::Column => HEX_COLUMN_SHADER_HANDLE.typed::<Shader>(),
-        //     HexCoordSystem::ColumnEven => HEX_COLUMN_EVEN_SHADER_HANDLE.typed::<Shader>(),
-        //     HexCoordSystem::ColumnOdd => HEX_COLUMN_ODD_SHADER_HANDLE.typed::<Shader>(),
-        //     HexCoordSystem::Row => HEX_ROW_SHADER_HANDLE.typed::<Shader>(),
-        //     HexCoordSystem::RowEven => HEX_ROW_EVEN_SHADER_HANDLE.typed::<Shader>(),
-        //     HexCoordSystem::RowOdd => HEX_ROW_ODD_SHADER_HANDLE.typed::<Shader>(),
-        // },
-        // };
-
         let formats = vec![
             // Position
             VertexFormat::Float32x4,
