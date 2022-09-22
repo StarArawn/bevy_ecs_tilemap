@@ -217,7 +217,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             },
             fragment: Some(FragmentState {
                 shader: TILEMAP_SHADER_FRAGMENT.typed::<Shader>(),
-                shader_defs: shader_defs,
+                shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {
                     format: TextureFormat::bevy_default(),
