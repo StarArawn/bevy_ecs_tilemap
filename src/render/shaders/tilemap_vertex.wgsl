@@ -74,60 +74,61 @@ fn vertex(vertex_input: VertexInput) -> VertexOutput {
     var end_v: f32 = 1.0;
     #endif
 
-    var atlas_uvs: array<vec2<f32>, 4>;
+    var atlas_uvs: array<vec4<f32>, 4>;
 
-    var x1: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(start_u, end_v),       // no flip/rotation
-        vec2<f32>(end_u, end_v),         // flip x
-        vec2<f32>(start_u, start_v),     // flip y
-        vec2<f32>(end_u, start_v),       // flip x y
-        vec2<f32>(end_u, start_v),       // flip     d
-        vec2<f32>(end_u, end_v),         // flip x   d
-        vec2<f32>(start_u, start_v),     // flip y   d
-        vec2<f32>(start_u, end_v)
+    var x1: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        // The x and y are the texture UV, and the z and w and the local tile UV
+        vec4<f32>(start_u, end_v, 0.0, 1.0),       // no flip/rotation
+        vec4<f32>(end_u, end_v, 1.0, 1.0),         // flip x
+        vec4<f32>(start_u, start_v, 0.0, 0.0),     // flip y
+        vec4<f32>(end_u, start_v, 1.0, 0.0),       // flip x y
+        vec4<f32>(end_u, start_v, 1.0, 0.0),       // flip     d
+        vec4<f32>(end_u, end_v, 1.0, 1.0),         // flip x   d
+        vec4<f32>(start_u, start_v, 0.0, 0.0),     // flip y   d
+        vec4<f32>(start_u, end_v, 0.0, 1.0)
     );
 
-    var x2: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(end_u, end_v)
+    var x2: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0)
     );
 
-    var x3: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(end_u, start_v)
+    var x3: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0)
     );
 
-    var x4: array<vec2<f32>, 8> = array<vec2<f32>, 8>(
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, start_v),
-        vec2<f32>(end_u, end_v),
-        vec2<f32>(end_u, start_v),
-        vec2<f32>(start_u, end_v),
-        vec2<f32>(start_u, start_v),
+    var x4: array<vec4<f32>, 8> = array<vec4<f32>, 8>(
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
+        vec4<f32>(end_u, end_v, 1.0, 1.0),
+        vec4<f32>(end_u, start_v, 1.0, 0.0),
+        vec4<f32>(start_u, end_v, 0.0, 1.0),
+        vec4<f32>(start_u, start_v, 0.0, 0.0),
     );
 
-    atlas_uvs = array<vec2<f32>, 4>(
+    atlas_uvs = array<vec4<f32>, 4>(
         x1[u32(vertex_input.uv.y)],
         x2[u32(vertex_input.uv.y)],
         x3[u32(vertex_input.uv.y)],
         x4[u32(vertex_input.uv.y)]
     );
 
-    out.uv = vec2<f32>(atlas_uvs[vertex_input.v_index % 4u]);
+    out.uv = atlas_uvs[vertex_input.v_index % 4u];
     out.tile_id = i32(texture_index);
     // out.uv = out.uv + 1e-5;
     out.position = view.view_proj * mesh_data.world_position;
