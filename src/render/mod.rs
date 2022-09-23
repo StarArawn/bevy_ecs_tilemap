@@ -1,8 +1,10 @@
 use std::marker::PhantomData;
 
 use bevy::{
+    asset::load_internal_asset,
     core_pipeline::core_2d::Transparent2d,
     prelude::*,
+    reflect::TypeUuid,
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
@@ -25,12 +27,7 @@ use crate::{
 use self::{
     chunk::{RenderChunk2dStorage, TilemapUniformData},
     draw::DrawTilemap,
-    pipeline::{
-        TilemapPipeline, HEX_COLUMN_EVEN_SHADER_HANDLE, HEX_COLUMN_ODD_SHADER_HANDLE,
-        HEX_COLUMN_SHADER_HANDLE, HEX_ROW_EVEN_SHADER_HANDLE, HEX_ROW_ODD_SHADER_HANDLE,
-        HEX_ROW_SHADER_HANDLE, ISO_DIAMOND_SHADER_HANDLE, ISO_STAGGERED_SHADER_HANDLE,
-        SQUARE_SHADER_HANDLE,
-    },
+    pipeline::{TilemapPipeline, TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX},
     prepare::MeshUniform,
     queue::ImageBindGroups,
 };
@@ -86,6 +83,31 @@ pub struct TilemapRenderingPlugin;
 #[derive(Default, Deref, DerefMut)]
 pub struct SecondsSinceStartup(f32);
 
+pub const COLUMN_EVEN_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7704924705970804993);
+pub const COLUMN_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 11710877199891728627);
+pub const COLUMN_ODD_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6706359414982022142);
+pub const COMMON: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 15420881977837458322);
+pub const DIAMOND_ISO: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6710251300621614118);
+pub const MESH_OUTPUT: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 2707251459590872179);
+pub const ROW_EVEN_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7149718726759672633);
+pub const ROW_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5506589682629967569);
+pub const ROW_ODD_HEX: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13608302855194400936);
+pub const STAGGERED_ISO: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9802843761568314416);
+pub const SQUARE: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7333720254399106799);
+pub const TILEMAP_VERTEX_OUTPUT: HandleUntyped =
+    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6104533649830094529);
+
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(not(feature = "atlas"))]
@@ -104,66 +126,90 @@ impl Plugin for TilemapRenderingPlugin {
             }
         };
 
-        let mut shaders = app.world.get_resource_mut::<Assets<Shader>>().unwrap();
+        load_internal_asset!(
+            app,
+            COLUMN_EVEN_HEX,
+            "shaders/column_even_hex.wgsl",
+            Shader::from_wgsl
+        );
 
-        #[cfg(not(feature = "atlas"))]
-        let tilemap_shader = include_str!("shaders/tilemap.wgsl");
-        #[cfg(feature = "atlas")]
-        let tilemap_shader = include_str!("shaders/tilemap-atlas.wgsl");
+        load_internal_asset!(
+            app,
+            COLUMN_HEX,
+            "shaders/column_hex.wgsl",
+            Shader::from_wgsl
+        );
 
-        let square_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/square.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(SQUARE_SHADER_HANDLE, square_shader);
+        load_internal_asset!(
+            app,
+            COLUMN_ODD_HEX,
+            "shaders/column_odd_hex.wgsl",
+            Shader::from_wgsl
+        );
 
-        let iso_diamond_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/diamond_iso.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(ISO_DIAMOND_SHADER_HANDLE, iso_diamond_shader);
+        load_internal_asset!(app, COMMON, "shaders/common.wgsl", Shader::from_wgsl);
 
-        let iso_staggered_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/staggered_iso.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(ISO_STAGGERED_SHADER_HANDLE, iso_staggered_shader);
+        load_internal_asset!(
+            app,
+            DIAMOND_ISO,
+            "shaders/diamond_iso.wgsl",
+            Shader::from_wgsl
+        );
 
-        let hex_column_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/column_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_COLUMN_SHADER_HANDLE, hex_column_shader);
+        load_internal_asset!(
+            app,
+            ROW_EVEN_HEX,
+            "shaders/row_even_hex.wgsl",
+            Shader::from_wgsl
+        );
 
-        let hex_column_odd_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/column_odd_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_COLUMN_ODD_SHADER_HANDLE, hex_column_odd_shader);
+        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
 
-        let hex_column_even_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/column_even_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_COLUMN_EVEN_SHADER_HANDLE, hex_column_even_shader);
+        load_internal_asset!(
+            app,
+            ROW_ODD_HEX,
+            "shaders/row_odd_hex.wgsl",
+            Shader::from_wgsl
+        );
 
-        let hex_row_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/row_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_ROW_SHADER_HANDLE, hex_row_shader);
+        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
 
-        let hex_row_odd_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/row_odd_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_ROW_ODD_SHADER_HANDLE, hex_row_odd_shader);
+        load_internal_asset!(
+            app,
+            MESH_OUTPUT,
+            "shaders/mesh_output.wgsl",
+            Shader::from_wgsl
+        );
 
-        let hex_row_even_shader = Shader::from_wgsl(include_shader::include_shader(
-            vec![include_str!("shaders/row_even_hex.wgsl")],
-            tilemap_shader,
-        ));
-        shaders.set_untracked(HEX_ROW_EVEN_SHADER_HANDLE, hex_row_even_shader);
+        load_internal_asset!(app, SQUARE, "shaders/square.wgsl", Shader::from_wgsl);
+
+        load_internal_asset!(
+            app,
+            STAGGERED_ISO,
+            "shaders/staggered_iso.wgsl",
+            Shader::from_wgsl
+        );
+
+        load_internal_asset!(
+            app,
+            TILEMAP_VERTEX_OUTPUT,
+            "shaders/tilemap_vertex_output.wgsl",
+            Shader::from_wgsl
+        );
+
+        load_internal_asset!(
+            app,
+            TILEMAP_SHADER_VERTEX,
+            "shaders/tilemap_vertex.wgsl",
+            Shader::from_wgsl
+        );
+
+        load_internal_asset!(
+            app,
+            TILEMAP_SHADER_FRAGMENT,
+            "shaders/tilemap_fragment.wgsl",
+            Shader::from_wgsl
+        );
 
         let render_app = app.sub_app_mut(RenderApp);
         render_app

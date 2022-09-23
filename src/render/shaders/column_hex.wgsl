@@ -1,7 +1,6 @@
-struct Output {
-    world_position: vec4<f32>,
-    uv: vec2<f32>,
-};
+#define_import_path bevy_ecs_tilemap::column_hex
+
+#import bevy_ecs_tilemap::mesh_output
 
 let SQRT_3: f32 = 1.7320508;
 let HALF_SQRT_3: f32 = 0.8660254;
@@ -14,9 +13,10 @@ fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f
     return vec2<f32>(COL_BASIS_X.x * grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
 }
 
-fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
-    var out: Output;
-    
+
+fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
+    var out: MeshOutput;
+
     var center = hex_col_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
     var bot_left = center - 0.5 * tilemap_data.tile_size;
     var top_right = bot_left + tilemap_data.tile_size;

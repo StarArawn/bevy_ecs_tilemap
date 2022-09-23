@@ -1,7 +1,6 @@
-struct Output {
-    world_position: vec4<f32>,
-    uv: vec2<f32>,
-};
+#define_import_path bevy_ecs_tilemap::row_even_hex
+
+#import bevy_ecs_tilemap::mesh_output
 
 let SQRT_3: f32 = 1.7320508;
 let HALF_SQRT_3: f32 = 0.8660254;
@@ -19,8 +18,8 @@ fn row_even_to_axial(offset_pos: vec2<f32>) -> vec2<f32> {
     return vec2<f32>(offset_pos.x - delta, offset_pos.y);
 }
 
-fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> Output {
-    var out: Output;
+fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
+    var out: MeshOutput;
 
     var axial_pos = row_even_to_axial(vertex_position.xy);
     var center = hex_row_tile_pos_to_world_pos(axial_pos, tilemap_data.grid_size.x, tilemap_data.grid_size.y);

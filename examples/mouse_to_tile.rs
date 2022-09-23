@@ -265,7 +265,7 @@ fn swap_map_type(
                             -0.5 * window.width() / 2.0,
                             0.8 * window.height() / 2.0,
                         )
-                        .extend(0.0),
+                        .extend(1.0),
                         ..Default::default()
                     };
                     *label_text = Text::from_section(
