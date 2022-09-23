@@ -1,4 +1,5 @@
 use crate::helpers::hex_grid::axial::AxialPos;
+use crate::helpers::hex_grid::neighbors::{HexColDirection, HexDirection, HexRowDirection};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;
@@ -26,8 +27,28 @@ impl RowOddPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
-    pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
+    pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
+    }
+
+    /// Convert naively into a [`TilePos`].
+    ///
+    /// `q` becomes `x` and `r` becomes `y`.
+    pub fn as_tile_pos_unchecked(&self) -> TilePos {
+        TilePos {
+            x: self.q as u32,
+            y: self.r as u32,
+        }
+    }
+
+    /// Get the tile offset from `self` in the given [`HexDirection`].
+    pub fn offset(&self, direction: HexDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction))
+    }
+
+    /// Get the tile offset from `self` in the given [`HexRowDirection`].
+    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
 
@@ -63,8 +84,28 @@ impl RowEvenPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
-    pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
+    pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
+    }
+
+    /// Convert naively into a [`TilePos`].
+    ///
+    /// `q` becomes `x` and `r` becomes `y`.
+    pub fn as_tile_pos_unchecked(&self) -> TilePos {
+        TilePos {
+            x: self.q as u32,
+            y: self.r as u32,
+        }
+    }
+
+    /// Get the tile offset from `self` in the given [`HexDirection`].
+    pub fn offset(&self, direction: HexDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction))
+    }
+
+    /// Get the tile offset from `self` in the given [`HexRowDirection`].
+    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
 
@@ -100,8 +141,28 @@ impl ColOddPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
-    pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
+    pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
+    }
+
+    /// Convert naively into a [`TilePos`].
+    ///
+    /// `q` becomes `x` and `r` becomes `y`.
+    pub fn as_tile_pos_unchecked(&self) -> TilePos {
+        TilePos {
+            x: self.q as u32,
+            y: self.r as u32,
+        }
+    }
+
+    /// Get the tile offset from `self` in the given [`HexDirection`].
+    pub fn offset(&self, direction: HexDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction))
+    }
+
+    /// Get the tile offset from `self` in the given [`HexColDirection`].
+    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
 
@@ -137,8 +198,28 @@ impl ColEvenPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
-    pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
+    pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
+    }
+
+    /// Convert naively into a [`TilePos`].
+    ///
+    /// `q` becomes `x` and `r` becomes `y`.
+    pub fn as_tile_pos_unchecked(&self) -> TilePos {
+        TilePos {
+            x: self.q as u32,
+            y: self.r as u32,
+        }
+    }
+
+    /// Get the tile offset from `self` in the given [`HexDirection`].
+    pub fn offset(&self, direction: HexDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction))
+    }
+
+    /// Get the tile offset from `self` in the given [`HexColDirection`].
+    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
+        Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
 

@@ -60,24 +60,18 @@ impl TilePos {
                 TilePos::from_i32_pair(x, y, map_size)
             }
             TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
-                HexCoordSystem::RowEven => {
-                    RowEvenPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
-                }
-                HexCoordSystem::RowOdd => {
-                    RowOddPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
-                }
-                HexCoordSystem::ColumnEven => {
-                    ColEvenPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
-                }
-                HexCoordSystem::ColumnOdd => {
-                    ColOddPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
-                }
-                HexCoordSystem::Row => {
-                    AxialPos::from_world_pos_row(world_pos, grid_size).as_tile_pos(map_size)
-                }
-                HexCoordSystem::Column => {
-                    AxialPos::from_world_pos_col(world_pos, grid_size).as_tile_pos(map_size)
-                }
+                HexCoordSystem::RowEven => RowEvenPos::from_world_pos(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
+                HexCoordSystem::RowOdd => RowOddPos::from_world_pos(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
+                HexCoordSystem::ColumnEven => ColEvenPos::from_world_pos(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
+                HexCoordSystem::ColumnOdd => ColOddPos::from_world_pos(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
+                HexCoordSystem::Row => AxialPos::from_world_pos_row(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
+                HexCoordSystem::Column => AxialPos::from_world_pos_col(world_pos, grid_size)
+                    .as_tile_pos_given_map_size(map_size),
             },
             TilemapType::Isometric { coord_system, .. } => match coord_system {
                 IsoCoordSystem::Diamond => {
