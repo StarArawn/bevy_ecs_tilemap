@@ -241,7 +241,7 @@ pub fn process_loaded_maps(
                             spacing: tile_spacing,
                             transform: get_tilemap_center_transform(
                                 &map_size,
-                                &tile_size,
+                                &grid_size,
                                 layer.layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
                             map_type: mesh_type,
