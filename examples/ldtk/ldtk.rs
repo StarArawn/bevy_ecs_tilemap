@@ -199,7 +199,7 @@ pub fn process_loaded_tile_maps(
                                 })
                                 .id();
 
-                            storage.set(&position, Some(tile_entity));
+                            storage.set(&position, tile_entity);
                         }
 
                         // Create the tilemap

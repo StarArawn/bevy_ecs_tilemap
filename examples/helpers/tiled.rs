@@ -222,7 +222,7 @@ pub fn process_loaded_maps(
                                         ..Default::default()
                                     })
                                     .id();
-                                tile_storage.set(&tile_pos, Some(tile_entity));
+                                tile_storage.set(&tile_pos, tile_entity);
                             }
                         }
 

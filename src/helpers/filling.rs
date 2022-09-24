@@ -25,7 +25,7 @@ pub fn fill_tilemap(
                 })
                 .id();
             commands.entity(tilemap_id.0).add_child(tile_entity);
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 }
@@ -58,7 +58,7 @@ pub fn fill_tilemap_rect(
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 }
@@ -93,7 +93,7 @@ pub fn fill_tilemap_rect_color(
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 }

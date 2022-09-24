@@ -17,16 +17,16 @@ struct TilemapMetadata {
     grid_size: TilemapGridSize,
 }
 
-const BACKGROUND: &'static str = "tiles.png";
+const BACKGROUND: &str = "tiles.png";
 const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
     size: TilemapSize { x: 20, y: 20 },
     tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
 
-const FLOWERS: &'static str = "flower_sheet.png";
+const FLOWERS: &str = "flower_sheet.png";
 const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
-    size: TilemapSize { x: 10, y: 10 },
+    size: TilemapSize { x: 20, y: 20 },
     tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
@@ -42,23 +42,15 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         tile_size,
     } = BACKGROUND_METADATA;
 
-    let mut tilemap_storage = TileStorage::empty(size);
+    let mut tile_storage = TileStorage::empty(size);
 
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    ..Default::default()
-                })
-                .id();
-            // Here we let the tile storage component know what tiles we have.
-            tilemap_storage.set(&tile_pos, Some(tile_entity));
-        }
-    }
+    fill_tilemap(
+        TileTexture(0),
+        size,
+        TilemapId(tilemap_entity),
+        &mut commands,
+        &mut tile_storage,
+    );
 
     commands
         .entity(tilemap_entity)
@@ -66,8 +58,8 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
             size,
             grid_size,
             tile_size,
-            storage: tilemap_storage,
-            texture: TilemapTexture(texture_handle.clone()),
+            storage: tile_storage,
+            texture: TilemapTexture(texture_handle),
             transform: get_tilemap_center_transform(&size, &tile_size, 0.0),
             ..Default::default()
         });
@@ -105,7 +97,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
                 ..Default::default()
             })
             .id();
-        tilemap_storage.set(&tile_pos, Some(tile_entity));
+        tilemap_storage.set(&tile_pos, tile_entity);
         // To enable animation, we must insert the `AnimatedTile` component on
         // each tile that is to be animated.
         commands.entity(tile_entity).insert(AnimatedTile {
@@ -121,9 +113,9 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             grid_size,
             size,
             storage: tilemap_storage,
-            texture: TilemapTexture(texture_handle.clone()),
+            texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_tilemap_center_transform(&size, &tile_size, 1.0),
+            transform: get_tilemap_center_transform(&size, &(grid_size.into()), 1.0),
             ..Default::default()
         });
 }

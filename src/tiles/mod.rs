@@ -26,6 +26,11 @@ impl TilePos {
     pub fn to_index(&self, tilemap_size: &TilemapSize) -> usize {
         ((self.y * tilemap_size.x as u32) + self.x) as usize
     }
+
+    /// Checks to see if `self` lies within a tilemap of the specified size.
+    pub fn within_map_bounds(&self, map_size: &TilemapSize) -> bool {
+        self.x < map_size.x && self.y < map_size.y
+    }
 }
 
 impl From<TilePos> for UVec2 {
