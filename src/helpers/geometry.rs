@@ -1,12 +1,12 @@
-use crate::{TilemapSize, TilemapTileSize, Transform};
+use crate::{TilemapGridSize, TilemapSize, Transform};
 use bevy::math::Vec2;
 
 /// Calculates a [`Vec2`] position for a tilemap so that when set to this position, it shows up
 /// centered on the screen.
-pub fn get_tilemap_center(size: &TilemapSize, tile_size: &TilemapTileSize) -> Vec2 {
+pub fn get_tilemap_center(size: &TilemapSize, grid_size: &TilemapGridSize) -> Vec2 {
     Vec2::new(
-        -(size.x as f32 * tile_size.x as f32) / 2.0,
-        -(size.y as f32 * tile_size.y as f32) / 2.0,
+        -(size.x as f32 * grid_size.x) / 2.0,
+        -(size.y as f32 * grid_size.y) / 2.0,
     )
 }
 
@@ -14,9 +14,9 @@ pub fn get_tilemap_center(size: &TilemapSize, tile_size: &TilemapTileSize) -> Ve
 /// centered on the screen.
 pub fn get_tilemap_center_transform(
     size: &TilemapSize,
-    tile_size: &TilemapTileSize,
+    grid_size: &TilemapGridSize,
     z: f32,
 ) -> Transform {
-    let center = get_tilemap_center(size, tile_size);
+    let center = get_tilemap_center(size, grid_size);
     Transform::from_xyz(center.x, center.y, z)
 }
