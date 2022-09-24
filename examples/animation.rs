@@ -60,7 +60,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
             tile_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
-            transform: get_tilemap_center_transform(&size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
             ..Default::default()
         });
 }
@@ -74,7 +74,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         tile_size,
     } = FLOWERS_METADATA;
 
-    let mut tilemap_storage = TileStorage::empty(size);
+    let mut tile_storage = TileStorage::empty(size);
 
     let tilemap_entity = commands.spawn().id();
 
@@ -97,7 +97,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
                 ..Default::default()
             })
             .id();
-        tilemap_storage.set(&tile_pos, tile_entity);
+        tile_storage.set(&tile_pos, tile_entity);
         // To enable animation, we must insert the `AnimatedTile` component on
         // each tile that is to be animated.
         commands.entity(tile_entity).insert(AnimatedTile {
@@ -112,10 +112,10 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         .insert_bundle(TilemapBundle {
             grid_size,
             size,
-            storage: tilemap_storage,
+            storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_tilemap_center_transform(&size, &(grid_size.into()), 1.0),
+            transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
             ..Default::default()
         });
 }
