@@ -1,5 +1,7 @@
 use bevy::prelude::Res;
 use bevy::prelude::Time;
+use bevy::render::camera::CameraProjection;
+use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::texture::ImageSettings;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
@@ -84,6 +86,18 @@ pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
 }
 
+#[derive(Component)]
+pub(crate) struct ExtractedFrustum {
+    frustum: Frustum,
+    projection: Mat4,
+}
+
+impl ExtractedFrustum {
+    pub fn intersects_obb(&self, aabb: &Aabb) -> bool {
+        self.frustum.intersects_obb(aabb, &self.projection, false)
+    }
+}
+
 pub fn extract(
     mut commands: Commands,
     default_image_settings: Extract<Res<ImageSettings>>,
@@ -138,6 +152,7 @@ pub fn extract(
             )>,
         >,
     >,
+    camera_query: Extract<Query<(Entity, &Frustum, &OrthographicProjection), With<Camera>>>,
     images: Extract<Res<Assets<Image>>>,
     time: Extract<Res<Time>>,
 ) {
@@ -270,6 +285,13 @@ pub fn extract(
                 },
             },
         ));
+    }
+
+    for (entity, frustum, orthographic_projection) in camera_query.iter() {
+        commands.get_or_spawn(entity).insert(ExtractedFrustum {
+            frustum: *frustum,
+            projection: orthographic_projection.get_projection_matrix(),
+        });
     }
 
     commands.insert_or_spawn_batch(extracted_tiles);

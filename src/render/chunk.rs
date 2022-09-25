@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
 
+use bevy::render::primitives::Aabb;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, ComputedVisibility, Entity, GlobalTransform, Mesh, Vec3},
@@ -11,9 +12,11 @@ use bevy::{
     utils::HashMap,
 };
 
+use crate::prelude::chunk_aabb;
 use crate::{
     map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
+    TilemapGridSize, TilemapTileSize,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -35,10 +38,10 @@ impl RenderChunk2dStorage {
         position: &UVec4,
         chunk_size: UVec2,
         mesh_type: TilemapType,
-        tile_size: Vec2,
+        tile_size: TilemapTileSize,
         texture_size: Vec2,
         spacing: Vec2,
-        grid_size: Vec2,
+        grid_size: TilemapGridSize,
         texture: TilemapTexture,
         map_size: TilemapSize,
         transform: GlobalTransform,
@@ -166,12 +169,25 @@ pub struct PackedTileData {
 pub struct RenderChunk2d {
     pub id: u64,
     pub position: UVec3,
-    pub size: UVec2,
-    pub map_type: TilemapType,
-    pub tile_size: Vec2,
+    /// Size of the chunk, in tiles.
+    pub size_in_tiles: UVec2,
+    /// [`TilemapType`] of the map this chunk belongs to. Changing it should require updating the
+    /// chunk's AABB, therefore, use [`update_map_type`](RenderChunk2d::update_map_type) or
+    /// [`update_tilemap_info`](RenderChunk2d::update_tilemap_info) to set the chunk's map
+    /// type. Use the `[`get_map_type`](RenderChunk2d::get_map_type) to get the chunk's map type.
+    map_type: TilemapType,
+    /// The tile size of the map this chunk belongs to. Changing it should require updating
+    /// the chunk's AABB, therefore, use the [`update_tile_size`](RenderChunk2d::update_tile_size)
+    /// or [`update_tilemap_info`](RenderChunk2d::update_tilemap_info) set the chunk's map type.
+    /// Use the `[`get_tile_size`](RenderChunk2d::get_tile_size) to get the chunk's map type.
+    tile_size: TilemapTileSize,
     pub tilemap_id: u32,
     pub spacing: Vec2,
-    pub grid_size: Vec2,
+    /// The grid size of the map this chunk belongs to. Changing it should require updating
+    /// the chunk's AABB, therefore, use the [`get_grid_size`](RenderChunk2d::update_grid_size) method
+    /// to set the chunk's map type. Use the `[`get_grid_size`](RenderChunk2d::get_grid_size) method
+    /// to get the chunk's map type.
+    grid_size: TilemapGridSize,
     pub tiles: Vec<Option<PackedTileData>>,
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
@@ -181,6 +197,7 @@ pub struct RenderChunk2d {
     pub dirty_mesh: bool,
     pub transform: GlobalTransform,
     pub visible: bool,
+    aabb: Aabb,
 }
 
 impl RenderChunk2d {
@@ -189,11 +206,11 @@ impl RenderChunk2d {
         id: u64,
         tilemap_id: u32,
         position: &UVec3,
-        size: UVec2,
-        mesh_type: TilemapType,
-        tile_size: Vec2,
+        size_in_tiles: UVec2,
+        map_type: TilemapType,
+        tile_size: TilemapTileSize,
         spacing: Vec2,
-        grid_size: Vec2,
+        grid_size: TilemapGridSize,
         texture: TilemapTexture,
         texture_size: Vec2,
         map_size: TilemapSize,
@@ -205,44 +222,45 @@ impl RenderChunk2d {
             gpu_mesh: None,
             id,
             map_size,
-            map_type: mesh_type,
+            map_type,
             mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
             position: *position,
-            size,
+            size_in_tiles,
             spacing,
             grid_size,
             texture_size,
             texture,
             tile_size,
             tilemap_id,
-            tiles: vec![None; (size.x * size.y) as usize],
+            tiles: vec![None; (size_in_tiles.x * size_in_tiles.y) as usize],
             transform,
             visible,
+            aabb: chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type),
         }
     }
 
     pub fn get(&self, tile_pos: &TilePos) -> &Option<PackedTileData> {
-        &self.tiles[tile_pos.to_index(&self.size.into())]
+        &self.tiles[tile_pos.to_index(&self.size_in_tiles.into())]
     }
 
     pub fn get_mut(&mut self, tile_pos: &TilePos) -> &mut Option<PackedTileData> {
         self.dirty_mesh = true;
-        &mut self.tiles[tile_pos.to_index(&self.size.into())]
+        &mut self.tiles[tile_pos.to_index(&self.size_in_tiles.into())]
     }
 
     pub fn set(&mut self, tile_pos: &TilePos, tile: Option<PackedTileData>) {
         self.dirty_mesh = true;
-        self.tiles[tile_pos.to_index(&self.size.into())] = tile;
+        self.tiles[tile_pos.to_index(&self.size_in_tiles.into())] = tile;
     }
 
     pub fn prepare(&mut self, device: &RenderDevice) {
         if self.dirty_mesh {
-            let size = ((self.size.x * self.size.y) * 4) as usize;
+            let size = ((self.size_in_tiles.x * self.size_in_tiles.y) * 4) as usize;
             let mut positions: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut textures: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut colors: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut indices: Vec<u32> =
-                Vec::with_capacity(((self.size.x * self.size.y) * 6) as usize);
+                Vec::with_capacity(((self.size_in_tiles.x * self.size_in_tiles.y) * 6) as usize);
 
             let mut i = 0;
 
@@ -335,6 +353,80 @@ impl RenderChunk2d {
             self.dirty_mesh = false;
         }
     }
+
+    /// Re-calculate the [`Aabb`] of this chunk.
+    ///
+    /// Necessary when changes occur to the grid size or map type of the tilemap this chunk
+    /// belongs to.
+    pub fn update_aabb(&mut self) {
+        self.aabb = chunk_aabb(
+            self.size_in_tiles,
+            &self.grid_size,
+            &self.tile_size,
+            &self.map_type,
+        );
+    }
+
+    /// Get the [`Aabb`] of this chunk.
+    pub fn get_aabb(&self) -> Aabb {
+        self.aabb.clone()
+    }
+
+    /// Gets a reference to the grid size of the tilemap this chunk belongs to.
+    pub fn get_grid_size(&self) -> &TilemapGridSize {
+        &self.grid_size
+    }
+
+    /// Get a reference to the map type of the tilemap this chunk belongs to.
+    pub fn get_map_type(&self) -> &TilemapType {
+        &self.map_type
+    }
+
+    /// Get a reference to the tile size of the tilemap this chunk belongs to.
+    pub fn get_tile_size(&self) -> &TilemapTileSize {
+        &self.tile_size
+    }
+
+    /// Update the grid size information of this chunk.
+    ///
+    /// It triggers an update to the chunk's [`Aabb`](Aabb).
+    pub fn update_grid_size(&mut self, grid_size: &TilemapGridSize) {
+        self.grid_size = *grid_size;
+        self.update_aabb();
+    }
+
+    /// Update the map type information of this chunk.
+    ///
+    /// It triggers an update to the chunk's [`Aabb`](Aabb).
+    pub fn update_map_type(&mut self, map_type: &TilemapType) {
+        self.map_type = *map_type;
+        self.update_aabb();
+    }
+
+    /// Update the tile size information of this chunk.
+    ///
+    /// It triggers an update to the chunk's [`Aabb`](Aabb).
+    pub fn update_tile_size(&mut self, tile_size: &TilemapTileSize) {
+        self.tile_size = *tile_size;
+        self.update_aabb();
+    }
+
+    /// Update the grid size and map type information of this chunk
+    ///
+    /// Necessary when the map type and grid size of the tilemap it belongs have changed.
+    ///
+    /// It triggers an update to the chunk's [`Aabb`](Aabb).
+    pub fn update_tile_info(
+        &mut self,
+        grid_size: &TilemapGridSize,
+        tile_size: &TilemapTileSize,
+        map_type: &TilemapType,
+    ) {
+        self.grid_size = *grid_size;
+        self.tile_size = *tile_size;
+        self.map_type = *map_type;
+        self.update_aabb();
+    }
 }
 
 // Used to transfer info to the GPU for tile building.
@@ -353,15 +445,16 @@ pub struct TilemapUniformData {
 impl From<&RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &RenderChunk2d) -> Self {
         let chunk_pos: Vec2 = chunk.position.xy().as_vec2();
-        let chunk_size: Vec2 = chunk.size.as_vec2();
+        let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
+        let tile_size: Vec2 = chunk.tile_size.into();
         Self {
             texture_size: chunk.texture_size,
-            tile_size: chunk.tile_size,
-            grid_size: chunk.grid_size,
+            tile_size,
+            grid_size: chunk.grid_size.into(),
             spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,
-            map_size: map_size * chunk.tile_size,
+            map_size: map_size * tile_size,
             time: 0.0,
             pad: Vec3::ZERO,
         }
@@ -371,15 +464,16 @@ impl From<&RenderChunk2d> for TilemapUniformData {
 impl From<&mut RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &mut RenderChunk2d) -> Self {
         let chunk_pos: Vec2 = chunk.position.xy().as_vec2();
-        let chunk_size: Vec2 = chunk.size.as_vec2();
+        let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
+        let tile_size: Vec2 = chunk.tile_size.into();
         Self {
             texture_size: chunk.texture_size,
-            tile_size: chunk.tile_size,
-            grid_size: chunk.grid_size,
+            tile_size,
+            grid_size: chunk.grid_size.into(),
             spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,
-            map_size: map_size * chunk.tile_size,
+            map_size: map_size * tile_size,
             time: 0.0,
             pad: Vec3::ZERO,
         }
