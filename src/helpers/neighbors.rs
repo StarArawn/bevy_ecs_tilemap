@@ -1,6 +1,5 @@
 use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexColDirection, HexRowDirection};
-use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TileStorage, TilemapSize, TilemapType};
@@ -54,15 +53,16 @@ pub struct NeighborsIntoIterator<T: Copy> {
 
 impl<T: Copy> NeighborsIntoIterator<T> {
     fn get_at_cursor(&self) -> Option<T> {
+        use NeighborDirection::*;
         self.cursor.and_then(|direction| match direction {
-            NeighborDirection::North => self.neighbors.north,
-            NeighborDirection::NorthWest => self.neighbors.north_west,
-            NeighborDirection::West => self.neighbors.west,
-            NeighborDirection::SouthWest => self.neighbors.south_west,
-            NeighborDirection::South => self.neighbors.south,
-            NeighborDirection::SouthEast => self.neighbors.south_east,
-            NeighborDirection::East => self.neighbors.east,
-            NeighborDirection::NorthEast => self.neighbors.north_east,
+            North => self.neighbors.north,
+            NorthWest => self.neighbors.north_west,
+            West => self.neighbors.west,
+            SouthWest => self.neighbors.south_west,
+            South => self.neighbors.south,
+            SouthEast => self.neighbors.south_east,
+            East => self.neighbors.east,
+            NorthEast => self.neighbors.north_east,
         })
     }
 }
@@ -176,22 +176,7 @@ pub fn get_neighboring_pos(
                 staggered_neighbor_pos(tile_pos, tilemap_size)
             }
         }
-        TilemapType::Hexagon(HexCoordSystem::Row) => hex_row_neighbor_pos(tile_pos, tilemap_size),
-        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
-            hex_row_even_neighbor_pos(tile_pos, tilemap_size)
-        }
-        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
-            hex_row_odd_neighbor_pos(tile_pos, tilemap_size)
-        }
-        TilemapType::Hexagon(HexCoordSystem::Column) => {
-            hex_col_neighbor_pos(tile_pos, tilemap_size)
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-            hex_col_even_neighbor_pos(tile_pos, tilemap_size)
-        }
-        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-            hex_col_odd_neighbor_pos(tile_pos, tilemap_size)
-        }
+        TilemapType::Hexagon(coord_sys) => hex_neighbor_pos(tile_pos, tilemap_size, *coord_sys),
     }
 }
 
@@ -346,222 +331,6 @@ impl TilePos {
 
     pub fn square_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
         self.plus_xy(tilemap_size)
-    }
-
-    pub fn hex_row_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::West)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::West)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::West)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::East)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::East)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::East)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_row(HexRowDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowOddPos::from(self)
-            .offset_compass(HexRowDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_row_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        RowEvenPos::from(self)
-            .offset_compass(HexRowDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::North)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::North)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::North)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_north_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::NorthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_south_west(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::SouthWest)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_south(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::South)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_south(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::South)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_south(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::South)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_south_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::SouthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        AxialPos::from(self)
-            .offset_compass_col(HexColDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_odd_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColOddPos::from(self)
-            .offset_compass(HexColDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
-    }
-
-    pub fn hex_col_even_north_east(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
-        ColEvenPos::from(self)
-            .offset_compass(HexColDirection::NorthEast)
-            .as_tile_pos_given_map_size(tilemap_size)
     }
 
     pub fn iso_staggered_north(&self, tilemap_size: &TilemapSize) -> Option<TilePos> {
@@ -726,140 +495,68 @@ pub fn staggered_neighbor_pos(
 }
 
 /// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
-/// coordinate system [`HexCoordSystem::Row`](crate::map::HexCoordSystem::Row).
-///
-/// Tile positions are bounded:
-///     * between `0` and `tilemap_size.x` in the `x` position,
-///     * between `0` and `tilemap_size.y` in the `y` position.
-/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
-pub fn hex_row_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> Neighbors<TilePos> {
-    Neighbors {
-        north: None,
-        north_west: tile_pos.hex_row_north_west(tilemap_size),
-        west: tile_pos.hex_row_west(tilemap_size),
-        south_west: tile_pos.hex_row_south_west(tilemap_size),
-        south: None,
-        south_east: tile_pos.hex_row_south_east(tilemap_size),
-        east: tile_pos.hex_row_east(tilemap_size),
-        north_east: tile_pos.hex_row_north_east(tilemap_size),
-    }
-}
-
-/// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap
-/// with coordinate system [`HexCoordSystem::RowOdd`](crate::map::HexCoordSystem::RowOdd).
-///
-/// Tile positions are bounded:
-///     * between `0` and `tilemap_size.x` in the `x` position,
-///     * between `0` and `tilemap_size.y` in the `y` position.
-/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
-pub fn hex_row_odd_neighbor_pos(
-    tile_pos: &TilePos,
-    tilemap_size: &TilemapSize,
-) -> Neighbors<TilePos> {
-    Neighbors {
-        north: None,
-        north_west: tile_pos.hex_row_odd_north_west(tilemap_size),
-        west: tile_pos.hex_row_odd_west(tilemap_size),
-        south_west: tile_pos.hex_row_odd_south_west(tilemap_size),
-        south: None,
-        south_east: tile_pos.hex_row_odd_south_east(tilemap_size),
-        east: tile_pos.hex_row_odd_east(tilemap_size),
-        north_east: tile_pos.hex_row_odd_north_east(tilemap_size),
-    }
-}
-
-/// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
-/// coordinate system [`HexCoordSystem::Row`](crate::map::HexCoordSystem::RowEven).
-///
-/// Tile positions are bounded:
-///     * between `0` and `tilemap_size.x` in the `x` position,
-///     * between `0` and `tilemap_size.y` in the `y` position.
-/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
-pub fn hex_row_even_neighbor_pos(
-    tile_pos: &TilePos,
-    tilemap_size: &TilemapSize,
-) -> Neighbors<TilePos> {
-    Neighbors {
-        north: None,
-        north_west: tile_pos.hex_row_north_west(tilemap_size),
-        west: tile_pos.hex_row_west(tilemap_size),
-        south_west: tile_pos.hex_row_south_west(tilemap_size),
-        south: None,
-        south_east: tile_pos.hex_row_south_east(tilemap_size),
-        east: tile_pos.hex_row_east(tilemap_size),
-        north_east: tile_pos.hex_row_north_east(tilemap_size),
-    }
-}
-
-/// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
-/// coordinate system [`HexCoordSystem::Col`](crate::map::HexCoordSystem::Col).
-///
-/// Tile positions are bounded:
-///     * between `0` and `tilemap_size.x` in the `x` position,
-///     * between `0` and `tilemap_size.y` in the `y` position.
-/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
-pub fn hex_col_neighbor_pos(tile_pos: &TilePos, tilemap_size: &TilemapSize) -> Neighbors<TilePos> {
-    Neighbors {
-        north: tile_pos.hex_col_north(tilemap_size),
-        north_west: tile_pos.hex_col_north_west(tilemap_size),
-        west: None,
-        south_west: tile_pos.hex_col_south_west(tilemap_size),
-        south: tile_pos.hex_col_south(tilemap_size),
-        south_east: tile_pos.hex_col_south_east(tilemap_size),
-        east: None,
-        north_east: tile_pos.hex_col_north_east(tilemap_size),
-    }
-}
-
-/// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
-/// coordinate system [`HexCoordSystem::ColOdd`](crate::map::HexCoordSystem::ColOdd).
-///
-/// Tile positions are bounded:
-///     * between `0` and `tilemap_size.x` in the `x` position,
-///     * between `0` and `tilemap_size.y` in the `y` position.
-/// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates that violate these requirements will be set to `None`.
-pub fn hex_col_odd_neighbor_pos(
-    tile_pos: &TilePos,
-    tilemap_size: &TilemapSize,
-) -> Neighbors<TilePos> {
-    Neighbors {
-        north: tile_pos.hex_col_odd_north(tilemap_size),
-        north_west: tile_pos.hex_col_odd_north_west(tilemap_size),
-        west: None,
-        south_west: tile_pos.hex_col_odd_south_west(tilemap_size),
-        south: tile_pos.hex_col_odd_south(tilemap_size),
-        south_east: tile_pos.hex_col_odd_south_east(tilemap_size),
-        east: None,
-        north_east: tile_pos.hex_col_odd_north_east(tilemap_size),
-    }
-}
-
-/// Retrieves the positions of neighbors of the tile with the specified position, assuming
-/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with
-/// coordinate system [`HexCoordSystem::ColEven`](crate::map::HexCoordSystem::ColEven).
+/// the tile exists on a [`Hexagon`](crate::map::TilemapType::Hexagon) tilemap with the specified
+/// [`HexCoordSystem`](crate::map::HexCoordSystem).
 ///
 /// Tile positions are bounded:
 ///     * between `0` and `tilemap_size.x` in the `x` position,
 ///     * between `0` and `tilemap_size.y` in the `y` position.
 /// Directions in the returned [`Neighbor`](crate::helpers::Neighbor) struct with tile coordinates
 /// that violate these requirements will be set to `None`.
-pub fn hex_col_even_neighbor_pos(
+pub fn hex_neighbor_pos(
     tile_pos: &TilePos,
     tilemap_size: &TilemapSize,
+    coord_sys: HexCoordSystem,
 ) -> Neighbors<TilePos> {
-    Neighbors {
-        north: tile_pos.hex_col_even_north(tilemap_size),
-        north_west: tile_pos.hex_col_even_north_west(tilemap_size),
-        west: None,
-        south_west: tile_pos.hex_col_even_south_west(tilemap_size),
-        south: tile_pos.hex_col_even_south(tilemap_size),
-        south_east: tile_pos.hex_col_even_south_east(tilemap_size),
-        east: None,
-        north_east: tile_pos.hex_col_even_north_east(tilemap_size),
+    let axial_pos = AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys);
+    match coord_sys {
+        HexCoordSystem::RowEven | HexCoordSystem::RowOdd | HexCoordSystem::Row => {
+            use HexRowDirection::*;
+            Neighbors {
+                north: None,
+                north_west: axial_pos
+                    .offset_compass_row(NorthWest)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                west: axial_pos
+                    .offset_compass_row(West)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                south_west: axial_pos
+                    .offset_compass_row(SouthWest)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                south: None,
+                south_east: axial_pos
+                    .offset_compass_row(SouthEast)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                east: None,
+                north_east: axial_pos
+                    .offset_compass_row(SouthEast)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+            }
+        }
+        _ => {
+            use HexColDirection::*;
+            Neighbors {
+                north: axial_pos
+                    .offset_compass_col(North)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                north_west: axial_pos
+                    .offset_compass_col(NorthWest)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                west: None,
+                south_west: axial_pos
+                    .offset_compass_col(SouthWest)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                south: axial_pos
+                    .offset_compass_col(South)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                south_east: axial_pos
+                    .offset_compass_col(SouthEast)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+                east: None,
+                north_east: axial_pos
+                    .offset_compass_col(NorthEast)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
+            }
+        }
     }
 }

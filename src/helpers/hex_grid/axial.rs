@@ -283,6 +283,33 @@ impl AxialPos {
         }
     }
 
+    /// Converts an axial position into a tile position in the given hex coordinate system, if it
+    /// fits within the extents of the map.
+    ///
+    /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
+    /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
+    /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
+    /// coordinate system before being returned as a `TilePos`.
+    pub fn as_tile_pos_given_coord_system_and_map_size(
+        &self,
+        hex_coord_sys: HexCoordSystem,
+        map_size: &TilemapSize,
+    ) -> Option<TilePos> {
+        match hex_coord_sys {
+            HexCoordSystem::RowEven => RowEvenPos::from(*self).as_tile_pos_given_map_size(map_size),
+            HexCoordSystem::RowOdd => RowOddPos::from(*self).as_tile_pos_given_map_size(map_size),
+            HexCoordSystem::ColumnEven => {
+                ColEvenPos::from(*self).as_tile_pos_given_map_size(map_size)
+            }
+            HexCoordSystem::ColumnOdd => {
+                ColOddPos::from(*self).as_tile_pos_given_map_size(map_size)
+            }
+            HexCoordSystem::Row | HexCoordSystem::Column => {
+                self.as_tile_pos_given_map_size(map_size)
+            }
+        }
+    }
+
     /// Converts an axial position into a tile position in the given hex coordinate system.
     ///
     /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
