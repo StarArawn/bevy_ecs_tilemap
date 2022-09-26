@@ -69,4 +69,19 @@ impl TileStorage {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Option<Entity>> {
         self.tiles.iter_mut()
     }
+
+    /// Remove entity at the given tile position, if there was one, leaving `None` in its place.
+    ///
+    /// Panics if the given `tile_pos` does lie within the extents of the underlying tile map.
+    pub fn remove(&mut self, tile_pos: &TilePos) {
+        self.tiles[tile_pos.to_index(&self.size)].take();
+    }
+
+    /// Remove any stored entity at the given tile position, if the given `tile_pos` does lie within
+    /// the extents of the underlying map.
+    ///
+    /// Otherwise, nothing is done.
+    pub fn checked_remove(&mut self, tile_pos: &TilePos) {
+        self.tiles[tile_pos.to_index(&self.size)].take();
+    }
 }
