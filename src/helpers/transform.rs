@@ -1,8 +1,6 @@
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
-use bevy::log::info;
-use bevy::math::{UVec2, Vec2, Vec3, Vec3A};
-use bevy::prelude::Transform;
+use bevy::math::{UVec2, Vec2};
 use bevy::render::primitives::Aabb;
 
 /// Calculates the world-space position of the bottom-left of the specified chunk.
@@ -39,31 +37,4 @@ pub fn chunk_aabb(
     let maximum =
         chunk_index_to_world_space(UVec2::new(1, 1), chunk_size, grid_size, map_type) + delta;
     Aabb::from_min_max(minimum.extend(0.0), maximum.extend(1.0))
-}
-
-/// Apply a [`Transform`] to an [`Aabb`].
-///
-/// Workaround for: https://github.com/bevyengine/bevy/issues/6090
-pub fn apply_transform_to_aabb(transform: Transform, aabb: Aabb) -> Aabb {
-    let center = (transform * Vec3::from(aabb.center)).into();
-    info!("transformed_center: {:?}", center);
-
-    let half_x = Vec3::new(aabb.half_extents.x, 0.0, 0.0);
-    let half_y = Vec3::new(0.0, aabb.half_extents.y, 0.0);
-    let half_z = Vec3::new(0.0, 0.0, aabb.half_extents.z);
-    // We only need to scale and rotate the half-extents; they should not be translated.
-    let scale_and_rotate = transform.rotation * transform.scale;
-    let hx = scale_and_rotate * half_x;
-    let hy = scale_and_rotate * half_y;
-    let hz = scale_and_rotate * half_z;
-    let half_extents = Vec3A::new(
-        hx.x.max(hy.x.max(hz.x)),
-        hx.y.max(hy.y.max(hz.y)),
-        hx.z.max(hy.z.max(hz.z)),
-    );
-
-    Aabb {
-        center,
-        half_extents,
-    }
 }

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::log::info;
+use bevy::log::trace;
 use bevy::{
     math::{Mat4, UVec4, Vec3Swizzles},
     prelude::{
@@ -167,22 +167,21 @@ pub(crate) fn prepare(
             chunk.get_grid_size(),
             chunk.get_map_type(),
         );
-        info!("==========");
         let chunk_local_transform = Transform::from_xyz(chunk_pos.x, chunk_pos.y, 0.0);
-        info!("chunk_local_transform: {:?}", chunk_local_transform);
-        info!("chunk_global_transform: {:?}", chunk_global_transform);
+        trace!("chunk_local_transform: {:?}", chunk_local_transform);
+        trace!("chunk_global_transform: {:?}", chunk_global_transform);
         let aabb = chunk.get_aabb();
-        info!("aabb: {:?}", aabb);
+        trace!("aabb: {:?}", aabb);
         let transform = chunk_local_transform * chunk_global_transform;
         let transform_matrix = transform.compute_matrix();
         if !extracted_frustum_query
             .iter()
             .any(|frustum| frustum.intersects_obb(&aabb, &transform_matrix))
         {
-            info!("Frustum culled chunk: {:?}", chunk.position.xy());
+            trace!("Frustum culled chunk: {:?}", chunk.position.xy());
             continue;
         }
-        info!("Chunk was not frustum culled.");
+        trace!("Chunk was not frustum culled.");
 
         chunk.prepare(&render_device);
 
