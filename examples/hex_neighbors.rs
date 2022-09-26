@@ -1,6 +1,5 @@
 use bevy::math::Vec4Swizzles;
 use bevy::{prelude::*, render::texture::ImageSettings};
-use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::HexDirection;
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -386,16 +385,18 @@ fn highlight_neighbor_label(
             };
 
             if let Some(hex_direction) = selected_hex_direction {
-                let neighbor = AxialPos::from(hovered_tile_pos).offset(hex_direction);
-
                 let tile_pos = match map_type {
                     TilemapType::Hexagon(hex_coord_sys) => {
-                        neighbor.as_tile_pos_given_coord_sys(hex_coord_sys)
+                        // This procedure does not check to see if the calculated neighbor lies
+                        // within the tile map.
+                        hex_direction.offset(hovered_tile_pos, *hex_coord_sys)
                     }
                     _ => unreachable!(),
                 };
 
-                if let Some(tile_entity) = tile_storage.get(&tile_pos) {
+                // We want to ensure that the tile position lies within the tile map, so we do a
+                // `checked_get`.
+                if let Some(tile_entity) = tile_storage.checked_get(&tile_pos) {
                     if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
                         for mut section in tile_text.sections.iter_mut() {
                             section.style.color = Color::GREEN;

@@ -273,13 +273,32 @@ impl AxialPos {
     /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
     /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
     /// coordinate system before being returned as a `TilePos`.
-    pub fn as_tile_pos_given_coord_sys(&self, hex_coord_sys: &HexCoordSystem) -> TilePos {
+    pub fn as_tile_pos_given_coord_system(&self, hex_coord_sys: HexCoordSystem) -> TilePos {
         match hex_coord_sys {
             HexCoordSystem::RowEven => RowEvenPos::from(*self).as_tile_pos_unchecked(),
             HexCoordSystem::RowOdd => RowOddPos::from(*self).as_tile_pos_unchecked(),
             HexCoordSystem::ColumnEven => ColEvenPos::from(*self).as_tile_pos_unchecked(),
             HexCoordSystem::ColumnOdd => ColOddPos::from(*self).as_tile_pos_unchecked(),
             HexCoordSystem::Row | HexCoordSystem::Column => self.as_tile_pos_unchecked(),
+        }
+    }
+
+    /// Converts an axial position into a tile position in the given hex coordinate system.
+    ///
+    /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
+    /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
+    /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
+    /// coordinate system before being returned as a `TilePos`.
+    pub fn from_tile_pos_given_coord_system(
+        tile_pos: &TilePos,
+        hex_coord_sys: HexCoordSystem,
+    ) -> AxialPos {
+        match hex_coord_sys {
+            HexCoordSystem::RowEven => RowEvenPos::from(tile_pos).into(),
+            HexCoordSystem::RowOdd => RowOddPos::from(tile_pos).into(),
+            HexCoordSystem::ColumnEven => ColEvenPos::from(tile_pos).into(),
+            HexCoordSystem::ColumnOdd => ColOddPos::from(tile_pos).into(),
+            HexCoordSystem::Row | HexCoordSystem::Column => AxialPos::from(tile_pos),
         }
     }
 

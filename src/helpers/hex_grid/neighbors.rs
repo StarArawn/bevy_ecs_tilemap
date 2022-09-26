@@ -1,4 +1,6 @@
 use crate::helpers::hex_grid::axial::AxialPos;
+use crate::map::HexCoordSystem;
+use crate::TilePos;
 use std::ops::{Add, Sub};
 
 /// Neighbors of a hexagonal tile. `Zero` corresponds with `East` for row-oriented tiles, and
@@ -133,6 +135,14 @@ impl Sub<i32> for HexDirection {
     }
 }
 
+impl HexDirection {
+    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+        AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
+            .offset(*self)
+            .as_tile_pos_given_coord_system(coord_sys)
+    }
+}
+
 /// Compass directions of a tile in hexagonal row-oriented coordinate systems
 /// ([Row](crate::map::HexCoordSystem::Row), [RowEven](crate::map::HexCoordSystem::RowEven), and
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
@@ -199,5 +209,21 @@ impl From<HexDirection> for HexColDirection {
 impl From<HexColDirection> for HexDirection {
     fn from(direction: HexColDirection) -> Self {
         (direction as usize).into()
+    }
+}
+
+impl HexRowDirection {
+    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+        AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
+            .offset_compass_row(*self)
+            .as_tile_pos_given_coord_system(coord_sys)
+    }
+}
+
+impl HexColDirection {
+    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+        AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
+            .offset_compass_col(*self)
+            .as_tile_pos_given_coord_system(coord_sys)
     }
 }
