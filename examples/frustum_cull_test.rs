@@ -1,16 +1,17 @@
+use bevy::log::{Level, LogSettings};
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
 
-// Press SPACE to change map type. Hover over mouse tiles to highlight their labels.
+// Press SPACE to change map type.
 //
-// The most important function here is the `highlight_tile_labels` systems, which shows how to
-// convert a mouse cursor position into a tile position.
-
+// The most important code here is the setting that adds FrustumCull.
+//
 // You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
 // but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
 // otherwise things might be too slow.
+
 const MAP_SIDE_LENGTH_X: u32 = 8;
 const MAP_SIDE_LENGTH_Y: u32 = 8;
 
@@ -242,6 +243,13 @@ fn main() {
             height: 720.0,
             title: String::from("Frustum cull test"),
             ..Default::default()
+        })
+        // For this example, we want to turn up logging to show trace level events for bevy_ecs_tilemap
+        .insert_resource(LogSettings {
+            // Everything else should be set to Level::ERROR
+            level: Level::ERROR,
+            // except for bevy_ecs_tilemap
+            filter: "bevy_ecs_tilemap=trace".into(),
         })
         .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)

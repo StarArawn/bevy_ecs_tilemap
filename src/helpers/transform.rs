@@ -1,6 +1,7 @@
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
-use bevy::math::{UVec2, Vec2};
+use bevy::log::info;
+use bevy::math::{UVec2, Vec2, Vec3};
 use bevy::render::primitives::Aabb;
 
 /// Calculates the world-space position of the bottom-left of the specified chunk.
@@ -32,9 +33,15 @@ pub fn chunk_aabb(
     tile_size: &TilemapTileSize,
     map_type: &TilemapType,
 ) -> Aabb {
+    info!("calculating AABB, map_type: {map_type:?}");
     let delta = Vec2::new(grid_size.x.max(tile_size.x), grid_size.y.max(tile_size.y));
-    let minimum = Vec2::new(0.0, 0.0) - delta;
-    let maximum =
-        chunk_index_to_world_space(UVec2::new(1, 1), chunk_size, grid_size, map_type) + delta;
-    Aabb::from_min_max(minimum.extend(0.0), maximum.extend(1.0))
+    let c1 = Vec2::new(0.0, 0.0) - delta;
+    info!("c1: {c1:?}");
+    let c2 = chunk_index_to_world_space(UVec2::new(1, 1), chunk_size, grid_size, map_type) + delta;
+    info!("c2: {c2:?}");
+    let minimum = Vec3::from((c1.min(c2), 0.0));
+    info!("minimum: {minimum:?}");
+    let maximum = Vec3::from((c1.max(c2), 1.0));
+    info!("maximum: {maximum:?}");
+    Aabb::from_min_max(minimum, maximum)
 }
