@@ -29,7 +29,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
                 })
                 .id();
             commands.entity(tilemap_entity).add_child(tile_entity);
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 

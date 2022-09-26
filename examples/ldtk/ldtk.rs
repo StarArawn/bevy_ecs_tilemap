@@ -1,6 +1,6 @@
 use bevy_ecs_tilemap::{
     helpers::geometry::get_tilemap_center_transform,
-    map::{TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
+    map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTexture},
     TilemapBundle,
 };
@@ -58,14 +58,12 @@ impl AssetLoader for LdtkLoader {
                 .tilesets
                 .iter()
                 .filter_map(|tileset| {
-                    if let Some(rel_path) = &tileset.rel_path {
-                        Some((
+                    tileset.rel_path.as_ref().map(|rel_path| {
+                        (
                             tileset.uid,
                             load_context.path().parent().unwrap().join(rel_path).into(),
-                        ))
-                    } else {
-                        None
-                    }
+                        )
+                    })
                 })
                 .collect();
 
@@ -199,19 +197,21 @@ pub fn process_loaded_tile_maps(
                                 })
                                 .id();
 
-                            storage.set(&position, Some(tile_entity));
+                            storage.set(&position, tile_entity);
                         }
+
+                        let grid_size = tile_size.into();
 
                         // Create the tilemap
                         commands.entity(map_entity).insert_bundle(TilemapBundle {
-                            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+                            grid_size,
                             size,
                             storage,
                             texture: TilemapTexture(texture),
                             tile_size,
                             transform: get_tilemap_center_transform(
                                 &size,
-                                &tile_size,
+                                &grid_size,
                                 layer_id as f32,
                             ),
                             ..default()

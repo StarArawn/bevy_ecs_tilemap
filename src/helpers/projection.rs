@@ -36,13 +36,19 @@ impl TilePos {
     /// Returns `None` if either one of `x` or `y` is negative, or lies out of the bounds of
     /// `map_size`.
     pub fn from_i32_pair(x: i32, y: i32, map_size: &TilemapSize) -> Option<TilePos> {
-        let x_u32 = x as u32;
-        let y_u32 = y as u32;
-
-        if x < 0 || x_u32 > (map_size.x - 1) || y < 0 || y_u32 > (map_size.y - 1) {
+        if x < 0 || y < 0 {
             None
         } else {
-            Some(TilePos { x: x_u32, y: y_u32 })
+            let tile_pos = TilePos {
+                x: x as u32,
+                y: y as u32,
+            };
+
+            if tile_pos.within_map_bounds(map_size) {
+                Some(tile_pos)
+            } else {
+                None
+            }
         }
     }
 

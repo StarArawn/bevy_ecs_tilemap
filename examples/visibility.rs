@@ -24,21 +24,22 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let grid_size = tile_size.into();
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            grid_size,
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate::default());
