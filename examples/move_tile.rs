@@ -26,8 +26,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .id();
     tile_storage.set(&tile_pos, Some(tile_entity));
+
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = TilemapGridSize { x: 16.0, y: 16.0 };
+    let grid_size = tile_size.into();
 
     commands
         .entity(tilemap_entity)
@@ -37,7 +38,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: get_tilemap_center_transform(&tilemap_size, &tile_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
             ..Default::default()
         });
 }
