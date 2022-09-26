@@ -1,5 +1,7 @@
 use std::hash::{Hash, Hasher};
 
+use bevy::math::Mat4;
+use bevy::prelude::Transform;
 use bevy::render::primitives::Aabb;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
@@ -12,11 +14,12 @@ use bevy::{
     utils::HashMap,
 };
 
-use crate::prelude::chunk_aabb;
+use crate::prelude::{chunk_aabb, chunk_index_to_world_space};
+use crate::render::extract::ExtractedFrustum;
 use crate::{
     map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
-    TilemapGridSize, TilemapTileSize,
+    FrustumCulling, TilemapGridSize, TilemapTileSize,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -46,6 +49,7 @@ impl RenderChunk2dStorage {
         map_size: TilemapSize,
         transform: GlobalTransform,
         visibility: &ComputedVisibility,
+        frustum_culling: &FrustumCulling,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
 
@@ -80,6 +84,7 @@ impl RenderChunk2dStorage {
                 map_size,
                 transform,
                 visibility.is_visible(),
+                **frustum_culling,
             );
             self.entity_to_chunk
                 .insert(Entity::from_raw(position.w), pos);
@@ -168,36 +173,41 @@ pub struct PackedTileData {
 #[derive(Clone, Debug)]
 pub struct RenderChunk2d {
     pub id: u64,
-    pub position: UVec3,
+    pub tilemap_id: u32,
+    /// The index of the chunk. It is equivalent to the position of the chunk in "chunk
+    /// coordinates".
+    index: UVec3,
+    /// The position of this chunk, in world space,
+    position: Vec2,
     /// Size of the chunk, in tiles.
     pub size_in_tiles: UVec2,
-    /// [`TilemapType`] of the map this chunk belongs to. Changing it should require updating the
-    /// chunk's AABB, therefore, use [`update_map_type`](RenderChunk2d::update_map_type) or
-    /// [`update_tilemap_info`](RenderChunk2d::update_tilemap_info) to set the chunk's map
-    /// type. Use the `[`get_map_type`](RenderChunk2d::get_map_type) to get the chunk's map type.
+    /// [`TilemapSize`] of the map this chunk belongs to.
+    pub map_size: TilemapSize,
+    /// [`TilemapType`] of the map this chunk belongs to.
     map_type: TilemapType,
-    /// The tile size of the map this chunk belongs to. Changing it should require updating
-    /// the chunk's AABB, therefore, use the [`update_tile_size`](RenderChunk2d::update_tile_size)
-    /// or [`update_tilemap_info`](RenderChunk2d::update_tilemap_info) set the chunk's map type.
-    /// Use the `[`get_tile_size`](RenderChunk2d::get_tile_size) to get the chunk's map type.
-    tile_size: TilemapTileSize,
-    pub tilemap_id: u32,
-    pub spacing: Vec2,
-    /// The grid size of the map this chunk belongs to. Changing it should require updating
-    /// the chunk's AABB, therefore, use the [`get_grid_size`](RenderChunk2d::update_grid_size) method
-    /// to set the chunk's map type. Use the `[`get_grid_size`](RenderChunk2d::get_grid_size) method
-    /// to get the chunk's map type.
+    /// The grid size of the map this chunk belongs to.
     grid_size: TilemapGridSize,
+    /// The tile size of the map this chunk belongs to.
+    tile_size: TilemapTileSize,
+    /// The [`Aabb`] of this chunk, based on the map type, grid size, and tile size. It is not
+    /// transformed by the `global_transform` or [`local_transform`]
+    aabb: Aabb,
+    local_transform: Transform,
+    /// The [`GlobalTransform`] of this chunk, stored as a [`Transform`].
+    global_transform: Transform,
+    /// The product of the local and global transforms.
+    transform: Transform,
+    /// The matrix computed from this chunk's `transform`.
+    transform_matrix: Mat4,
+    pub spacing: Vec2,
     pub tiles: Vec<Option<PackedTileData>>,
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
-    pub map_size: TilemapSize,
     pub mesh: Mesh,
     pub gpu_mesh: Option<GpuMesh>,
     pub dirty_mesh: bool,
-    pub transform: GlobalTransform,
     pub visible: bool,
-    aabb: Aabb,
+    pub frustum_culling: bool,
 }
 
 impl RenderChunk2d {
@@ -205,7 +215,7 @@ impl RenderChunk2d {
     pub fn new(
         id: u64,
         tilemap_id: u32,
-        position: &UVec3,
+        index: &UVec3,
         size_in_tiles: UVec2,
         map_type: TilemapType,
         tile_size: TilemapTileSize,
@@ -214,28 +224,40 @@ impl RenderChunk2d {
         texture: TilemapTexture,
         texture_size: Vec2,
         map_size: TilemapSize,
-        transform: GlobalTransform,
+        global_transform: GlobalTransform,
         visible: bool,
+        frustum_culling: bool,
     ) -> Self {
+        let position = chunk_index_to_world_space(index.xy(), size_in_tiles, &grid_size, &map_type);
+        let local_transform = Transform::from_translation(position.extend(0.0));
+        let global_transform: Transform = global_transform.into();
+        let transform = local_transform * global_transform;
+        let transform_matrix = transform.compute_matrix();
+        let aabb = chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type);
         Self {
             dirty_mesh: true,
             gpu_mesh: None,
             id,
+            index: *index,
+            position,
+            size_in_tiles,
             map_size,
             map_type,
-            mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
-            position: *position,
-            size_in_tiles,
-            spacing,
             grid_size,
+            tile_size,
+            aabb,
+            local_transform,
+            global_transform,
+            transform,
+            transform_matrix,
+            mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
+            spacing,
             texture_size,
             texture,
-            tile_size,
             tilemap_id,
             tiles: vec![None; (size_in_tiles.x * size_in_tiles.y) as usize],
-            transform,
             visible,
-            aabb: chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type),
+            frustum_culling,
         }
     }
 
@@ -251,6 +273,70 @@ impl RenderChunk2d {
     pub fn set(&mut self, tile_pos: &TilePos, tile: Option<PackedTileData>) {
         self.dirty_mesh = true;
         self.tiles[tile_pos.to_index(&self.size_in_tiles.into())] = tile;
+    }
+
+    pub fn get_index(&self) -> UVec3 {
+        self.index
+    }
+
+    pub fn get_map_type(&self) -> TilemapType {
+        self.map_type
+    }
+
+    pub fn get_transform(&self) -> Transform {
+        self.transform
+    }
+
+    pub fn get_transform_matrix(&self) -> Mat4 {
+        self.transform_matrix
+    }
+
+    pub fn intersects_frustum(&self, frustum: &ExtractedFrustum) -> bool {
+        frustum.intersects_obb(&self.aabb, &self.transform_matrix)
+    }
+
+    pub fn update_geometry(
+        &mut self,
+        global_transform: Transform,
+        grid_size: TilemapGridSize,
+        tile_size: TilemapTileSize,
+        map_type: TilemapType,
+    ) {
+        let mut dirty_local_transform = false;
+
+        if self.grid_size != grid_size || self.tile_size != tile_size || self.map_type != map_type {
+            self.grid_size = grid_size;
+            self.map_type = map_type;
+            self.tile_size = tile_size;
+
+            self.position = chunk_index_to_world_space(
+                self.index.xy(),
+                self.size_in_tiles,
+                &self.grid_size,
+                &self.map_type,
+            );
+
+            self.local_transform = Transform::from_translation(self.position.extend(0.0));
+            dirty_local_transform = true;
+
+            self.aabb = chunk_aabb(
+                self.size_in_tiles,
+                &self.grid_size,
+                &self.tile_size,
+                &self.map_type,
+            );
+        }
+
+        let mut dirty_global_transform = false;
+        if self.global_transform != global_transform {
+            self.global_transform = global_transform;
+            dirty_global_transform = true;
+        }
+
+        if dirty_local_transform || dirty_global_transform {
+            self.transform = global_transform * self.local_transform;
+            self.transform_matrix = self.transform.compute_matrix();
+        }
     }
 
     pub fn prepare(&mut self, device: &RenderDevice) {
@@ -353,80 +439,6 @@ impl RenderChunk2d {
             self.dirty_mesh = false;
         }
     }
-
-    /// Re-calculate the [`Aabb`] of this chunk.
-    ///
-    /// Necessary when changes occur to the grid size or map type of the tilemap this chunk
-    /// belongs to.
-    pub fn update_aabb(&mut self) {
-        self.aabb = chunk_aabb(
-            self.size_in_tiles,
-            &self.grid_size,
-            &self.tile_size,
-            &self.map_type,
-        );
-    }
-
-    /// Get the [`Aabb`] of this chunk.
-    pub fn get_aabb(&self) -> Aabb {
-        self.aabb.clone()
-    }
-
-    /// Gets a reference to the grid size of the tilemap this chunk belongs to.
-    pub fn get_grid_size(&self) -> &TilemapGridSize {
-        &self.grid_size
-    }
-
-    /// Get a reference to the map type of the tilemap this chunk belongs to.
-    pub fn get_map_type(&self) -> &TilemapType {
-        &self.map_type
-    }
-
-    /// Get a reference to the tile size of the tilemap this chunk belongs to.
-    pub fn get_tile_size(&self) -> &TilemapTileSize {
-        &self.tile_size
-    }
-
-    /// Update the grid size information of this chunk.
-    ///
-    /// It triggers an update to the chunk's [`Aabb`](Aabb).
-    pub fn update_grid_size(&mut self, grid_size: &TilemapGridSize) {
-        self.grid_size = *grid_size;
-        self.update_aabb();
-    }
-
-    /// Update the map type information of this chunk.
-    ///
-    /// It triggers an update to the chunk's [`Aabb`](Aabb).
-    pub fn update_map_type(&mut self, map_type: &TilemapType) {
-        self.map_type = *map_type;
-        self.update_aabb();
-    }
-
-    /// Update the tile size information of this chunk.
-    ///
-    /// It triggers an update to the chunk's [`Aabb`](Aabb).
-    pub fn update_tile_size(&mut self, tile_size: &TilemapTileSize) {
-        self.tile_size = *tile_size;
-        self.update_aabb();
-    }
-
-    /// Update the grid size and map type information of this chunk
-    ///
-    /// Necessary when the map type and grid size of the tilemap it belongs have changed.
-    ///
-    /// It triggers an update to the chunk's [`Aabb`](Aabb).
-    pub fn update_tile_info(
-        &mut self,
-        grid_size: &TilemapGridSize,
-        tile_size: &TilemapTileSize,
-        map_type: &TilemapType,
-    ) {
-        self.grid_size = *grid_size;
-        self.tile_size = *tile_size;
-        self.map_type = *map_type;
-        self.update_aabb();
-    }
 }
 
 // Used to transfer info to the GPU for tile building.
@@ -444,7 +456,7 @@ pub struct TilemapUniformData {
 
 impl From<&RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &RenderChunk2d) -> Self {
-        let chunk_pos: Vec2 = chunk.position.xy().as_vec2();
+        let chunk_ix: Vec2 = chunk.index.xy().as_vec2();
         let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();
@@ -453,7 +465,7 @@ impl From<&RenderChunk2d> for TilemapUniformData {
             tile_size,
             grid_size: chunk.grid_size.into(),
             spacing: chunk.spacing,
-            chunk_pos: chunk_pos * chunk_size,
+            chunk_pos: chunk_ix * chunk_size,
             map_size: map_size * tile_size,
             time: 0.0,
             pad: Vec3::ZERO,
@@ -463,7 +475,7 @@ impl From<&RenderChunk2d> for TilemapUniformData {
 
 impl From<&mut RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &mut RenderChunk2d) -> Self {
-        let chunk_pos: Vec2 = chunk.position.xy().as_vec2();
+        let chunk_pos: Vec2 = chunk.index.xy().as_vec2();
         let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();

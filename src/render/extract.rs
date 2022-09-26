@@ -15,6 +15,7 @@ use crate::{
         TilemapTileSize, TilemapType,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
+    FrustumCulling,
 };
 
 use super::RemovedMapEntity;
@@ -68,6 +69,7 @@ pub struct ExtractedTilemapBundle {
     texture: TilemapTexture,
     map_size: TilemapSize,
     visibility: ComputedVisibility,
+    frustum_culling: FrustumCulling,
 }
 
 #[derive(Component)]
@@ -86,13 +88,13 @@ pub(crate) struct ExtractedTilemapTextureBundle {
 }
 
 #[derive(Component, Debug)]
-pub(crate) struct ExtractedFrustum {
+pub struct ExtractedFrustum {
     frustum: Frustum,
 }
 
 impl ExtractedFrustum {
-    pub fn intersects_obb(&self, aabb: &Aabb, global_transform: &Mat4) -> bool {
-        self.frustum.intersects_obb(aabb, global_transform, false)
+    pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
+        self.frustum.intersects_obb(aabb, transform_matrix, false)
     }
 }
 
@@ -133,6 +135,7 @@ pub fn extract(
             &TilemapTexture,
             &TilemapSize,
             &ComputedVisibility,
+            &FrustumCulling,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -148,6 +151,7 @@ pub fn extract(
                 Changed<TilemapGridSize>,
                 Changed<TilemapSize>,
                 Changed<ComputedVisibility>,
+                Changed<FrustumCulling>,
             )>,
         >,
     >,
@@ -211,6 +215,7 @@ pub fn extract(
                     texture: data.6.clone(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
+                    frustum_culling: *data.9,
                 },
             ),
         );
@@ -245,6 +250,7 @@ pub fn extract(
                         texture: data.6.clone(),
                         map_size: *data.7,
                         visibility: data.8.clone(),
+                        frustum_culling: *data.9,
                     },
                 ),
             );
@@ -255,7 +261,7 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, spacing, _, _, texture, _, _) in tilemap_query.iter() {
+    for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
         let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
             #[cfg(not(feature = "atlas"))]
             if !_atlas_image

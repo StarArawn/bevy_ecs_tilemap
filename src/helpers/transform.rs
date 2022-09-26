@@ -1,6 +1,5 @@
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
-use bevy::log::info;
 use bevy::math::{UVec2, Vec2, Vec3};
 use bevy::render::primitives::Aabb;
 
@@ -33,15 +32,21 @@ pub fn chunk_aabb(
     tile_size: &TilemapTileSize,
     map_type: &TilemapType,
 ) -> Aabb {
-    info!("calculating AABB, map_type: {map_type:?}");
-    let delta = Vec2::new(grid_size.x.max(tile_size.x), grid_size.y.max(tile_size.y));
-    let c1 = Vec2::new(0.0, 0.0) - delta;
-    info!("c1: {c1:?}");
-    let c2 = chunk_index_to_world_space(UVec2::new(1, 1), chunk_size, grid_size, map_type) + delta;
-    info!("c2: {c2:?}");
-    let minimum = Vec3::from((c1.min(c2), 0.0));
-    info!("minimum: {minimum:?}");
-    let maximum = Vec3::from((c1.max(c2), 1.0));
-    info!("maximum: {maximum:?}");
+    // The AABB minimum and maximum have to be modified by -border and +border respectively.
+    let border = Vec2::from(grid_size).max(tile_size.into());
+
+    // For most map types, it would be sufficient to calculate c0 and c3. However, for some map
+    // types (right now, isometric diamond), this would not work, and for robustness (especially
+    // with respect map types added in the future), we calculate all four corner points, and
+    // then minimize/maximize them.
+    //
+    // Alternatively, a map-type specific calculations could be executed here.
+    let c0 = chunk_index_to_world_space(UVec2::new(0, 0), chunk_size, grid_size, map_type);
+    let c1 = chunk_index_to_world_space(UVec2::new(1, 0), chunk_size, grid_size, map_type);
+    let c2 = chunk_index_to_world_space(UVec2::new(0, 1), chunk_size, grid_size, map_type);
+    let c3 = chunk_index_to_world_space(UVec2::new(1, 1), chunk_size, grid_size, map_type);
+
+    let minimum = Vec3::from((c0.min(c1).min(c2).min(c3) - border, 0.0));
+    let maximum = Vec3::from((c0.max(c1).max(c2).max(c3) + border, 1.0));
     Aabb::from_min_max(minimum, maximum)
 }

@@ -1,19 +1,22 @@
 use bevy::log::{Level, LogSettings};
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::FrustumCulling;
 mod helpers;
 use helpers::camera::movement as camera_movement;
 
 // Press SPACE to change map type.
 //
-// The most important code here is the setting that adds FrustumCull.
+// The most important code here is the setting that adds the `FrustumCull` component, and the
+// code that enables logging for trace events from bevy_ecs_tilemap.
 //
 // You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
 // but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
 // otherwise things might be too slow.
 
-const MAP_SIDE_LENGTH_X: u32 = 8;
-const MAP_SIDE_LENGTH_Y: u32 = 8;
+// We want to trigger render chunking, which has minimum size 64x64.
+const MAP_SIDE_LENGTH_X: u32 = 64;
+const MAP_SIDE_LENGTH_Y: u32 = 64;
 
 const TILE_SIZE_SQUARE: TilemapTileSize = TilemapTileSize { x: 50.0, y: 50.0 };
 const TILE_SIZE_ISO: TilemapTileSize = TilemapTileSize { x: 100.0, y: 50.0 };
@@ -56,7 +59,8 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     commands.spawn_bundle(Camera2dBundle::default());
 
     let total_size = TilemapSize {
-        x: MAP_SIDE_LENGTH_X * MAP_SIDE_LENGTH_X * 2,
+        // Render chunks are of size 64, so let's create two render chunks
+        x: MAP_SIDE_LENGTH_X * 2,
         y: MAP_SIDE_LENGTH_Y,
     };
 
@@ -86,6 +90,9 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
             map_type: TilemapType::Square {
                 diagonal_neighbors: false,
             },
+            // The default behaviour is `FrustumCulling(true)`, but we supply this explicitly here
+            // for the purposes of the example.
+            frustum_culling: FrustumCulling(true),
             ..Default::default()
         });
 }

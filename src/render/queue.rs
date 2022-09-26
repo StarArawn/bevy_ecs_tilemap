@@ -188,7 +188,7 @@ pub fn queue_meshes(
 
                     let key = TilemapPipelineKey {
                         msaa: msaa.samples,
-                        map_type: *chunk.get_map_type(),
+                        map_type: chunk.get_map_type(),
                     };
 
                     let pipeline_id =

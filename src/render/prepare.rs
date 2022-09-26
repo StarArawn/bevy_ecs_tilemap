@@ -1,25 +1,24 @@
 use std::marker::PhantomData;
 
+use crate::map::{
+    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
+    TilemapType,
+};
+use crate::render::extract::ExtractedFrustum;
+use crate::{
+    prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
+};
 use bevy::log::trace;
 use bevy::{
-    math::{Mat4, UVec4, Vec3Swizzles},
+    math::{Mat4, UVec4},
     prelude::{
-        Commands, Component, ComputedVisibility, Entity, GlobalTransform, Query, Res, ResMut,
-        Transform, Vec2,
+        Commands, Component, ComputedVisibility, Entity, GlobalTransform, Query, Res, ResMut, Vec2,
     },
     render::{
         render_resource::{DynamicUniformBuffer, ShaderType},
         renderer::{RenderDevice, RenderQueue},
     },
 };
-
-use crate::helpers::transform::chunk_index_to_world_space;
-use crate::map::{
-    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
-    TilemapType,
-};
-use crate::render::extract::ExtractedFrustum;
-use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
@@ -51,6 +50,7 @@ pub(crate) fn prepare(
         &TilemapTexture,
         &TilemapSize,
         &ComputedVisibility,
+        &FrustumCulling,
     )>,
     extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
     extracted_frustum_query: Query<&ExtractedFrustum>,
@@ -76,6 +76,7 @@ pub(crate) fn prepare(
             texture,
             map_size,
             visibility,
+            frustum_culling,
         ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
 
         let scale = transform.compute_transform().scale;
@@ -102,6 +103,7 @@ pub(crate) fn prepare(
             *map_size,
             *transform,
             visibility,
+            frustum_culling,
         );
         chunk.set(
             &in_chunk_tile_index.into(),
@@ -119,7 +121,7 @@ pub(crate) fn prepare(
     // Copies transform changes from tilemap to chunks.
     for (
         entity,
-        transform,
+        global_transform,
         tile_size,
         texture_size,
         spacing,
@@ -128,17 +130,23 @@ pub(crate) fn prepare(
         texture,
         map_size,
         visibility,
+        frustum_culling,
     ) in extracted_tilemaps.iter()
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
         for chunk in chunks.values_mut() {
-            chunk.transform = *transform;
             chunk.texture = texture.clone();
             chunk.map_size = *map_size;
             chunk.texture_size = (*texture_size).into();
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.is_visible();
-            chunk.update_tile_info(grid_size, tile_size, map_type);
+            chunk.frustum_culling = **frustum_culling;
+            chunk.update_geometry(
+                (*global_transform).into(),
+                *grid_size,
+                *tile_size,
+                *map_type,
+            );
         }
     }
 
@@ -156,32 +164,19 @@ pub(crate) fn prepare(
 
     for chunk in chunk_storage.iter_mut() {
         if !chunk.visible {
+            trace!("Visibility culled chunk: {:?}", chunk.get_index());
             continue;
         }
 
-        let chunk_global_transform: Transform = chunk.transform.into();
-
-        let chunk_pos = chunk_index_to_world_space(
-            chunk.position.xy(),
-            chunk.size_in_tiles,
-            chunk.get_grid_size(),
-            chunk.get_map_type(),
-        );
-        let chunk_local_transform = Transform::from_xyz(chunk_pos.x, chunk_pos.y, 0.0);
-        trace!("chunk_local_transform: {:?}", chunk_local_transform);
-        trace!("chunk_global_transform: {:?}", chunk_global_transform);
-        let aabb = chunk.get_aabb();
-        trace!("aabb: {:?}", aabb);
-        let transform = chunk_local_transform * chunk_global_transform;
-        let transform_matrix = transform.compute_matrix();
-        if !extracted_frustum_query
-            .iter()
-            .any(|frustum| frustum.intersects_obb(&aabb, &transform_matrix))
+        if chunk.frustum_culling
+            && !extracted_frustum_query
+                .iter()
+                .any(|frustum| chunk.intersects_frustum(frustum))
         {
-            trace!("Frustum culled chunk: {:?}", chunk.position.xy());
+            trace!("Frustum culled chunk: {:?}", chunk.get_index());
             continue;
         }
-        trace!("Chunk was not frustum culled.");
+        trace!("Preparing chunk: {:?}", chunk.get_index());
 
         chunk.prepare(&render_device);
 
@@ -191,13 +186,13 @@ pub(crate) fn prepare(
         commands
             .spawn()
             .insert(chunk.texture.0.clone_weak())
-            .insert(transform)
-            .insert(ChunkId(chunk.position))
-            .insert(*(chunk.get_map_type()))
+            .insert(chunk.get_transform())
+            .insert(ChunkId(chunk.get_index()))
+            .insert(chunk.get_map_type())
             .insert(TilemapId(Entity::from_raw(chunk.tilemap_id)))
             .insert(DynamicUniformIndex::<MeshUniform> {
                 index: mesh_uniforms.push(MeshUniform {
-                    transform: transform_matrix,
+                    transform: chunk.get_transform_matrix(),
                 }),
                 marker: PhantomData,
             })
