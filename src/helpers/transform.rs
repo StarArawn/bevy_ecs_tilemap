@@ -1,5 +1,6 @@
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
+use bevy::log::info;
 use bevy::math::{UVec2, Vec2, Vec3, Vec3A};
 use bevy::prelude::Transform;
 use bevy::render::primitives::Aabb;
@@ -45,6 +46,7 @@ pub fn chunk_aabb(
 /// Workaround for: https://github.com/bevyengine/bevy/issues/6090
 pub fn apply_transform_to_aabb(transform: Transform, aabb: Aabb) -> Aabb {
     let center = (transform * Vec3::from(aabb.center)).into();
+    info!("transformed_center: {:?}", center);
 
     let half_x = Vec3::new(aabb.half_extents.x, 0.0, 0.0);
     let half_y = Vec3::new(0.0, aabb.half_extents.y, 0.0);

@@ -18,7 +18,6 @@ use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
 };
-use crate::prelude::apply_transform_to_aabb;
 use crate::render::extract::ExtractedFrustum;
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup};
 
@@ -95,10 +94,10 @@ pub(crate) fn prepare(
             &chunk_data,
             **chunk_size,
             *mesh_type,
-            (*tile_size).into(),
+            *tile_size,
             (*texture_size).into(),
             (*spacing).into(),
-            (*grid_size).into(),
+            *grid_size,
             texture.clone(),
             *map_size,
             *transform,
@@ -168,18 +167,22 @@ pub(crate) fn prepare(
             chunk.get_grid_size(),
             chunk.get_map_type(),
         );
+        info!("==========");
         let chunk_local_transform = Transform::from_xyz(chunk_pos.x, chunk_pos.y, 0.0);
-
+        info!("chunk_local_transform: {:?}", chunk_local_transform);
+        info!("chunk_global_transform: {:?}", chunk_global_transform);
+        let aabb = chunk.get_aabb();
+        info!("aabb: {:?}", aabb);
         let transform = chunk_local_transform * chunk_global_transform;
-        let transformed_aabb = apply_transform_to_aabb(transform.clone(), chunk.get_aabb());
-
+        let transform_matrix = transform.compute_matrix();
         if !extracted_frustum_query
             .iter()
-            .any(|frustum| frustum.intersects_obb(&transformed_aabb))
+            .any(|frustum| frustum.intersects_obb(&aabb, &transform_matrix))
         {
             info!("Frustum culled chunk: {:?}", chunk.position.xy());
             continue;
         }
+        info!("Chunk was not frustum culled.");
 
         chunk.prepare(&render_device);
 
@@ -195,7 +198,7 @@ pub(crate) fn prepare(
             .insert(TilemapId(Entity::from_raw(chunk.tilemap_id)))
             .insert(DynamicUniformIndex::<MeshUniform> {
                 index: mesh_uniforms.push(MeshUniform {
-                    transform: transform.compute_matrix(),
+                    transform: transform_matrix,
                 }),
                 marker: PhantomData,
             })
