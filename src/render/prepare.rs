@@ -79,11 +79,9 @@ pub(crate) fn prepare(
             frustum_culling,
         ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
 
-        let scale = transform.compute_transform().scale;
-
         let chunk_data = UVec4::new(
-            chunk_index.x * scale.x as u32,
-            chunk_index.y * scale.y as u32,
+            chunk_index.x,
+            chunk_index.y,
             transform.translation().z as u32,
             tile.tilemap_id.0.id(),
         );
