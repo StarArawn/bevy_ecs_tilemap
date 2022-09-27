@@ -527,9 +527,11 @@ pub fn hex_neighbor_pos(
                 south_east: axial_pos
                     .offset_compass_row(SouthEast)
                     .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
-                east: None,
+                east: axial_pos
+                    .offset_compass_row(East)
+                    .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
                 north_east: axial_pos
-                    .offset_compass_row(SouthEast)
+                    .offset_compass_row(NorthEast)
                     .as_tile_pos_given_coord_system_and_map_size(coord_sys, tilemap_size),
             }
         }

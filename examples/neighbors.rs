@@ -6,10 +6,8 @@ mod helpers;
 use crate::KeyCode::{Key0, Key1, Key2, Key3, Key4, Key5};
 use helpers::camera::movement as camera_movement;
 
-// Press SPACE to change map type. Hover over mouse tiles to highlight their labels.
-//
-// The most important function here is the `highlight_tile_labels` systems, which shows how to
-// convert a mouse cursor position into a tile position.
+// Press SPACE to change map type. Hover over a tile to highlight its label (red) and those of its
+// neighbors (blue). Press and hold one of keys 0-5 to mark the neighbor in that direction (green).
 
 // You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
 // but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
@@ -348,7 +346,7 @@ struct NeighborHighlight;
 #[allow(clippy::too_many_arguments)]
 fn highlight_neighbor_label(
     mut commands: Commands,
-    tilemap_query: Query<(&TilemapType, &TileStorage)>,
+    tilemap_query: Query<(&TilemapType, &TilemapSize, &TileStorage)>,
     keyboard_input: Res<Input<KeyCode>>,
     highlighted_tiles_q: Query<Entity, With<NeighborHighlight>>,
     hovered_tiles_q: Query<&TilePos, With<Hovered>>,
@@ -366,8 +364,24 @@ fn highlight_neighbor_label(
         }
     }
 
-    for (map_type, tile_storage) in tilemap_query.iter() {
+    for (map_type, map_size, tile_storage) in tilemap_query.iter() {
         for hovered_tile_pos in hovered_tiles_q.iter() {
+            // Get the neighbors of the hovered tile.
+            for neighbor_pos in
+                get_neighboring_pos(hovered_tile_pos, map_size, map_type).into_iter()
+            {
+                // We want to ensure that the tile position lies within the tile map, so we do a
+                // `checked_get`.
+                if let Some(tile_entity) = tile_storage.checked_get(&neighbor_pos) {
+                    if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
+                        for mut section in tile_text.sections.iter_mut() {
+                            section.style.color = Color::BLUE;
+                        }
+                        commands.entity(tile_entity).insert(NeighborHighlight);
+                    }
+                }
+            }
+
             let selected_hex_direction = if keyboard_input.pressed(Key0) {
                 Some(HexDirection::Zero)
             } else if keyboard_input.pressed(Key1) {
@@ -387,7 +401,8 @@ fn highlight_neighbor_label(
             if let Some(hex_direction) = selected_hex_direction {
                 let tile_pos = match map_type {
                     TilemapType::Hexagon(hex_coord_sys) => {
-                        // This procedure does not check to see if the calculated neighbor lies
+                        // Get the neighbor in a particular direction.
+                        // This function does not check to see if the calculated neighbor lies
                         // within the tile map.
                         hex_direction.offset(hovered_tile_pos, *hex_coord_sys)
                     }
