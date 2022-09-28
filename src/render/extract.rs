@@ -1,5 +1,6 @@
 use bevy::prelude::Res;
 use bevy::prelude::Time;
+use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::texture::ImageSettings;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
@@ -14,6 +15,7 @@ use crate::{
         TilemapTileSize, TilemapType,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
+    FrustumCulling,
 };
 
 use super::RemovedMapEntity;
@@ -67,6 +69,7 @@ pub struct ExtractedTilemapBundle {
     texture: TilemapTexture,
     map_size: TilemapSize,
     visibility: ComputedVisibility,
+    frustum_culling: FrustumCulling,
 }
 
 #[derive(Component)]
@@ -84,6 +87,18 @@ pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
 }
 
+#[derive(Component, Debug)]
+pub struct ExtractedFrustum {
+    frustum: Frustum,
+}
+
+impl ExtractedFrustum {
+    pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
+        self.frustum.intersects_obb(aabb, transform_matrix, false)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 pub fn extract(
     mut commands: Commands,
     default_image_settings: Extract<Res<ImageSettings>>,
@@ -120,6 +135,7 @@ pub fn extract(
             &TilemapTexture,
             &TilemapSize,
             &ComputedVisibility,
+            &FrustumCulling,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -135,9 +151,11 @@ pub fn extract(
                 Changed<TilemapGridSize>,
                 Changed<TilemapSize>,
                 Changed<ComputedVisibility>,
+                Changed<FrustumCulling>,
             )>,
         >,
     >,
+    camera_query: Extract<Query<(Entity, &Frustum), With<Camera>>>,
     images: Extract<Res<Assets<Image>>>,
     time: Extract<Res<Time>>,
 ) {
@@ -197,6 +215,7 @@ pub fn extract(
                     texture: data.6.clone(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
+                    frustum_culling: *data.9,
                 },
             ),
         );
@@ -231,6 +250,7 @@ pub fn extract(
                         texture: data.6.clone(),
                         map_size: *data.7,
                         visibility: data.8.clone(),
+                        frustum_culling: *data.9,
                     },
                 ),
             );
@@ -241,7 +261,7 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, spacing, _, _, texture, _, _) in tilemap_query.iter() {
+    for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
         let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
             #[cfg(not(feature = "atlas"))]
             if !_atlas_image
@@ -270,6 +290,12 @@ pub fn extract(
                 },
             },
         ));
+    }
+
+    for (entity, frustum) in camera_query.iter() {
+        commands
+            .get_or_spawn(entity)
+            .insert(ExtractedFrustum { frustum: *frustum });
     }
 
     commands.insert_or_spawn_batch(extracted_tiles);

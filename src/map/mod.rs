@@ -75,7 +75,7 @@ impl From<UVec2> for TilemapSize {
 pub struct TilemapTexture(pub Handle<Image>);
 
 /// Size of the tiles in pixels
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct TilemapTileSize {
     pub x: f32,
     pub y: f32,
@@ -106,7 +106,7 @@ impl From<&TilemapTileSize> for Vec2 {
 /// This can be used to overlay tiles on top of each other.
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
 /// a grid size of 16x8.
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct TilemapGridSize {
     pub x: f32,
     pub y: f32,

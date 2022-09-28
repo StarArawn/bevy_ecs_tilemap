@@ -145,7 +145,7 @@ impl FromWorld for TilemapPipeline {
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TilemapPipelineKey {
     pub msaa: u32,
-    pub mesh_type: TilemapType,
+    pub map_type: TilemapType,
 }
 
 impl SpecializedRenderPipeline for TilemapPipeline {
@@ -157,7 +157,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
         #[cfg(feature = "atlas")]
         shader_defs.push("ATLAS".into());
 
-        let mesh_string = match key.mesh_type {
+        let mesh_string = match key.map_type {
             TilemapType::Square { .. } => "SQUARE",
             TilemapType::Isometric {
                 coord_system: iso_type,

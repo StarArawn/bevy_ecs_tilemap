@@ -66,12 +66,14 @@ impl RenderChunkSize {
         RenderChunkSize(chunk_size)
     }
 
+    /// Calculates the index of the chunk this tile is in.
     #[inline]
     pub fn map_tile_to_chunk(&self, tile_position: &TilePos) -> UVec2 {
         let tile_pos: UVec2 = tile_position.into();
         tile_pos / self.0
     }
 
+    /// Calculates the index of this tile within the chunk.
     #[inline]
     pub fn map_tile_to_chunk_tile(&self, tile_position: &TilePos, chunk_position: &UVec2) -> UVec2 {
         let tile_pos: UVec2 = tile_position.into();
