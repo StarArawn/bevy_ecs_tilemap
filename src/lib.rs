@@ -15,8 +15,8 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, ComputedVisibility, CoreStage, GlobalTransform, Plugin, Query, Transform,
-    Visibility,
+    Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
+    Query, Transform, Visibility,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
@@ -58,6 +58,16 @@ impl Plugin for TilemapPlugin {
     }
 }
 
+#[derive(Component, Debug, Clone, Copy, Deref)]
+pub struct FrustumCulling(pub bool);
+
+impl Default for FrustumCulling {
+    /// By default, `FrustumCulling` is `true`.
+    fn default() -> Self {
+        FrustumCulling(true)
+    }
+}
+
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
 pub struct TilemapBundle {
@@ -72,8 +82,11 @@ pub struct TilemapBundle {
     pub global_transform: GlobalTransform,
     /// User indication of whether an entity is visible
     pub visibility: Visibility,
-    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted
+    /// for rendering
     pub computed_visibility: ComputedVisibility,
+    /// User indication of whether tilemap should be frustum culled.
+    pub frustum_culling: FrustumCulling,
 }
 
 /// A module which exports commonly used dependencies.
