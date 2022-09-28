@@ -76,6 +76,18 @@ impl Mul<CubePos> for i32 {
     }
 }
 
+impl Mul<CubePos> for u32 {
+    type Output = CubePos;
+
+    fn mul(self, rhs: CubePos) -> Self::Output {
+        CubePos {
+            q: (self as i32) * rhs.q,
+            r: (self as i32) * rhs.r,
+            s: (self as i32) * rhs.s,
+        }
+    }
+}
+
 impl CubePos {
     /// The magnitude of a cube position is its distance away from the `[0, 0, 0]` hex_grid.
     ///
