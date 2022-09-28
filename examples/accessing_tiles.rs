@@ -48,7 +48,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 })
                 .id();
             // Here we let the tile storage component know what tiles we have.
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 
