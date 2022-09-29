@@ -48,14 +48,14 @@ pub(crate) fn extract(
     array_texture_loader: Extract<Res<ArrayTextureLoader>>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
 ) {
-    for texture in array_texture_loader.drain() {
-        if let Some(image) = images.get(&texture.atlas_texture) {
-            texture_array_cache.add(
-                &texture.atlas_texture,
-                texture.tile_size.into(),
+    for array_texture in array_texture_loader.drain() {
+        if let Some(image) = images.get(&array_texture.atlas_texture) {
+            texture_array_cache.add_atlas(
+                &array_texture.atlas_texture,
+                array_texture.tile_size.into(),
                 image.size(),
-                texture.tile_spacing.into(),
-                if let Some(filter) = texture.filter {
+                array_texture.tile_spacing.into(),
+                if let Some(filter) = array_texture.filter {
                     filter
                 } else {
                     default_image_settings.default_sampler.mag_filter
@@ -63,7 +63,7 @@ pub(crate) fn extract(
             );
         } else {
             // Image hasn't loaded yet punt to next frame.
-            array_texture_loader.add(texture);
+            array_texture_loader.add(array_texture);
         }
     }
 }

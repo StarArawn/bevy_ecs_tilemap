@@ -1,6 +1,7 @@
+use bevy::render::render_resource::ShaderType;
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Component, Entity, Handle, Image},
+    prelude::{Assets, Bundle, Component, Entity, Handle, Image, Res},
 };
 
 /// Custom parameters for the render pipeline.
@@ -70,9 +71,85 @@ impl From<UVec2> for TilemapSize {
     }
 }
 
-/// A bevy asset handle linking to the tilemap atlas image file.
-#[derive(Component, Clone, Default, Debug, Hash)]
-pub struct TilemapTexture(pub Handle<Image>);
+#[derive(Component, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum TilemapTexture {
+    Atlas(Handle<Image>),
+    Vector(Vec<Handle<Image>>),
+}
+
+impl Default for TilemapTexture {
+    fn default() -> Self {
+        TilemapTexture::Atlas(Handle::default())
+    }
+}
+
+impl TilemapTexture {
+    /// Create from a vector of image handles, each representing one tile.
+    ///
+    /// The images must already have been loaded by the asset server.
+    ///
+    /// Each image must have the same size, and this function will check to make sure this is the
+    /// case, panicking if images of different sizes than the `expected_tile_size` are encountered.
+    pub fn from_image_handles(
+        image_handles: Vec<Handle<Image>>,
+        image_assets: Res<Assets<Image>>,
+        expected_tile_size: TilemapTileSize,
+    ) -> TilemapTexture {
+        if image_handles.is_empty() {
+            panic!("Image handles vector is empty.");
+        }
+        let expected_size = Vec2::from(expected_tile_size);
+        for handle in image_handles.iter() {
+            let image_size = image_assets
+                .get(handle)
+                .expect("Assets<Image> does not contain image with given handle.")
+                .size();
+            if !(expected_size == image_size) {
+                panic!(
+                    "Found an image of size {image_size:?} \
+                which is different from expected {expected_size:?}"
+                );
+            }
+        }
+        TilemapTexture::Vector(image_handles)
+    }
+
+    /// Create from a handle to an image that contains multiple tiles in a single size.
+    ///
+    /// Each image must have the same size, and this function will check to make sure this is the
+    /// case, panicking if images of different sizes than the `expected_tile_size` are encountered.
+    pub fn from_atlas(
+        image_handle: Handle<Image>,
+        image_assets: Res<Assets<Image>>,
+        expected_tile_size: TilemapTileSize,
+    ) -> TilemapTexture {
+        let image_size = image_assets
+            .get(&image_handle)
+            .expect("Assets<Image> does not contain image with given handle.")
+            .size();
+        let num_x_tiles = image_size.x / expected_tile_size.x;
+        let num_y_tiles = image_size.y / expected_tile_size.y;
+
+        let double_epsilon = 2.0 * f32::EPSILON;
+        if num_x_tiles.fract() > double_epsilon || num_y_tiles.fract() > double_epsilon {
+            panic!(
+                "Expected tile size was: {expected_tile_size:?}, \
+            and image size was: {image_size:?}, which does not cleanly divide expected tile size. \
+            (num_x_tiles, num_y_tiles): ({num_x_tiles:?}, {num_y_tiles:?})"
+            );
+        }
+        TilemapTexture::Atlas(image_handle)
+    }
+
+    pub fn clone_weak(&self) -> Self {
+        match self {
+            TilemapTexture::Atlas(handle) => TilemapTexture::Atlas(handle.clone_weak()),
+            TilemapTexture::Vector(handles) => {
+                TilemapTexture::Vector(handles.iter().map(|h| h.clone_weak()).collect())
+            }
+        }
+    }
+}
 
 /// Size of the tiles in pixels
 #[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
@@ -99,6 +176,13 @@ impl From<TilemapTileSize> for Vec2 {
 impl From<&TilemapTileSize> for Vec2 {
     fn from(tile_size: &TilemapTileSize) -> Self {
         Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<Vec2> for TilemapTileSize {
+    fn from(v: Vec2) -> Self {
+        let Vec2 { x, y } = v;
+        TilemapTileSize { x, y }
     }
 }
 

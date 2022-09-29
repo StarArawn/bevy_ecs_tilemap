@@ -20,8 +20,9 @@ use bevy::{
 use bevy::render::renderer::RenderDevice;
 
 use crate::{
-    prelude::{TilemapRenderSettings, TilemapTexture},
+    prelude::TilemapRenderSettings,
     tiles::{TilePos, TileStorage},
+    TilemapTexture,
 };
 
 use self::{
@@ -322,7 +323,7 @@ fn prepare_textures(
         let tile_size: Vec2 = tilemap.tile_size.into();
         let texture_size: Vec2 = tilemap.texture_size.into();
         let spacing: Vec2 = tilemap.spacing.into();
-        texture_array_cache.add(
+        texture_array_cache.add_atlas(
             &tilemap.texture.0,
             tile_size,
             texture_size,

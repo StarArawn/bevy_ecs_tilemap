@@ -1,5 +1,7 @@
 use std::num::NonZeroU32;
 
+use crate::map::TilemapTextureSize;
+use crate::{TilemapSpacing, TilemapTexture, TilemapTileSize};
 use bevy::{
     math::Vec2,
     prelude::{Handle, Image, Res},
@@ -18,57 +20,72 @@ use bevy::{
 
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
-    textures: HashMap<Handle<Image>, GpuImage>,
-    sizes: HashMap<Handle<Image>, (Vec2, Vec2, Vec2, FilterMode)>,
-    prepare_queue: HashSet<Handle<Image>>,
-    queue_queue: HashSet<Handle<Image>>,
+    textures: HashMap<TilemapTexture, GpuImage>,
+    sizes: HashMap<
+        TilemapTexture,
+        (
+            u32,
+            TilemapTileSize,
+            TilemapTextureSize,
+            TilemapSpacing,
+            FilterMode,
+        ),
+    >,
+    prepare_queue: HashSet<TilemapTexture>,
+    queue_queue: HashSet<TilemapTexture>,
     bad_flag_queue: HashSet<Handle<Image>>,
 }
 
 impl TextureArrayCache {
-    /// Adds an atlas to the texture array cache.
+    /// Adds a `TilemapTexture` to the texture array cache.
     pub fn add(
         &mut self,
-        atlas_texture: &Handle<Image>,
-        tile_size: Vec2,
-        texture_size: Vec2,
-        tile_spacing: Vec2,
+        texture: TilemapTexture,
+        tile_size: TilemapTileSize,
+        texture_size: TilemapTextureSize,
+        tile_spacing: TilemapSpacing,
         filter: FilterMode,
     ) {
-        if !self.sizes.contains_key(atlas_texture) {
+        if !self.sizes.contains_key(&texture) {
+            let count = match &texture {
+                TilemapTexture::Atlas(_) => {
+                    let tile_count_x = ((texture_size.x as f32 + tile_spacing.x)
+                        / (tile_size.x + tile_spacing.x))
+                        .floor();
+                    let tile_count_y = ((texture_size.y as f32 + tile_spacing.y)
+                        / (tile_size.y + tile_spacing.y))
+                        .floor();
+                    (tile_count_x * tile_count_y) as u32
+                }
+                TilemapTexture::Vector(tile_handles) => tile_handles.len() as u32,
+            };
+
             self.sizes.insert(
-                atlas_texture.clone_weak(),
-                (tile_size, texture_size, tile_spacing, filter),
+                texture.clone_weak(),
+                (count, tile_size, texture_size, tile_spacing, filter),
             );
-            self.prepare_queue.insert(atlas_texture.clone_weak());
+            self.prepare_queue.insert(texture.clone_weak());
         }
     }
 
-    pub fn get(&self, image_handle: &Handle<Image>) -> &GpuImage {
-        self.textures.get(image_handle).unwrap()
+    pub fn get(&self, texture: &TilemapTexture) -> &GpuImage {
+        self.textures.get(texture).unwrap()
     }
 
-    pub fn contains(&self, image_handle: &Handle<Image>) -> bool {
-        self.textures.contains_key(image_handle)
+    pub fn contains(&self, texture: &TilemapTexture) -> bool {
+        self.textures.contains_key(texture)
     }
 
     /// Prepares each texture array texture
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
-        for item in prepare_queue {
-            let (tile_size, atlas_size, spacing, filter) = self.sizes.get(&item).unwrap();
-            let tile_count_x =
-                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
-            let tile_count_y =
-                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
-            let mut count = (tile_count_x * tile_count_y) as u32;
+        for texture in prepare_queue {
+            let (count, tile_size, atlas_size, spacing, filter) = self.sizes.get(&texture).unwrap();
 
             // Fixes weird cubemap bug.
-            if count == 6 {
-                count += 1;
-            }
+            let count = if *count == 6 { count + 1 } else { *count };
 
-            let texture = render_device.create_texture(&TextureDescriptor {
+            let gpu_texture = render_device.create_texture(&TextureDescriptor {
                 label: Some("texture_array"),
                 size: Extent3d {
                     width: tile_size.x as u32,
@@ -97,7 +114,7 @@ impl TextureArrayCache {
                 border_color: None,
             });
 
-            let texture_view = texture.create_view(&TextureViewDescriptor {
+            let texture_view = gpu_texture.create_view(&TextureViewDescriptor {
                 label: Some("texture_array_view"),
                 format: None,
                 dimension: Some(TextureViewDimension::D2Array),
@@ -110,14 +127,14 @@ impl TextureArrayCache {
 
             let gpu_image = GpuImage {
                 texture_format: TextureFormat::bevy_default(),
-                texture,
+                texture: gpu_texture,
                 sampler,
                 texture_view,
                 size: Vec2::new(tile_size.x, tile_size.y),
             };
 
-            self.textures.insert(item.clone_weak(), gpu_image);
-            self.queue_queue.insert(item.clone_weak());
+            self.textures.insert(texture.clone_weak(), gpu_image);
+            self.queue_queue.insert(texture.clone_weak());
         }
     }
 
@@ -125,24 +142,26 @@ impl TextureArrayCache {
         &mut self,
         render_device: &RenderDevice,
         render_queue: &RenderQueue,
-        gpu_images: &Res<RenderAssets<Image>>,
+        render_images: &Res<RenderAssets<Image>>,
     ) {
         let queue_queue = self.queue_queue.drain().collect::<Vec<_>>();
 
-        for item in queue_queue {
-            let atlas_image = if let Some(atlas_image) = gpu_images.get(&item) {
-                atlas_image
-            } else {
-                self.prepare_queue.insert(item);
-                continue;
-            };
+        for texture in queue_queue {
+            let gpu_image = match &texture {
+                TilemapTexture::Atlas(atlas_handle) => {
+                    let gpu_image = if let Some(gpu_image) = render_images.get(&atlas_handle) {
+                        gpu_image
+                    } else {
+                        self.prepare_queue.insert(texture);
+                        continue;
+                    };
+                }
+                TilemapTexture::Vector(_) => {}
+            }
 
-            let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
-            let array_gpu_image = self.textures.get(&item).unwrap();
-            let tile_count_x =
-                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
-            let tile_count_y =
-                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
+
+            let (count, tile_size, atlas_size, spacing, _) = self.sizes.get(&texture).unwrap();
+            let array_gpu_image = self.textures.get(&texture).unwrap();
             let count = (tile_count_x * tile_count_y) as u32;
 
             let mut command_encoder =
@@ -157,7 +176,7 @@ impl TextureArrayCache {
 
                 command_encoder.copy_texture_to_texture(
                     ImageCopyTexture {
-                        texture: &atlas_image.texture,
+                        texture: &gpu_image.texture,
                         mip_level: 0,
                         origin: Origin3d {
                             x: sprite_sheet_x as u32,

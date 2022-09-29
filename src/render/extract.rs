@@ -83,7 +83,7 @@ pub(crate) struct ExtractedTilemapTexture {
 }
 
 #[derive(Bundle)]
-pub(crate) struct ExtractedTilemapTextureBundle {
+pub(crate) struct ExtractedTilemapTexture {
     data: ExtractedTilemapTexture,
 }
 
@@ -279,7 +279,7 @@ pub fn extract(
 
         extracted_tilemap_textures.push((
             entity,
-            ExtractedTilemapTextureBundle {
+            ExtractedTilemapTexture {
                 data: ExtractedTilemapTexture {
                     tilemap_id: TilemapId(entity),
                     tile_size: *tile_size,

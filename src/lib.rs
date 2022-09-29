@@ -18,11 +18,10 @@ use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
     Query, Transform, Visibility,
 };
-use map::{
-    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
-};
+use map::{TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTileSize, TilemapType};
 use tiles::{TilePos, TilePosOld, TileStorage};
 
+use crate::map::TilemapTexture;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::{RenderApp, RenderStage};
 
@@ -77,7 +76,6 @@ pub struct TilemapBundle {
     pub spacing: TilemapSpacing,
     pub storage: TileStorage,
     pub texture: TilemapTexture,
-    pub tile_size: TilemapTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     /// User indication of whether an entity is visible
