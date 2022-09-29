@@ -1,6 +1,5 @@
 use std::num::NonZeroU32;
 
-use crate::map::TilemapTextureSize;
 use crate::{TilemapSpacing, TilemapTexture, TilemapTileSize};
 use bevy::{
     math::Vec2,
@@ -21,16 +20,7 @@ use bevy::{
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<TilemapTexture, GpuImage>,
-    sizes: HashMap<
-        TilemapTexture,
-        (
-            u32,
-            TilemapTileSize,
-            TilemapTextureSize,
-            TilemapSpacing,
-            FilterMode,
-        ),
-    >,
+    sizes: HashMap<TilemapTexture, (u32, TilemapTileSize, TilemapSpacing, FilterMode)>,
     prepare_queue: HashSet<TilemapTexture>,
     queue_queue: HashSet<TilemapTexture>,
     bad_flag_queue: HashSet<Handle<Image>>,
@@ -42,13 +32,13 @@ impl TextureArrayCache {
         &mut self,
         texture: TilemapTexture,
         tile_size: TilemapTileSize,
-        texture_size: TilemapTextureSize,
         tile_spacing: TilemapSpacing,
         filter: FilterMode,
     ) {
         if !self.sizes.contains_key(&texture) {
             let count = match &texture {
-                TilemapTexture::Atlas(_) => {
+                TilemapTexture::Atlas { .. } => {
+                    let texture_size = texture.size();
                     let tile_count_x = ((texture_size.x as f32 + tile_spacing.x)
                         / (tile_size.x + tile_spacing.x))
                         .floor();
@@ -57,12 +47,12 @@ impl TextureArrayCache {
                         .floor();
                     (tile_count_x * tile_count_y) as u32
                 }
-                TilemapTexture::Vector(tile_handles) => tile_handles.len() as u32,
+                TilemapTexture::Vector { handles, .. } => handles.len() as u32,
             };
 
             self.sizes.insert(
                 texture.clone_weak(),
-                (count, tile_size, texture_size, tile_spacing, filter),
+                (count, tile_size, tile_spacing, filter),
             );
             self.prepare_queue.insert(texture.clone_weak());
         }
@@ -80,7 +70,7 @@ impl TextureArrayCache {
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for texture in prepare_queue {
-            let (count, tile_size, atlas_size, spacing, filter) = self.sizes.get(&texture).unwrap();
+            let (count, tile_size, _, filter) = self.sizes.get(&texture).unwrap();
 
             // Fixes weird cubemap bug.
             let count = if *count == 6 { count + 1 } else { *count };
@@ -146,65 +136,124 @@ impl TextureArrayCache {
     ) {
         let queue_queue = self.queue_queue.drain().collect::<Vec<_>>();
 
-        for texture in queue_queue {
-            let gpu_image = match &texture {
-                TilemapTexture::Atlas(atlas_handle) => {
+        for texture in queue_queue.iter() {
+            match &texture {
+                TilemapTexture::Atlas {
+                    handle: atlas_handle,
+                    size: atlas_size,
+                } => {
                     let gpu_image = if let Some(gpu_image) = render_images.get(&atlas_handle) {
                         gpu_image
                     } else {
-                        self.prepare_queue.insert(texture);
+                        self.prepare_queue.insert(texture.clone_weak());
                         continue;
                     };
+
+                    let (count, tile_size, spacing, _) = self.sizes.get(&texture).unwrap();
+                    let array_gpu_image = self.textures.get(&texture).unwrap();
+                    let count = *count;
+
+                    let mut command_encoder =
+                        render_device.create_command_encoder(&CommandEncoderDescriptor {
+                            label: Some("create_texture_array_from_atlas"),
+                        });
+
+                    for i in 0..count {
+                        let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
+                        let sprite_sheet_x: f32 =
+                            (i as f32 % columns).floor() * (tile_size.x + spacing.x);
+                        let sprite_sheet_y: f32 =
+                            (i as f32 / columns).floor() * (tile_size.y + spacing.y);
+
+                        command_encoder.copy_texture_to_texture(
+                            ImageCopyTexture {
+                                texture: &gpu_image.texture,
+                                mip_level: 0,
+                                origin: Origin3d {
+                                    x: sprite_sheet_x as u32,
+                                    y: sprite_sheet_y as u32,
+                                    z: 0,
+                                },
+                                aspect: TextureAspect::All,
+                            },
+                            ImageCopyTexture {
+                                texture: &array_gpu_image.texture,
+                                mip_level: 0,
+                                origin: Origin3d {
+                                    x: 0,
+                                    y: 0,
+                                    z: i as u32,
+                                },
+                                aspect: TextureAspect::All,
+                            },
+                            Extent3d {
+                                width: tile_size.x as u32,
+                                height: tile_size.y as u32,
+                                depth_or_array_layers: 1,
+                            },
+                        );
+                    }
+
+                    let command_buffer = command_encoder.finish();
+                    render_queue.submit(vec![command_buffer]);
                 }
-                TilemapTexture::Vector(_) => {}
+                TilemapTexture::Vector {
+                    handles: tile_handles,
+                    ..
+                } => {
+                    let mut gpu_images = Vec::with_capacity(tile_handles.len());
+                    for handle in tile_handles {
+                        if let Some(gpu_image) = render_images.get(&handle) {
+                            gpu_images.push(gpu_image)
+                        } else {
+                            self.prepare_queue.insert(texture.clone_weak());
+                            continue;
+                        }
+                    }
+
+                    let (count, tile_size, _, _) = self.sizes.get(&texture).unwrap();
+                    let array_gpu_image = self.textures.get(&texture).unwrap();
+                    let count = *count;
+
+                    let mut command_encoder =
+                        render_device.create_command_encoder(&CommandEncoderDescriptor {
+                            label: Some("create_texture_array_from_handles_vec"),
+                        });
+
+                    for i in 0..count {
+                        command_encoder.copy_texture_to_texture(
+                            ImageCopyTexture {
+                                texture: &gpu_images[i as usize].texture,
+                                mip_level: 0,
+                                origin: Origin3d {
+                                    x: tile_size.x as u32,
+                                    y: tile_size.y as u32,
+                                    z: 0,
+                                },
+                                aspect: TextureAspect::All,
+                            },
+                            ImageCopyTexture {
+                                texture: &array_gpu_image.texture,
+                                mip_level: 0,
+                                origin: Origin3d {
+                                    x: 0,
+                                    y: 0,
+                                    z: i as u32,
+                                },
+                                aspect: TextureAspect::All,
+                            },
+                            Extent3d {
+                                width: tile_size.x as u32,
+                                height: tile_size.y as u32,
+                                depth_or_array_layers: 1,
+                            },
+                        );
+                    }
+
+                    let command_buffer = command_encoder.finish();
+                    render_queue.submit(vec![command_buffer]);
+                }
             }
-
-
-            let (count, tile_size, atlas_size, spacing, _) = self.sizes.get(&texture).unwrap();
-            let array_gpu_image = self.textures.get(&texture).unwrap();
-            let count = (tile_count_x * tile_count_y) as u32;
-
-            let mut command_encoder =
-                render_device.create_command_encoder(&CommandEncoderDescriptor {
-                    label: Some("create_texture_array_from_atlas"),
-                });
-
-            for i in 0..count {
-                let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
-                let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.x + spacing.x);
-                let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.y + spacing.y);
-
-                command_encoder.copy_texture_to_texture(
-                    ImageCopyTexture {
-                        texture: &gpu_image.texture,
-                        mip_level: 0,
-                        origin: Origin3d {
-                            x: sprite_sheet_x as u32,
-                            y: sprite_sheet_y as u32,
-                            z: 0,
-                        },
-                        aspect: TextureAspect::All,
-                    },
-                    ImageCopyTexture {
-                        texture: &array_gpu_image.texture,
-                        mip_level: 0,
-                        origin: Origin3d {
-                            x: 0,
-                            y: 0,
-                            z: i as u32,
-                        },
-                        aspect: TextureAspect::All,
-                    },
-                    Extent3d {
-                        width: tile_size.x as u32,
-                        height: tile_size.y as u32,
-                        depth_or_array_layers: 1,
-                    },
-                );
-            }
-
-            let command_buffer = command_encoder.finish();
-            render_queue.submit(vec![command_buffer]);
         }
     }
 }

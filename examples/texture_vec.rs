@@ -26,8 +26,7 @@ fn startup(
         asset_server.load("hex-tile-1.png"),
         asset_server.load("hex-tile-2.png"),
     ];
-    let texture_vec: Vec<Handle<Image>> =
-        TilemapTexture::from_image_handles(image_assets, image_handles, TILE_SIZE);
+    let texture_vec = TilemapTexture::from_image_handles(image_handles, &image_assets, TILE_SIZE);
 
     let map_size = TilemapSize {
         x: MAP_DIAMETER,
@@ -65,17 +64,8 @@ fn startup(
                 ..Default::default()
             })
             .id();
-        tile_storage.set(&tile_pos, tile_entity);
+        tile_storage.set(&position, tile_entity);
     }
-
-    fill_tilemap_rect(
-        TileTexture(0),
-        TilePos { x: 0, y: 0 },
-        quadrant_size,
-        tilemap_id,
-        &mut commands,
-        &mut tile_storage,
-    );
 
     let grid_size = TILE_SIZE.into();
 
@@ -85,7 +75,7 @@ fn startup(
             grid_size,
             size: map_size,
             storage: tile_storage,
-            texture: TilemapTexture::Vector(texture_vec),
+            texture: texture_vec,
             map_type: TilemapType::Hexagon(COORD_SYS),
             ..Default::default()
         });
@@ -104,6 +94,5 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
-        .add_system(swap_mesh_type)
         .run();
 }

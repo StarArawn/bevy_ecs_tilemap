@@ -83,7 +83,7 @@ pub(crate) struct ExtractedTilemapTexture {
 }
 
 #[derive(Bundle)]
-pub(crate) struct ExtractedTilemapTexture {
+pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
 }
 
@@ -261,35 +261,73 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
-        let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
-            #[cfg(not(feature = "atlas"))]
-            if !_atlas_image
-                .texture_descriptor
-                .usage
-                .contains(TextureUsages::COPY_SRC)
-            {
-                continue;
+    'outer: for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
+        match &texture {
+            TilemapTexture::Atlas {
+                handle: atlas_handle,
+                size: texture_size,
+            } => {
+                if let Some(atlas_image) = images.get(atlas_handle) {
+                    #[cfg(not(feature = "atlas"))]
+                    if !atlas_image
+                        .texture_descriptor
+                        .usage
+                        .contains(TextureUsages::COPY_SRC)
+                    {
+                        continue 'outer;
+                    }
+                } else {
+                    continue 'outer;
+                }
+
+                extracted_tilemap_textures.push((
+                    entity,
+                    ExtractedTilemapTextureBundle {
+                        data: ExtractedTilemapTexture {
+                            tilemap_id: TilemapId(entity),
+                            tile_size: *tile_size,
+                            texture_size: *texture_size,
+                            spacing: *spacing,
+                            texture: texture.clone(),
+                            filtering: default_image_settings.default_sampler.min_filter,
+                        },
+                    },
+                ));
             }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector {
+                handles,
+                size: texture_size,
+            } => {
+                for handle in handles {
+                    if let Some(image) = images.get(handle) {
+                        if !image
+                            .texture_descriptor
+                            .usage
+                            .contains(TextureUsages::COPY_SRC)
+                        {
+                            continue 'outer;
+                        }
+                    } else {
+                        continue 'outer;
+                    }
+                }
 
-            _atlas_image.size().into()
-        } else {
-            continue;
-        };
-
-        extracted_tilemap_textures.push((
-            entity,
-            ExtractedTilemapTexture {
-                data: ExtractedTilemapTexture {
-                    tilemap_id: TilemapId(entity),
-                    tile_size: *tile_size,
-                    texture_size,
-                    spacing: *spacing,
-                    texture: texture.clone(),
-                    filtering: default_image_settings.default_sampler.min_filter,
-                },
-            },
-        ));
+                extracted_tilemap_textures.push((
+                    entity,
+                    ExtractedTilemapTextureBundle {
+                        data: ExtractedTilemapTexture {
+                            tilemap_id: TilemapId(entity),
+                            tile_size: *tile_size,
+                            texture_size: *texture_size,
+                            spacing: *spacing,
+                            texture: texture.clone(),
+                            filtering: default_image_settings.default_sampler.min_filter,
+                        },
+                    },
+                ));
+            }
+        }
     }
 
     for (entity, frustum) in camera_query.iter() {

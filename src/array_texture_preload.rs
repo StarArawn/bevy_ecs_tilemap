@@ -1,18 +1,18 @@
 use std::sync::{Arc, RwLock};
 
-use bevy::{
-    prelude::{Assets, Handle, Image, Res, ResMut},
-    render::{render_resource::FilterMode, texture::ImageSettings, Extract},
-};
-
 use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
     render::TextureArrayCache,
+    TilemapTexture,
+};
+use bevy::{
+    prelude::{Assets, Image, Res, ResMut},
+    render::{render_resource::FilterMode, texture::ImageSettings, Extract},
 };
 
 #[derive(Default, Debug, Clone)]
 pub struct TilemapArrayTexture {
-    pub atlas_texture: Handle<Image>,
+    pub texture: TilemapTexture,
     pub tile_size: TilemapTileSize,
     pub tile_spacing: TilemapSpacing,
     /// Defaults to ImageSettings.
@@ -49,21 +49,51 @@ pub(crate) fn extract(
     mut texture_array_cache: ResMut<TextureArrayCache>,
 ) {
     for array_texture in array_texture_loader.drain() {
-        if let Some(image) = images.get(&array_texture.atlas_texture) {
-            texture_array_cache.add_atlas(
-                &array_texture.atlas_texture,
-                array_texture.tile_size.into(),
-                image.size(),
-                array_texture.tile_spacing.into(),
-                if let Some(filter) = array_texture.filter {
-                    filter
+        match &array_texture.texture {
+            TilemapTexture::Atlas {
+                handle: atlas_handle,
+                ..
+            } => {
+                if images.get(&atlas_handle).is_some() {
+                    texture_array_cache.add(
+                        array_texture.texture,
+                        array_texture.tile_size.into(),
+                        array_texture.tile_spacing.into(),
+                        if let Some(filter) = array_texture.filter {
+                            filter
+                        } else {
+                            default_image_settings.default_sampler.mag_filter
+                        },
+                    );
                 } else {
-                    default_image_settings.default_sampler.mag_filter
-                },
-            );
-        } else {
-            // Image hasn't loaded yet punt to next frame.
-            array_texture_loader.add(array_texture);
+                    // Image hasn't loaded yet punt to next frame.
+                    array_texture_loader.add(array_texture);
+                }
+            }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector {
+                handles: tile_handles,
+                ..
+            } => {
+                if tile_handles
+                    .iter()
+                    .all(|tile_handle| images.get(&tile_handle).is_some())
+                {
+                    texture_array_cache.add(
+                        array_texture.texture,
+                        array_texture.tile_size.into(),
+                        array_texture.tile_spacing.into(),
+                        if let Some(filter) = array_texture.filter {
+                            filter
+                        } else {
+                            default_image_settings.default_sampler.mag_filter
+                        },
+                    );
+                } else {
+                    // Image hasn't loaded yet punt to next frame.
+                    array_texture_loader.add(array_texture);
+                }
+            }
         }
     }
 }

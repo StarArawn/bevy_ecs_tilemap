@@ -71,6 +71,7 @@ impl Default for FrustumCulling {
 #[derive(Bundle, Debug, Default, Clone)]
 pub struct TilemapBundle {
     pub grid_size: TilemapGridSize,
+    pub tile_size: TilemapTileSize,
     pub map_type: TilemapType,
     pub size: TilemapSize,
     pub spacing: TilemapSpacing,

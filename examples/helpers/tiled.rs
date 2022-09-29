@@ -89,6 +89,7 @@ pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
+    image_assets: Res<Assets<Image>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
@@ -230,12 +231,14 @@ pub fn process_loaded_maps(
                             grid_size,
                             size: map_size,
                             storage: tile_storage,
-                            texture: TilemapTexture(
+                            texture: TilemapTexture::from_atlas(
                                 tiled_map
                                     .tilesets
                                     .get(&tileset.first_gid)
                                     .unwrap()
                                     .clone_weak(),
+                                &image_assets,
+                                tile_size,
                             ),
                             tile_size,
                             spacing: tile_spacing,

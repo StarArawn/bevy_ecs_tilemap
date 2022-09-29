@@ -9,8 +9,7 @@ use bevy::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, TextureUsages,
-            VertexFormat,
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
         },
         RenderApp, RenderStage,
     },
@@ -243,20 +242,10 @@ impl Plugin for TilemapRenderingPlugin {
     }
 }
 
-pub fn set_texture_to_copy_src(mut textures: ResMut<Assets<Image>>, query: Query<&TilemapTexture>) {
+pub fn set_texture_to_copy_src(mut images: ResMut<Assets<Image>>, query: Query<&TilemapTexture>) {
     // quick and dirty, run this for all textures anytime a texture component is created.
     for texture in query.iter() {
-        if let Some(mut texture) = textures.get_mut(&texture.0) {
-            if !texture
-                .texture_descriptor
-                .usage
-                .contains(TextureUsages::COPY_SRC)
-            {
-                texture.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
-                    | TextureUsages::COPY_SRC
-                    | TextureUsages::COPY_DST;
-            }
-        }
+        texture.set_images_to_copy_src(&mut images);
     }
 }
 
@@ -320,14 +309,10 @@ fn prepare_textures(
     extracted_tilemaps: Query<&ExtractedTilemapTexture>,
 ) {
     for tilemap in extracted_tilemaps.iter() {
-        let tile_size: Vec2 = tilemap.tile_size.into();
-        let texture_size: Vec2 = tilemap.texture_size.into();
-        let spacing: Vec2 = tilemap.spacing.into();
-        texture_array_cache.add_atlas(
-            &tilemap.texture.0,
-            tile_size,
-            texture_size,
-            spacing,
+        texture_array_cache.add(
+            tilemap.texture.clone_weak(),
+            tilemap.tile_size,
+            tilemap.spacing,
             tilemap.filtering,
         );
     }

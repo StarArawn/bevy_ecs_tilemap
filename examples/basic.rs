@@ -64,7 +64,7 @@ fn startup(
     #[cfg(not(feature = "atlas"))]
     {
         array_texture_loader.add(TilemapArrayTexture {
-            atlas_texture: asset_server.load("tiles.png"),
+            texture: asset_server.load("tiles.png"),
             tile_size,
             ..Default::default()
         });
