@@ -1,9 +1,11 @@
 use std::num::NonZeroU32;
 
+use crate::map::TilemapTextureSize;
+use crate::render::extract::ExtractedTilemapTexture;
 use crate::{TilemapSpacing, TilemapTexture, TilemapTileSize};
+use bevy::asset::Assets;
 use bevy::{
-    math::Vec2,
-    prelude::{Handle, Image, Res},
+    prelude::{Image, Res},
     render::{
         render_asset::RenderAssets,
         render_resource::{
@@ -20,39 +22,88 @@ use bevy::{
 #[derive(Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<TilemapTexture, GpuImage>,
-    sizes: HashMap<TilemapTexture, (u32, TilemapTileSize, TilemapSpacing, FilterMode)>,
+    meta_data: HashMap<
+        TilemapTexture,
+        (
+            u32,
+            TilemapTileSize,
+            TilemapTextureSize,
+            TilemapSpacing,
+            FilterMode,
+        ),
+    >,
     prepare_queue: HashSet<TilemapTexture>,
     queue_queue: HashSet<TilemapTexture>,
-    bad_flag_queue: HashSet<Handle<Image>>,
+    bad_flag_queue: HashSet<TilemapTexture>,
 }
 
 impl TextureArrayCache {
+    /// Adds an `ExtractedTilemapTexture` to the texture array cache.
+    ///
+    /// Unlike [`add_texture`](TextureArrayCache::add_texture) it does not perform any verification
+    /// checks, as this is assumed to have been done during [`ExtractedTilemapTexture::new`].
+    pub(crate) fn add_extracted_texture(&mut self, extracted_texture: &ExtractedTilemapTexture) {
+        if !self.meta_data.contains_key(&extracted_texture.texture) {
+            self.meta_data.insert(
+                extracted_texture.texture.clone_weak(),
+                (
+                    extracted_texture.tile_count,
+                    extracted_texture.tile_size,
+                    extracted_texture.texture_size,
+                    extracted_texture.tile_spacing,
+                    extracted_texture.filtering,
+                ),
+            );
+            self.prepare_queue
+                .insert(extracted_texture.texture.clone_weak());
+        }
+    }
+
     /// Adds a `TilemapTexture` to the texture array cache.
-    pub fn add(
+    pub fn add_texture(
         &mut self,
         texture: TilemapTexture,
         tile_size: TilemapTileSize,
         tile_spacing: TilemapSpacing,
-        filter: FilterMode,
+        filtering: FilterMode,
+        image_assets: &Res<Assets<Image>>,
     ) {
-        if !self.sizes.contains_key(&texture) {
-            let count = match &texture {
-                TilemapTexture::Atlas { .. } => {
-                    let texture_size = texture.size();
-                    let tile_count_x = ((texture_size.x as f32 + tile_spacing.x)
-                        / (tile_size.x + tile_spacing.x))
-                        .floor();
-                    let tile_count_y = ((texture_size.y as f32 + tile_spacing.y)
-                        / (tile_size.y + tile_spacing.y))
-                        .floor();
-                    (tile_count_x * tile_count_y) as u32
+        let (tile_count, texture_size) = match &texture {
+            TilemapTexture::Single(handle) => {
+                let image = image_assets.get(handle).expect(
+                    "Expected image to have finished loading if \
+                    it is being extracted as a texture!",
+                );
+                let texture_size: TilemapTextureSize = image.size().into();
+                let tile_count_x =
+                    (texture_size.x + tile_spacing.x) / (tile_size.x + tile_spacing.x);
+                let tile_count_y =
+                    (texture_size.y + tile_spacing.y) / (tile_size.y + tile_spacing.y);
+                (tile_count_x * tile_count_y, texture_size)
+            }
+            TilemapTexture::Vector(handles) => {
+                for handle in handles {
+                    let image = image_assets.get(handle).expect(
+                        "Expected image to have finished loading if \
+                        it is being extracted as a texture!",
+                    );
+                    let this_tile_size: TilemapTileSize = image.size().try_into().unwrap();
+                    if this_tile_size != tile_size {
+                        panic!(
+                            "Expected all provided image assets to have size {:?}, \
+                                    but found image with size: {:?}",
+                            tile_size, this_tile_size
+                        );
+                    }
                 }
-                TilemapTexture::Vector { handles, .. } => handles.len() as u32,
-            };
+                (handles.len() as u32, tile_size.into())
+            }
+        };
 
-            self.sizes.insert(
+        if !self.meta_data.contains_key(&texture) {
+            self.meta_data.insert(
                 texture.clone_weak(),
-                (count, tile_size, tile_spacing, filter),
+                (tile_count, tile_size, texture_size, tile_spacing, filtering),
             );
             self.prepare_queue.insert(texture.clone_weak());
         }
@@ -70,7 +121,7 @@ impl TextureArrayCache {
     pub fn prepare(&mut self, render_device: &RenderDevice) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for texture in prepare_queue {
-            let (count, tile_size, _, filter) = self.sizes.get(&texture).unwrap();
+            let (count, tile_size, _, _, filter) = self.meta_data.get(&texture).unwrap();
 
             // Fixes weird cubemap bug.
             let count = if *count == 6 { count + 1 } else { *count };
@@ -120,7 +171,7 @@ impl TextureArrayCache {
                 texture: gpu_texture,
                 sampler,
                 texture_view,
-                size: Vec2::new(tile_size.x, tile_size.y),
+                size: tile_size.into(),
             };
 
             self.textures.insert(texture.clone_weak(), gpu_image);
@@ -138,18 +189,16 @@ impl TextureArrayCache {
 
         for texture in queue_queue.iter() {
             match &texture {
-                TilemapTexture::Atlas {
-                    handle: atlas_handle,
-                    size: atlas_size,
-                } => {
-                    let gpu_image = if let Some(gpu_image) = render_images.get(&atlas_handle) {
+                TilemapTexture::Single(handle) => {
+                    let gpu_image = if let Some(gpu_image) = render_images.get(&handle) {
                         gpu_image
                     } else {
                         self.prepare_queue.insert(texture.clone_weak());
                         continue;
                     };
 
-                    let (count, tile_size, spacing, _) = self.sizes.get(&texture).unwrap();
+                    let (count, tile_size, texture_size, spacing, _) =
+                        self.meta_data.get(&texture).unwrap();
                     let array_gpu_image = self.textures.get(&texture).unwrap();
                     let count = *count;
 
@@ -159,11 +208,12 @@ impl TextureArrayCache {
                         });
 
                     for i in 0..count {
-                        let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
+                        let columns = (texture_size.x as f32 + spacing.x as f32)
+                            / (tile_size.x as f32 + spacing.x as f32);
                         let sprite_sheet_x: f32 =
-                            (i as f32 % columns).floor() * (tile_size.x + spacing.x);
+                            (i as f32 % columns).floor() * (tile_size.x + spacing.x) as f32;
                         let sprite_sheet_y: f32 =
-                            (i as f32 / columns).floor() * (tile_size.y + spacing.y);
+                            (i as f32 / columns).floor() * (tile_size.y + spacing.y) as f32;
 
                         command_encoder.copy_texture_to_texture(
                             ImageCopyTexture {
@@ -197,13 +247,10 @@ impl TextureArrayCache {
                     let command_buffer = command_encoder.finish();
                     render_queue.submit(vec![command_buffer]);
                 }
-                TilemapTexture::Vector {
-                    handles: tile_handles,
-                    ..
-                } => {
-                    let mut gpu_images = Vec::with_capacity(tile_handles.len());
-                    for handle in tile_handles {
-                        if let Some(gpu_image) = render_images.get(&handle) {
+                TilemapTexture::Vector(handles) => {
+                    let mut gpu_images = Vec::with_capacity(handles.len());
+                    for handle in handles {
+                        if let Some(gpu_image) = render_images.get(handle) {
                             gpu_images.push(gpu_image)
                         } else {
                             self.prepare_queue.insert(texture.clone_weak());
@@ -211,8 +258,8 @@ impl TextureArrayCache {
                         }
                     }
 
-                    let (count, tile_size, _, _) = self.sizes.get(&texture).unwrap();
-                    let array_gpu_image = self.textures.get(&texture).unwrap();
+                    let (count, tile_size, _, _, _) = self.meta_data.get(texture).unwrap();
+                    let array_gpu_image = self.textures.get(texture).unwrap();
                     let count = *count;
 
                     let mut command_encoder =
@@ -225,11 +272,7 @@ impl TextureArrayCache {
                             ImageCopyTexture {
                                 texture: &gpu_images[i as usize].texture,
                                 mip_level: 0,
-                                origin: Origin3d {
-                                    x: tile_size.x as u32,
-                                    y: tile_size.y as u32,
-                                    z: 0,
-                                },
+                                origin: Origin3d { x: 0, y: 0, z: 0 },
                                 aspect: TextureAspect::All,
                             },
                             ImageCopyTexture {

@@ -1,12 +1,12 @@
 use std::marker::PhantomData;
 
 use crate::map::{
-    TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
-    TilemapType,
+    TilemapId, TilemapSize, TilemapSpacing, TilemapTextureSize, TilemapTileSize, TilemapType,
 };
 use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
+    TilemapTexture,
 };
 use bevy::log::trace;
 use bevy::{
@@ -183,7 +183,7 @@ pub(crate) fn prepare(
 
         commands
             .spawn()
-            .insert(chunk.texture.clone_weak())
+            .insert(chunk.texture.clone())
             .insert(chunk.get_transform())
             .insert(ChunkId(chunk.get_index()))
             .insert(chunk.get_map_type())

@@ -76,7 +76,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // This is the size of each individual tiles in pixels.
-    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize { x: 16, y: 16 };
     let grid_size = tile_size.into();
 
     // Spawns a tilemap.
@@ -88,7 +88,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             size: tilemap_size,
             storage: tile_storage,
             map_type: tilemap_type,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
             ..Default::default()

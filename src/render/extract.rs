@@ -11,8 +11,7 @@ use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
 use crate::{
     map::{
-        TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
-        TilemapTileSize, TilemapType,
+        TilemapId, TilemapSize, TilemapSpacing, TilemapTextureSize, TilemapTileSize, TilemapType,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
     FrustumCulling,
@@ -21,8 +20,7 @@ use crate::{
 use super::RemovedMapEntity;
 use super::{chunk::PackedTileData, RemovedTileEntity};
 
-#[cfg(not(feature = "atlas"))]
-use bevy::render::render_resource::TextureUsages;
+use crate::map::TilemapTexture;
 
 #[derive(Component)]
 pub struct ExtractedTile {
@@ -61,25 +59,82 @@ pub struct ExtractedRemovedMapBundle {
 #[derive(Bundle)]
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
-    size: TilemapTileSize,
+    tile_size: TilemapTileSize,
     grid_size: TilemapGridSize,
     texture_size: TilemapTextureSize,
     spacing: TilemapSpacing,
-    mesh_type: TilemapType,
+    map_type: TilemapType,
     texture: TilemapTexture,
     map_size: TilemapSize,
     visibility: ComputedVisibility,
     frustum_culling: FrustumCulling,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub(crate) struct ExtractedTilemapTexture {
     pub tilemap_id: TilemapId,
-    pub tile_size: TilemapTileSize,
-    pub texture_size: TilemapTextureSize,
-    pub spacing: TilemapSpacing,
     pub texture: TilemapTexture,
+    /// The expected size of the tile textures.
+    pub tile_size: TilemapTileSize,
+    /// The expected spacing between tiles if `variant` is [`TilemapTextureVariant::Single`].
+    pub tile_spacing: TilemapSpacing,
     pub filtering: FilterMode,
+    pub tile_count: u32,
+    pub texture_size: TilemapTextureSize,
+}
+
+impl ExtractedTilemapTexture {
+    pub fn new(
+        tilemap_entity: Entity,
+        texture: TilemapTexture,
+        tile_size: TilemapTileSize,
+        tile_spacing: TilemapSpacing,
+        filtering: FilterMode,
+        image_assets: &Res<Assets<Image>>,
+    ) -> ExtractedTilemapTexture {
+        let (tile_count, texture_size) = match &texture {
+            TilemapTexture::Single(handle) => {
+                let image = image_assets.get(handle).expect(
+                    "Expected image to have finished loading if \
+                    it is being extracted as a texture!",
+                );
+                let texture_size: TilemapTextureSize = image.size().into();
+                let tile_count_x =
+                    (texture_size.x + tile_spacing.x) / (tile_size.x + tile_spacing.x);
+                let tile_count_y =
+                    (texture_size.y + tile_spacing.y) / (tile_size.y + tile_spacing.y);
+                (tile_count_x * tile_count_y, texture_size)
+            }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector(handles) => {
+                for handle in handles {
+                    let image = image_assets.get(handle).expect(
+                        "Expected image to have finished loading if \
+                        it is being extracted as a texture!",
+                    );
+                    let this_tile_size: TilemapTileSize = image.size().try_into().unwrap();
+                    if this_tile_size != tile_size {
+                        panic!(
+                            "Expected all provided image assets to have size {:?}, \
+                                    but found image with size: {:?}",
+                            tile_size, this_tile_size
+                        );
+                    }
+                }
+                (handles.len() as u32, tile_size.into())
+            }
+        };
+
+        ExtractedTilemapTexture {
+            tilemap_id: TilemapId(tilemap_entity),
+            texture: texture.clone(),
+            tile_size,
+            tile_spacing,
+            filtering,
+            tile_count,
+            texture_size,
+        }
+    }
 }
 
 #[derive(Bundle)]
@@ -207,11 +262,11 @@ pub fn extract(
                 data.0,
                 ExtractedTilemapBundle {
                     transform: *data.1,
-                    size: *data.2,
+                    tile_size: *data.2,
                     texture_size: TilemapTextureSize::default(),
                     spacing: *data.3,
                     grid_size: *data.4,
-                    mesh_type: *data.5,
+                    map_type: *data.5,
                     texture: data.6.clone(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
@@ -242,11 +297,11 @@ pub fn extract(
                     data.0,
                     ExtractedTilemapBundle {
                         transform: *data.1,
-                        size: *data.2,
+                        tile_size: *data.2,
                         texture_size: TilemapTextureSize::default(),
                         spacing: *data.3,
                         grid_size: *data.4,
-                        mesh_type: *data.5,
+                        map_type: *data.5,
                         texture: data.6.clone(),
                         map_size: *data.7,
                         visibility: data.8.clone(),
@@ -261,72 +316,21 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    'outer: for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
-        match &texture {
-            TilemapTexture::Atlas {
-                handle: atlas_handle,
-                size: texture_size,
-            } => {
-                if let Some(atlas_image) = images.get(atlas_handle) {
-                    #[cfg(not(feature = "atlas"))]
-                    if !atlas_image
-                        .texture_descriptor
-                        .usage
-                        .contains(TextureUsages::COPY_SRC)
-                    {
-                        continue 'outer;
-                    }
-                } else {
-                    continue 'outer;
-                }
-
-                extracted_tilemap_textures.push((
-                    entity,
-                    ExtractedTilemapTextureBundle {
-                        data: ExtractedTilemapTexture {
-                            tilemap_id: TilemapId(entity),
-                            tile_size: *tile_size,
-                            texture_size: *texture_size,
-                            spacing: *spacing,
-                            texture: texture.clone(),
-                            filtering: default_image_settings.default_sampler.min_filter,
-                        },
-                    },
-                ));
-            }
-            #[cfg(not(feature = "atlas"))]
-            TilemapTexture::Vector {
-                handles,
-                size: texture_size,
-            } => {
-                for handle in handles {
-                    if let Some(image) = images.get(handle) {
-                        if !image
-                            .texture_descriptor
-                            .usage
-                            .contains(TextureUsages::COPY_SRC)
-                        {
-                            continue 'outer;
-                        }
-                    } else {
-                        continue 'outer;
-                    }
-                }
-
-                extracted_tilemap_textures.push((
-                    entity,
-                    ExtractedTilemapTextureBundle {
-                        data: ExtractedTilemapTexture {
-                            tilemap_id: TilemapId(entity),
-                            tile_size: *tile_size,
-                            texture_size: *texture_size,
-                            spacing: *spacing,
-                            texture: texture.clone(),
-                            filtering: default_image_settings.default_sampler.min_filter,
-                        },
-                    },
-                ));
-            }
+    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
+        if texture.verify_ready(&images) {
+            extracted_tilemap_textures.push((
+                entity,
+                ExtractedTilemapTextureBundle {
+                    data: ExtractedTilemapTexture::new(
+                        entity,
+                        texture.clone(),
+                        *tile_size,
+                        *tile_spacing,
+                        default_image_settings.default_sampler.min_filter,
+                        &images,
+                    ),
+                },
+            ))
         }
     }
 

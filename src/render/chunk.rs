@@ -17,9 +17,9 @@ use bevy::{
 use crate::prelude::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
-    map::{TilemapSize, TilemapTexture, TilemapType},
+    map::{TilemapSize, TilemapType},
     tiles::TilePos,
-    FrustumCulling, TilemapGridSize, TilemapTileSize,
+    FrustumCulling, TilemapGridSize, TilemapTexture, TilemapTileSize,
 };
 
 #[derive(Default, Clone, Debug)]

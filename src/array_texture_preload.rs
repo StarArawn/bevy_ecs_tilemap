@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
     render::TextureArrayCache,
@@ -9,6 +7,7 @@ use bevy::{
     prelude::{Assets, Image, Res, ResMut},
     render::{render_resource::FilterMode, texture::ImageSettings, Extract},
 };
+use std::sync::{Arc, RwLock};
 
 #[derive(Default, Debug, Clone)]
 pub struct TilemapArrayTexture {
@@ -48,52 +47,23 @@ pub(crate) fn extract(
     array_texture_loader: Extract<Res<ArrayTextureLoader>>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
 ) {
-    for array_texture in array_texture_loader.drain() {
-        match &array_texture.texture {
-            TilemapTexture::Atlas {
-                handle: atlas_handle,
-                ..
-            } => {
-                if images.get(&atlas_handle).is_some() {
-                    texture_array_cache.add(
-                        array_texture.texture,
-                        array_texture.tile_size.into(),
-                        array_texture.tile_spacing.into(),
-                        if let Some(filter) = array_texture.filter {
-                            filter
-                        } else {
-                            default_image_settings.default_sampler.mag_filter
-                        },
-                    );
-                } else {
-                    // Image hasn't loaded yet punt to next frame.
-                    array_texture_loader.add(array_texture);
-                }
-            }
-            #[cfg(not(feature = "atlas"))]
-            TilemapTexture::Vector {
-                handles: tile_handles,
-                ..
-            } => {
-                if tile_handles
-                    .iter()
-                    .all(|tile_handle| images.get(&tile_handle).is_some())
-                {
-                    texture_array_cache.add(
-                        array_texture.texture,
-                        array_texture.tile_size.into(),
-                        array_texture.tile_spacing.into(),
-                        if let Some(filter) = array_texture.filter {
-                            filter
-                        } else {
-                            default_image_settings.default_sampler.mag_filter
-                        },
-                    );
-                } else {
-                    // Image hasn't loaded yet punt to next frame.
-                    array_texture_loader.add(array_texture);
-                }
-            }
+    for mut array_texture in array_texture_loader.drain() {
+        if array_texture.filter.is_none() {
+            array_texture
+                .filter
+                .replace(default_image_settings.default_sampler.mag_filter);
+        }
+        if array_texture.texture.verify_ready(&images) {
+            texture_array_cache.add_texture(
+                array_texture.texture,
+                array_texture.tile_size,
+                array_texture.tile_spacing,
+                default_image_settings.default_sampler.min_filter,
+                &images,
+            );
+        } else {
+            // Image hasn't loaded yet punt to next frame.
+            array_texture_loader.add(array_texture);
         }
     }
 }

@@ -20,14 +20,14 @@ struct TilemapMetadata {
 const BACKGROUND: &str = "tiles.png";
 const BACKGROUND_METADATA: TilemapMetadata = TilemapMetadata {
     size: TilemapSize { x: 20, y: 20 },
-    tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
+    tile_size: TilemapTileSize { x: 16, y: 16 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
 
 const FLOWERS: &str = "flower_sheet.png";
 const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
     size: TilemapSize { x: 20, y: 20 },
-    tile_size: TilemapTileSize { x: 32.0, y: 32.0 },
+    tile_size: TilemapTileSize { x: 32, y: 32 },
     grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
 };
 
@@ -59,7 +59,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size,
             tile_size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
             ..Default::default()
         });
@@ -114,7 +114,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             grid_size,
             size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
             ..Default::default()

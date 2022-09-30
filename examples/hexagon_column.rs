@@ -70,7 +70,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    let tile_size = TilemapTileSize { x: 17.0, y: 15.0 };
+    let tile_size = TilemapTileSize { x: 17, y: 15 };
     let grid_size = TilemapGridSize { x: 17.0, y: 15.0 };
 
     commands
@@ -79,7 +79,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size,
             size: total_size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             map_type: TilemapType::Hexagon(HexCoordSystem::Column),
             ..Default::default()

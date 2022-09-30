@@ -85,7 +85,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
             grid_size,
             size: total_size,
             storage: tile_storage,
-            texture: TilemapTexture(tile_handle_square.clone()),
+            texture: TilemapTexture::Single(tile_handle_square.clone()),
             tile_size,
             map_type: TilemapType::Square {
                 diagonal_neighbors: false,
@@ -165,7 +165,7 @@ fn swap_map_type(
                         diagonal_neighbors: false,
                         coord_system: IsoCoordSystem::Diamond,
                     };
-                    *map_texture = TilemapTexture((*tile_handle_iso).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
                     *grid_size = GRID_SIZE_ISO;
                 }
@@ -177,7 +177,7 @@ fn swap_map_type(
                         diagonal_neighbors: false,
                         coord_system: IsoCoordSystem::Staggered,
                     };
-                    *map_texture = TilemapTexture((*tile_handle_iso).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
                     *grid_size = GRID_SIZE_ISO;
                 }
@@ -186,7 +186,7 @@ fn swap_map_type(
                     ..
                 } => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
-                    *map_texture = TilemapTexture((*tile_handle_hex_row).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
                     *tile_size = TILE_SIZE_HEX_ROW;
                     *grid_size = GRID_SIZE_HEX_ROW;
                 }
@@ -198,7 +198,7 @@ fn swap_map_type(
                 }
                 TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
-                    *map_texture = TilemapTexture((*tile_handle_hex_col).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
                     *tile_size = TILE_SIZE_HEX_COL;
                     *grid_size = GRID_SIZE_HEX_COL;
                 }
@@ -212,7 +212,7 @@ fn swap_map_type(
                     *map_type = TilemapType::Square {
                         diagonal_neighbors: false,
                     };
-                    *map_texture = TilemapTexture((*tile_handle_square).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_square).clone());
                     *tile_size = TILE_SIZE_SQUARE;
                     *grid_size = GRID_SIZE_SQUARE;
                 }

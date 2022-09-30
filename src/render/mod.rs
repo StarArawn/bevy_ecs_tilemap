@@ -18,10 +18,10 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
+use crate::map::TilemapTexture;
 use crate::{
     prelude::TilemapRenderSettings,
     tiles::{TilePos, TileStorage},
-    TilemapTexture,
 };
 
 use self::{
@@ -306,15 +306,10 @@ fn clear_removed(
 fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
-    extracted_tilemaps: Query<&ExtractedTilemapTexture>,
+    extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
 ) {
-    for tilemap in extracted_tilemaps.iter() {
-        texture_array_cache.add(
-            tilemap.texture.clone_weak(),
-            tilemap.tile_size,
-            tilemap.spacing,
-            tilemap.filtering,
-        );
+    for extracted_texture in extracted_tilemap_textures.iter() {
+        texture_array_cache.add_extracted_texture(extracted_texture);
     }
 
     texture_array_cache.prepare(&render_device);

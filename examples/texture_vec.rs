@@ -11,14 +11,10 @@ const MAP_CENTER: TilePos = TilePos {
     x: MAP_RADIUS + 1,
     y: MAP_RADIUS + 1,
 };
-const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
+const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48, y: 54 };
 const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    image_assets: Res<Assets<Image>>,
-) {
+fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     let image_handles = vec![
@@ -26,7 +22,7 @@ fn startup(
         asset_server.load("hex-tile-1.png"),
         asset_server.load("hex-tile-2.png"),
     ];
-    let texture_vec = TilemapTexture::from_image_handles(image_handles, &image_assets, TILE_SIZE);
+    let texture_vec = TilemapTexture::Vector(image_handles);
 
     let map_size = TilemapSize {
         x: MAP_DIAMETER,
@@ -67,16 +63,19 @@ fn startup(
         tile_storage.set(&position, tile_entity);
     }
 
+    let tile_size = TILE_SIZE;
     let grid_size = TILE_SIZE.into();
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             grid_size,
+            tile_size,
             size: map_size,
             storage: tile_storage,
             texture: texture_vec,
             map_type: TilemapType::Hexagon(COORD_SYS),
+            transform: get_tilemap_center_transform(&map_size, &grid_size, 0.0),
             ..Default::default()
         });
 }

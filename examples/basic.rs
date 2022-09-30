@@ -44,7 +44,7 @@ fn startup(
         }
     }
 
-    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize { x: 16, y: 16 };
     let grid_size = tile_size.into();
 
     commands
@@ -53,7 +53,7 @@ fn startup(
             grid_size,
             size: tilemap_size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
             ..Default::default()
@@ -64,7 +64,7 @@ fn startup(
     #[cfg(not(feature = "atlas"))]
     {
         array_texture_loader.add(TilemapArrayTexture {
-            texture: asset_server.load("tiles.png"),
+            texture: TilemapTexture::Single(asset_server.load("tiles.png")),
             tile_size,
             ..Default::default()
         });
@@ -77,13 +77,13 @@ fn swap_texture_or_hide(
     mut query: Query<(&mut TilemapTexture, &mut Visibility)>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        let texture_handle_a: Handle<Image> = asset_server.load("tiles.png");
-        let texture_handle_b: Handle<Image> = asset_server.load("tiles2.png");
+        let texture_handle_a = TilemapTexture::Single(asset_server.load("tiles.png"));
+        let texture_handle_b = TilemapTexture::Single(asset_server.load("tiles2.png"));
         for (mut tilemap_tex, _) in &mut query {
-            if tilemap_tex.0 == texture_handle_a {
-                tilemap_tex.0 = texture_handle_b.clone();
+            if *tilemap_tex == texture_handle_a {
+                *tilemap_tex = texture_handle_b.clone_weak();
             } else {
-                tilemap_tex.0 = texture_handle_a.clone();
+                *tilemap_tex = texture_handle_a.clone_weak();
             }
         }
     }

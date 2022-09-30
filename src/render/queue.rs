@@ -157,18 +157,19 @@ pub fn queue_meshes(
                     }
 
                     #[cfg(feature = "atlas")]
-                    if gpu_images.get(&chunk.texture.0).is_none() {
+                    if gpu_images.get(chunk.texture.image_handle()).is_none() {
                         continue;
                     }
 
                     image_bind_groups
                         .values
-                        .entry(chunk.texture.clone_weak())
+                        .entry(chunk.texture.clone())
                         .or_insert_with(|| {
                             #[cfg(not(feature = "atlas"))]
                             let gpu_image = texture_array_cache.get(&chunk.texture);
                             #[cfg(feature = "atlas")]
-                            let gpu_image = gpu_images.get(&chunk.texture.0).unwrap();
+                            let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
+
                             render_device.create_bind_group(&BindGroupDescriptor {
                                 entries: &[
                                     BindGroupEntry {

@@ -4,7 +4,7 @@ mod helpers;
 
 /// Press WASD to move the camera around, and watch as chunks spawn/despawn in response.
 
-const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
+const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16, y: 16 };
 // For this example, don't choose too large a chunk size.
 const CHUNK_SIZE: UVec2 = UVec2 { x: 4, y: 4 };
 // Render chunk sizes are set to 4 render chunks per user specified chunk.
@@ -34,8 +34,8 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
     }
 
     let transform = Transform::from_translation(Vec3::new(
-        chunk_pos.x as f32 * CHUNK_SIZE.x as f32 * TILE_SIZE.x,
-        chunk_pos.y as f32 * CHUNK_SIZE.y as f32 * TILE_SIZE.y,
+        chunk_pos.x as f32 * CHUNK_SIZE.x as f32 * TILE_SIZE.x as f32,
+        chunk_pos.y as f32 * CHUNK_SIZE.y as f32 * TILE_SIZE.y as f32,
         0.0,
     ));
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
@@ -45,7 +45,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
             grid_size: TILE_SIZE.into(),
             size: CHUNK_SIZE.into(),
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size: TILE_SIZE,
             transform,
             ..Default::default()
@@ -93,8 +93,10 @@ fn despawn_outofrange_chunks(
             let chunk_pos = chunk_transform.translation.xy();
             let distance = camera_transform.translation.xy().distance(chunk_pos);
             if distance > 320.0 {
-                let x = (chunk_pos.x as f32 / (CHUNK_SIZE.x as f32 * TILE_SIZE.x)).floor() as i32;
-                let y = (chunk_pos.y as f32 / (CHUNK_SIZE.y as f32 * TILE_SIZE.y)).floor() as i32;
+                let x = (chunk_pos.x as f32 / (CHUNK_SIZE.x as f32 * TILE_SIZE.x as f32)).floor()
+                    as i32;
+                let y = (chunk_pos.y as f32 / (CHUNK_SIZE.y as f32 * TILE_SIZE.y as f32)).floor()
+                    as i32;
                 chunk_manager.spawned_chunks.remove(&IVec2::new(x, y));
                 commands.entity(entity).despawn_recursive();
             }

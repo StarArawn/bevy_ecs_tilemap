@@ -89,7 +89,6 @@ pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
-    image_assets: Res<Assets<Image>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
@@ -143,12 +142,12 @@ pub fn process_loaded_maps(
                     // Once materials have been created/added we need to then create the layers.
                     for layer in tiled_map.map.layers.iter() {
                         let tile_size = TilemapTileSize {
-                            x: tileset.tile_width as f32,
-                            y: tileset.tile_height as f32,
+                            x: tileset.tile_width,
+                            y: tileset.tile_height,
                         };
                         let tile_spacing = TilemapSpacing {
-                            x: tileset.spacing as f32,
-                            y: tileset.spacing as f32,
+                            x: tileset.spacing,
+                            y: tileset.spacing,
                         };
 
                         let offset_x = layer.offset_x;
@@ -231,14 +230,12 @@ pub fn process_loaded_maps(
                             grid_size,
                             size: map_size,
                             storage: tile_storage,
-                            texture: TilemapTexture::from_atlas(
+                            texture: TilemapTexture::Single(
                                 tiled_map
                                     .tilesets
                                     .get(&tileset.first_gid)
                                     .unwrap()
                                     .clone_weak(),
-                                &image_assets,
-                                tile_size,
                             ),
                             tile_size,
                             spacing: tile_spacing,
