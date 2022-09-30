@@ -152,7 +152,7 @@ pub fn queue_meshes(
                     tilemap_id.0.id(),
                 )) {
                     #[cfg(not(feature = "atlas"))]
-                    if !texture_array_cache.contains(&chunk.texture.0) {
+                    if !texture_array_cache.contains(&chunk.texture) {
                         continue;
                     }
 
@@ -166,7 +166,7 @@ pub fn queue_meshes(
                         .entry(chunk.texture.clone_weak())
                         .or_insert_with(|| {
                             #[cfg(not(feature = "atlas"))]
-                            let gpu_image = texture_array_cache.get(&chunk.texture.0);
+                            let gpu_image = texture_array_cache.get(&chunk.texture);
                             #[cfg(feature = "atlas")]
                             let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
                             render_device.create_bind_group(&BindGroupDescriptor {

@@ -308,19 +308,10 @@ fn clear_removed(
 fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
-    extracted_tilemaps: Query<&ExtractedTilemapTexture>,
+    extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
 ) {
-    for tilemap in extracted_tilemaps.iter() {
-        let tile_size: Vec2 = tilemap.tile_size.into();
-        let texture_size: Vec2 = tilemap.texture_size.into();
-        let spacing: Vec2 = tilemap.tile_spacing.into();
-        texture_array_cache.add(
-            &tilemap.texture.0,
-            tile_size,
-            texture_size,
-            spacing,
-            tilemap.filtering,
-        );
+    for extracted_texture in extracted_tilemap_textures.iter() {
+        texture_array_cache.add_extracted_texture(extracted_texture);
     }
 
     texture_array_cache.prepare(&render_device);

@@ -250,7 +250,7 @@ impl TilemapSpacing {
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub(crate) struct TilemapTextureSize {
+pub struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
 }

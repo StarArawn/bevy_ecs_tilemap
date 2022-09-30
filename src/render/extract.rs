@@ -21,9 +21,6 @@ use crate::{
 use super::RemovedMapEntity;
 use super::{chunk::PackedTileData, RemovedTileEntity};
 
-#[cfg(not(feature = "atlas"))]
-use bevy::render::render_resource::TextureUsages;
-
 #[derive(Component)]
 pub struct ExtractedTile {
     pub entity: Entity,
