@@ -59,7 +59,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size,
             tile_size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
             ..Default::default()
         });
@@ -114,7 +114,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             grid_size,
             size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
             ..Default::default()

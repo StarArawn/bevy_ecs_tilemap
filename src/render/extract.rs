@@ -262,7 +262,7 @@ pub fn extract(
 
     // Extracts tilemap textures.
     for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
-        let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
+        let texture_size = if let Some(_atlas_image) = images.get(texture.image_handle()) {
             #[cfg(not(feature = "atlas"))]
             if !_atlas_image
                 .texture_descriptor

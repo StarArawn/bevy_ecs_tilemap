@@ -230,7 +230,7 @@ pub fn process_loaded_maps(
                             grid_size,
                             size: map_size,
                             storage: tile_storage,
-                            texture: TilemapTexture(
+                            texture: TilemapTexture::Single(
                                 tiled_map
                                     .tilesets
                                     .get(&tileset.first_gid)

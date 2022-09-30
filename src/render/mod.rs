@@ -9,8 +9,7 @@ use bevy::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, TextureUsages,
-            VertexFormat,
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
         },
         RenderApp, RenderStage,
     },
@@ -242,20 +241,13 @@ impl Plugin for TilemapRenderingPlugin {
     }
 }
 
-pub fn set_texture_to_copy_src(mut textures: ResMut<Assets<Image>>, query: Query<&TilemapTexture>) {
+pub fn set_texture_to_copy_src(
+    mut images: ResMut<Assets<Image>>,
+    texture_query: Query<&TilemapTexture>,
+) {
     // quick and dirty, run this for all textures anytime a texture component is created.
-    for texture in query.iter() {
-        if let Some(mut texture) = textures.get_mut(&texture.0) {
-            if !texture
-                .texture_descriptor
-                .usage
-                .contains(TextureUsages::COPY_SRC)
-            {
-                texture.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
-                    | TextureUsages::COPY_SRC
-                    | TextureUsages::COPY_DST;
-            }
-        }
+    for texture in texture_query.iter() {
+        texture.set_images_to_copy_src(&mut images)
     }
 }
 
