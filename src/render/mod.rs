@@ -313,7 +313,7 @@ fn prepare_textures(
     for tilemap in extracted_tilemaps.iter() {
         let tile_size: Vec2 = tilemap.tile_size.into();
         let texture_size: Vec2 = tilemap.texture_size.into();
-        let spacing: Vec2 = tilemap.spacing.into();
+        let spacing: Vec2 = tilemap.tile_spacing.into();
         texture_array_cache.add(
             &tilemap.texture.0,
             tile_size,

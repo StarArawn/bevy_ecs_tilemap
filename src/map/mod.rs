@@ -114,6 +114,12 @@ impl TilemapTexture {
     }
 
     pub fn verify_ready(&self, images: &Res<Assets<Image>>) -> bool {
+        #[cfg(feature = "atlas")]
+        {
+            images.get(self.image_handle()).is_some()
+        }
+
+        #[cfg(not(feature = "atlas"))]
         self.image_handles().into_iter().all(|h| {
             if let Some(image) = images.get(h) {
                 image
@@ -179,6 +185,13 @@ impl From<TilemapTileSize> for Vec2 {
 impl From<&TilemapTileSize> for Vec2 {
     fn from(tile_size: &TilemapTileSize) -> Self {
         Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<Vec2> for TilemapTileSize {
+    fn from(v: Vec2) -> Self {
+        let Vec2 { x, y } = v;
+        TilemapTileSize { x, y }
     }
 }
 
@@ -254,6 +267,13 @@ impl From<Vec2> for TilemapTextureSize {
             x: size.x,
             y: size.y,
         }
+    }
+}
+
+impl From<TilemapTileSize> for TilemapTextureSize {
+    fn from(tile_size: TilemapTileSize) -> Self {
+        let TilemapTileSize { x, y } = tile_size;
+        TilemapTextureSize { x, y }
     }
 }
 
