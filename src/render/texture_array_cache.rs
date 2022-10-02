@@ -188,7 +188,7 @@ impl TextureArrayCache {
         for texture in queue_queue.iter() {
             match &texture {
                 TilemapTexture::Single(handle) => {
-                    let gpu_image = if let Some(gpu_image) = render_images.get(&handle) {
+                    let gpu_image = if let Some(gpu_image) = render_images.get(handle) {
                         gpu_image
                     } else {
                         self.prepare_queue.insert(texture.clone_weak());
@@ -196,8 +196,8 @@ impl TextureArrayCache {
                     };
 
                     let (count, tile_size, texture_size, spacing, _) =
-                        self.meta_data.get(&texture).unwrap();
-                    let array_gpu_image = self.textures.get(&texture).unwrap();
+                        self.meta_data.get(texture).unwrap();
+                    let array_gpu_image = self.textures.get(texture).unwrap();
                     let count = *count;
 
                     let mut command_encoder =

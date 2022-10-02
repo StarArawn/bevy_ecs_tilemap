@@ -124,7 +124,7 @@ impl ExtractedTilemapTexture {
 
         ExtractedTilemapTexture {
             tilemap_id: TilemapId(tilemap_entity),
-            texture: texture.clone(),
+            texture,
             tile_size,
             tile_spacing,
             filtering,
