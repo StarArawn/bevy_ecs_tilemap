@@ -223,9 +223,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from(
-                "Hexagon Neighbors - Hover over a tile, and then press 0-5 to mark neighbors",
-            ),
+            title: String::from("Generating a hexagonal hex map"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
