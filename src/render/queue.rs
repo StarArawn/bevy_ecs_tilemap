@@ -1,7 +1,7 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     math::UVec4,
-    prelude::{Commands, Component, Entity, Handle, Image, Msaa, Query, Res, ResMut, Transform},
+    prelude::{Commands, Component, Entity, Image, Msaa, Query, Res, ResMut, Transform},
     render::{
         render_asset::RenderAssets,
         render_phase::{DrawFunctions, RenderPhase},
@@ -18,6 +18,7 @@ use bevy::{
 
 use crate::map::TilemapId;
 
+use crate::TilemapTexture;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 
@@ -86,7 +87,7 @@ pub struct TilemapViewBindGroup {
 
 #[derive(Default)]
 pub struct ImageBindGroups {
-    pub values: HashMap<Handle<Image>, BindGroup>,
+    pub values: HashMap<TilemapTexture, BindGroup>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -151,23 +152,23 @@ pub fn queue_meshes(
                     tilemap_id.0.id(),
                 )) {
                     #[cfg(not(feature = "atlas"))]
-                    if !texture_array_cache.contains(&chunk.texture.0) {
+                    if !texture_array_cache.contains(&chunk.texture) {
                         continue;
                     }
 
                     #[cfg(feature = "atlas")]
-                    if gpu_images.get(&chunk.texture.0).is_none() {
+                    if gpu_images.get(chunk.texture.image_handle()).is_none() {
                         continue;
                     }
 
                     image_bind_groups
                         .values
-                        .entry(chunk.texture.0.clone_weak())
+                        .entry(chunk.texture.clone_weak())
                         .or_insert_with(|| {
                             #[cfg(not(feature = "atlas"))]
-                            let gpu_image = texture_array_cache.get(&chunk.texture.0);
+                            let gpu_image = texture_array_cache.get(&chunk.texture);
                             #[cfg(feature = "atlas")]
-                            let gpu_image = gpu_images.get(&chunk.texture.0).unwrap();
+                            let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
                             render_device.create_bind_group(&BindGroupDescriptor {
                                 entries: &[
                                     BindGroupEntry {

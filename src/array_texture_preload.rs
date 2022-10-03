@@ -1,18 +1,17 @@
-use std::sync::{Arc, RwLock};
-
-use bevy::{
-    prelude::{Assets, Handle, Image, Res, ResMut},
-    render::{render_resource::FilterMode, texture::ImageSettings, Extract},
-};
-
 use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
     render::TextureArrayCache,
+    TilemapTexture,
 };
+use bevy::{
+    prelude::{Assets, Image, Res, ResMut},
+    render::{render_resource::FilterMode, texture::ImageSettings, Extract},
+};
+use std::sync::{Arc, RwLock};
 
 #[derive(Default, Debug, Clone)]
 pub struct TilemapArrayTexture {
-    pub atlas_texture: Handle<Image>,
+    pub texture: TilemapTexture,
     pub tile_size: TilemapTileSize,
     pub tile_spacing: TilemapSpacing,
     /// Defaults to ImageSettings.
@@ -48,22 +47,23 @@ pub(crate) fn extract(
     array_texture_loader: Extract<Res<ArrayTextureLoader>>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
 ) {
-    for texture in array_texture_loader.drain() {
-        if let Some(image) = images.get(&texture.atlas_texture) {
-            texture_array_cache.add(
-                &texture.atlas_texture,
-                texture.tile_size.into(),
-                image.size(),
-                texture.tile_spacing.into(),
-                if let Some(filter) = texture.filter {
-                    filter
-                } else {
-                    default_image_settings.default_sampler.mag_filter
-                },
+    for mut array_texture in array_texture_loader.drain() {
+        if array_texture.filter.is_none() {
+            array_texture
+                .filter
+                .replace(default_image_settings.default_sampler.mag_filter);
+        }
+        if array_texture.texture.verify_ready(&images) {
+            texture_array_cache.add_texture(
+                array_texture.texture,
+                array_texture.tile_size,
+                array_texture.tile_spacing,
+                default_image_settings.default_sampler.min_filter,
+                &images,
             );
         } else {
             // Image hasn't loaded yet punt to next frame.
-            array_texture_loader.add(texture);
+            array_texture_loader.add(array_texture);
         }
     }
 }

@@ -183,7 +183,7 @@ pub(crate) fn prepare(
 
         commands
             .spawn()
-            .insert(chunk.texture.0.clone_weak())
+            .insert(chunk.texture.clone_weak())
             .insert(chunk.get_transform())
             .insert(ChunkId(chunk.get_index()))
             .insert(chunk.get_map_type())

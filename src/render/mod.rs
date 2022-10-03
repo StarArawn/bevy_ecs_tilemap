@@ -9,8 +9,7 @@ use bevy::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, TextureUsages,
-            VertexFormat,
+            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
         },
         RenderApp, RenderStage,
     },
@@ -242,20 +241,13 @@ impl Plugin for TilemapRenderingPlugin {
     }
 }
 
-pub fn set_texture_to_copy_src(mut textures: ResMut<Assets<Image>>, query: Query<&TilemapTexture>) {
+pub fn set_texture_to_copy_src(
+    mut images: ResMut<Assets<Image>>,
+    texture_query: Query<&TilemapTexture>,
+) {
     // quick and dirty, run this for all textures anytime a texture component is created.
-    for texture in query.iter() {
-        if let Some(mut texture) = textures.get_mut(&texture.0) {
-            if !texture
-                .texture_descriptor
-                .usage
-                .contains(TextureUsages::COPY_SRC)
-            {
-                texture.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
-                    | TextureUsages::COPY_SRC
-                    | TextureUsages::COPY_DST;
-            }
-        }
+    for texture in texture_query.iter() {
+        texture.set_images_to_copy_src(&mut images)
     }
 }
 
@@ -316,19 +308,10 @@ fn clear_removed(
 fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
-    extracted_tilemaps: Query<&ExtractedTilemapTexture>,
+    extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
 ) {
-    for tilemap in extracted_tilemaps.iter() {
-        let tile_size: Vec2 = tilemap.tile_size.into();
-        let texture_size: Vec2 = tilemap.texture_size.into();
-        let spacing: Vec2 = tilemap.spacing.into();
-        texture_array_cache.add(
-            &tilemap.texture.0,
-            tile_size,
-            texture_size,
-            spacing,
-            tilemap.filtering,
-        );
+    for extracted_texture in extracted_tilemap_textures.iter() {
+        texture_array_cache.add_extracted_texture(extracted_texture);
     }
 
     texture_array_cache.prepare(&render_device);

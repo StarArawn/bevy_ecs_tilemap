@@ -21,9 +21,6 @@ use crate::{
 use super::RemovedMapEntity;
 use super::{chunk::PackedTileData, RemovedTileEntity};
 
-#[cfg(not(feature = "atlas"))]
-use bevy::render::render_resource::TextureUsages;
-
 #[derive(Component)]
 pub struct ExtractedTile {
     pub entity: Entity,
@@ -61,11 +58,11 @@ pub struct ExtractedRemovedMapBundle {
 #[derive(Bundle)]
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
-    size: TilemapTileSize,
+    tile_size: TilemapTileSize,
     grid_size: TilemapGridSize,
     texture_size: TilemapTextureSize,
     spacing: TilemapSpacing,
-    mesh_type: TilemapType,
+    map_type: TilemapType,
     texture: TilemapTexture,
     map_size: TilemapSize,
     visibility: ComputedVisibility,
@@ -77,9 +74,64 @@ pub(crate) struct ExtractedTilemapTexture {
     pub tilemap_id: TilemapId,
     pub tile_size: TilemapTileSize,
     pub texture_size: TilemapTextureSize,
-    pub spacing: TilemapSpacing,
+    pub tile_spacing: TilemapSpacing,
+    pub tile_count: u32,
     pub texture: TilemapTexture,
     pub filtering: FilterMode,
+}
+
+impl ExtractedTilemapTexture {
+    pub fn new(
+        tilemap_entity: Entity,
+        texture: TilemapTexture,
+        tile_size: TilemapTileSize,
+        tile_spacing: TilemapSpacing,
+        filtering: FilterMode,
+        image_assets: &Res<Assets<Image>>,
+    ) -> ExtractedTilemapTexture {
+        let (tile_count, texture_size) = match &texture {
+            TilemapTexture::Single(handle) => {
+                let image = image_assets.get(handle).expect(
+                    "Expected image to have finished loading if \
+                    it is being extracted as a texture!",
+                );
+                let texture_size: TilemapTextureSize = image.size().into();
+                let tile_count_x =
+                    (texture_size.x + tile_spacing.x) / (tile_size.x + tile_spacing.x);
+                let tile_count_y =
+                    (texture_size.y + tile_spacing.y) / (tile_size.y + tile_spacing.y);
+                ((tile_count_x * tile_count_y) as u32, texture_size)
+            }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector(handles) => {
+                for handle in handles {
+                    let image = image_assets.get(handle).expect(
+                        "Expected image to have finished loading if \
+                        it is being extracted as a texture!",
+                    );
+                    let this_tile_size: TilemapTileSize = image.size().into();
+                    if this_tile_size != tile_size {
+                        panic!(
+                            "Expected all provided image assets to have size {:?}, \
+                                    but found image with size: {:?}",
+                            tile_size, this_tile_size
+                        );
+                    }
+                }
+                (handles.len() as u32, tile_size.into())
+            }
+        };
+
+        ExtractedTilemapTexture {
+            tilemap_id: TilemapId(tilemap_entity),
+            texture,
+            tile_size,
+            tile_spacing,
+            filtering,
+            tile_count,
+            texture_size,
+        }
+    }
 }
 
 #[derive(Bundle)]
@@ -207,11 +259,11 @@ pub fn extract(
                 data.0,
                 ExtractedTilemapBundle {
                     transform: *data.1,
-                    size: *data.2,
+                    tile_size: *data.2,
                     texture_size: TilemapTextureSize::default(),
                     spacing: *data.3,
                     grid_size: *data.4,
-                    mesh_type: *data.5,
+                    map_type: *data.5,
                     texture: data.6.clone(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
@@ -242,11 +294,11 @@ pub fn extract(
                     data.0,
                     ExtractedTilemapBundle {
                         transform: *data.1,
-                        size: *data.2,
+                        tile_size: *data.2,
                         texture_size: TilemapTextureSize::default(),
                         spacing: *data.3,
                         grid_size: *data.4,
-                        mesh_type: *data.5,
+                        map_type: *data.5,
                         texture: data.6.clone(),
                         map_size: *data.7,
                         visibility: data.8.clone(),
@@ -261,35 +313,22 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
-        let texture_size = if let Some(_atlas_image) = images.get(&texture.0) {
-            #[cfg(not(feature = "atlas"))]
-            if !_atlas_image
-                .texture_descriptor
-                .usage
-                .contains(TextureUsages::COPY_SRC)
-            {
-                continue;
-            }
-
-            _atlas_image.size().into()
-        } else {
-            continue;
-        };
-
-        extracted_tilemap_textures.push((
-            entity,
-            ExtractedTilemapTextureBundle {
-                data: ExtractedTilemapTexture {
-                    tilemap_id: TilemapId(entity),
-                    tile_size: *tile_size,
-                    texture_size,
-                    spacing: *spacing,
-                    texture: texture.clone(),
-                    filtering: default_image_settings.default_sampler.min_filter,
+    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
+        if texture.verify_ready(&images) {
+            extracted_tilemap_textures.push((
+                entity,
+                ExtractedTilemapTextureBundle {
+                    data: ExtractedTilemapTexture::new(
+                        entity,
+                        texture.clone(),
+                        *tile_size,
+                        *tile_spacing,
+                        default_image_settings.default_sampler.min_filter,
+                        &images,
+                    ),
                 },
-            },
-        ));
+            ))
+        }
     }
 
     for (entity, frustum) in camera_query.iter() {
