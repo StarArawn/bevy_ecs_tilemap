@@ -3,7 +3,6 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::HexDirection;
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
-use crate::KeyCode::{Key0, Key1, Key2, Key3, Key4, Key5};
 use helpers::camera::movement as camera_movement;
 
 // Press SPACE to change map type. Hover over a tile to highlight its label (red) and those of its
@@ -382,17 +381,17 @@ fn highlight_neighbor_label(
                 }
             }
 
-            let selected_hex_direction = if keyboard_input.pressed(Key0) {
+            let selected_hex_direction = if keyboard_input.pressed(KeyCode::Key0) {
                 Some(HexDirection::Zero)
-            } else if keyboard_input.pressed(Key1) {
+            } else if keyboard_input.pressed(KeyCode::Key1) {
                 Some(HexDirection::One)
-            } else if keyboard_input.pressed(Key2) {
+            } else if keyboard_input.pressed(KeyCode::Key2) {
                 Some(HexDirection::Two)
-            } else if keyboard_input.pressed(Key3) {
+            } else if keyboard_input.pressed(KeyCode::Key3) {
                 Some(HexDirection::Three)
-            } else if keyboard_input.pressed(Key4) {
+            } else if keyboard_input.pressed(KeyCode::Key4) {
                 Some(HexDirection::Four)
-            } else if keyboard_input.pressed(Key5) {
+            } else if keyboard_input.pressed(KeyCode::Key5) {
                 Some(HexDirection::Five)
             } else {
                 None
