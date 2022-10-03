@@ -57,10 +57,8 @@ impl TextureArrayCache {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for item in prepare_queue {
             let (tile_size, atlas_size, spacing, filter) = self.sizes.get(&item).unwrap();
-            let tile_count_x =
-                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
-            let tile_count_y =
-                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
+            let tile_count_x = ((atlas_size.x as f32) / (tile_size.x + spacing.x)).floor();
+            let tile_count_y = ((atlas_size.y as f32) / (tile_size.y + spacing.y)).floor();
             let mut count = (tile_count_x * tile_count_y) as u32;
 
             // Fixes weird cubemap bug.
@@ -139,10 +137,8 @@ impl TextureArrayCache {
 
             let (tile_size, atlas_size, spacing, _) = self.sizes.get(&item).unwrap();
             let array_gpu_image = self.textures.get(&item).unwrap();
-            let tile_count_x =
-                ((atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x)).floor();
-            let tile_count_y =
-                ((atlas_size.y as f32 + spacing.y) / (tile_size.y + spacing.y)).floor();
+            let tile_count_x = ((atlas_size.x as f32) / (tile_size.x + spacing.x)).floor();
+            let tile_count_y = ((atlas_size.y as f32) / (tile_size.y + spacing.y)).floor();
             let count = (tile_count_x * tile_count_y) as u32;
 
             let mut command_encoder =
@@ -151,7 +147,7 @@ impl TextureArrayCache {
                 });
 
             for i in 0..count {
-                let columns = (atlas_size.x as f32 + spacing.x) / (tile_size.x + spacing.x);
+                let columns = (atlas_size.x as f32) / (tile_size.x + spacing.x);
                 let sprite_sheet_x: f32 = (i as f32 % columns).floor() * (tile_size.x + spacing.x);
                 let sprite_sheet_y: f32 = (i as f32 / columns).floor() * (tile_size.y + spacing.y);
 
