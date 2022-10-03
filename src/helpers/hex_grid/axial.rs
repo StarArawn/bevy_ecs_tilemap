@@ -82,6 +82,17 @@ impl Mul<AxialPos> for i32 {
     }
 }
 
+impl Mul<AxialPos> for u32 {
+    type Output = AxialPos;
+
+    fn mul(self, rhs: AxialPos) -> Self::Output {
+        AxialPos {
+            q: (self as i32) * rhs.q,
+            r: (self as i32) * rhs.r,
+        }
+    }
+}
+
 fn ceiled_division_by_2(x: i32) -> i32 {
     if x < 0 {
         (x - 1) / 2
@@ -363,5 +374,14 @@ impl FractionalAxialPos {
 impl From<Vec2> for FractionalAxialPos {
     fn from(v: Vec2) -> Self {
         FractionalAxialPos { q: v.x, r: v.y }
+    }
+}
+
+impl From<AxialPos> for FractionalAxialPos {
+    fn from(axial_pos: AxialPos) -> Self {
+        FractionalAxialPos {
+            q: axial_pos.q as f32,
+            r: axial_pos.r as f32,
+        }
     }
 }

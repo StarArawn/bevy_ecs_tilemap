@@ -44,6 +44,18 @@ pub const HEX_OFFSETS: [AxialPos; 6] = [
     AxialPos { q: 1, r: -1 },
 ];
 
+impl From<HexDirection> for AxialPos {
+    fn from(direction: HexDirection) -> Self {
+        HEX_OFFSETS[direction as usize]
+    }
+}
+
+impl From<&HexDirection> for AxialPos {
+    fn from(direction: &HexDirection) -> Self {
+        AxialPos::from(*direction)
+    }
+}
+
 impl From<usize> for HexDirection {
     fn from(choice: usize) -> Self {
         let ix = choice % 6;
