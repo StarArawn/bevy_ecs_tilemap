@@ -1,6 +1,10 @@
 use crate::helpers::hex_grid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
 use crate::helpers::hex_grid::cube::{CubePos, FractionalCubePos};
+use crate::helpers::hex_grid::neighbors::{
+    HexColDirection, HexDirection, HexRowDirection, HEX_OFFSETS,
+};
 use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
+use crate::map::HexCoordSystem;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::{Mat2, Vec2};
@@ -249,8 +253,92 @@ impl AxialPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
-    pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
+    pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
+    }
+
+    /// Convert naively into a [`TilePos`].
+    ///
+    /// `q` becomes `x` and `r` becomes `y`.
+    pub fn as_tile_pos_unchecked(&self) -> TilePos {
+        TilePos {
+            x: self.q as u32,
+            y: self.r as u32,
+        }
+    }
+
+    /// Converts an axial position into a tile position in the given hex coordinate system.
+    ///
+    /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
+    /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
+    /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
+    /// coordinate system before being returned as a `TilePos`.
+    pub fn as_tile_pos_given_coord_system(&self, hex_coord_sys: HexCoordSystem) -> TilePos {
+        match hex_coord_sys {
+            HexCoordSystem::RowEven => RowEvenPos::from(*self).as_tile_pos_unchecked(),
+            HexCoordSystem::RowOdd => RowOddPos::from(*self).as_tile_pos_unchecked(),
+            HexCoordSystem::ColumnEven => ColEvenPos::from(*self).as_tile_pos_unchecked(),
+            HexCoordSystem::ColumnOdd => ColOddPos::from(*self).as_tile_pos_unchecked(),
+            HexCoordSystem::Row | HexCoordSystem::Column => self.as_tile_pos_unchecked(),
+        }
+    }
+
+    /// Converts an axial position into a tile position in the given hex coordinate system, if it
+    /// fits within the extents of the map.
+    ///
+    /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
+    /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
+    /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
+    /// coordinate system before being returned as a `TilePos`.
+    pub fn as_tile_pos_given_coord_system_and_map_size(
+        &self,
+        hex_coord_sys: HexCoordSystem,
+        map_size: &TilemapSize,
+    ) -> Option<TilePos> {
+        match hex_coord_sys {
+            HexCoordSystem::RowEven => RowEvenPos::from(*self).as_tile_pos_given_map_size(map_size),
+            HexCoordSystem::RowOdd => RowOddPos::from(*self).as_tile_pos_given_map_size(map_size),
+            HexCoordSystem::ColumnEven => {
+                ColEvenPos::from(*self).as_tile_pos_given_map_size(map_size)
+            }
+            HexCoordSystem::ColumnOdd => {
+                ColOddPos::from(*self).as_tile_pos_given_map_size(map_size)
+            }
+            HexCoordSystem::Row | HexCoordSystem::Column => {
+                self.as_tile_pos_given_map_size(map_size)
+            }
+        }
+    }
+
+    /// Converts an axial position into a tile position in the given hex coordinate system.
+    ///
+    /// If `hex_coord_sys` is [`RowEven`](HexCoordSystem::RowEven),
+    /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
+    /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
+    /// coordinate system before being returned as a `TilePos`.
+    pub fn from_tile_pos_given_coord_system(
+        tile_pos: &TilePos,
+        hex_coord_sys: HexCoordSystem,
+    ) -> AxialPos {
+        match hex_coord_sys {
+            HexCoordSystem::RowEven => RowEvenPos::from(tile_pos).into(),
+            HexCoordSystem::RowOdd => RowOddPos::from(tile_pos).into(),
+            HexCoordSystem::ColumnEven => ColEvenPos::from(tile_pos).into(),
+            HexCoordSystem::ColumnOdd => ColOddPos::from(tile_pos).into(),
+            HexCoordSystem::Row | HexCoordSystem::Column => AxialPos::from(tile_pos),
+        }
+    }
+
+    pub fn offset(&self, direction: HexDirection) -> AxialPos {
+        *self + HEX_OFFSETS[direction as usize]
+    }
+
+    pub fn offset_compass_row(&self, direction: HexRowDirection) -> AxialPos {
+        *self + HEX_OFFSETS[direction as usize]
+    }
+
+    pub fn offset_compass_col(&self, direction: HexColDirection) -> AxialPos {
+        *self + HEX_OFFSETS[direction as usize]
     }
 }
 
