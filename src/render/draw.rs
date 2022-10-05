@@ -5,7 +5,7 @@ use bevy::{
         SystemParamItem,
     },
     math::UVec4,
-    prelude::{Entity, Handle, Image},
+    prelude::Entity,
     render::{
         mesh::GpuBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
@@ -15,6 +15,7 @@ use bevy::{
 };
 
 use crate::map::TilemapId;
+use crate::TilemapTexture;
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
@@ -92,20 +93,16 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
 
 pub struct SetMaterialBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
-    type Param = (SRes<ImageBindGroups>, SQuery<Read<Handle<Image>>>);
+    type Param = (SRes<ImageBindGroups>, SQuery<Read<TilemapTexture>>);
     #[inline]
     fn render<'w>(
         _view: Entity,
         item: &Transparent2d,
-        (image_bind_groups, entities_with_images): SystemParamItem<'w, '_, Self::Param>,
+        (image_bind_groups, entities_with_textures): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let image_handle = entities_with_images.get(item.entity).unwrap();
-        let bind_group = image_bind_groups
-            .into_inner()
-            .values
-            .get(image_handle)
-            .unwrap();
+        let texture = entities_with_textures.get(item.entity).unwrap();
+        let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
         pass.set_bind_group(I, bind_group, &[]);
 
         RenderCommandResult::Success

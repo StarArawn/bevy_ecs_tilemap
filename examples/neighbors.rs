@@ -72,7 +72,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
             grid_size,
             size: total_size,
             storage: tile_storage,
-            texture: TilemapTexture(tile_handle_hex_row.clone()),
+            texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
             tile_size,
             map_type: TilemapType::Hexagon(HexCoordSystem::Row),
             ..Default::default()
@@ -190,7 +190,7 @@ fn swap_map_type(
                 }
                 TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
-                    *map_texture = TilemapTexture((*tile_handle_hex_col).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
                     *tile_size = TILE_SIZE_HEX_COL;
                     *grid_size = GRID_SIZE_HEX_COL;
                 }
@@ -202,7 +202,7 @@ fn swap_map_type(
                 }
                 TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
-                    *map_texture = TilemapTexture((*tile_handle_hex_row).clone());
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
                     *tile_size = TILE_SIZE_HEX_ROW;
                     *grid_size = GRID_SIZE_HEX_ROW;
                 }

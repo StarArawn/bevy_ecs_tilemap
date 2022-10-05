@@ -1,3 +1,6 @@
+use bevy::asset::Assets;
+use bevy::prelude::{Res, ResMut};
+use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
     prelude::{Component, Entity, Handle, Image},
@@ -70,9 +73,92 @@ impl From<UVec2> for TilemapSize {
     }
 }
 
-/// A bevy asset handle linking to the tilemap atlas image file.
-#[derive(Component, Clone, Default, Debug, Hash)]
-pub struct TilemapTexture(pub Handle<Image>);
+#[derive(Component, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum TilemapTexture {
+    /// All textures for tiles are inside a single image asset.
+    Single(Handle<Image>),
+    /// Each tile's texture has its own image asset (each asset must have the same size), so there
+    /// is a vector of image assets.
+    ///
+    /// Each image should have the same size, identical to the provided `TilemapTileSize`. If this
+    /// is not the case, a panic will be thrown during the verification when images are being
+    /// extracted to the render world.
+    ///
+    /// This only makes sense to use when the `"atlas"` feature is NOT enabled, as texture arrays
+    /// are required to handle storing an array of textures. Therefore, this variant is only
+    /// available when `"atlas"` is not enabled.
+    #[cfg(not(feature = "atlas"))]
+    Vector(Vec<Handle<Image>>),
+}
+
+impl Default for TilemapTexture {
+    fn default() -> Self {
+        TilemapTexture::Single(Default::default())
+    }
+}
+
+impl TilemapTexture {
+    #[cfg(feature = "atlas")]
+    pub fn image_handle(&self) -> &Handle<Image> {
+        match &self {
+            TilemapTexture::Single(handle) => handle,
+        }
+    }
+
+    pub fn image_handles(&self) -> Vec<&Handle<Image>> {
+        match &self {
+            TilemapTexture::Single(handle) => vec![handle],
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector(handles) => handles.iter().collect(),
+        }
+    }
+
+    pub fn verify_ready(&self, images: &Res<Assets<Image>>) -> bool {
+        #[cfg(feature = "atlas")]
+        {
+            images.get(self.image_handle()).is_some()
+        }
+
+        #[cfg(not(feature = "atlas"))]
+        self.image_handles().into_iter().all(|h| {
+            if let Some(image) = images.get(h) {
+                image
+                    .texture_descriptor
+                    .usage
+                    .contains(TextureUsages::COPY_SRC)
+            } else {
+                false
+            }
+        })
+    }
+
+    /// Sets images with the `COPY_SRC` flag.
+    pub fn set_images_to_copy_src(&self, images: &mut ResMut<Assets<Image>>) {
+        for handle in self.image_handles() {
+            if let Some(mut image) = images.get_mut(handle) {
+                if !image
+                    .texture_descriptor
+                    .usage
+                    .contains(TextureUsages::COPY_SRC)
+                {
+                    image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+                        | TextureUsages::COPY_SRC
+                        | TextureUsages::COPY_DST;
+                }
+            }
+        }
+    }
+
+    pub fn clone_weak(&self) -> Self {
+        match self {
+            TilemapTexture::Single(handle) => TilemapTexture::Single(handle.clone_weak()),
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::Vector(handles) => {
+                TilemapTexture::Vector(handles.iter().map(|h| h.clone_weak()).collect())
+            }
+        }
+    }
+}
 
 /// Size of the tiles in pixels
 #[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
@@ -99,6 +185,13 @@ impl From<TilemapTileSize> for Vec2 {
 impl From<&TilemapTileSize> for Vec2 {
     fn from(tile_size: &TilemapTileSize) -> Self {
         Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<Vec2> for TilemapTileSize {
+    fn from(v: Vec2) -> Self {
+        let Vec2 { x, y } = v;
+        TilemapTileSize { x, y }
     }
 }
 
@@ -157,7 +250,7 @@ impl TilemapSpacing {
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Default, Clone, Copy, Debug)]
-pub(crate) struct TilemapTextureSize {
+pub struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
 }
@@ -174,6 +267,13 @@ impl From<Vec2> for TilemapTextureSize {
             x: size.x,
             y: size.y,
         }
+    }
+}
+
+impl From<TilemapTileSize> for TilemapTextureSize {
+    fn from(tile_size: TilemapTileSize) -> Self {
+        let TilemapTileSize { x, y } = tile_size;
+        TilemapTextureSize { x, y }
     }
 }
 

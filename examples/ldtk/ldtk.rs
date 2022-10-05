@@ -207,7 +207,7 @@ pub fn process_loaded_tile_maps(
                             grid_size,
                             size,
                             storage,
-                            texture: TilemapTexture(texture),
+                            texture: TilemapTexture::Single(texture),
                             tile_size,
                             transform: get_tilemap_center_transform(
                                 &size,
