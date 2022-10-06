@@ -89,6 +89,13 @@ pub enum TilemapTexture {
     /// available when `"atlas"` is not enabled.
     #[cfg(not(feature = "atlas"))]
     Vector(Vec<Handle<Image>>),
+    /// The tiles are provided as array layers inside a KTX2 or DDS container.
+    ///
+    /// This only makes sense to use when the `"atlas"` feature is NOT enabled, as texture arrays
+    /// are required to handle storing an array of textures. Therefore, this variant is only
+    /// available when `"atlas"` is not enabled.
+    #[cfg(not(feature = "atlas"))]
+    TextureContainer(Handle<Image>),
 }
 
 impl Default for TilemapTexture {
@@ -110,6 +117,8 @@ impl TilemapTexture {
             TilemapTexture::Single(handle) => vec![handle],
             #[cfg(not(feature = "atlas"))]
             TilemapTexture::Vector(handles) => handles.iter().collect(),
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::TextureContainer(handle) => vec![handle],
         }
     }
 
@@ -155,6 +164,10 @@ impl TilemapTexture {
             #[cfg(not(feature = "atlas"))]
             TilemapTexture::Vector(handles) => {
                 TilemapTexture::Vector(handles.iter().map(|h| h.clone_weak()).collect())
+            }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::TextureContainer(handle) => {
+                TilemapTexture::TextureContainer(handle.clone_weak())
             }
         }
     }

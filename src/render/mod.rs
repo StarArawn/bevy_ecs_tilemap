@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use bevy::render::render_asset::RenderAssets;
 use bevy::{
     asset::load_internal_asset,
     core_pipeline::core_2d::Transparent2d,
@@ -309,10 +310,11 @@ fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
     extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
+    render_images: Res<RenderAssets<Image>>,
 ) {
     for extracted_texture in extracted_tilemap_textures.iter() {
         texture_array_cache.add_extracted_texture(extracted_texture);
     }
 
-    texture_array_cache.prepare(&render_device);
+    texture_array_cache.prepare(&render_device, &render_images);
 }
