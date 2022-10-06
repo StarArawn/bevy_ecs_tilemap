@@ -86,7 +86,7 @@ fn main() {
             title: String::from("Using TilemapTexture::TextureContainer"),
             ..Default::default()
         })
-        .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(ImageSettings::default_linear())
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
