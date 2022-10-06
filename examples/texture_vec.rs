@@ -85,7 +85,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Using TilemapTexture::Vector instead of TilemapTexture::Single"),
+            title: String::from("Using TilemapTexture::Vector"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())

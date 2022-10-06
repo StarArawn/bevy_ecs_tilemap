@@ -120,6 +120,18 @@ impl ExtractedTilemapTexture {
                 }
                 (handles.len() as u32, tile_size.into())
             }
+            #[cfg(not(feature = "atlas"))]
+            TilemapTexture::TextureContainer(image_handle) => {
+                let image = image_assets.get(image_handle).expect(
+                    "Expected image to have finished loading if \
+                        it is being extracted as a texture!",
+                );
+                let tile_size: TilemapTileSize = image.size().into();
+                (
+                    image.texture_descriptor.array_layer_count(),
+                    tile_size.into(),
+                )
+            }
         };
 
         ExtractedTilemapTexture {

@@ -17,6 +17,9 @@ const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
+    // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
+    // feature is not turned on, that the image won't properly be interpreted as a texture
+    // container. The other alternative is `dds`.
     let texture_vec = TilemapTexture::TextureContainer(asset_server.load("hex-tiles.ktx2"));
 
     let map_size = TilemapSize {
@@ -80,7 +83,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 1270.0,
             height: 720.0,
-            title: String::from("Using TilemapTexture::Vector instead of TilemapTexture::Single"),
+            title: String::from("Using TilemapTexture::TextureContainer"),
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())

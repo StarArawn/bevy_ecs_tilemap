@@ -96,6 +96,17 @@ impl TextureArrayCache {
                 }
                 (handles.len() as u32, tile_size.into())
             }
+            TilemapTexture::TextureContainer(handle) => {
+                let image = image_assets.get(handle).expect(
+                    "Expected image to have finished loading if \
+                        it is being extracted as a texture!",
+                );
+                let tile_size: TilemapTileSize = image.size().into();
+                (
+                    image.texture_descriptor.array_layer_count(),
+                    tile_size.into(),
+                )
+            }
         };
 
         if !self.meta_data.contains_key(&texture) {
@@ -290,6 +301,46 @@ impl TextureArrayCache {
                             },
                         );
                     }
+
+                    let command_buffer = command_encoder.finish();
+                    render_queue.submit(vec![command_buffer]);
+                }
+                TilemapTexture::TextureContainer(handle) => {
+                    let gpu_image = if let Some(gpu_image) = render_images.get(handle) {
+                        gpu_image
+                    } else {
+                        self.prepare_queue.insert(texture.clone_weak());
+                        continue;
+                    };
+
+                    let (count, tile_size, _, _, _) = self.meta_data.get(texture).unwrap();
+                    let array_gpu_image = self.textures.get(texture).unwrap();
+                    let count = *count;
+
+                    let mut command_encoder =
+                        render_device.create_command_encoder(&CommandEncoderDescriptor {
+                            label: Some("create_texture_array_from_atlas"),
+                        });
+
+                    command_encoder.copy_texture_to_texture(
+                        ImageCopyTexture {
+                            texture: &gpu_image.texture,
+                            mip_level: 0,
+                            origin: Origin3d { x: 0, y: 0, z: 0 },
+                            aspect: TextureAspect::All,
+                        },
+                        ImageCopyTexture {
+                            texture: &array_gpu_image.texture,
+                            mip_level: 0,
+                            origin: Origin3d { x: 0, y: 0, z: 0 },
+                            aspect: TextureAspect::All,
+                        },
+                        Extent3d {
+                            width: tile_size.x as u32,
+                            height: tile_size.y as u32,
+                            depth_or_array_layers: count,
+                        },
+                    );
 
                     let command_buffer = command_encoder.finish();
                     render_queue.submit(vec![command_buffer]);
