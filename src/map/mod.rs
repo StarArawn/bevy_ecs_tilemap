@@ -229,7 +229,8 @@ impl From<&Vec2> for TilemapGridSize {
     }
 }
 
-/// Spacing between tiles inside of the texture atlas.
+/// Spacing between tiles in pixels inside of the texture atlas.
+/// Defaults to 0.0
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TilemapSpacing {
     pub x: f32,

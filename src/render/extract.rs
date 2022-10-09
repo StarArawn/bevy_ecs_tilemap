@@ -96,8 +96,8 @@ impl ExtractedTilemapTexture {
                     it is being extracted as a texture!",
                 );
                 let texture_size: TilemapTextureSize = image.size().into();
-                let tile_count_x = (texture_size.x) / (tile_size.x + tile_spacing.x);
-                let tile_count_y = (texture_size.y) / (tile_size.y + tile_spacing.y);
+                let tile_count_x = ((texture_size.x) / (tile_size.x + tile_spacing.x)).floor();
+                let tile_count_y = ((texture_size.y) / (tile_size.y + tile_spacing.y)).floor();
                 ((tile_count_x * tile_count_y) as u32, texture_size)
             }
             #[cfg(not(feature = "atlas"))]
