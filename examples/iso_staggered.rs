@@ -10,7 +10,7 @@ mod helpers;
 const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("iso_color.png");
 
@@ -24,7 +24,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         y: QUADRANT_SIDE_LENGTH,
     };
     let mut tile_storage = TileStorage::empty(total_size);
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap_rect(
@@ -75,17 +75,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
     let grid_size = tile_size.into();
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            size: total_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            map_type: TilemapType::isometric_staggered(false),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size: total_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        map_type: TilemapType::isometric_staggered(false),
+        ..Default::default()
+    });
 }
 
 fn main() {

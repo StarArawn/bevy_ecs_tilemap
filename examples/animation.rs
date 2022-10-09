@@ -34,7 +34,7 @@ const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
 fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     let TilemapMetadata {
         size,
@@ -52,17 +52,15 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            size,
-            grid_size,
-            tile_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        size,
+        grid_size,
+        tile_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
+        ..Default::default()
+    });
 }
 
 fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -76,7 +74,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 
     let mut tile_storage = TileStorage::empty(size);
 
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // Choose 10 random tiles to contain flowers.
     let mut rng = thread_rng();
@@ -89,8 +87,8 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
-            .spawn()
-            .insert_bundle(TileBundle {
+            .spawn_empty()
+            .insert(TileBundle {
                 position: tile_pos,
                 tilemap_id: TilemapId(tilemap_entity),
                 texture: TileTexture(0),
@@ -108,21 +106,19 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         });
     }
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
+        ..Default::default()
+    });
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 }
 
 fn main() {

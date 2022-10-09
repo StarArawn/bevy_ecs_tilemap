@@ -10,7 +10,7 @@ struct CurrentColor(u16);
 struct LastUpdate(f64);
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -32,7 +32,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity
     // it is associated with. This is done with the TilemapId component on each tile.
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // Spawn a 32 by 32 tilemap.
     // Alternatively, you can use helpers::fill_tilemap.
@@ -40,8 +40,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
@@ -83,7 +82,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands
         .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             size: tilemap_size,
             storage: tile_storage,

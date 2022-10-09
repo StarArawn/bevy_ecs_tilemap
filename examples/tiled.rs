@@ -4,16 +4,14 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("map.tmx");
 
-    commands
-        .spawn()
-        .insert_bundle(helpers::tiled::TiledMapBundle {
-            tiled_map: map_handle,
-            ..Default::default()
-        });
+    commands.spawn(helpers::tiled::TiledMapBundle {
+        tiled_map: map_handle,
+        ..Default::default()
+    });
 }
 
 fn main() {

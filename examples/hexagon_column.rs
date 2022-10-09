@@ -7,7 +7,7 @@ mod helpers;
 const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("flat_hex_tiles.png");
 
@@ -22,7 +22,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     };
 
     let mut tile_storage = TileStorage::empty(total_size);
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap_rect(
@@ -73,17 +73,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TilemapTileSize { x: 17.0, y: 15.0 };
     let grid_size = TilemapGridSize { x: 17.0, y: 15.0 };
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            size: total_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            map_type: TilemapType::Hexagon(HexCoordSystem::Column),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size: total_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        map_type: TilemapType::Hexagon(HexCoordSystem::Column),
+        ..Default::default()
+    });
 }
 
 fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<Input<KeyCode>>) {

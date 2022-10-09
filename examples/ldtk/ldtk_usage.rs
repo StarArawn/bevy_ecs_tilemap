@@ -17,11 +17,11 @@ mod helpers;
 mod ldtk;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let handle: Handle<LdtkMap> = asset_server.load("map.ldtk");
 
-    commands.spawn().insert_bundle(LdtkMapBundle {
+    commands.spawn(LdtkMapBundle {
         ldtk_map: handle,
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()

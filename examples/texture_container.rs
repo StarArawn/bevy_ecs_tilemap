@@ -15,7 +15,7 @@ const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
 const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
     // feature is not turned on, that the image won't properly be interpreted as a texture
@@ -28,7 +28,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     };
 
     let mut tile_storage = TileStorage::empty(map_size);
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     let tile_positions = generate_hexagon(
@@ -50,8 +50,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             .unwrap()
             .0;
         let tile_entity = commands
-            .spawn()
-            .insert_bundle(TileBundle {
+            .spawn_empty()
+            .insert(TileBundle {
                 position,
                 tilemap_id,
                 texture,
@@ -64,18 +64,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TILE_SIZE;
     let grid_size = TILE_SIZE.into();
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            tile_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: texture_vec,
-            map_type: TilemapType::Hexagon(COORD_SYS),
-            transform: get_tilemap_center_transform(&map_size, &grid_size, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        tile_size,
+        size: map_size,
+        storage: tile_storage,
+        texture: texture_vec,
+        map_type: TilemapType::Hexagon(COORD_SYS),
+        transform: get_tilemap_center_transform(&map_size, &grid_size, 0.0),
+        ..Default::default()
+    });
 }
 
 fn main() {

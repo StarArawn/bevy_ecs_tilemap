@@ -4,21 +4,20 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     let tilemap_size = TilemapSize { x: 32, y: 32 };
     let mut tile_storage = TileStorage::empty(tilemap_size);
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     let mut i = 0;
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     visible: TileVisible(i % 2 == 0 || i % 7 == 0),
@@ -35,7 +34,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             size: tilemap_size,
             storage: tile_storage,
