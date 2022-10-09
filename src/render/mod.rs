@@ -9,9 +9,7 @@ use bevy::{
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
-        render_resource::{
-            DynamicUniformBuffer, FilterMode, SpecializedRenderPipelines, VertexFormat,
-        },
+        render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         RenderApp, RenderStage,
     },
 };
@@ -19,16 +17,16 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
+use crate::render::prepare::{MeshUniformResource, TilemapUniformResource};
 use crate::{
     prelude::{TilemapRenderSettings, TilemapTexture},
     tiles::{TilePos, TileStorage},
 };
 
 use self::{
-    chunk::{RenderChunk2dStorage, TilemapUniformData},
+    chunk::RenderChunk2dStorage,
     draw::DrawTilemap,
     pipeline::{TilemapPipeline, TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX},
-    prepare::MeshUniform,
     queue::ImageBindGroups,
 };
 
@@ -58,7 +56,7 @@ pub(crate) struct ExtractedFilterMode(FilterMode);
 ///
 /// Initialized from [`TilemapRenderSettings`](crate::map::TilemapRenderSettings) resource, if
 /// provided. Otherwise, defaults to `64 x 64`.
-#[derive(Debug, Copy, Clone, Deref)]
+#[derive(Resource, Debug, Copy, Clone, Deref)]
 pub(crate) struct RenderChunkSize(UVec2);
 
 impl RenderChunkSize {
@@ -82,8 +80,9 @@ impl RenderChunkSize {
 }
 
 pub struct TilemapRenderingPlugin;
-#[derive(Default, Deref, DerefMut)]
-pub struct SecondsSinceStartup(f32);
+
+#[derive(Resource, Default, Deref, DerefMut)]
+pub struct SecondsSinceStartup(pub f32);
 
 pub const COLUMN_EVEN_HEX: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7704924705970804993);
@@ -217,7 +216,7 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .insert_resource(RenderChunkSize(chunk_size))
             .insert_resource(RenderChunk2dStorage::default())
-            .insert_resource(SecondsSinceStartup);
+            .insert_resource(SecondsSinceStartup(0.0));
         render_app
             .add_system_to_stage(RenderStage::Extract, extract::extract)
             .add_system_to_stage(RenderStage::Extract, extract::extract_removal);
@@ -230,8 +229,8 @@ impl Plugin for TilemapRenderingPlugin {
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
-            .init_resource::<DynamicUniformBuffer<MeshUniform>>()
-            .init_resource::<DynamicUniformBuffer<TilemapUniformData>>();
+            .init_resource::<MeshUniformResource>()
+            .init_resource::<TilemapUniformResource>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
 
@@ -281,13 +280,13 @@ pub struct RemovedMapEntity(pub Entity);
 
 fn removal_helper(mut commands: Commands, removed_query: RemovedComponents<TilePos>) {
     for entity in removed_query.iter() {
-        commands.spawn().insert(RemovedTileEntity(entity));
+        commands.spawn(RemovedTileEntity(entity));
     }
 }
 
 fn removal_helper_tilemap(mut commands: Commands, removed_query: RemovedComponents<TileStorage>) {
     for entity in removed_query.iter() {
-        commands.spawn().insert(RemovedMapEntity(entity));
+        commands.spawn(RemovedMapEntity(entity));
     }
 }
 

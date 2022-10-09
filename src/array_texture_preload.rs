@@ -4,7 +4,7 @@ use crate::{
     TilemapTexture,
 };
 use bevy::{
-    prelude::{Assets, Image, Res, ResMut},
+    prelude::{Assets, Image, Res, ResMut, Resource},
     render::{render_resource::FilterMode, texture::ImageSettings, Extract},
 };
 use std::sync::{Arc, RwLock};
@@ -20,7 +20,7 @@ pub struct TilemapArrayTexture {
 
 /// A bevy world resource that allows you to add atlas textures for
 /// loading into the array texture cache.
-#[derive(Default, Debug, Clone)]
+#[derive(Resource, Default, Debug, Clone)]
 pub struct ArrayTextureLoader {
     // Arc and RwLock just let us get around Extract's read only rules.
     textures: Arc<RwLock<Vec<TilemapArrayTexture>>>,

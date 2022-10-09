@@ -181,7 +181,7 @@ pub fn process_loaded_maps(
                         };
 
                         let mut tile_storage = TileStorage::empty(map_size);
-                        let layer_entity = commands.spawn().id();
+                        let layer_entity = commands.spawn_empty().id();
 
                         for x in 0..map_size.x {
                             for y in 0..map_size.y {
@@ -209,8 +209,7 @@ pub fn process_loaded_maps(
 
                                 let tile_pos = TilePos { x, y };
                                 let tile_entity = commands
-                                    .spawn()
-                                    .insert_bundle(TileBundle {
+                                    .spawn(TileBundle {
                                         position: tile_pos,
                                         tilemap_id: TilemapId(layer_entity),
                                         texture: TileTexture(tile_id),
@@ -226,7 +225,7 @@ pub fn process_loaded_maps(
                             }
                         }
 
-                        commands.entity(layer_entity).insert_bundle(TilemapBundle {
+                        commands.entity(layer_entity).insert(TilemapBundle {
                             grid_size,
                             size: map_size,
                             storage: tile_storage,

@@ -9,6 +9,7 @@ use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
 use bevy::log::trace;
+use bevy::prelude::Resource;
 use bevy::{
     math::{Mat4, UVec4},
     prelude::{
@@ -26,6 +27,12 @@ use super::{
     DynamicUniformIndex,
 };
 
+#[derive(Resource, Default)]
+pub struct MeshUniformResource(pub DynamicUniformBuffer<MeshUniform>);
+
+#[derive(Resource, Default)]
+pub struct TilemapUniformResource(pub DynamicUniformBuffer<TilemapUniformData>);
+
 #[derive(ShaderType, Component, Clone)]
 pub struct MeshUniform {
     pub transform: Mat4,
@@ -35,8 +42,8 @@ pub struct MeshUniform {
 pub(crate) fn prepare(
     mut commands: Commands,
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
-    mut mesh_uniforms: ResMut<DynamicUniformBuffer<MeshUniform>>,
-    mut tilemap_uniforms: ResMut<DynamicUniformBuffer<TilemapUniformData>>,
+    mut mesh_uniforms: ResMut<MeshUniformResource>,
+    mut tilemap_uniforms: ResMut<TilemapUniformResource>,
     chunk_size: Res<RenderChunkSize>,
     extracted_tiles: Query<&ExtractedTile>,
     extracted_tilemaps: Query<(
@@ -157,8 +164,8 @@ pub(crate) fn prepare(
         }
     }
 
-    mesh_uniforms.clear();
-    tilemap_uniforms.clear();
+    mesh_uniforms.0.clear();
+    tilemap_uniforms.0.clear();
 
     for chunk in chunk_storage.iter_mut() {
         if !chunk.visible {
@@ -181,27 +188,29 @@ pub(crate) fn prepare(
         let mut chunk_uniform: TilemapUniformData = chunk.into();
         chunk_uniform.time = **seconds_since_startup;
 
-        commands
-            .spawn()
-            .insert(chunk.texture.clone_weak())
-            .insert(chunk.get_transform())
-            .insert(ChunkId(chunk.get_index()))
-            .insert(chunk.get_map_type())
-            .insert(TilemapId(Entity::from_raw(chunk.tilemap_id)))
-            .insert(DynamicUniformIndex::<MeshUniform> {
-                index: mesh_uniforms.push(MeshUniform {
+        commands.spawn((
+            chunk.texture.clone_weak(),
+            chunk.get_transform(),
+            ChunkId(chunk.get_index()),
+            chunk.get_map_type(),
+            TilemapId(Entity::from_raw(chunk.tilemap_id)),
+            DynamicUniformIndex::<MeshUniform> {
+                index: mesh_uniforms.0.push(MeshUniform {
                     transform: chunk.get_transform_matrix(),
                 }),
                 marker: PhantomData,
-            })
-            .insert(DynamicUniformIndex::<TilemapUniformData> {
-                index: tilemap_uniforms.push(chunk_uniform),
+            },
+            DynamicUniformIndex::<TilemapUniformData> {
+                index: tilemap_uniforms.0.push(chunk_uniform),
                 marker: PhantomData,
-            });
+            },
+        ));
     }
 
-    mesh_uniforms.write_buffer(&render_device, &render_queue);
-    tilemap_uniforms.write_buffer(&render_device, &render_queue);
+    mesh_uniforms.0.write_buffer(&render_device, &render_queue);
+    tilemap_uniforms
+        .0
+        .write_buffer(&render_device, &render_queue);
 }
 
 pub fn prepare_removal(

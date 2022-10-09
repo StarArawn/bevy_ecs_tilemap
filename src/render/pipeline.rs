@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Component, FromWorld, HandleUntyped, Shader, World},
+    prelude::{Component, FromWorld, HandleUntyped, Resource, Shader, World},
     reflect::TypeUuid,
     render::{
         render_resource::{
@@ -26,7 +26,7 @@ pub const TILEMAP_SHADER_VERTEX: HandleUntyped =
 pub const TILEMAP_SHADER_FRAGMENT: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct TilemapPipeline {
     pub view_layout: BindGroupLayout,
     pub uniform_layout: BindGroupLayout,

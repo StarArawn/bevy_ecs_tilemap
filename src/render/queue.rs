@@ -1,13 +1,13 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     math::UVec4,
-    prelude::{Commands, Component, Entity, Image, Msaa, Query, Res, ResMut, Transform},
+    prelude::{Commands, Component, Entity, Image, Msaa, Query, Res, ResMut, Resource, Transform},
     render::{
         render_asset::RenderAssets,
         render_phase::{DrawFunctions, RenderPhase},
         render_resource::{
-            BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, DynamicUniformBuffer,
-            PipelineCache, SpecializedRenderPipelines,
+            BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, PipelineCache,
+            SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
@@ -26,12 +26,13 @@ use bevy::render::renderer::RenderQueue;
 use super::texture_array_cache::TextureArrayCache;
 
 use super::{
-    chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
+    chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemap,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
-    prepare::MeshUniform,
+    prepare::{MeshUniformResource, TilemapUniformResource},
 };
 
+#[derive(Resource)]
 pub struct TransformBindGroup {
     pub value: BindGroup,
 }
@@ -40,9 +41,9 @@ pub fn queue_transform_bind_group(
     mut commands: Commands,
     tilemap_pipeline: Res<TilemapPipeline>,
     render_device: Res<RenderDevice>,
-    transform_uniforms: Res<DynamicUniformBuffer<MeshUniform>>,
+    transform_uniforms: Res<MeshUniformResource>,
 ) {
-    if let Some(binding) = transform_uniforms.binding() {
+    if let Some(binding) = transform_uniforms.0.binding() {
         commands.insert_resource(TransformBindGroup {
             value: render_device.create_bind_group(&BindGroupDescriptor {
                 entries: &[BindGroupEntry {
@@ -56,6 +57,7 @@ pub fn queue_transform_bind_group(
     }
 }
 
+#[derive(Resource)]
 pub struct TilemapUniformDataBindGroup {
     pub value: BindGroup,
 }
@@ -64,9 +66,9 @@ pub fn queue_tilemap_bind_group(
     mut commands: Commands,
     tilemap_pipeline: Res<TilemapPipeline>,
     render_device: Res<RenderDevice>,
-    tilemap_uniforms: Res<DynamicUniformBuffer<TilemapUniformData>>,
+    tilemap_uniforms: Res<TilemapUniformResource>,
 ) {
-    if let Some(binding) = tilemap_uniforms.binding() {
+    if let Some(binding) = tilemap_uniforms.0.binding() {
         commands.insert_resource(TilemapUniformDataBindGroup {
             value: render_device.create_bind_group(&BindGroupDescriptor {
                 entries: &[BindGroupEntry {
@@ -85,7 +87,7 @@ pub struct TilemapViewBindGroup {
     pub value: BindGroup,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ImageBindGroups {
     pub values: HashMap<TilemapTexture, BindGroup>,
 }
