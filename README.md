@@ -37,10 +37,10 @@ struct Damage {
 }
 
 fn update_damage(
-    mut query: Query<(&mut Tile, &Damage), Changed<Damage>>,
+    mut query: Query<(&mut TileTexture, &Damage), Changed<Damage>>,
 ) {
-    for (mut tile, damage) in query.iter_mut() {
-        tile.texture_index = TILE_DAMAGE_OFFSET + damage.amount;
+    for (mut tile_texture, damage) in query.iter_mut() {
+        tile_texture.0 = TILE_DAMAGE_OFFSET + damage.amount;
     }
 }
 ```
@@ -85,6 +85,7 @@ cargo serve --example animation --release --features atlas
 |bevy|bevy_ecs_tilemap|
 |---|---|
 |`main`|`bevy-track`|
+|0.8|0.8|
 |0.8|0.7|
 |0.7|0.6|
 |0.6|0.5|
