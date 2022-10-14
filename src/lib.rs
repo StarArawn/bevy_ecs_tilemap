@@ -51,15 +51,11 @@ impl Plugin for TilemapPlugin {
 
         app.add_system_to_stage(CoreStage::First, update_changed_tile_positions);
 
-        #[cfg(not(feature = "atlas"))]
+        #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
-            #[cfg(feature = "render")]
-            {
-                let render_app = app.sub_app_mut(RenderApp);
-                render_app
-                    .add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
-            }
+            let render_app = app.sub_app_mut(RenderApp);
+            render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
         }
     }
 }
