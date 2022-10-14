@@ -18,14 +18,14 @@ use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
     Query, Transform, Visibility,
 };
-#[cfg(not(feature = "atlas"))]
+#[cfg(all(not(feature = "atlas"), feature = "render"))]
 use map::TilemapTextureSize;
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
 };
 use tiles::{TilePos, TilePosOld, TileStorage};
 
-#[cfg(not(feature = "atlas"))]
+#[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{RenderApp, RenderStage};
 
 /// A module that allows pre-loading of atlases into array textures.
@@ -54,8 +54,12 @@ impl Plugin for TilemapPlugin {
         #[cfg(not(feature = "atlas"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
-            let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
+            #[cfg(feature = "render")]
+            {
+                let render_app = app.sub_app_mut(RenderApp);
+                render_app
+                    .add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
+            }
         }
     }
 }
