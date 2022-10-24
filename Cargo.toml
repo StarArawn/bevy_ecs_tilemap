@@ -15,7 +15,12 @@ atlas = []
 render = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "ca3e6e6797fab3e057cd4fb0f16c9708b3bc17e8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "bevy_sprite"] }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "9423cb6a8d0c140e11364eb23c8feb7e576baa8c", default-features = false, features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "bevy_sprite",
+] }
 log = "0.4"
 regex = "1.5.4"
 
@@ -29,15 +34,35 @@ tiled = { version = "0.9", default-features = false }
 
 [dev-dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
-rev = "ca3e6e6797fab3e057cd4fb0f16c9708b3bc17e8" 
+rev = "9423cb6a8d0c140e11364eb23c8feb7e576baa8c"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "ktx2", "bevy_winit", "bevy_text", "bevy_sprite", "filesystem_watcher"]
+features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "png",
+    "ktx2",
+    "bevy_winit",
+    "bevy_text",
+    "bevy_sprite",
+    "filesystem_watcher",
+]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
-rev = "ca3e6e6797fab3e057cd4fb0f16c9708b3bc17e8"
+rev = "9423cb6a8d0c140e11364eb23c8feb7e576baa8c"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "ktx2", "bevy_winit", "x11", "bevy_text", "bevy_sprite"]
+features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "png",
+    "ktx2",
+    "bevy_winit",
+    "x11",
+    "bevy_text",
+    "bevy_sprite",
+]
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
