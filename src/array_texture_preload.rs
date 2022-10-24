@@ -1,11 +1,14 @@
+#[cfg(feature = "render")]
+use crate::render::TextureArrayCache;
 use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
-    render::TextureArrayCache,
     TilemapTexture,
 };
+use bevy::render::render_resource::FilterMode;
+#[cfg(feature = "render")]
 use bevy::{
     prelude::{Assets, Image, Res, ResMut, Resource},
-    render::{render_resource::FilterMode, texture::ImageSettings, Extract},
+    render::{texture::ImageSettings, Extract},
 };
 use std::sync::{Arc, RwLock};
 
@@ -41,6 +44,7 @@ impl ArrayTextureLoader {
     }
 }
 
+#[cfg(feature = "render")]
 pub(crate) fn extract(
     images: Extract<Res<Assets<Image>>>,
     default_image_settings: Extract<Res<ImageSettings>>,

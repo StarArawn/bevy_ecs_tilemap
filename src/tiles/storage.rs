@@ -82,6 +82,8 @@ impl TileStorage {
     ///
     /// Otherwise, nothing is done.
     pub fn checked_remove(&mut self, tile_pos: &TilePos) {
-        self.tiles[tile_pos.to_index(&self.size)].take();
+        if tile_pos.within_map_bounds(&self.size) {
+            self.tiles[tile_pos.to_index(&self.size)].take();
+        }
     }
 }
