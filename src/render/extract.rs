@@ -14,7 +14,7 @@ use crate::{
         TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
         TilemapTileSize, TilemapType,
     },
-    tiles::{TileColor, TileFlip, TilePos, TileTexture, TileVisible},
+    tiles::{TileColor, TileFlip, TilePos, TileTextureIndex, TileVisible},
     FrustumCulling,
 };
 
@@ -171,7 +171,7 @@ pub fn extract(
                 &TilePos,
                 &TilePosOld,
                 &TilemapId,
-                &TileTexture,
+                &TileTextureIndex,
                 &TileVisible,
                 &TileFlip,
                 &TileColor,
@@ -180,7 +180,7 @@ pub fn extract(
             Or<(
                 Changed<TilePos>,
                 Changed<TileVisible>,
-                Changed<TileTexture>,
+                Changed<TileTextureIndex>,
                 Changed<TileFlip>,
                 Changed<TileColor>,
             )>,

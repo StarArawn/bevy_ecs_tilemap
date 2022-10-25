@@ -25,7 +25,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap_rect(
-        TileTexture(0),
+        TileTextureIndex(0),
         TilePos { x: 0, y: 0 },
         quadrant_size,
         tilemap_id,
@@ -34,7 +34,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     fill_tilemap_rect(
-        TileTexture(1),
+        TileTextureIndex(1),
         TilePos {
             x: QUADRANT_SIDE_LENGTH,
             y: 0,
@@ -46,7 +46,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     fill_tilemap_rect(
-        TileTexture(2),
+        TileTextureIndex(2),
         TilePos {
             x: 0,
             y: QUADRANT_SIDE_LENGTH,
@@ -58,7 +58,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     fill_tilemap_rect(
-        TileTexture(3),
+        TileTextureIndex(3),
         TilePos {
             x: QUADRANT_SIDE_LENGTH,
             y: QUADRANT_SIDE_LENGTH,
