@@ -63,17 +63,18 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TILE_SIZE;
     let grid_size = TILE_SIZE.into();
+    let map_type = TilemapType::Hexagon(COORD_SYS);
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             grid_size,
+            map_type,
             tile_size,
             size: map_size,
             storage: tile_storage,
             texture: texture_vec,
-            map_type: TilemapType::Hexagon(COORD_SYS),
-            transform: get_tilemap_center_transform(&map_size, &grid_size, 0.0),
+            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
             ..Default::default()
         });
 }
