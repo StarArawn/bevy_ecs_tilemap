@@ -33,7 +33,7 @@ impl NeighborDirection {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Neighbors<T: Copy> {
     pub north: Option<T>,
     pub north_west: Option<T>,
