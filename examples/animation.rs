@@ -52,15 +52,18 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
+    let map_type = TilemapType::default();
+
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
             size,
             grid_size,
+            map_type,
             tile_size,
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle),
-            transform: get_tilemap_center_transform(&size, &grid_size, 0.0),
+            transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
             ..Default::default()
         });
 }
@@ -108,15 +111,20 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         });
     }
 
+    let map_type = TilemapType::Square {
+        diagonal_neighbors: false,
+    };
+
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size,
             size,
+            grid_size,
+            map_type,
+            tile_size,
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&size, &grid_size, 1.0),
+            transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 1.0),
             ..Default::default()
         });
 }
