@@ -158,7 +158,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
         shader_defs.push("ATLAS".into());
 
         let mesh_string = match key.map_type {
-            TilemapType::Rectangular { .. } => "SQUARE",
+            TilemapType::Square { .. } => "SQUARE",
             TilemapType::Isometric(coord_system) => match coord_system {
                 IsoCoordSystem::Diamond => "ISO_DIAMOND",
                 IsoCoordSystem::Staggered => "ISO_STAGGERED",

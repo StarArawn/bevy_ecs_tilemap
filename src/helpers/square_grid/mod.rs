@@ -2,9 +2,9 @@ pub mod diamond;
 pub mod neighbors;
 pub mod staggered;
 
-use crate::helpers::rect_grid::diamond::DiamondPos;
-use crate::helpers::rect_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
-use crate::helpers::rect_grid::staggered::StaggeredPos;
+use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;

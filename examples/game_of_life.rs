@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
-use bevy_ecs_tilemap::helpers::rect_grid::neighbors::Neighbors;
+use bevy_ecs_tilemap::helpers::square_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -33,7 +33,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
-    let map_type = TilemapType::Rectangular;
+    let map_type = TilemapType::Square;
 
     commands
         .entity(tilemap_entity)

@@ -1,6 +1,6 @@
-use crate::helpers::rect_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
-use crate::helpers::rect_grid::staggered::StaggeredPos;
-use crate::helpers::rect_grid::SquarePos;
+use crate::helpers::square_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
+use crate::helpers::square_grid::staggered::StaggeredPos;
+use crate::helpers::square_grid::SquarePos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::{Mat2, Vec2};

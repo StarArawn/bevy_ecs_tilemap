@@ -170,7 +170,7 @@ pub fn process_loaded_maps(
                             tiled::Orientation::Staggered => {
                                 TilemapType::Isometric(IsoCoordSystem::Staggered)
                             }
-                            tiled::Orientation::Orthogonal => TilemapType::Rectangular,
+                            tiled::Orientation::Orthogonal => TilemapType::Square,
                         };
 
                         let mut tile_storage = TileStorage::empty(map_size);

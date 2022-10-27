@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
-use bevy_ecs_tilemap::helpers::rect_grid::neighbors::Neighbors;
+use bevy_ecs_tilemap::helpers::square_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -25,7 +25,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut tile_storage = TileStorage::empty(map_size);
 
     // For the purposes of this example, we consider a tilemap with rectangular tiles.
-    let map_type = TilemapType::Rectangular;
+    let map_type = TilemapType::Square;
 
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity

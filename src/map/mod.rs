@@ -313,7 +313,7 @@ pub enum IsoCoordSystem {
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapType {
     /// A tilemap with rectangular tiles.
-    Rectangular,
+    Square,
     /// Used to specify rendering of tilemaps on hexagons.
     ///
     /// The `HexCoordSystem` determines the coordinate system.
@@ -326,6 +326,6 @@ pub enum TilemapType {
 
 impl Default for TilemapType {
     fn default() -> Self {
-        Self::Rectangular
+        Self::Square
     }
 }

@@ -1,7 +1,7 @@
 use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
-use crate::helpers::rect_grid::diamond::DiamondPos;
-use crate::helpers::rect_grid::staggered::StaggeredPos;
+use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, TilemapType};
@@ -13,7 +13,7 @@ impl TilePos {
     /// The center is well defined for all [`TilemapType`](crate::map::TilemapType)s.
     pub fn center_in_world(&self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
         match map_type {
-            TilemapType::Rectangular { .. } => {
+            TilemapType::Square { .. } => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))
             }
             TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
@@ -59,7 +59,7 @@ impl TilePos {
         map_type: &TilemapType,
     ) -> Option<TilePos> {
         match map_type {
-            TilemapType::Rectangular { .. } => {
+            TilemapType::Square { .. } => {
                 let x = ((world_pos.x / grid_size.x) + 0.5).floor() as i32;
                 let y = ((world_pos.y / grid_size.y) + 0.5).floor() as i32;
 
