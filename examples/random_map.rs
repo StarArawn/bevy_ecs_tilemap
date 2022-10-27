@@ -1,7 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
-    render::texture::ImageSettings,
 };
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
@@ -54,7 +53,7 @@ struct LastUpdate {
 // In this example it's better not to use the default `MapQuery` SystemParam as
 // it's faster to do it this way:
 fn random(time: ResMut<Time>, mut query: Query<(&mut TileTexture, &mut LastUpdate)>) {
-    let current_time = time.seconds_since_startup();
+    let current_time = time.elapsed_seconds_f64();
     let mut random = thread_rng();
     for (mut tile, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.2 {
@@ -66,14 +65,19 @@ fn random(time: ResMut<Time>, mut query: Query<(&mut TileTexture, &mut LastUpdat
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Random Map Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Random Map Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)

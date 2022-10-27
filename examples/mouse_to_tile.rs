@@ -1,5 +1,5 @@
 use bevy::math::Vec4Swizzles;
-use bevy::{ecs::system::Resource, prelude::*, render::texture::ImageSettings};
+use bevy::{ecs::system::Resource, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -387,17 +387,22 @@ fn highlight_tile_labels(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Mouse Position to Tile Position"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Mouse Position to Tile Position"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         // Initialize the cursor pos at some far away place. It will get updated
         // correctly when the cursor moves.
         .insert_resource(CursorPos(Vec3::new(-100.0, -100.0, 0.0)))
-        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)

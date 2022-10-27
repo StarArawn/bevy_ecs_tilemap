@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -107,7 +107,7 @@ fn update_map(
     )>,
     mut tile_query: Query<&mut TileTexture>,
 ) {
-    let current_time = time.seconds_since_startup();
+    let current_time = time.elapsed_seconds_f64();
     for (mut current_color, mut last_update, tile_storage, tilemap_type) in tilemap_query.iter_mut()
     {
         if current_time - last_update.0 > 0.1 {
@@ -144,14 +144,19 @@ fn update_map(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Basic Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Accessing Tiles Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
