@@ -312,12 +312,8 @@ pub enum IsoCoordSystem {
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapType {
-    /// A tilemap with isometric tiles.
-    ///
-    /// If `diagonal_neighbors` is `true`, then given a specified tile,
-    /// any tiles diagonal to it are also considered neighbors by [`get_tile_neighbors`](crate::helpers::neighbors::get_tile_neighbors)
-    /// and [`get_neighboring_pos`](crate::helpers::neighbors::get_neighboring_pos).
-    Square { diagonal_neighbors: bool },
+    /// A tilemap with rectangular tiles.
+    Rectangular,
     /// Used to specify rendering of tilemaps on hexagons.
     ///
     /// The `HexCoordSystem` determines the coordinate system.
@@ -325,42 +321,11 @@ pub enum TilemapType {
     /// Used to change the rendering mode to Isometric.
     ///
     /// The `IsoCoordSystem` determines the coordinate system.
-    ///
-    /// If `diagonal_neighbors` is `true`, then given a specified tile,
-    /// any tiles diagonal to it are also considered neighbors by [`get_tile_neighbors`](crate::helpers::neighbors::get_tile_neighbors)
-    /// and [`get_neighboring_pos`](crate::helpers::neighbors::get_neighboring_pos).
-    Isometric {
-        diagonal_neighbors: bool,
-        coord_system: IsoCoordSystem,
-    },
-}
-
-impl TilemapType {
-    pub fn square(neighbors_include_diagonals: bool) -> TilemapType {
-        TilemapType::Square {
-            diagonal_neighbors: neighbors_include_diagonals,
-        }
-    }
-
-    pub fn isometric_diamond(neighbors_include_diagonals: bool) -> TilemapType {
-        TilemapType::Isometric {
-            diagonal_neighbors: neighbors_include_diagonals,
-            coord_system: IsoCoordSystem::Diamond,
-        }
-    }
-
-    pub fn isometric_staggered(neighbors_include_diagonals: bool) -> TilemapType {
-        TilemapType::Isometric {
-            diagonal_neighbors: neighbors_include_diagonals,
-            coord_system: IsoCoordSystem::Staggered,
-        }
-    }
+    Isometric(IsoCoordSystem),
 }
 
 impl Default for TilemapType {
     fn default() -> Self {
-        Self::Square {
-            diagonal_neighbors: false,
-        }
+        Self::Rectangular
     }
 }

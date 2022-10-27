@@ -81,7 +81,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle),
             tile_size,
-            map_type: TilemapType::isometric_diamond(false),
+            map_type: TilemapType::Isometric(IsoCoordSystem::Diamond),
             ..Default::default()
         });
 }

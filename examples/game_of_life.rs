@@ -1,4 +1,5 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy_ecs_tilemap::helpers::rect_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -32,9 +33,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
-    let map_type = TilemapType::Square {
-        diagonal_neighbors: true,
-    };
+    let map_type = TilemapType::Rectangular;
 
     commands
         .entity(tilemap_entity)
@@ -57,21 +56,23 @@ pub struct LastUpdate(f64);
 fn update(
     mut commands: Commands,
     time: Res<Time>,
-    mut tile_storage_query: Query<(&TileStorage, &TilemapType, &mut LastUpdate)>,
+    mut tile_storage_query: Query<(&TileStorage, &TilemapSize, &mut LastUpdate)>,
     tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
     let current_time = time.seconds_since_startup();
-    let (tile_storage, tilemap_type, mut last_update) = tile_storage_query.single_mut();
+    let (tile_storage, map_size, mut last_update) = tile_storage_query.single_mut();
     if current_time - last_update.0 > 0.1 {
         for (entity, position, visibility) in tile_query.iter() {
-            let neighbor_count = get_tile_neighbors(position, tile_storage, tilemap_type)
-                .into_iter()
-                .filter(|neighbor| {
-                    let tile_component =
-                        tile_query.get_component::<TileVisible>(*neighbor).unwrap();
-                    tile_component.0
-                })
-                .count();
+            let neighbor_count =
+                Neighbors::get_square_neighboring_positions(position, map_size, true)
+                    .entities(tile_storage)
+                    .iter()
+                    .filter(|neighbor| {
+                        let tile_component =
+                            tile_query.get_component::<TileVisible>(**neighbor).unwrap();
+                        tile_component.0
+                    })
+                    .count();
 
             let was_alive = visibility.0;
 

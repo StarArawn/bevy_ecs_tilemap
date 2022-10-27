@@ -1,6 +1,6 @@
 use bevy::math::Vec4Swizzles;
 use bevy::{prelude::*, render::texture::ImageSettings};
-use bevy_ecs_tilemap::helpers::hex_grid::neighbors::HexDirection;
+use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -364,14 +364,20 @@ fn highlight_neighbor_label(
     }
 
     for (map_type, map_size, tile_storage) in tilemap_query.iter() {
+        let hex_coord_sys = if let TilemapType::Hexagon(hex_coord_sys) = map_type {
+            hex_coord_sys
+        } else {
+            continue;
+        };
+
         for hovered_tile_pos in hovered_tiles_q.iter() {
-            // Get the neighbors of the hovered tile.
-            for neighbor_pos in
-                get_neighboring_pos(hovered_tile_pos, map_size, map_type).into_iter()
-            {
+            let neighboring_positions =
+                HexNeighbors::get_neighboring_positions(hovered_tile_pos, map_size, hex_coord_sys);
+
+            for neighbor_pos in neighboring_positions.iter() {
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
-                if let Some(tile_entity) = tile_storage.checked_get(&neighbor_pos) {
+                if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos) {
                     if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
                         for mut section in tile_text.sections.iter_mut() {
                             section.style.color = Color::BLUE;

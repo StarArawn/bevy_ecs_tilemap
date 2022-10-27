@@ -108,10 +108,7 @@ pub fn process_loaded_maps(
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps = changed_maps
-                    .into_iter()
-                    .filter(|changed_handle| changed_handle == handle)
-                    .collect();
+                changed_maps.retain(|changed_handle| changed_handle == handle);
             }
         }
     }
@@ -167,17 +164,13 @@ pub fn process_loaded_maps(
                             tiled::Orientation::Hexagonal => {
                                 TilemapType::Hexagon(HexCoordSystem::Row)
                             }
-                            tiled::Orientation::Isometric => TilemapType::Isometric {
-                                diagonal_neighbors: false,
-                                coord_system: IsoCoordSystem::Diamond,
-                            },
-                            tiled::Orientation::Staggered => TilemapType::Isometric {
-                                diagonal_neighbors: false,
-                                coord_system: IsoCoordSystem::Staggered,
-                            },
-                            tiled::Orientation::Orthogonal => TilemapType::Square {
-                                diagonal_neighbors: false,
-                            },
+                            tiled::Orientation::Isometric => {
+                                TilemapType::Isometric(IsoCoordSystem::Diamond)
+                            }
+                            tiled::Orientation::Staggered => {
+                                TilemapType::Isometric(IsoCoordSystem::Staggered)
+                            }
+                            tiled::Orientation::Orthogonal => TilemapType::Rectangular,
                         };
 
                         let mut tile_storage = TileStorage::empty(map_size);
@@ -187,7 +180,7 @@ pub fn process_loaded_maps(
                             for y in 0..map_size.y {
                                 let mut mapped_y = y;
                                 if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
-                                    mapped_y = (tiled_map.map.height - 1) as u32 - y;
+                                    mapped_y = (tiled_map.map.height - 1) - y;
                                 }
 
                                 let mapped_x = x as usize;

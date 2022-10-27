@@ -1,5 +1,6 @@
-use crate::helpers::iso_grid::staggered::StaggeredPos;
-use crate::prelude::NeighborDirection;
+use crate::helpers::rect_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
+use crate::helpers::rect_grid::staggered::StaggeredPos;
+use crate::helpers::rect_grid::SquarePos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::{Mat2, Vec2};
@@ -11,11 +12,6 @@ use std::ops::{Add, Mul, Sub};
 /// It is a vector-like. In other words: it makes sense to add and subtract
 /// two `DiamondPos`, and it makes sense to multiply a `DiamondPos` by
 /// an [`i32`](i32) scalar.
-///
-/// Constants [`UNIT_X`](UNIT_X) and [`UNIT_Y`](`UNIT_Y`) correspond (respectively) with
-/// [`North`](NeighborDirection::North) and [`West`](NeighborDirection::West). Since
-/// `DiamondPos` is a vector-like, other directions can be obtained by adding/subtracting
-/// combinations of [`UNIT_X`](UNIT_X) and [`UNIT_Y`](`UNIT_Y`).
 ///
 /// A `DiamondPos` can be mapped to world space, and a world space position can be mapped to
 /// the tile with `DiamondPos` containing said world space position.
@@ -58,12 +54,6 @@ impl Mul<DiamondPos> for i32 {
     }
 }
 
-/// The `(+1, 0)` constant.
-pub const UNIT_X: DiamondPos = DiamondPos { x: 1, y: 0 };
-
-/// The `(0, +1)` constant.
-pub const UNIT_Y: DiamondPos = DiamondPos { x: 0, y: -1 };
-
 /// The matrix mapping from tile positions in the diamond isometric grid system to world space.
 ///
 /// It can be derived in multiple ways; one method is by considering it as a product three matrices:
@@ -79,22 +69,50 @@ pub const UNIT_Y: DiamondPos = DiamondPos { x: 0, y: -1 };
 pub const DIAMOND_BASIS: Mat2 = Mat2::from_cols(Vec2::new(0.5, -0.5), Vec2::new(0.5, 0.5));
 
 /// The inverse of [`DIAMOND_BASIS`].
-// pub const INV_DIAMOND_BASIS: Mat2 = Mat2::from_cols(Vec2::new(0.5, 0.5), Vec2::new(-1.0, 0.5));
 pub const INV_DIAMOND_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 1.0), Vec2::new(-1.0, 1.0));
+
+impl From<TilePos> for DiamondPos {
+    fn from(tile_pos: TilePos) -> Self {
+        let TilePos { x, y } = tile_pos;
+        DiamondPos {
+            x: x as i32,
+            y: y as i32,
+        }
+    }
+}
 
 impl From<&TilePos> for DiamondPos {
     fn from(tile_pos: &TilePos) -> Self {
-        Self {
-            x: tile_pos.x as i32,
-            y: tile_pos.y as i32,
-        }
+        DiamondPos::from(*tile_pos)
+    }
+}
+
+impl From<StaggeredPos> for DiamondPos {
+    fn from(staggered_pos: StaggeredPos) -> Self {
+        let StaggeredPos { x, y } = staggered_pos;
+        DiamondPos { x, y: y + x }
     }
 }
 
 impl From<&StaggeredPos> for DiamondPos {
     fn from(staggered_pos: &StaggeredPos) -> Self {
-        let StaggeredPos { x, y } = *staggered_pos;
-        DiamondPos { x, y: y + x }
+        DiamondPos::from(*staggered_pos)
+    }
+}
+
+impl From<SquarePos> for DiamondPos {
+    fn from(square_pos: SquarePos) -> Self {
+        let SquarePos { x, y } = square_pos;
+        DiamondPos {
+            x: x as i32,
+            y: y as i32,
+        }
+    }
+}
+
+impl From<&SquarePos> for DiamondPos {
+    fn from(square_pos: &SquarePos) -> Self {
+        DiamondPos::from(*square_pos)
     }
 }
 
@@ -115,25 +133,16 @@ impl DiamondPos {
         }
     }
 
-    /// Get the position of the neighbor in the specified direction.
-    pub fn neighbor(&self, direction: NeighborDirection) -> DiamondPos {
-        match direction {
-            NeighborDirection::North => *self + UNIT_X,
-            NeighborDirection::NorthWest => *self - UNIT_X + UNIT_Y,
-            NeighborDirection::West => *self - UNIT_X,
-            NeighborDirection::SouthWest => *self - UNIT_X - UNIT_Y,
-            NeighborDirection::South => *self - UNIT_Y,
-            NeighborDirection::SouthEast => *self - UNIT_Y + UNIT_X,
-            NeighborDirection::East => *self + UNIT_X,
-            NeighborDirection::NorthEast => *self + UNIT_X + UNIT_Y,
-        }
-    }
-
     /// Try converting into a [`TilePos`].
     ///
     /// Returns `None` if either one of `self.x` or `self.y` is negative, or lies outside of the
     /// bounds of `map_size`.
     pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.x, self.y, map_size)
+    }
+
+    /// Calculate offset in the given direction.
+    pub fn offset(&self, direction: &RectangularDirection) -> DiamondPos {
+        DiamondPos::from(SquarePos::from(self) + SQUARE_OFFSETS[*direction as usize])
     }
 }

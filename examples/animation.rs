@@ -110,10 +110,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             speed: 0.95,
         });
     }
-
-    let map_type = TilemapType::Square {
-        diagonal_neighbors: false,
-    };
+    let map_type = TilemapType::Rectangular;
 
     commands
         .entity(tilemap_entity)

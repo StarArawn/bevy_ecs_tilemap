@@ -83,7 +83,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle),
             tile_size,
-            map_type: TilemapType::isometric_staggered(false),
+            map_type: TilemapType::Isometric(IsoCoordSystem::Staggered),
             ..Default::default()
         });
 }
