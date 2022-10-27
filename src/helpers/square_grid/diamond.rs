@@ -103,10 +103,7 @@ impl From<&StaggeredPos> for DiamondPos {
 impl From<SquarePos> for DiamondPos {
     fn from(square_pos: SquarePos) -> Self {
         let SquarePos { x, y } = square_pos;
-        DiamondPos {
-            x: x as i32,
-            y: y as i32,
-        }
+        DiamondPos { x, y }
     }
 }
 

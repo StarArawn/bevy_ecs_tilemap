@@ -231,15 +231,11 @@ impl TextureArrayCache {
                         });
 
                     for i in 0..count {
-                        let columns = ((texture_size.x as f32)
-                            / (tile_size.x as f32 + spacing.x as f32))
-                            .floor();
-                        let sprite_sheet_x: f32 = (i as f32 % columns).floor()
-                            * (tile_size.x + spacing.x) as f32
-                            + spacing.x;
-                        let sprite_sheet_y: f32 = (i as f32 / columns).floor()
-                            * (tile_size.y + spacing.y) as f32
-                            + spacing.y;
+                        let columns = (texture_size.x / (tile_size.x + spacing.x)).floor();
+                        let sprite_sheet_x: f32 =
+                            (i as f32 % columns).floor() * (tile_size.x + spacing.x) + spacing.x;
+                        let sprite_sheet_y: f32 =
+                            (i as f32 / columns).floor() * (tile_size.y + spacing.y) + spacing.y;
 
                         command_encoder.copy_texture_to_texture(
                             ImageCopyTexture {
@@ -255,11 +251,7 @@ impl TextureArrayCache {
                             ImageCopyTexture {
                                 texture: &array_gpu_image.texture,
                                 mip_level: 0,
-                                origin: Origin3d {
-                                    x: 0,
-                                    y: 0,
-                                    z: i as u32,
-                                },
+                                origin: Origin3d { x: 0, y: 0, z: i },
                                 aspect: TextureAspect::All,
                             },
                             Extent3d {
@@ -304,11 +296,7 @@ impl TextureArrayCache {
                             ImageCopyTexture {
                                 texture: &array_gpu_image.texture,
                                 mip_level: 0,
-                                origin: Origin3d {
-                                    x: 0,
-                                    y: 0,
-                                    z: i as u32,
-                                },
+                                origin: Origin3d { x: 0, y: 0, z: i },
                                 aspect: TextureAspect::All,
                             },
                             Extent3d {

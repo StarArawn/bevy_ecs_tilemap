@@ -24,7 +24,7 @@ impl TilePos {
     /// Converts a tile position (2D) into an index in a flattened vector (1D), assuming the
     /// tile position lies in a tilemap of the specified size.
     pub fn to_index(&self, tilemap_size: &TilemapSize) -> usize {
-        ((self.y * tilemap_size.x as u32) + self.x) as usize
+        ((self.y * tilemap_size.x) + self.x) as usize
     }
 
     /// Checks to see if `self` lies within a tilemap of the specified size.
