@@ -158,9 +158,9 @@ pub fn fill_tilemap_hexagon(
         AxialPos::from_tile_pos_given_coord_system(&origin, hex_coord_system),
         radius,
     )
-        .into_iter()
-        .map(|axial_pos| axial_pos.as_tile_pos_given_coord_system(hex_coord_system))
-        .collect::<Vec<TilePos>>();
+    .into_iter()
+    .map(|axial_pos| axial_pos.as_tile_pos_given_coord_system(hex_coord_system))
+    .collect::<Vec<TilePos>>();
 
     for tile_pos in tile_positions {
         let tile_entity = commands
