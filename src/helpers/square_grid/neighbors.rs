@@ -157,7 +157,7 @@ impl Sub<i32> for RectangularDirection {
 }
 
 /// Stores some data `T` associated with each neighboring grid cell, if present.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct Neighbors<T> {
     east: Option<T>,
     north_east: Option<T>,
