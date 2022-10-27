@@ -1,4 +1,4 @@
-use crate::helpers::square_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
+use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
 use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::helpers::square_grid::SquarePos;
 use crate::tiles::TilePos;
@@ -139,7 +139,7 @@ impl DiamondPos {
     }
 
     /// Calculate offset in the given direction.
-    pub fn offset(&self, direction: &RectangularDirection) -> DiamondPos {
+    pub fn offset(&self, direction: &SquareDirection) -> DiamondPos {
         DiamondPos::from(SquarePos::from(self) + SQUARE_OFFSETS[*direction as usize])
     }
 }

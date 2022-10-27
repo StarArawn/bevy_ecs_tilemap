@@ -3,7 +3,7 @@ pub mod neighbors;
 pub mod staggered;
 
 use crate::helpers::square_grid::diamond::DiamondPos;
-use crate::helpers::square_grid::neighbors::{RectangularDirection, SQUARE_OFFSETS};
+use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
 use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
@@ -120,7 +120,7 @@ impl SquarePos {
     }
 
     /// Calculate offset in the given direction.
-    pub fn offset(&self, direction: &RectangularDirection) -> SquarePos {
+    pub fn offset(&self, direction: &SquareDirection) -> SquarePos {
         *self + SQUARE_OFFSETS[*direction as usize]
     }
 }

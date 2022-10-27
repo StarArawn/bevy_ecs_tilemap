@@ -5,12 +5,12 @@ use crate::prelude::{TilePos, TileStorage};
 use bevy::prelude::Entity;
 use std::ops::{Add, Sub};
 
-/// The eight directions a neighbor a neighbor may lie, in a rectangular grid.
+/// The eight directions in which a neighbor may lie, on a square-like grid.
 ///
-/// Note that isometric grids are also (currently) rectangular grids. In particular, there is no
+/// Note that isometric grids are also square-like grids. In particular, there is no
 /// difference between the grid system for square and diamond-isometric grids.
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum RectangularDirection {
+pub enum SquareDirection {
     East,
     NorthEast,
     North,
@@ -22,23 +22,23 @@ pub enum RectangularDirection {
 }
 
 /// Array of [`SquareDirection`] variants.
-pub const SQUARE_DIRECTIONS: [RectangularDirection; 8] = [
-    RectangularDirection::East,
-    RectangularDirection::NorthEast,
-    RectangularDirection::North,
-    RectangularDirection::NorthWest,
-    RectangularDirection::West,
-    RectangularDirection::SouthWest,
-    RectangularDirection::South,
-    RectangularDirection::SouthEast,
+pub const SQUARE_DIRECTIONS: [SquareDirection; 8] = [
+    SquareDirection::East,
+    SquareDirection::NorthEast,
+    SquareDirection::North,
+    SquareDirection::NorthWest,
+    SquareDirection::West,
+    SquareDirection::SouthWest,
+    SquareDirection::South,
+    SquareDirection::SouthEast,
 ];
 
 /// Array of cardinal [`SquareDirection]s (N, W, S, E).
-pub const CARDINAL_SQUARE_DIRECTIONS: [RectangularDirection; 4] = [
-    RectangularDirection::North,
-    RectangularDirection::West,
-    RectangularDirection::South,
-    RectangularDirection::East,
+pub const CARDINAL_SQUARE_DIRECTIONS: [SquareDirection; 4] = [
+    SquareDirection::North,
+    SquareDirection::West,
+    SquareDirection::South,
+    SquareDirection::East,
 ];
 
 /// Offsets of tiles that lie in each [`SquareDirection`].
@@ -53,26 +53,26 @@ pub const SQUARE_OFFSETS: [SquarePos; 8] = [
     SquarePos { x: 1, y: -1 },
 ];
 
-impl From<RectangularDirection> for SquarePos {
-    fn from(direction: RectangularDirection) -> Self {
+impl From<SquareDirection> for SquarePos {
+    fn from(direction: SquareDirection) -> Self {
         SQUARE_OFFSETS[direction as usize]
     }
 }
 
-impl From<&RectangularDirection> for SquarePos {
-    fn from(direction: &RectangularDirection) -> Self {
+impl From<&SquareDirection> for SquarePos {
+    fn from(direction: &SquareDirection) -> Self {
         SquarePos::from(*direction)
     }
 }
 
-impl From<usize> for RectangularDirection {
+impl From<usize> for SquareDirection {
     fn from(choice: usize) -> Self {
         let ix = choice % 8;
         SQUARE_DIRECTIONS[ix]
     }
 }
 
-impl From<isize> for RectangularDirection {
+impl From<isize> for SquareDirection {
     fn from(choice: isize) -> Self {
         // The Euclidean remainder is always positive, so it is safe to convert to usize;
         let ix = choice.rem_euclid(8) as usize;
@@ -80,76 +80,76 @@ impl From<isize> for RectangularDirection {
     }
 }
 
-impl From<u32> for RectangularDirection {
+impl From<u32> for SquareDirection {
     fn from(choice: u32) -> Self {
         (choice as usize).into()
     }
 }
 
-impl From<i32> for RectangularDirection {
+impl From<i32> for SquareDirection {
     fn from(choice: i32) -> Self {
         (choice as isize).into()
     }
 }
 
-impl Add<usize> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Add<usize> for SquareDirection {
+    type Output = SquareDirection;
 
     fn add(self, rhs: usize) -> Self::Output {
         ((self as usize) + rhs).into()
     }
 }
 
-impl Add<u32> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Add<u32> for SquareDirection {
+    type Output = SquareDirection;
 
     fn add(self, rhs: u32) -> Self::Output {
         ((self as usize) + rhs as usize).into()
     }
 }
 
-impl Add<isize> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Add<isize> for SquareDirection {
+    type Output = SquareDirection;
 
     fn add(self, rhs: isize) -> Self::Output {
         ((self as isize) + rhs).into()
     }
 }
 
-impl Add<i32> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Add<i32> for SquareDirection {
+    type Output = SquareDirection;
 
     fn add(self, rhs: i32) -> Self::Output {
         ((self as i32) + rhs).into()
     }
 }
 
-impl Sub<usize> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Sub<usize> for SquareDirection {
+    type Output = SquareDirection;
 
     fn sub(self, rhs: usize) -> Self::Output {
         ((self as usize) - rhs).into()
     }
 }
 
-impl Sub<u32> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Sub<u32> for SquareDirection {
+    type Output = SquareDirection;
 
     fn sub(self, rhs: u32) -> Self::Output {
         ((self as usize) - rhs as usize).into()
     }
 }
 
-impl Sub<isize> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Sub<isize> for SquareDirection {
+    type Output = SquareDirection;
 
     fn sub(self, rhs: isize) -> Self::Output {
         ((self as isize) - rhs).into()
     }
 }
 
-impl Sub<i32> for RectangularDirection {
-    type Output = RectangularDirection;
+impl Sub<i32> for SquareDirection {
+    type Output = SquareDirection;
 
     fn sub(self, rhs: i32) -> Self::Output {
         ((self as i32) - rhs).into()
@@ -173,8 +173,8 @@ impl<T> Neighbors<T> {
     /// Get an item that lies in a particular square direction.
     ///
     /// Will be `None` if no such items exists.
-    pub fn get(&self, direction: RectangularDirection) -> Option<&T> {
-        use RectangularDirection::*;
+    pub fn get(&self, direction: SquareDirection) -> Option<&T> {
+        use SquareDirection::*;
         match direction {
             East => self.east.as_ref(),
             NorthEast => self.north_east.as_ref(),
@@ -190,8 +190,8 @@ impl<T> Neighbors<T> {
     /// Get a mutable reference to an item that lies in a particular square direction.
     ///
     /// Will be `None` if no such items exists.
-    pub fn get_inner_mut(&mut self, direction: RectangularDirection) -> Option<&mut T> {
-        use RectangularDirection::*;
+    pub fn get_inner_mut(&mut self, direction: SquareDirection) -> Option<&mut T> {
+        use SquareDirection::*;
         match direction {
             East => self.east.as_mut(),
             NorthEast => self.north_east.as_mut(),
@@ -207,8 +207,8 @@ impl<T> Neighbors<T> {
     /// Get a mutable reference to the optional item that lies in a particular square direction.
     ///
     /// Will be `None` if no such items exists.
-    pub fn get_mut(&mut self, direction: RectangularDirection) -> &mut Option<T> {
-        use RectangularDirection::*;
+    pub fn get_mut(&mut self, direction: SquareDirection) -> &mut Option<T> {
+        use SquareDirection::*;
         match direction {
             East => &mut self.east,
             NorthEast => &mut self.north_east,
@@ -224,7 +224,7 @@ impl<T> Neighbors<T> {
     /// Set item that lies in a particular square direction.
     ///
     /// This does an [`Option::replace`](Option::replace) under the hood.
-    pub fn set(&mut self, direction: RectangularDirection, data: T) {
+    pub fn set(&mut self, direction: SquareDirection, data: T) {
         self.get_mut(direction).replace(data);
     }
 
@@ -295,9 +295,9 @@ impl<T> Neighbors<T> {
     /// `Option<T>`.
     pub fn from_directional_closure<F>(f: F) -> Neighbors<T>
     where
-        F: Fn(RectangularDirection) -> Option<T>,
+        F: Fn(SquareDirection) -> Option<T>,
     {
-        use RectangularDirection::*;
+        use SquareDirection::*;
         Neighbors {
             east: f(East),
             north_east: f(NorthEast),
@@ -311,10 +311,10 @@ impl<T> Neighbors<T> {
     }
 }
 
-impl RectangularDirection {
+impl SquareDirection {
     /// Is this direction a cardinal direction (i.e. North, South, East, West)?
     pub fn is_cardinal(&self) -> bool {
-        use RectangularDirection::*;
+        use SquareDirection::*;
         matches!(self, East | North | West | South)
     }
 
@@ -337,13 +337,12 @@ impl Neighbors<TilePos> {
     ) -> Neighbors<TilePos> {
         let square_pos = SquarePos::from(tile_pos);
         if include_diagonals {
-            let f = |direction: RectangularDirection| {
-                square_pos.offset(&direction).as_tile_pos(map_size)
-            };
+            let f =
+                |direction: SquareDirection| square_pos.offset(&direction).as_tile_pos(map_size);
 
             Neighbors::from_directional_closure(f)
         } else {
-            let f = |direction: RectangularDirection| {
+            let f = |direction: SquareDirection| {
                 if direction.is_cardinal() {
                     square_pos.offset(&direction).as_tile_pos(map_size)
                 } else {
@@ -367,13 +366,12 @@ impl Neighbors<TilePos> {
     ) -> Neighbors<TilePos> {
         let staggered_pos = StaggeredPos::from(tile_pos);
         if include_diagonals {
-            let f = |direction: RectangularDirection| {
-                staggered_pos.offset(&direction).as_tile_pos(map_size)
-            };
+            let f =
+                |direction: SquareDirection| staggered_pos.offset(&direction).as_tile_pos(map_size);
 
             Neighbors::from_directional_closure(f)
         } else {
-            let f = |direction: RectangularDirection| {
+            let f = |direction: SquareDirection| {
                 if direction.is_cardinal() {
                     staggered_pos.offset(&direction).as_tile_pos(map_size)
                 } else {
