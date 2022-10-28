@@ -70,7 +70,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 // We can replace the tile texture component like so:
                 commands
                     .entity(tile_storage.get(&pos).unwrap())
-                    .insert(TileTexture(color));
+                    .insert(TileTextureIndex(color));
             }
         }
     }
@@ -106,7 +106,7 @@ fn update_map(
         &TileStorage,
         &TilemapType,
     )>,
-    mut tile_query: Query<&mut TileTexture>,
+    mut tile_query: Query<&mut TileTextureIndex>,
 ) {
     let current_time = time.seconds_since_startup();
     for (mut current_color, mut last_update, tile_storage, tilemap_type) in tilemap_query.iter_mut()

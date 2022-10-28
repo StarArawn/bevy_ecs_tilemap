@@ -55,7 +55,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
     let hex_coord_system = HexCoordSystem::Row;
 
     fill_tilemap_hexagon(
-        TileTexture(0),
+        TileTextureIndex(0),
         TilePos {
             x: MAP_SIDE_LENGTH / 2,
             y: MAP_SIDE_LENGTH / 2,
@@ -181,7 +181,7 @@ fn swap_map_type(
 
             // Re-generate tiles in a hexagonal pattern.
             fill_tilemap_hexagon(
-                TileTexture(0),
+                TileTextureIndex(0),
                 TilePos {
                     x: MAP_SIDE_LENGTH / 2,
                     y: MAP_SIDE_LENGTH / 2,

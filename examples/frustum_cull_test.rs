@@ -69,7 +69,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
-        TileTexture(0),
+        TileTextureIndex(0),
         total_size,
         tilemap_id,
         &mut commands,

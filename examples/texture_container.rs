@@ -40,9 +40,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let mut rng = thread_rng();
     let weighted_tile_choices = [
-        (TileTexture(0), 0.8),
-        (TileTexture(1), 0.1),
-        (TileTexture(2), 0.1),
+        (TileTextureIndex(0), 0.8),
+        (TileTextureIndex(1), 0.1),
+        (TileTextureIndex(2), 0.1),
     ];
     for position in tile_positions {
         let texture = weighted_tile_choices
@@ -54,7 +54,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             .insert_bundle(TileBundle {
                 position,
                 tilemap_id,
-                texture,
+                texture_index: texture,
                 ..Default::default()
             })
             .id();
