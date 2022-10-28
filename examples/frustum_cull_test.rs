@@ -1,5 +1,5 @@
-use bevy::log::{Level, LogSettings};
-use bevy::{ecs::system::Resource, prelude::*, render::texture::ImageSettings};
+use bevy::log::{Level, LogPlugin};
+use bevy::{ecs::system::Resource, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::FrustumCulling;
 mod helpers;
@@ -246,21 +246,26 @@ fn swap_map_type(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Frustum cull test"),
-            ..Default::default()
-        })
-        // For this example, we want to turn up logging to show trace level events for bevy_ecs_tilemap
-        .insert_resource(LogSettings {
-            // Everything else should be set to Level::ERROR
-            level: Level::ERROR,
-            // except for bevy_ecs_tilemap
-            filter: "bevy_ecs_tilemap=trace".into(),
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Frustum cull test"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest())
+                // For this example, we want to turn up logging to show trace level events for bevy_ecs_tilemap
+                .set(LogPlugin {
+                    // Everything else should be set to Level::ERROR
+                    level: Level::ERROR,
+                    // except for bevy_ecs_tilemap
+                    filter: "bevy_ecs_tilemap=trace".into(),
+                }),
+        )
         .add_plugin(TilemapPlugin)
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)

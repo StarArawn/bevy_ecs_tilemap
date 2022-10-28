@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
@@ -104,14 +104,19 @@ fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<Input<
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Hexagon Row Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Hexagon Row Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
