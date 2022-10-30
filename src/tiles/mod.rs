@@ -71,6 +71,12 @@ pub struct TileTextureIndex(pub u32);
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TileColor(pub Color);
 
+impl From<Color> for TileColor {
+    fn from(color: Color) -> Self {
+        TileColor(color)
+    }
+}
+
 /// Hides or shows a tile based on the boolean. Default: True
 #[derive(Component, Clone, Copy, Debug, Hash)]
 pub struct TileVisible(pub bool);
