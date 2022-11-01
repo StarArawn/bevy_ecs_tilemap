@@ -28,7 +28,7 @@ fn startup(
     let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Spawn the elements of the tilemap.
-    // Alternatively, you can use helpers::fill_tilemap.
+    // Alternatively, you can use helpers::filling::fill_tilemap.
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
