@@ -14,7 +14,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn().id();
 
     fill_tilemap(
-        TileTexture(0),
+        TileTextureIndex(0),
         tilemap_size,
         TilemapId(tilemap_entity),
         &mut commands,
@@ -43,7 +43,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn().id();
 
     fill_tilemap(
-        TileTexture(2),
+        TileTextureIndex(2),
         tilemap_size,
         TilemapId(tilemap_entity),
         &mut commands,

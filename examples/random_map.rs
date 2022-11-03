@@ -57,7 +57,7 @@ struct LastUpdate {
 
 // In this example it's better not to use the default `MapQuery` SystemParam as
 // it's faster to do it this way:
-fn random(time: ResMut<Time>, mut query: Query<(&mut TileTexture, &mut LastUpdate)>) {
+fn random(time: ResMut<Time>, mut query: Query<(&mut TileTextureIndex, &mut LastUpdate)>) {
     let current_time = time.seconds_since_startup();
     let mut random = thread_rng();
     for (mut tile, mut last_update) in query.iter_mut() {

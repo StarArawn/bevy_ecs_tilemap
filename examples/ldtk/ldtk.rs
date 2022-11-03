@@ -1,7 +1,7 @@
 use bevy_ecs_tilemap::{
     helpers::geometry::get_tilemap_center_transform,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
-    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
+    tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle,
 };
 use std::collections::HashMap;
@@ -193,7 +193,7 @@ pub fn process_loaded_tile_maps(
                                 .insert_bundle(TileBundle {
                                     position,
                                     tilemap_id: TilemapId(map_entity),
-                                    texture: TileTexture(tile.t as u32),
+                                    texture_index: TileTextureIndex(tile.t as u32),
                                     ..default()
                                 })
                                 .id();

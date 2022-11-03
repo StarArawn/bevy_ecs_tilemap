@@ -65,11 +65,17 @@ impl From<&TilePos> for Vec2 {
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
 #[derive(Component, Default, Clone, Copy, Debug, Hash)]
-pub struct TileTexture(pub u32);
+pub struct TileTextureIndex(pub u32);
 
 /// A custom color for the tile.
 #[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TileColor(pub Color);
+
+impl From<Color> for TileColor {
+    fn from(color: Color) -> Self {
+        TileColor(color)
+    }
+}
 
 /// Hides or shows a tile based on the boolean. Default: True
 #[derive(Component, Clone, Copy, Debug, Hash)]
@@ -95,7 +101,7 @@ pub struct TileFlip {
 #[derive(Bundle, Default, Clone, Copy, Debug)]
 pub struct TileBundle {
     pub position: TilePos,
-    pub texture: TileTexture,
+    pub texture_index: TileTextureIndex,
     pub tilemap_id: TilemapId,
     pub visible: TileVisible,
     pub flip: TileFlip,
