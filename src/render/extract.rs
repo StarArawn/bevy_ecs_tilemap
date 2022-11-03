@@ -2,6 +2,7 @@ use bevy::prelude::Res;
 use bevy::prelude::Time;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
+use bevy::render::render_resource::TextureFormat;
 use bevy::render::texture::ImageSettings;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 
@@ -78,6 +79,7 @@ pub(crate) struct ExtractedTilemapTexture {
     pub tile_count: u32,
     pub texture: TilemapTexture,
     pub filtering: FilterMode,
+    pub format: TextureFormat,
 }
 
 impl ExtractedTilemapTexture {
@@ -89,7 +91,7 @@ impl ExtractedTilemapTexture {
         filtering: FilterMode,
         image_assets: &Res<Assets<Image>>,
     ) -> ExtractedTilemapTexture {
-        let (tile_count, texture_size) = match &texture {
+        let (tile_count, texture_size, format) = match &texture {
             TilemapTexture::Single(handle) => {
                 let image = image_assets.get(handle).expect(
                     "Expected image to have finished loading if \
@@ -98,7 +100,11 @@ impl ExtractedTilemapTexture {
                 let texture_size: TilemapTextureSize = image.size().into();
                 let tile_count_x = ((texture_size.x) / (tile_size.x + tile_spacing.x)).floor();
                 let tile_count_y = ((texture_size.y) / (tile_size.y + tile_spacing.y)).floor();
-                ((tile_count_x * tile_count_y) as u32, texture_size)
+                (
+                    (tile_count_x * tile_count_y) as u32,
+                    texture_size,
+                    image.texture_descriptor.format,
+                )
             }
             #[cfg(not(feature = "atlas"))]
             TilemapTexture::Vector(handles) => {
@@ -116,7 +122,20 @@ impl ExtractedTilemapTexture {
                         );
                     }
                 }
-                (handles.len() as u32, tile_size.into())
+                let first_format = image_assets
+                    .get(handles.first().unwrap())
+                    .unwrap()
+                    .texture_descriptor
+                    .format;
+
+                for handle in handles {
+                    let image = image_assets.get(handle).unwrap();
+                    if image.texture_descriptor.format != first_format {
+                        panic!("Expected all provided image assets to have a format of: {:?} but found image with format: {:?}", first_format, image.texture_descriptor.format);
+                    }
+                }
+
+                (handles.len() as u32, tile_size.into(), first_format)
             }
             #[cfg(not(feature = "atlas"))]
             TilemapTexture::TextureContainer(image_handle) => {
@@ -128,6 +147,7 @@ impl ExtractedTilemapTexture {
                 (
                     image.texture_descriptor.array_layer_count(),
                     tile_size.into(),
+                    image.texture_descriptor.format,
                 )
             }
         };
@@ -140,6 +160,7 @@ impl ExtractedTilemapTexture {
             filtering,
             tile_count,
             texture_size,
+            format,
         }
     }
 }

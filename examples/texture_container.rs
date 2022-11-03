@@ -11,7 +11,8 @@ const MAP_CENTER: TilePos = TilePos {
     x: MAP_RADIUS + 1,
     y: MAP_RADIUS + 1,
 };
-const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
+// const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
+const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 56.0 };
 const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -20,7 +21,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
     // feature is not turned on, that the image won't properly be interpreted as a texture
     // container. The other alternative is `dds`.
-    let texture_vec = TilemapTexture::TextureContainer(asset_server.load("hex-tiles.ktx2"));
+    // let texture_vec = TilemapTexture::TextureContainer(asset_server.load("hex-tiles.ktx2"));
+
+    // Optionally you can also load in KTX2's as regular single textures:
+    let texture_vec = TilemapTexture::Vector(vec![
+        asset_server.load("hex-tile-0.ktx2"),
+        asset_server.load("hex-tile-1.ktx2"),
+        asset_server.load("hex-tile-2.ktx2"),
+    ]);
 
     let map_size = TilemapSize {
         x: MAP_DIAMETER,

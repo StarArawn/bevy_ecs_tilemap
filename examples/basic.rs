@@ -1,4 +1,7 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::{
+    prelude::*,
+    render::texture::{BevyDefault, ImageSettings},
+};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -66,7 +69,9 @@ fn startup(
         array_texture_loader.add(TilemapArrayTexture {
             texture: TilemapTexture::Single(asset_server.load("tiles.png")),
             tile_size,
-            ..Default::default()
+            format: BevyDefault::bevy_default(),
+            tile_spacing: Default::default(),
+            filter: Default::default(),
         });
     }
 }
