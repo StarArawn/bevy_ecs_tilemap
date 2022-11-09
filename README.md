@@ -73,7 +73,8 @@ cargo run --release --example basic
 
 ### Running examples on web!
 ```
-cargo serve --example animation --release --features atlas
+cargo build --target wasm32-unknown-unknown --example animation --release --features atlas
+wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wasm
 ```
 
 ## Known Issues
