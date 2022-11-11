@@ -163,7 +163,7 @@ pub fn process_loaded_maps(
                             y: tiled_map.map.tile_height as f32,
                         };
 
-                        let mesh_type = match tiled_map.map.orientation {
+                        let map_type = match tiled_map.map.orientation {
                             tiled::Orientation::Hexagonal => {
                                 TilemapType::Hexagon(HexCoordSystem::Row)
                             }
@@ -212,7 +212,7 @@ pub fn process_loaded_maps(
                                     .spawn(TileBundle {
                                         position: tile_pos,
                                         tilemap_id: TilemapId(layer_entity),
-                                        texture: TileTexture(tile_id),
+                                        texture_index: TileTextureIndex(tile_id),
                                         flip: TileFlip {
                                             x: map_tile.flip_h,
                                             y: map_tile.flip_v,
@@ -241,9 +241,10 @@ pub fn process_loaded_maps(
                             transform: get_tilemap_center_transform(
                                 &map_size,
                                 &grid_size,
+                                &map_type,
                                 layer.layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
-                            map_type: mesh_type,
+                            map_type,
                             ..Default::default()
                         });
 

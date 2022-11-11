@@ -14,7 +14,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn_empty().id();
 
     fill_tilemap(
-        TileTexture(0),
+        TileTextureIndex(0),
         tilemap_size,
         TilemapId(tilemap_entity),
         &mut commands,
@@ -23,15 +23,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
+    let map_type = TilemapType::default();
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
+        map_type,
         size: tilemap_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle.clone()),
         tile_size,
         spacing: TilemapSpacing { x: 8.0, y: 8.0 },
-        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
+        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 
@@ -40,20 +42,23 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tilemap_entity = commands.spawn_empty().id();
 
     fill_tilemap(
-        TileTexture(2),
+        TileTextureIndex(2),
         tilemap_size,
         TilemapId(tilemap_entity),
         &mut commands,
         &mut tile_storage,
     );
 
+    let map_type = TilemapType::default();
+
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
+        map_type,
         size: tilemap_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 1.0)
+        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 1.0)
             * Transform::from_xyz(32.0, 32.0, 0.0),
         ..Default::default()
     });

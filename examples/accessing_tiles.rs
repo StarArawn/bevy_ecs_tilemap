@@ -25,7 +25,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // For the purposes of this example, we consider a square tile map,
     // where diagonals are also considered to be neighbors.
-    let tilemap_type = TilemapType::Square {
+    let map_type = TilemapType::Square {
         diagonal_neighbors: true,
     };
 
@@ -52,7 +52,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // We can grab a list of neighbors.
-    let neighbors = get_tile_neighbors(&TilePos { x: 0, y: 0 }, &tile_storage, &tilemap_type);
+    let neighbors = get_tile_neighbors(&TilePos { x: 0, y: 0 }, &tile_storage, &map_type);
 
     // We can access tiles using:
     assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
@@ -64,12 +64,12 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         color += 1;
         for y in (2..128).step_by(4) {
             // Grabbing neighbors is easy.
-            let neighbors = get_neighboring_pos(&TilePos { x, y }, &tilemap_size, &tilemap_type);
+            let neighbors = get_neighboring_pos(&TilePos { x, y }, &tilemap_size, &map_type);
             for pos in neighbors.into_iter() {
                 // We can replace the tile texture component like so:
                 commands
                     .entity(tile_storage.get(&pos).unwrap())
-                    .insert(TileTexture(color));
+                    .insert(TileTextureIndex(color));
             }
         }
     }
@@ -86,10 +86,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             grid_size,
             size: tilemap_size,
             storage: tile_storage,
-            map_type: tilemap_type,
+            map_type,
             texture: TilemapTexture::Single(texture_handle),
             tile_size,
-            transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
+            transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
             ..Default::default()
         })
         .insert(LastUpdate(0.0))
@@ -105,7 +105,7 @@ fn update_map(
         &TileStorage,
         &TilemapType,
     )>,
-    mut tile_query: Query<&mut TileTexture>,
+    mut tile_query: Query<&mut TileTextureIndex>,
 ) {
     let current_time = time.elapsed_seconds_f64();
     for (mut current_color, mut last_update, tile_storage, tilemap_type) in tilemap_query.iter_mut()

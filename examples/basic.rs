@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::texture::BevyDefault};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -28,7 +28,7 @@ fn startup(
     let mut tile_storage = TileStorage::empty(tilemap_size);
 
     // Spawn the elements of the tilemap.
-    // Alternatively, you can use helpers::fill_tilemap.
+    // Alternatively, you can use helpers::filling::fill_tilemap.
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
@@ -45,14 +45,16 @@ fn startup(
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
+    let map_type = TilemapType::default();
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
+        map_type,
         size: tilemap_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
+        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 
@@ -63,7 +65,9 @@ fn startup(
         array_texture_loader.add(TilemapArrayTexture {
             texture: TilemapTexture::Single(asset_server.load("tiles.png")),
             tile_size,
-            ..Default::default()
+            format: BevyDefault::bevy_default(),
+            tile_spacing: Default::default(),
+            filter: Default::default(),
         });
     }
 }

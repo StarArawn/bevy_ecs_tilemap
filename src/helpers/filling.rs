@@ -2,14 +2,14 @@ use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexDirection, HEX_DIRECTIONS};
 use crate::map::TilemapId;
 use crate::prelude::HexCoordSystem;
-use crate::tiles::{TileBundle, TileColor, TilePos, TileTexture};
+use crate::tiles::{TileBundle, TileColor, TilePos, TileTextureIndex};
 use crate::{TileStorage, TilemapSize};
 use bevy::hierarchy::BuildChildren;
 use bevy::prelude::{Color, Commands};
 
 /// Fills an entire tile storage with the given tile.
 pub fn fill_tilemap(
-    tile_texture: TileTexture,
+    texture_index: TileTextureIndex,
     size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,
@@ -22,7 +22,7 @@ pub fn fill_tilemap(
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
-                    texture: tile_texture,
+                    texture_index,
                     ..Default::default()
                 })
                 .id();
@@ -37,7 +37,7 @@ pub fn fill_tilemap(
 /// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a
 /// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).  
 pub fn fill_tilemap_rect(
-    tile_texture: TileTexture,
+    texture_index: TileTextureIndex,
     origin: TilePos,
     size: TilemapSize,
     tilemap_id: TilemapId,
@@ -55,7 +55,7 @@ pub fn fill_tilemap_rect(
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
-                    texture: tile_texture,
+                    texture_index,
                     ..Default::default()
                 })
                 .id();
@@ -69,7 +69,7 @@ pub fn fill_tilemap_rect(
 /// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a
 /// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).   
 pub fn fill_tilemap_rect_color(
-    tile_texture: TileTexture,
+    texture_index: TileTextureIndex,
     origin: TilePos,
     size: TilemapSize,
     color: Color,
@@ -88,7 +88,7 @@ pub fn fill_tilemap_rect_color(
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
-                    texture: tile_texture,
+                    texture_index,
                     color: TileColor(color),
                     ..Default::default()
                 })
@@ -143,7 +143,7 @@ pub fn generate_hexagon(origin: AxialPos, radius: u32) -> Vec<AxialPos> {
 ///
 /// Tiles that do not fit in the tilemap will not be created.
 pub fn fill_tilemap_hexagon(
-    tile_texture: TileTexture,
+    texture_index: TileTextureIndex,
     origin: TilePos,
     radius: u32,
     hex_coord_system: HexCoordSystem,
@@ -164,7 +164,7 @@ pub fn fill_tilemap_hexagon(
             .spawn(TileBundle {
                 position: tile_pos,
                 tilemap_id,
-                texture: tile_texture,
+                texture_index,
                 ..Default::default()
             })
             .id();

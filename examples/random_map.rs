@@ -33,14 +33,15 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
-
+    let map_type = TilemapType::default();
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
+        map_type,
         size: tilemap_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, 0.0),
+        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 }
@@ -52,7 +53,7 @@ struct LastUpdate {
 
 // In this example it's better not to use the default `MapQuery` SystemParam as
 // it's faster to do it this way:
-fn random(time: ResMut<Time>, mut query: Query<(&mut TileTexture, &mut LastUpdate)>) {
+fn random(time: ResMut<Time>, mut query: Query<(&mut TileTextureIndex, &mut LastUpdate)>) {
     let current_time = time.elapsed_seconds_f64();
     let mut random = thread_rng();
     for (mut tile, mut last_update) in query.iter_mut() {

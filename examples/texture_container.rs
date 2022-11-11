@@ -11,7 +11,8 @@ const MAP_CENTER: TilePos = TilePos {
     x: MAP_RADIUS + 1,
     y: MAP_RADIUS + 1,
 };
-const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
+// const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
+const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 56.0 };
 const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -20,7 +21,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
     // feature is not turned on, that the image won't properly be interpreted as a texture
     // container. The other alternative is `dds`.
-    let texture_vec = TilemapTexture::TextureContainer(asset_server.load("hex-tiles.ktx2"));
+    // let texture_vec = TilemapTexture::TextureContainer(asset_server.load("hex-tiles.ktx2"));
+
+    // Optionally you can also load in KTX2's as regular single textures:
+    let texture_vec = TilemapTexture::Vector(vec![
+        asset_server.load("hex-tile-0.ktx2"),
+        asset_server.load("hex-tile-1.ktx2"),
+        asset_server.load("hex-tile-2.ktx2"),
+    ]);
 
     let map_size = TilemapSize {
         x: MAP_DIAMETER,
@@ -40,9 +48,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let mut rng = thread_rng();
     let weighted_tile_choices = [
-        (TileTexture(0), 0.8),
-        (TileTexture(1), 0.1),
-        (TileTexture(2), 0.1),
+        (TileTextureIndex(0), 0.8),
+        (TileTextureIndex(1), 0.1),
+        (TileTextureIndex(2), 0.1),
     ];
     for position in tile_positions {
         let texture = weighted_tile_choices
@@ -54,7 +62,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             .insert(TileBundle {
                 position,
                 tilemap_id,
-                texture,
+                texture_index: texture,
                 ..Default::default()
             })
             .id();
@@ -63,15 +71,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TILE_SIZE;
     let grid_size = TILE_SIZE.into();
+    let map_type = TilemapType::Hexagon(COORD_SYS);
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
+        map_type,
         tile_size,
         size: map_size,
         storage: tile_storage,
         texture: texture_vec,
-        map_type: TilemapType::Hexagon(COORD_SYS),
-        transform: get_tilemap_center_transform(&map_size, &grid_size, 0.0),
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 }

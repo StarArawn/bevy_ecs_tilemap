@@ -12,7 +12,7 @@ use bevy::{
             TextureFormat, TextureUsages, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::{BevyDefault, GpuImage},
+        texture::GpuImage,
     },
     utils::{HashMap, HashSet},
 };
@@ -29,6 +29,7 @@ pub struct TextureArrayCache {
             TilemapTextureSize,
             TilemapSpacing,
             FilterMode,
+            TextureFormat,
         ),
     >,
     prepare_queue: HashSet<TilemapTexture>,
@@ -51,6 +52,7 @@ impl TextureArrayCache {
                     extracted_texture.texture_size,
                     extracted_texture.tile_spacing,
                     extracted_texture.filtering,
+                    extracted_texture.format,
                 ),
             );
             self.prepare_queue
@@ -65,6 +67,7 @@ impl TextureArrayCache {
         tile_size: TilemapTileSize,
         tile_spacing: TilemapSpacing,
         filtering: FilterMode,
+        format: TextureFormat,
         image_assets: &Res<Assets<Image>>,
     ) {
         let (tile_count, texture_size) = match &texture {
@@ -111,7 +114,14 @@ impl TextureArrayCache {
         if !self.meta_data.contains_key(&texture) {
             self.meta_data.insert(
                 texture.clone_weak(),
-                (tile_count, tile_size, texture_size, tile_spacing, filtering),
+                (
+                    tile_count,
+                    tile_size,
+                    texture_size,
+                    tile_spacing,
+                    filtering,
+                    format,
+                ),
             );
             self.prepare_queue.insert(texture.clone_weak());
         }
@@ -135,7 +145,8 @@ impl TextureArrayCache {
         for texture in prepare_queue.iter() {
             match texture {
                 TilemapTexture::Single(_) | TilemapTexture::Vector(_) => {
-                    let (count, tile_size, _, _, filter) = self.meta_data.get(texture).unwrap();
+                    let (count, tile_size, _, _, filter, format) =
+                        self.meta_data.get(texture).unwrap();
 
                     // Fixes weird cubemap bug.
                     let count = if *count == 6 { count + 1 } else { *count };
@@ -150,7 +161,7 @@ impl TextureArrayCache {
                         mip_level_count: 1,
                         sample_count: 1,
                         dimension: TextureDimension::D2,
-                        format: TextureFormat::Rgba8UnormSrgb,
+                        format: *format,
                         usage: TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
                     });
 
@@ -181,7 +192,7 @@ impl TextureArrayCache {
                     });
 
                     let gpu_image = GpuImage {
-                        texture_format: TextureFormat::bevy_default(),
+                        texture_format: *format,
                         texture: gpu_texture,
                         sampler,
                         texture_view,
@@ -221,7 +232,7 @@ impl TextureArrayCache {
                         continue;
                     };
 
-                    let (count, tile_size, texture_size, spacing, _) =
+                    let (count, tile_size, texture_size, spacing, _, _) =
                         self.meta_data.get(texture).unwrap();
                     let array_gpu_image = self.textures.get(texture).unwrap();
                     let count = *count;
@@ -285,7 +296,7 @@ impl TextureArrayCache {
                         }
                     }
 
-                    let (count, tile_size, _, _, _) = self.meta_data.get(texture).unwrap();
+                    let (count, tile_size, _, _, _, _) = self.meta_data.get(texture).unwrap();
                     let array_gpu_image = self.textures.get(texture).unwrap();
                     let count = *count;
 

@@ -1,7 +1,7 @@
 use bevy_ecs_tilemap::{
     helpers::geometry::get_tilemap_center_transform,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
-    tiles::{TileBundle, TilePos, TileStorage, TileTexture},
+    tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle,
 };
 use std::collections::HashMap;
@@ -11,6 +11,7 @@ use bevy::{
     asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
     prelude::*,
 };
+use bevy_ecs_tilemap::map::TilemapType;
 
 #[derive(Default)]
 pub struct LdtkPlugin;
@@ -191,7 +192,7 @@ pub fn process_loaded_tile_maps(
                                 .spawn(TileBundle {
                                     position,
                                     tilemap_id: TilemapId(map_entity),
-                                    texture: TileTexture(tile.t as u32),
+                                    texture_index: TileTextureIndex(tile.t as u32),
                                     ..default()
                                 })
                                 .id();
@@ -200,10 +201,12 @@ pub fn process_loaded_tile_maps(
                         }
 
                         let grid_size = tile_size.into();
+                        let map_type = TilemapType::default();
 
                         // Create the tilemap
                         commands.entity(map_entity).insert(TilemapBundle {
                             grid_size,
+                            map_type,
                             size,
                             storage,
                             texture: TilemapTexture::Single(texture),
@@ -211,6 +214,7 @@ pub fn process_loaded_tile_maps(
                             transform: get_tilemap_center_transform(
                                 &size,
                                 &grid_size,
+                                &map_type,
                                 layer_id as f32,
                             ),
                             ..default()
