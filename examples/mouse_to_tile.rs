@@ -78,17 +78,15 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let tile_size = TILE_SIZE_SQUARE;
     let grid_size = GRID_SIZE_SQUARE;
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
-            grid_size,
-            size: total_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(tile_handle_square.clone()),
-            tile_size,
-            map_type: TilemapType::Square,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size: total_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(tile_handle_square.clone()),
+        tile_size,
+        map_type: TilemapType::Square,
+        ..Default::default()
+    });
 }
 
 #[derive(Component)]
