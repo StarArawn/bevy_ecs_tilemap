@@ -4,7 +4,10 @@ use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
     TilemapTexture,
 };
-use bevy::render::render_resource::{FilterMode, TextureFormat};
+use bevy::render::{
+    render_resource::{FilterMode, TextureFormat},
+    texture::BevyDefault,
+};
 #[cfg(feature = "render")]
 use bevy::{
     prelude::{Assets, Image, Res, ResMut},
@@ -20,6 +23,18 @@ pub struct TilemapArrayTexture {
     /// Defaults to ImageSettings.
     pub filter: Option<FilterMode>,
     pub format: TextureFormat,
+}
+
+impl Default for TilemapArrayTexture {
+    fn default() -> Self {
+        Self {
+            texture: Default::default(),
+            tile_size: Default::default(),
+            tile_spacing: Default::default(),
+            filter: Default::default(),
+            format: BevyDefault::bevy_default(),
+        }
+    }
 }
 
 /// A bevy world resource that allows you to add atlas textures for
