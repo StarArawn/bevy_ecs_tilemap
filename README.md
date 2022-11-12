@@ -85,6 +85,7 @@ cargo serve --example animation --release --features atlas
 |bevy|bevy_ecs_tilemap|
 |---|---|
 |`main`|`bevy-track`|
+|0.9|0.9|
 |0.8|0.8|
 |0.8|0.7|
 |0.7|0.6|
