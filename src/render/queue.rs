@@ -142,7 +142,7 @@ pub fn queue_meshes(
                 if !visible_entities
                     .entities
                     .iter()
-                    .any(|&entity| entity.id() == tilemap_id.0.id())
+                    .any(|&entity| entity.index() == tilemap_id.0.index())
                 {
                     continue;
                 }
@@ -151,7 +151,7 @@ pub fn queue_meshes(
                     chunk_id.0.x,
                     chunk_id.0.y,
                     chunk_id.0.z,
-                    tilemap_id.0.id(),
+                    tilemap_id.0.index(),
                 )) {
                     #[cfg(not(feature = "atlas"))]
                     if !texture_array_cache.contains(&chunk.texture) {

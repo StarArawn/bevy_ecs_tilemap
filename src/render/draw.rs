@@ -158,7 +158,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.x,
             chunk_id.0.y,
             chunk_id.0.z,
-            tilemap_id.0.id(),
+            tilemap_id.0.index(),
         )) {
             if let Some(gpu_mesh) = &chunk.gpu_mesh {
                 pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));

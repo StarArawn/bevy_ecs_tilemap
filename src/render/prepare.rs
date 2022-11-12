@@ -90,7 +90,7 @@ pub(crate) fn prepare(
             chunk_index.x,
             chunk_index.y,
             transform.translation().z as u32,
-            tile.tilemap_id.0.id(),
+            tile.tilemap_id.0.index(),
         );
 
         let in_chunk_tile_index = chunk_size.map_tile_to_chunk_tile(&tile.position, &chunk_index);
@@ -138,7 +138,7 @@ pub(crate) fn prepare(
         frustum_culling,
     ) in extracted_tilemaps.iter()
     {
-        let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.id()));
+        let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index()));
         for chunk in chunks.values_mut() {
             chunk.texture = texture.clone();
             chunk.map_size = *map_size;
@@ -158,7 +158,7 @@ pub(crate) fn prepare(
     for tilemap in extracted_tilemap_textures.iter() {
         let texture_size: Vec2 = tilemap.texture_size.into();
         let chunks =
-            chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, tilemap.tilemap_id.0.id()));
+            chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, tilemap.tilemap_id.0.index()));
         for chunk in chunks.values_mut() {
             chunk.texture_size = texture_size;
         }
