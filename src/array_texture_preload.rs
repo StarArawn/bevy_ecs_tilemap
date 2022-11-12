@@ -56,14 +56,14 @@ pub(crate) fn extract(
         if array_texture.filter.is_none() {
             array_texture
                 .filter
-                .replace((**default_image_settings).mag_filter);
+                .replace(default_image_settings.mag_filter);
         }
         if array_texture.texture.verify_ready(&images) {
             texture_array_cache.add_texture(
                 array_texture.texture,
                 array_texture.tile_size,
                 array_texture.tile_spacing,
-                (**default_image_settings).min_filter,
+                default_image_settings.min_filter,
                 array_texture.format,
                 &images,
             );
