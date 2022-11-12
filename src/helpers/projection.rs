@@ -1,7 +1,7 @@
 use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
-use crate::helpers::iso_grid::diamond::DiamondPos;
-use crate::helpers::iso_grid::staggered::StaggeredPos;
+use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, TilemapType};
@@ -24,7 +24,7 @@ impl TilePos {
                 HexCoordSystem::Row => AxialPos::from(self).center_in_world_row(grid_size),
                 HexCoordSystem::Column => AxialPos::from(self).center_in_world_col(grid_size),
             },
-            TilemapType::Isometric { coord_system, .. } => match coord_system {
+            TilemapType::Isometric(coord_system) => match coord_system {
                 IsoCoordSystem::Diamond => DiamondPos::from(self).center_in_world(grid_size),
                 IsoCoordSystem::Staggered => StaggeredPos::from(self).center_in_world(grid_size),
             },
@@ -79,7 +79,7 @@ impl TilePos {
                 HexCoordSystem::Column => AxialPos::from_world_pos_col(world_pos, grid_size)
                     .as_tile_pos_given_map_size(map_size),
             },
-            TilemapType::Isometric { coord_system, .. } => match coord_system {
+            TilemapType::Isometric(coord_system) => match coord_system {
                 IsoCoordSystem::Diamond => {
                     DiamondPos::from_world_pos(world_pos, grid_size).as_tile_pos(map_size)
                 }

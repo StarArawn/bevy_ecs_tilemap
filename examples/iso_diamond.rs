@@ -73,15 +73,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TilemapTileSize { x: 64.0, y: 32.0 };
     let grid_size = tile_size.into();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
-        size: total_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size,
-        map_type: TilemapType::isometric_diamond(false),
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(TilemapBundle {
+            grid_size,
+            size: total_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(texture_handle),
+            tile_size,
+            map_type: TilemapType::Isometric(IsoCoordSystem::Diamond),
+            ..Default::default()
+        });
 }
 
 fn main() {

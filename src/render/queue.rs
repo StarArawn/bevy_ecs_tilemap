@@ -200,7 +200,7 @@ pub fn queue_meshes(
                         entity,
                         draw_function: draw_tilemap,
                         pipeline: pipeline_id,
-                        sort_key: FloatOrd(transform.translation.z as f32),
+                        sort_key: FloatOrd(transform.translation.z),
                         batch_range: None,
                     });
                 }

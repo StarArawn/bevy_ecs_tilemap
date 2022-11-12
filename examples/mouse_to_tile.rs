@@ -78,17 +78,17 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let tile_size = TILE_SIZE_SQUARE;
     let grid_size = GRID_SIZE_SQUARE;
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
-        size: total_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_square.clone()),
-        tile_size,
-        map_type: TilemapType::Square {
-            diagonal_neighbors: false,
-        },
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(TilemapBundle {
+            grid_size,
+            size: total_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(tile_handle_square.clone()),
+            tile_size,
+            map_type: TilemapType::Square,
+            ..Default::default()
+        });
 }
 
 #[derive(Component)]
@@ -197,30 +197,18 @@ fn swap_map_type(
         {
             match map_type.as_ref() {
                 TilemapType::Square { .. } => {
-                    *map_type = TilemapType::Isometric {
-                        diagonal_neighbors: false,
-                        coord_system: IsoCoordSystem::Diamond,
-                    };
+                    *map_type = TilemapType::Isometric(IsoCoordSystem::Diamond);
                     *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
                     *grid_size = GRID_SIZE_ISO;
                 }
-                TilemapType::Isometric {
-                    coord_system: IsoCoordSystem::Diamond,
-                    ..
-                } => {
-                    *map_type = TilemapType::Isometric {
-                        diagonal_neighbors: false,
-                        coord_system: IsoCoordSystem::Staggered,
-                    };
+                TilemapType::Isometric(IsoCoordSystem::Diamond) => {
+                    *map_type = TilemapType::Isometric(IsoCoordSystem::Staggered);
                     *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
                     *grid_size = GRID_SIZE_ISO;
                 }
-                TilemapType::Isometric {
-                    coord_system: IsoCoordSystem::Staggered,
-                    ..
-                } => {
+                TilemapType::Isometric(IsoCoordSystem::Staggered) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
                     *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
                     *tile_size = TILE_SIZE_HEX_ROW;
@@ -245,9 +233,7 @@ fn swap_map_type(
                     *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
                 }
                 TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-                    *map_type = TilemapType::Square {
-                        diagonal_neighbors: false,
-                    };
+                    *map_type = TilemapType::Square;
                     *map_texture = TilemapTexture::Single((*tile_handle_square).clone());
                     *tile_size = TILE_SIZE_SQUARE;
                     *grid_size = GRID_SIZE_SQUARE;
