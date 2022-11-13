@@ -1,6 +1,7 @@
 use bevy::{input::Input, math::Vec3, prelude::*, render::camera::Camera};
 
 // A simple camera system for moving and zooming the camera.
+#[allow(dead_code)]
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,

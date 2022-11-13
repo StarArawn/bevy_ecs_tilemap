@@ -1,9 +1,13 @@
+mod helpers;
+
+#[cfg(not(feature = "atlas"))]
+mod no_atlas {
 use bevy::prelude::*;
 use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
 use bevy_ecs_tilemap::prelude::*;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
-mod helpers;
+use super::helpers;
 
 const MAP_RADIUS: u32 = 10;
 const MAP_DIAMETER: u32 = 2 * MAP_RADIUS + 1;
@@ -79,7 +83,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn main() {
+pub fn main() {
     App::new()
         .add_plugins(
             DefaultPlugins
@@ -98,4 +102,13 @@ fn main() {
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
         .run();
+    }
+}
+
+fn main() {
+    #[cfg(feature = "atlas")]
+    panic!("Atlas feature does not support texture vectors!");
+
+    #[cfg(not(feature = "atlas"))]
+    no_atlas::main();
 }
