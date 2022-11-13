@@ -1,6 +1,7 @@
 use crate::render::extract::ExtractedTilemapTexture;
 use crate::{TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize};
 use bevy::asset::Assets;
+use bevy::prelude::Resource;
 use bevy::{
     prelude::{Image, Res},
     render::{
@@ -17,7 +18,7 @@ use bevy::{
 };
 use std::num::NonZeroU32;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Resource, Default, Debug, Clone)]
 pub struct TextureArrayCache {
     textures: HashMap<TilemapTexture, GpuImage>,
     meta_data: HashMap<

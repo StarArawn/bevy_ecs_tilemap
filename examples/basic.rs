@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -8,7 +8,7 @@ fn startup(
     asset_server: Res<AssetServer>,
     #[cfg(not(feature = "atlas"))] array_texture_loader: Res<ArrayTextureLoader>,
 ) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -19,7 +19,7 @@ fn startup(
     // it is associated with. This is done with the TilemapId component on each tile.
     // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
     // will contain various necessary components, such as `TileStorage`.
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // To begin creating the map we will need a `TileStorage` component.
     // This component is a grid of tile entities and is used to help keep track of individual
@@ -33,8 +33,7 @@ fn startup(
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
@@ -48,18 +47,16 @@ fn startup(
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            map_type,
-            size: tilemap_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: tilemap_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
+        ..Default::default()
+    });
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.
@@ -102,16 +99,17 @@ fn swap_texture_or_hide(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from(
-                "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
-            ),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin{
+            window: WindowDescriptor {
+                width: 1270.0,
+                height: 720.0,
+                title: String::from(
+                    "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
+                ),
+                ..Default::default()
+            },
+            ..default()
+        }).set(ImagePlugin::default_nearest()))
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

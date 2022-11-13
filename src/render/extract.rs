@@ -3,11 +3,10 @@ use bevy::prelude::Time;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
-use bevy::render::texture::ImageSettings;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
-use crate::render::SecondsSinceStartup;
+use crate::render::{DefaultSampler, SecondsSinceStartup};
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
 use crate::{
@@ -184,7 +183,7 @@ impl ExtractedFrustum {
 #[allow(clippy::too_many_arguments)]
 pub fn extract(
     mut commands: Commands,
-    default_image_settings: Extract<Res<ImageSettings>>,
+    default_image_settings: Res<DefaultSampler>,
     changed_tiles_query: Extract<
         Query<
             (
@@ -354,7 +353,7 @@ pub fn extract(
                         texture.clone(),
                         *tile_size,
                         *tile_spacing,
-                        default_image_settings.default_sampler.min_filter,
+                        default_image_settings.0.min_filter,
                         &images,
                     ),
                 },
@@ -371,7 +370,7 @@ pub fn extract(
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
     commands.insert_or_spawn_batch(extracted_tilemap_textures);
-    commands.insert_resource(SecondsSinceStartup(time.seconds_since_startup() as f32));
+    commands.insert_resource(SecondsSinceStartup(time.elapsed_seconds_f64() as f32));
 }
 
 pub fn extract_removal(

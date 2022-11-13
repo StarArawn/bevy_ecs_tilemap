@@ -1,4 +1,4 @@
-use bevy::{math::Vec3Swizzles, prelude::*, render::texture::ImageSettings, utils::HashSet};
+use bevy::{math::Vec3Swizzles, prelude::*, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
@@ -14,15 +14,14 @@ const RENDER_CHUNK_SIZE: UVec2 = UVec2 {
 };
 
 fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: IVec2) {
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(CHUNK_SIZE.into());
     // Spawn the elements of the tilemap.
     for x in 0..CHUNK_SIZE.x {
         for y in 0..CHUNK_SIZE.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
@@ -39,21 +38,19 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         0.0,
     ));
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size: TILE_SIZE.into(),
-            size: CHUNK_SIZE.into(),
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size: TILE_SIZE,
-            transform,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size: TILE_SIZE.into(),
+        size: CHUNK_SIZE.into(),
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size: TILE_SIZE,
+        transform,
+        ..Default::default()
+    });
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 }
 
 fn camera_pos_to_chunk_pos(camera_pos: &Vec2) -> IVec2 {
@@ -102,21 +99,26 @@ fn despawn_outofrange_chunks(
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 struct ChunkManager {
     pub spawned_chunks: HashSet<IVec2>,
 }
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Basic Chunking Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Basic Chunking Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         // `TilemapRenderSettings` be added before the `TilemapPlugin`.
         .insert_resource(TilemapRenderSettings {
             render_chunk_size: RENDER_CHUNK_SIZE,

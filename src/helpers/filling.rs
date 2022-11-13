@@ -19,8 +19,7 @@ pub fn fill_tilemap(
         for y in 0..size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
                     texture_index,
@@ -53,8 +52,7 @@ pub fn fill_tilemap_rect(
             };
 
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
                     texture_index,
@@ -87,8 +85,7 @@ pub fn fill_tilemap_rect_color(
             };
 
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id,
                     texture_index,
@@ -164,8 +161,7 @@ pub fn fill_tilemap_hexagon(
 
     for tile_pos in tile_positions {
         let tile_entity = commands
-            .spawn()
-            .insert_bundle(TileBundle {
+            .spawn(TileBundle {
                 position: tile_pos,
                 tilemap_id,
                 texture_index,

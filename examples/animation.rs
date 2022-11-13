@@ -1,7 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
-    render::texture::ImageSettings,
 };
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
@@ -34,7 +33,7 @@ const FLOWERS_METADATA: TilemapMetadata = TilemapMetadata {
 fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     let TilemapMetadata {
         size,
@@ -54,18 +53,16 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            size,
-            grid_size,
-            map_type,
-            tile_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        size,
+        grid_size,
+        map_type,
+        tile_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
+        ..Default::default()
+    });
 }
 
 fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -79,7 +76,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 
     let mut tile_storage = TileStorage::empty(size);
 
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // Choose 10 random tiles to contain flowers.
     let mut rng = thread_rng();
@@ -92,8 +89,8 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
-            .spawn()
-            .insert_bundle(TileBundle {
+            .spawn_empty()
+            .insert(TileBundle {
                 position: tile_pos,
                 tilemap_id: TilemapId(tilemap_entity),
                 texture_index: TileTextureIndex(0),
@@ -112,34 +109,37 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     }
     let map_type = TilemapType::Square;
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            size,
-            grid_size,
-            map_type,
-            tile_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 1.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        size,
+        grid_size,
+        map_type,
+        tile_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 1.0),
+        ..Default::default()
+    });
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 }
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Animated Map Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Animated Map Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)

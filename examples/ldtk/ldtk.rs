@@ -175,7 +175,7 @@ pub fn process_loaded_tile_maps(
                         };
 
                         // Pre-emptively create a map entity for tile creation
-                        let map_entity = commands.spawn().id();
+                        let map_entity = commands.spawn_empty().id();
 
                         // Create tiles for this layer from LDtk's grid_tiles and auto_layer_tiles
                         let mut storage = TileStorage::empty(size);
@@ -189,8 +189,7 @@ pub fn process_loaded_tile_maps(
                             position.y = map_tile_count_y - position.y - 1;
 
                             let tile_entity = commands
-                                .spawn()
-                                .insert_bundle(TileBundle {
+                                .spawn(TileBundle {
                                     position,
                                     tilemap_id: TilemapId(map_entity),
                                     texture_index: TileTextureIndex(tile.t as u32),
@@ -205,7 +204,7 @@ pub fn process_loaded_tile_maps(
                         let map_type = TilemapType::default();
 
                         // Create the tilemap
-                        commands.entity(map_entity).insert_bundle(TilemapBundle {
+                        commands.entity(map_entity).insert(TilemapBundle {
                             grid_size,
                             map_type,
                             size,
