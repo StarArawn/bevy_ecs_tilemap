@@ -26,7 +26,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --all -- --check 
+
+      - name: Run cargo fmt --feature atlas
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check --features atlas
 
   clippy:
     name: Clippy
@@ -50,3 +56,9 @@ jobs:
         with:
           command: clippy
           args: --no-deps -- -D warnings
+
+      - name: Run cargo clippy feature atlas
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --no-deps -- -D warnings --features atlas
