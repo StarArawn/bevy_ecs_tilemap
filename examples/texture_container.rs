@@ -2,12 +2,12 @@ mod helpers;
 
 #[cfg(not(feature = "atlas"))]
 mod no_atlas {
+    use super::helpers;
     use bevy::prelude::*;
     use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
     use bevy_ecs_tilemap::prelude::*;
     use rand::prelude::SliceRandom;
     use rand::thread_rng;
-    use super::helpers;
     const MAP_RADIUS: u32 = 10;
     const MAP_DIAMETER: u32 = 2 * MAP_RADIUS + 1;
     const MAP_CENTER: TilePos = TilePos {
