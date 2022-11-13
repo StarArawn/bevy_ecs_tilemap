@@ -28,12 +28,6 @@ jobs:
           command: fmt
           args: --all -- --check 
 
-      - name: Run cargo fmt --feature atlas
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check --features atlas
-
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
