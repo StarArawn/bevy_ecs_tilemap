@@ -1,7 +1,7 @@
 use std::hash::{Hash, Hasher};
 
 use bevy::math::Mat4;
-use bevy::prelude::Transform;
+use bevy::prelude::{Resource, Transform};
 use bevy::render::primitives::Aabb;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
@@ -22,7 +22,7 @@ use crate::{
     FrustumCulling, TilemapGridSize, TilemapTileSize,
 };
 
-#[derive(Default, Clone, Debug)]
+#[derive(Resource, Default, Clone, Debug)]
 pub struct RenderChunk2dStorage {
     chunks: HashMap<u32, HashMap<UVec3, RenderChunk2d>>,
     entity_to_chunk_tile: HashMap<Entity, (u32, UVec3, UVec2)>,
@@ -158,7 +158,7 @@ impl RenderChunk2dStorage {
     }
 
     pub fn remove_map(&mut self, entity: Entity) {
-        self.chunks.remove(&entity.id());
+        self.chunks.remove(&entity.index());
     }
 }
 

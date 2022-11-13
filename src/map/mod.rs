@@ -1,5 +1,5 @@
 use bevy::asset::Assets;
-use bevy::prelude::{Res, ResMut};
+use bevy::prelude::{Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
@@ -21,7 +21,7 @@ use bevy::{
 ///     .add_plugin(TilemapPlugin)
 ///     .run();
 /// ```
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Resource, Debug, Default, Copy, Clone)]
 pub struct TilemapRenderSettings {
     /// Dimensions of a "chunk" in tiles. Chunks are grouping of tiles combined and rendered as a
     /// single mesh by the render pipeline.

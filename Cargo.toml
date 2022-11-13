@@ -1,7 +1,7 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.8.0"
+version = "0.9.0"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
@@ -15,7 +15,12 @@ atlas = []
 render = []
 
 [dependencies]
-bevy = { version = "0.8", default-features = false, features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "bevy_sprite"] }
+bevy = { git = "https://github.com/bevyengine/bevy", version = "0.9", default-features = false, features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "bevy_sprite",
+] }
 log = "0.4"
 regex = "1.5.4"
 
@@ -28,14 +33,36 @@ serde_json = { version = "1.0" }
 tiled = { version = "0.9", default-features = false }
 
 [dev-dependencies.bevy]
-version = "0.8"
+git = "https://github.com/bevyengine/bevy"
+version = "0.9"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "ktx2", "bevy_winit", "bevy_text", "bevy_sprite", "filesystem_watcher"]
+features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "png",
+    "ktx2",
+    "bevy_winit",
+    "bevy_text",
+    "bevy_sprite",
+    "filesystem_watcher",
+]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.8"
+git = "https://github.com/bevyengine/bevy"
+version = "0.9"
 default-features = false
-features=["bevy_core_pipeline", "bevy_render", "bevy_asset", "png", "ktx2", "bevy_winit", "x11", "bevy_text", "bevy_sprite"]
+features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_asset",
+    "png",
+    "ktx2",
+    "bevy_winit",
+    "x11",
+    "bevy_text",
+    "bevy_sprite",
+]
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"

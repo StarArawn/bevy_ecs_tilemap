@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::helpers::square_grid::neighbors::Neighbors;
 use bevy_ecs_tilemap::prelude::*;
 
@@ -11,7 +11,7 @@ struct CurrentColor(u16);
 struct LastUpdate(f64);
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -30,7 +30,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Create a tilemap entity a little early
     // We want this entity early because we need to tell each tile which tilemap entity
     // it is associated with. This is done with the TilemapId component on each tile.
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // Spawn a 32 by 32 tilemap.
     // Alternatively, you can use helpers::fill_tilemap.
@@ -38,8 +38,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
@@ -85,7 +84,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands
         .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             size: map_size,
             storage: tile_storage,
@@ -110,7 +109,7 @@ fn update_map(
     )>,
     mut tile_query: Query<&mut TileTextureIndex>,
 ) {
-    let current_time = time.seconds_since_startup();
+    let current_time = time.elapsed_seconds_f64();
     for (mut current_color, mut last_update, tile_storage, map_size) in tilemap_query.iter_mut() {
         if current_time - last_update.0 > 0.1 {
             current_color.0 += 1;
@@ -150,14 +149,19 @@ fn update_map(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Basic Example"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Accessing Tiles Example"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)

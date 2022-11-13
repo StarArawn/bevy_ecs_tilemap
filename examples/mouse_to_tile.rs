@@ -1,5 +1,5 @@
 use bevy::math::Vec4Swizzles;
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::{ecs::system::Resource, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -24,17 +24,20 @@ const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
 
-#[derive(Component, Deref)]
+#[derive(Deref, Resource)]
 pub struct TileHandleHexRow(Handle<Image>);
 
-#[derive(Component, Deref)]
+#[derive(Deref, Resource)]
 pub struct TileHandleHexCol(Handle<Image>);
 
-#[derive(Component, Deref)]
+#[derive(Deref, Resource)]
 pub struct TileHandleSquare(Handle<Image>);
 
-#[derive(Component, Deref)]
+#[derive(Deref, Resource)]
 pub struct TileHandleIso(Handle<Image>);
+
+#[derive(Deref, Resource)]
+pub struct FontHandle(Handle<Font>);
 
 // Spawns different tiles that are used for this example.
 fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -48,12 +51,12 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(TileHandleHexCol(tile_handle_hex_col));
     commands.insert_resource(TileHandleHexRow(tile_handle_hex_row));
     commands.insert_resource(TileHandleSquare(tile_handle_square));
-    commands.insert_resource(font);
+    commands.insert_resource(FontHandle(font));
 }
 
 // Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let total_size = TilemapSize {
         x: MAP_SIDE_LENGTH_X,
@@ -61,7 +64,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     };
 
     let mut tile_storage = TileStorage::empty(total_size);
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
@@ -75,17 +78,15 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let tile_size = TILE_SIZE_SQUARE;
     let grid_size = GRID_SIZE_SQUARE;
 
-    commands
-        .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
-            grid_size,
-            size: total_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(tile_handle_square.clone()),
-            tile_size,
-            map_type: TilemapType::Square,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size: total_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(tile_handle_square.clone()),
+        tile_size,
+        map_type: TilemapType::Square,
+        ..Default::default()
+    });
 }
 
 #[derive(Component)]
@@ -96,7 +97,7 @@ fn spawn_tile_labels(
     mut commands: Commands,
     tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
-    font_handle: Res<Handle<Font>>,
+    font_handle: Res<FontHandle>,
 ) {
     let text_style = TextStyle {
         font: font_handle.clone(),
@@ -111,7 +112,7 @@ fn spawn_tile_labels(
             let transform = *map_transform * Transform::from_translation(tile_center);
             commands
                 .entity(*tile_entity)
-                .insert_bundle(Text2dBundle {
+                .insert(Text2dBundle {
                     text: Text::from_section(
                         format!("{}, {}", tile_pos.x, tile_pos.y),
                         text_style.clone(),
@@ -131,7 +132,7 @@ pub struct MapTypeLabel;
 // Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
 fn spawn_map_type_label(
     mut commands: Commands,
-    font_handle: Res<Handle<Font>>,
+    font_handle: Res<FontHandle>,
     windows: Res<Windows>,
     map_type_q: Query<&TilemapType>,
 ) {
@@ -151,7 +152,7 @@ fn spawn_map_type_label(
                 ..Default::default()
             };
             commands
-                .spawn_bundle(Text2dBundle {
+                .spawn(Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
                         .with_alignment(text_alignment),
                     transform,
@@ -185,7 +186,7 @@ fn swap_map_type(
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
     tile_handle_iso: Res<TileHandleIso>,
-    font_handle: Res<Handle<Font>>,
+    font_handle: Res<FontHandle>,
     windows: Res<Windows>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
@@ -289,7 +290,7 @@ pub fn cursor_pos_in_world(
     ndc_to_world.project_point3(ndc.extend(0.0))
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct CursorPos(Vec3);
 
 // We need to keep the cursor position updated based on any `CursorMoved` events.
@@ -370,17 +371,22 @@ fn highlight_tile_labels(
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            width: 1270.0,
-            height: 720.0,
-            title: String::from("Mouse Position to Tile Position"),
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1270.0,
+                        height: 720.0,
+                        title: String::from("Mouse Position to Tile Position"),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         // Initialize the cursor pos at some far away place. It will get updated
         // correctly when the cursor moves.
         .insert_resource(CursorPos(Vec3::new(-100.0, -100.0, 0.0)))
-        .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
         .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
