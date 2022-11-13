@@ -29,6 +29,12 @@ jobs:
         with:
           command: check
           args: --all-targets
+      
+      - name: Run cargo check feature atlas
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-targets --features atlas
 
 #   test:
 #     name: Tests
@@ -63,3 +69,4 @@ jobs:
         with:
           toolchain: stable
       - run: cargo build --examples
+      - run: cargo build --examples --features atlas
