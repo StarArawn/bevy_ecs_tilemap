@@ -101,8 +101,8 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin{
             window: WindowDescriptor {
-                width: 1270.0,
-                height: 720.0,
+                width: 540.0,
+                height: 540.0,
                 title: String::from(
                     "Basic Example - Press Space to change Texture and H to show/hide tilemap.",
                 ),

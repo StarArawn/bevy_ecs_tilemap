@@ -3,17 +3,29 @@ use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, Transform};
 use bevy::math::Vec2;
 
-/// Gets the [`Vec2`] world space position of the center tile in the tilemap.
+/// Gets the [`Vec2`] world space position of the center tile of the tilemap.
 ///
-/// The center tile is defined to be the tile at
-/// `TilePos { x: size.x / 2.0 as u32, y: size.y / 2.0 as u32 }`, where `size` is a `TilemapSize`.
+/// If the tilemap has odd dimensions, then this is just the center of the central tile in the map.
+///
+/// Otherwise, we must add an offset of half-a-tile.
 pub fn get_tilemap_center(
     size: &TilemapSize,
     grid_size: &TilemapGridSize,
     map_type: &TilemapType,
 ) -> Vec2 {
-    let center_pos = TilePos::new(size.x / 2.0 as u32, size.y / 2.0 as u32);
-    center_pos.center_in_world(grid_size, map_type)
+    let center_tile_pos = TilePos::new(size.x / 2.0 as u32, size.y / 2.0 as u32);
+
+    let mut offset = Vec2::new(0.0, 0.0);
+    // If the tilemap is even in the x-direction
+    if size.x % 2 == 0 {
+        offset.x -= grid_size.x / 2.0;
+    }
+    // If the tilemap is even in the y-direction
+    if size.y % 2 == 0 {
+        offset.y -= grid_size.y / 2.0;
+    }
+
+    center_tile_pos.center_in_world(grid_size, map_type) + offset
 }
 
 /// Calculates a [`Transform`] for a tilemap that places it so that the center tile is at
