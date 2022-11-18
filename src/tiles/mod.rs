@@ -2,7 +2,7 @@ mod storage;
 
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Bundle, Color, Component},
+    prelude::{Bundle, Color, Component, Reflect},
 };
 pub use storage::*;
 
@@ -10,7 +10,7 @@ use crate::map::TilemapId;
 use crate::TilemapSize;
 
 /// A tile position in the tilemap grid.
-#[derive(Component, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub struct TilePos {
     pub x: u32,
     pub y: u32,
@@ -64,11 +64,11 @@ impl From<&TilePos> for Vec2 {
 }
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
-#[derive(Component, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 pub struct TileTextureIndex(pub u32);
 
 /// A custom color for the tile.
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 pub struct TileColor(pub Color);
 
 impl From<Color> for TileColor {
@@ -78,7 +78,7 @@ impl From<Color> for TileColor {
 }
 
 /// Hides or shows a tile based on the boolean. Default: True
-#[derive(Component, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
 pub struct TileVisible(pub bool);
 
 impl Default for TileVisible {
@@ -88,7 +88,7 @@ impl Default for TileVisible {
 }
 
 /// Flips the tiles texture along the X, Y or diagonal axes
-#[derive(Component, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 pub struct TileFlip {
     /// Flip tile along the x axis.
     pub x: bool,
@@ -109,13 +109,13 @@ pub struct TileBundle {
     pub old_position: TilePosOld,
 }
 
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 pub struct TilePosOld(pub TilePos);
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Clone, Copy, Debug)]
 pub struct AnimatedTile {
     /// The start frame index in the tilemap atlas/array (inclusive).
     pub start: u32,
