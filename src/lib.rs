@@ -75,6 +75,7 @@ impl Plugin for TilemapPlugin {
             .register_type::<TileColor>()
             .register_type::<TileVisible>()
             .register_type::<TileFlip>()
+            .register_type::<TileStorage>()
             .register_type::<TilePosOld>()
             .register_type::<AnimatedTile>();
     }
