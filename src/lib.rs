@@ -18,10 +18,9 @@ use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
     Query, Reflect, Transform, Visibility,
 };
-#[cfg(all(not(feature = "atlas"), feature = "render"))]
-use map::TilemapTextureSize;
 use map::{
-    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
+    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
+    TilemapTileSize, TilemapType,
 };
 use prelude::TilemapId;
 use tiles::{
