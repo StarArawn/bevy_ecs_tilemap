@@ -16,14 +16,17 @@
 
 use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
-    Query, Transform, Visibility,
+    Query, Reflect, Transform, Visibility,
 };
-#[cfg(all(not(feature = "atlas"), feature = "render"))]
-use map::TilemapTextureSize;
 use map::{
-    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTileSize, TilemapType,
+    TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
+    TilemapTileSize, TilemapType,
 };
-use tiles::{TilePos, TilePosOld, TileStorage};
+use prelude::TilemapId;
+use tiles::{
+    AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
+    TileVisible,
+};
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{RenderApp, RenderStage};
@@ -57,10 +60,28 @@ impl Plugin for TilemapPlugin {
             let render_app = app.sub_app_mut(RenderApp);
             render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
         }
+
+        app.register_type::<FrustumCulling>()
+            .register_type::<TilemapId>()
+            .register_type::<TilemapSize>()
+            .register_type::<TilemapTexture>()
+            .register_type::<TilemapTileSize>()
+            .register_type::<TilemapGridSize>()
+            .register_type::<TilemapSpacing>()
+            .register_type::<TilemapTextureSize>()
+            .register_type::<TilemapType>()
+            .register_type::<TilePos>()
+            .register_type::<TileTextureIndex>()
+            .register_type::<TileColor>()
+            .register_type::<TileVisible>()
+            .register_type::<TileFlip>()
+            .register_type::<TileStorage>()
+            .register_type::<TilePosOld>()
+            .register_type::<AnimatedTile>();
     }
 }
 
-#[derive(Component, Debug, Clone, Copy, Deref)]
+#[derive(Component, Reflect, Debug, Clone, Copy, Deref)]
 pub struct FrustumCulling(pub bool);
 
 impl Default for FrustumCulling {

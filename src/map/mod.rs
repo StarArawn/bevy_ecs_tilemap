@@ -3,7 +3,7 @@ use bevy::prelude::{Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Component, Entity, Handle, Image},
+    prelude::{Component, Entity, FromReflect, Handle, Image, Reflect},
 };
 
 /// Custom parameters for the render pipeline.
@@ -33,7 +33,7 @@ pub struct TilemapRenderSettings {
 }
 
 /// A component which stores a reference to the tilemap entity.
-#[derive(Component, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
 pub struct TilemapId(pub Entity);
 
 impl Default for TilemapId {
@@ -43,7 +43,7 @@ impl Default for TilemapId {
 }
 
 /// Size of the tilemap in tiles.
-#[derive(Component, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 pub struct TilemapSize {
     pub x: u32,
     pub y: u32,
@@ -73,7 +73,7 @@ impl From<UVec2> for TilemapSize {
     }
 }
 
-#[derive(Component, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Component, Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum TilemapTexture {
     /// All textures for tiles are inside a single image asset.
     Single(Handle<Image>),
@@ -174,7 +174,7 @@ impl TilemapTexture {
 }
 
 /// Size of the tiles in pixels
-#[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct TilemapTileSize {
     pub x: f32,
     pub y: f32,
@@ -212,7 +212,7 @@ impl From<Vec2> for TilemapTileSize {
 /// This can be used to overlay tiles on top of each other.
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
 /// a grid size of 16x8.
-#[derive(Component, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct TilemapGridSize {
     pub x: f32,
     pub y: f32,
@@ -244,7 +244,7 @@ impl From<&Vec2> for TilemapGridSize {
 
 /// Spacing between tiles in pixels inside of the texture atlas.
 /// Defaults to 0.0
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 pub struct TilemapSpacing {
     pub x: f32,
     pub y: f32,
@@ -263,7 +263,7 @@ impl TilemapSpacing {
 }
 
 /// Size of the atlas texture in pixels.
-#[derive(Component, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 pub struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
@@ -292,7 +292,7 @@ impl From<TilemapTileSize> for TilemapTextureSize {
 }
 
 /// Different hex_grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub enum HexCoordSystem {
     RowEven,
     RowOdd,
@@ -303,14 +303,14 @@ pub enum HexCoordSystem {
 }
 
 /// Different isometric coordinate systems.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub enum IsoCoordSystem {
     Diamond,
     Staggered,
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
-#[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Reflect, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TilemapType {
     /// A tilemap with rectangular tiles.
     Square,
