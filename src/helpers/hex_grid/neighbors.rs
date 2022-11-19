@@ -189,8 +189,8 @@ pub enum HexColDirection {
 
 impl From<HexDirection> for HexRowDirection {
     fn from(direction: HexDirection) -> Self {
-        use HexRowDirection::*;
         use HexDirection::*;
+        use HexRowDirection::*;
         match direction {
             Zero => North,
             One => NorthWest,
@@ -226,8 +226,8 @@ impl HexRowDirection {
 
 impl From<HexDirection> for HexColDirection {
     fn from(direction: HexDirection) -> Self {
-        use HexDirection::*;
         use HexColDirection::*;
+        use HexDirection::*;
         match direction {
             Zero => East,
             One => NorthEast,
