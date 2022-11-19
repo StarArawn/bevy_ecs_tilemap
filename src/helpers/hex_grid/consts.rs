@@ -1,5 +1,6 @@
-/// Various constants that are helpful for hex_grid-grid related calculations.
+//! Various constants that are helpful for hex_grid-grid related calculations.
 
+/// sqrt(3)
 pub const SQRT_3: f32 = 1.7320508;
 
 /// 1/sqrt(3)

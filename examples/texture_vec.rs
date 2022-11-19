@@ -4,7 +4,7 @@ mod helpers;
 mod no_atlas {
     use super::helpers;
     use bevy::prelude::*;
-    use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
+    use bevy_ecs_tilemap::helpers::hex_grid::axial_system::AxialPos;
     use bevy_ecs_tilemap::prelude::*;
     use rand::prelude::SliceRandom;
     use rand::thread_rng;

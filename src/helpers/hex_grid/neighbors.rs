@@ -1,5 +1,7 @@
-use crate::helpers::hex_grid::axial::AxialPos;
-use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
+//! Code for managing neighbors on a hexagonal grid.
+
+use crate::helpers::hex_grid::axial_system::AxialPos;
+use crate::helpers::hex_grid::offset_system::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::{HexCoordSystem, TilemapSize};
 use crate::prelude::TileStorage;
 use crate::TilePos;
@@ -163,20 +165,6 @@ impl HexDirection {
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
 pub enum HexRowDirection {
-    East,
-    NorthEast,
-    NorthWest,
-    West,
-    SouthWest,
-    SouthEast,
-}
-
-/// Compass directions of a tile in hexagonal column-oriented coordinate systems
-/// ([Column](crate::map::HexCoordSystem::Column),
-/// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
-/// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
-#[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
-pub enum HexColDirection {
     North,
     NorthWest,
     SouthWest,
@@ -185,30 +173,23 @@ pub enum HexColDirection {
     NorthEast,
 }
 
+/// Compass directions of a tile in hexagonal column-oriented coordinate systems
+/// ([Column](crate::map::HexCoordSystem::Column),
+/// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
+/// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
+pub enum HexColDirection {
+    East,
+    NorthEast,
+    NorthWest,
+    West,
+    SouthWest,
+    SouthEast,
+}
+
 impl From<HexDirection> for HexRowDirection {
     fn from(direction: HexDirection) -> Self {
-        use HexDirection::*;
         use HexRowDirection::*;
-        match direction {
-            Zero => East,
-            One => NorthEast,
-            Two => NorthWest,
-            Three => West,
-            Four => SouthWest,
-            Five => SouthEast,
-        }
-    }
-}
-
-impl From<HexRowDirection> for HexDirection {
-    fn from(direction: HexRowDirection) -> Self {
-        (direction as usize).into()
-    }
-}
-
-impl From<HexDirection> for HexColDirection {
-    fn from(direction: HexDirection) -> Self {
-        use HexColDirection::*;
         use HexDirection::*;
         match direction {
             Zero => North,
@@ -221,13 +202,13 @@ impl From<HexDirection> for HexColDirection {
     }
 }
 
-impl From<HexColDirection> for HexDirection {
-    fn from(direction: HexColDirection) -> Self {
+impl From<HexRowDirection> for HexDirection {
+    fn from(direction: HexRowDirection) -> Self {
         (direction as usize).into()
     }
 }
 
-impl HexRowDirection {
+impl HexColDirection {
     pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_row(*self)
@@ -235,11 +216,32 @@ impl HexRowDirection {
     }
 }
 
-impl HexColDirection {
+impl HexRowDirection {
     pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_col(*self)
             .as_tile_pos_given_coord_system(coord_sys)
+    }
+}
+
+impl From<HexDirection> for HexColDirection {
+    fn from(direction: HexDirection) -> Self {
+        use HexDirection::*;
+        use HexColDirection::*;
+        match direction {
+            Zero => East,
+            One => NorthEast,
+            Two => NorthWest,
+            Three => West,
+            Four => SouthWest,
+            Five => SouthEast,
+        }
+    }
+}
+
+impl From<HexColDirection> for HexDirection {
+    fn from(direction: HexColDirection) -> Self {
+        (direction as usize).into()
     }
 }
 
