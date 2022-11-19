@@ -1,13 +1,6 @@
-use crate::helpers::hex_grid::neighbors::{HexColDirection, HexRowDirection};
-use crate::helpers::square_grid::neighbors::SquareDirection;
-use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
-use crate::prelude::axial_system::AxialPos;
-use crate::prelude::diamond_system::DiamondPos;
-use crate::prelude::staggered_system::StaggeredPos;
-use crate::prelude::SquarePos;
+use crate::map::TilemapType;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, Transform};
-use bevy::math::Vec2;
 
 /// Calculates a [`Transform`] for a tilemap that places it so that its center is at
 /// `(0.0, 0.0, 0.0)` in world space.
