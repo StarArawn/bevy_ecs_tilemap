@@ -1,4 +1,4 @@
-use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::diamond_system::DiamondPos;
 use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
 use crate::helpers::square_grid::SquarePos;
 use crate::tiles::TilePos;
@@ -92,6 +92,32 @@ impl StaggeredPos {
     /// Returns the position of this tile's center, in world space.
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         DiamondPos::from(self).center_in_world(grid_size)
+    }
+
+    /// Returns the offset to the corner of a tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: SquareDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        DiamondPos::corner_offset_in_world(corner_direction, grid_size)
+    }
+
+    /// Returns the coordinate of the corner of a tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: SquareDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let diamond_pos = DiamondPos::from(self);
+
+        let center = Vec2::new(diamond_pos.x as f32, diamond_pos.y as f32);
+
+        let corner_offset = DiamondPos::from(SquarePos::from(corner_direction));
+        let corner_pos = 0.5 * Vec2::new(corner_offset.x as f32, corner_offset.y as f32);
+
+        DiamondPos::project(center + corner_pos, grid_size)
     }
 
     /// Returns the tile containing the given world position.

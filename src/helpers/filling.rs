@@ -1,4 +1,4 @@
-use crate::helpers::hex_grid::axial::AxialPos;
+use crate::helpers::hex_grid::axial_system::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexDirection, HEX_DIRECTIONS};
 use crate::map::TilemapId;
 use crate::prelude::HexCoordSystem;
@@ -129,8 +129,8 @@ pub fn generate_hex_ring(origin: AxialPos, radius: u32) -> Vec<AxialPos> {
 /// Generates a vector of hex positions that form a hexagon of given `radius` around the specified
 /// `origin`.
 pub fn generate_hexagon(origin: AxialPos, radius: u32) -> Vec<AxialPos> {
-    let mut hexagon = Vec::with_capacity((6 * radius * (radius + 1) / 2) as usize);
-    for r in 0..radius {
+    let mut hexagon = Vec::with_capacity(1 + (6 * radius * (radius + 1) / 2) as usize);
+    for r in 0..(radius + 1) {
         hexagon.extend(generate_hex_ring(origin, r));
     }
     hexagon

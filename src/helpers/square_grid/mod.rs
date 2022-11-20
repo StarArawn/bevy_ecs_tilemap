@@ -1,10 +1,10 @@
-pub mod diamond;
+pub mod diamond_system;
 pub mod neighbors;
-pub mod staggered;
+pub mod staggered_system;
 
-use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::diamond_system::DiamondPos;
 use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
-use crate::helpers::square_grid::staggered::StaggeredPos;
+use crate::helpers::square_grid::staggered_system::StaggeredPos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;
@@ -95,10 +95,44 @@ impl From<StaggeredPos> for SquarePos {
 }
 
 impl SquarePos {
+    /// Project a vector representing a fractional tile position (i.e. the components can be `f32`)
+    /// into world space.
+    ///
+    /// This is a helper function for [`center_in_world`], [`corner_offset_in_world`] and
+    /// [`corner_in_world`].
+    pub fn project(pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
+        Vec2::new(grid_size.x * pos.x, grid_size.y * pos.y)
+    }
+
     /// Returns the position of this tile's center, in world space.
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        let unscaled_pos = Vec2::new(self.x as f32, self.y as f32);
-        Vec2::new(grid_size.x * unscaled_pos.x, grid_size.y * unscaled_pos.y)
+        Self::project(Vec2::new(self.x as f32, self.y as f32), grid_size)
+    }
+
+    /// Returns the offset to the corner of a tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: SquareDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let corner_offset = SquarePos::from(corner_direction);
+        let corner_pos = 0.5 * Vec2::new(corner_offset.x as f32, corner_offset.y as f32);
+        Self::project(corner_pos, grid_size)
+    }
+
+    /// Returns the coordinate of the corner of a tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: SquareDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let center = Vec2::new(self.x as f32, self.y as f32);
+
+        let corner_offset = SquarePos::from(corner_direction);
+        let corner_pos = 0.5 * Vec2::new(corner_offset.x as f32, corner_offset.y as f32);
+
+        Self::project(center + corner_pos, grid_size)
     }
 
     /// Returns the tile containing the given world position.
