@@ -1,7 +1,7 @@
-use crate::helpers::hex_grid::axial_system::AxialPos;
-use crate::helpers::hex_grid::offset_system::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
-use crate::helpers::square_grid::diamond_system::DiamondPos;
-use crate::helpers::square_grid::staggered_system::StaggeredPos;
+use crate::helpers::hex_grid::axial::AxialPos;
+use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
+use crate::helpers::square_grid::diamond::DiamondPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, TilemapType};

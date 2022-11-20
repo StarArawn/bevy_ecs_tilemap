@@ -1,10 +1,10 @@
-pub mod diamond_system;
+pub mod diamond;
 pub mod neighbors;
-pub mod staggered_system;
+pub mod staggered;
 
-use crate::helpers::square_grid::diamond_system::DiamondPos;
+use crate::helpers::square_grid::diamond::DiamondPos;
 use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
-use crate::helpers::square_grid::staggered_system::StaggeredPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;

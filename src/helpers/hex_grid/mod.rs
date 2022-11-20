@@ -1,5 +1,5 @@
-pub mod axial_system;
+pub mod axial;
 pub mod consts;
-pub mod cube_system;
+pub mod cube;
 pub mod neighbors;
-pub mod offset_system;
+pub mod offset;

@@ -1,4 +1,4 @@
-use crate::helpers::square_grid::staggered_system::StaggeredPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::helpers::square_grid::SquarePos;
 use crate::map::TilemapSize;
 use crate::prelude::{TilePos, TileStorage};

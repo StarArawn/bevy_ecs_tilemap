@@ -1,11 +1,11 @@
 //! Code for the axial coordinate system.
 
 use crate::helpers::hex_grid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
-use crate::helpers::hex_grid::cube_system::{CubePos, FractionalCubePos};
+use crate::helpers::hex_grid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hex_grid::neighbors::{
     HexColDirection, HexDirection, HexRowDirection, HEX_OFFSETS,
 };
-use crate::helpers::hex_grid::offset_system::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
+use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::HexCoordSystem;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};

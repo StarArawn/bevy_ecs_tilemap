@@ -1,6 +1,6 @@
 //! Code for the cube coordinate system
 
-use crate::helpers::hex_grid::axial_system::{AxialPos, FractionalAxialPos};
+use crate::helpers::hex_grid::axial::{AxialPos, FractionalAxialPos};
 use std::ops::{Add, Mul, Sub};
 
 /// Identical to [`AxialPos`], but has an extra component `s`. Together, `q`, `r`, `s`

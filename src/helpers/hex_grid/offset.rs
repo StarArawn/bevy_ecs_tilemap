@@ -1,6 +1,6 @@
 //! Code for the offset coordinate system.
 
-use crate::helpers::hex_grid::axial_system::AxialPos;
+use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexColDirection, HexDirection, HexRowDirection};
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};

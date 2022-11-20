@@ -1,7 +1,7 @@
 //! Code for the isometric diamond coordinate system.
 
 use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
-use crate::helpers::square_grid::staggered_system::StaggeredPos;
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::helpers::square_grid::SquarePos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};

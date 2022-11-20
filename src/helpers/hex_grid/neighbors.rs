@@ -1,5 +1,5 @@
-use crate::helpers::hex_grid::axial_system::AxialPos;
-use crate::helpers::hex_grid::offset_system::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
+use crate::helpers::hex_grid::axial::AxialPos;
+use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::{HexCoordSystem, TilemapSize};
 use crate::prelude::TileStorage;
 use crate::TilePos;

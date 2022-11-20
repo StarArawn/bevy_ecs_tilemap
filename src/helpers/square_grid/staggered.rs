@@ -1,4 +1,4 @@
-use crate::helpers::square_grid::diamond_system::DiamondPos;
+use crate::helpers::square_grid::diamond::DiamondPos;
 use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
 use crate::helpers::square_grid::SquarePos;
 use crate::tiles::TilePos;

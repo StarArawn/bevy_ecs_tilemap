@@ -1,4 +1,4 @@
-use crate::helpers::hex_grid::axial_system::AxialPos;
+use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexDirection, HEX_DIRECTIONS};
 use crate::map::TilemapId;
 use crate::prelude::HexCoordSystem;
