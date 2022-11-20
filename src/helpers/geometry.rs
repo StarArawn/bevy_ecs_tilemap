@@ -1,7 +1,6 @@
 use crate::map::TilemapType;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, Transform};
-use bevy::math::Vec2;
 
 /// Calculates a [`Transform`] for a tilemap that places it so that its center is at
 /// `(0.0, 0.0, 0.0)` in world space.
