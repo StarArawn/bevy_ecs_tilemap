@@ -6,7 +6,9 @@ mod helpers;
 fn startup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    #[cfg(not(feature = "atlas"))] array_texture_loader: Res<ArrayTextureLoader>,
+    #[cfg(all(not(feature = "atlas"), feature = "render"))] array_texture_loader: Res<
+        ArrayTextureLoader,
+    >,
 ) {
     commands.spawn(Camera2dBundle::default());
 
@@ -60,7 +62,7 @@ fn startup(
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.
-    #[cfg(not(feature = "atlas"))]
+    #[cfg(all(not(feature = "atlas"), feature = "render"))]
     {
         array_texture_loader.add(TilemapArrayTexture {
             texture: TilemapTexture::Single(asset_server.load("tiles.png")),

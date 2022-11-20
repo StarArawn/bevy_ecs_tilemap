@@ -36,6 +36,12 @@ jobs:
           command: check
           args: --all-targets --features atlas
 
+      - name: Run cargo check headless
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-targets --no-default-features
+
 #   test:
 #     name: Tests
 #     strategy:
