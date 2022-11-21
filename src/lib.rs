@@ -32,7 +32,7 @@ use tiles::{
 use bevy::render::{RenderApp, RenderStage};
 
 /// A module that allows pre-loading of atlases into array textures.
-#[cfg(not(feature = "atlas"))]
+#[cfg(all(not(feature = "atlas"), feature = "render"))]
 mod array_texture_preload;
 /// A module which provides helper functions.
 pub mod helpers;
@@ -114,7 +114,7 @@ pub struct TilemapBundle {
 
 /// A module which exports commonly used dependencies.
 pub mod prelude {
-    #[cfg(not(feature = "atlas"))]
+    #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
     pub use crate::helpers::filling::*;
     pub use crate::helpers::geometry::*;
