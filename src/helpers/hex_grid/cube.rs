@@ -24,6 +24,7 @@ pub struct CubePos {
 }
 
 impl From<AxialPos> for CubePos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         CubePos { q, r, s: -(q + r) }
@@ -94,11 +95,13 @@ impl CubePos {
     /// The magnitude of a cube position is its distance away from the `[0, 0, 0]` hex_grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
+    #[inline]
     pub fn magnitude(&self) -> i32 {
         self.q.abs().max(self.r.abs().max(self.s.abs()))
     }
 
     /// Returns the hex_grid distance between `self` and `other`.
+    #[inline]
     pub fn distance_from(&self, other: &CubePos) -> i32 {
         let cube_pos: CubePos = *self - *other;
         cube_pos.magnitude()
@@ -122,6 +125,7 @@ impl From<FractionalAxialPos> for FractionalCubePos {
 impl FractionalCubePos {
     /// Returns `self` rounded to a [`CubePos`] that contains `self`. This is particularly useful
     /// for determining the hex tile that this fractional position is in.
+    #[inline]
     pub fn round(&self) -> CubePos {
         let q_round = self.q.round();
         let r_round = self.r.round();
