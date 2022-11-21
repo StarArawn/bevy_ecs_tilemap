@@ -1,3 +1,5 @@
+//! Code for the cube coordinate system
+
 use crate::helpers::hex_grid::axial::{AxialPos, FractionalAxialPos};
 use std::ops::{Add, Mul, Sub};
 

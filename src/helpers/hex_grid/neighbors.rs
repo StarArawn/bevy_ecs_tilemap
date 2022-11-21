@@ -163,20 +163,6 @@ impl HexDirection {
 /// [RowOdd](crate::map::HexCoordSystem::RowOdd)).
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
 pub enum HexRowDirection {
-    East,
-    NorthEast,
-    NorthWest,
-    West,
-    SouthWest,
-    SouthEast,
-}
-
-/// Compass directions of a tile in hexagonal column-oriented coordinate systems
-/// ([Column](crate::map::HexCoordSystem::Column),
-/// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
-/// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
-#[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
-pub enum HexColDirection {
     North,
     NorthWest,
     SouthWest,
@@ -185,10 +171,39 @@ pub enum HexColDirection {
     NorthEast,
 }
 
+/// Compass directions of a tile in hexagonal column-oriented coordinate systems
+/// ([Column](crate::map::HexCoordSystem::Column),
+/// [ColumnEven](crate::map::HexCoordSystem::ColumnEven), and
+/// [ColumnOdd](crate::map::HexCoordSystem::ColumnOdd)).
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, Eq, PartialEq, Hash)]
+pub enum HexColDirection {
+    East,
+    NorthEast,
+    NorthWest,
+    West,
+    SouthWest,
+    SouthEast,
+}
+
 impl From<HexDirection> for HexRowDirection {
     fn from(direction: HexDirection) -> Self {
         use HexDirection::*;
         use HexRowDirection::*;
+        match direction {
+            Zero => North,
+            One => NorthWest,
+            Two => SouthWest,
+            Three => South,
+            Four => SouthEast,
+            Five => NorthEast,
+        }
+    }
+}
+
+impl From<HexDirection> for HexColDirection {
+    fn from(direction: HexDirection) -> Self {
+        use HexColDirection::*;
+        use HexDirection::*;
         match direction {
             Zero => East,
             One => NorthEast,
@@ -203,21 +218,6 @@ impl From<HexDirection> for HexRowDirection {
 impl From<HexRowDirection> for HexDirection {
     fn from(direction: HexRowDirection) -> Self {
         (direction as usize).into()
-    }
-}
-
-impl From<HexDirection> for HexColDirection {
-    fn from(direction: HexDirection) -> Self {
-        use HexColDirection::*;
-        use HexDirection::*;
-        match direction {
-            Zero => North,
-            One => NorthWest,
-            Two => SouthWest,
-            Three => South,
-            Four => SouthEast,
-            Five => NorthEast,
-        }
     }
 }
 

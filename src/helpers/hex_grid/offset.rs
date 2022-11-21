@@ -1,3 +1,5 @@
+//! Code for the offset coordinate system.
+
 use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HexColDirection, HexDirection, HexRowDirection};
 use crate::tiles::TilePos;
@@ -15,6 +17,26 @@ impl RowOddPos {
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         let axial_pos = AxialPos::from(*self);
         axial_pos.center_in_world_row(grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        AxialPos::corner_offset_in_world_row(corner_direction, grid_size)
+    }
+
+    /// Returns the position of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let axial_pos = AxialPos::from(*self);
+        axial_pos.corner_in_world_row(corner_direction, grid_size)
     }
 
     /// Returns the tile containing the given world position.
@@ -47,7 +69,7 @@ impl RowOddPos {
     }
 
     /// Get the tile offset from `self` in the given [`HexRowDirection`].
-    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
+    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
         Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
@@ -72,6 +94,26 @@ impl RowEvenPos {
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         let axial_pos = AxialPos::from(*self);
         axial_pos.center_in_world_row(grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        AxialPos::corner_offset_in_world_row(corner_direction, grid_size)
+    }
+
+    /// Returns the position of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let axial_pos = AxialPos::from(*self);
+        axial_pos.corner_in_world_row(corner_direction, grid_size)
     }
 
     /// Returns the tile containing the given world position.
@@ -104,7 +146,7 @@ impl RowEvenPos {
     }
 
     /// Get the tile offset from `self` in the given [`HexRowDirection`].
-    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
+    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
         Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
@@ -129,6 +171,26 @@ impl ColOddPos {
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         let axial_pos = AxialPos::from(*self);
         axial_pos.center_in_world_col(grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        AxialPos::corner_offset_in_world_col(corner_direction, grid_size)
+    }
+
+    /// Returns the position of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let axial_pos = AxialPos::from(*self);
+        axial_pos.corner_in_world_col(corner_direction, grid_size)
     }
 
     /// Returns the tile containing the given world position.
@@ -161,7 +223,7 @@ impl ColOddPos {
     }
 
     /// Get the tile offset from `self` in the given [`HexColDirection`].
-    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
+    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
         Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }
@@ -186,6 +248,26 @@ impl ColEvenPos {
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         let axial_pos = AxialPos::from(*self);
         axial_pos.center_in_world_col(grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_offset_in_world(
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        AxialPos::corner_offset_in_world_col(corner_direction, grid_size)
+    }
+
+    /// Returns the position of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space
+    pub fn corner_in_world(
+        &self,
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let axial_pos = AxialPos::from(*self);
+        axial_pos.corner_in_world_col(corner_direction, grid_size)
     }
 
     /// Returns the tile containing the given world position.
@@ -218,7 +300,7 @@ impl ColEvenPos {
     }
 
     /// Get the tile offset from `self` in the given [`HexColDirection`].
-    pub fn offset_compass(&self, direction: HexColDirection) -> Self {
+    pub fn offset_compass(&self, direction: HexRowDirection) -> Self {
         Self::from(AxialPos::from(*self).offset(direction.into()))
     }
 }

@@ -1,3 +1,5 @@
+//! Code for the axial coordinate system.
+
 use crate::helpers::hex_grid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
 use crate::helpers::hex_grid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hex_grid::neighbors::{
@@ -214,26 +216,100 @@ impl AxialPos {
         (*self - *other).magnitude()
     }
 
-    /// Returns the center of the hex_grid in world space, assuming that:
-    ///     1) tiles are row-oriented ("pointy top"),
-    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
-    pub fn center_in_world_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        let unscaled_pos = ROW_BASIS * Vec2::new(self.q as f32, self.r as f32);
+    /// Project a vector representing a fractional axial position (i.e. the components can be `f32`)
+    /// into world space.
+    ///
+    /// This is a helper function for [`center_in_world_row`], [`corner_offset_in_world_row`] and
+    /// [`corner_in_world_row`].
+    pub fn project_row(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
+        let unscaled_pos = ROW_BASIS * axial_pos;
         Vec2::new(
             grid_size.x * unscaled_pos.x,
             ROW_BASIS.y_axis.y * grid_size.y * unscaled_pos.y,
         )
     }
 
-    /// Returns the center of the hex_grid in world space, assuming that:
-    ///     1) tiles are column-oriented ("flat top"),
+    /// Returns the center of a hex tile world space, assuming that:
+    ///     1) tiles are row-oriented ("pointy top"),
     ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
-    pub fn center_in_world_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
-        let unscaled_pos = COL_BASIS * Vec2::new(self.q as f32, self.r as f32);
+    pub fn center_in_world_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
+        Self::project_row(Vec2::new(self.q as f32, self.r as f32), grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space, assuming that tiles are row-oriented ("pointy top")
+    pub fn corner_offset_in_world_row(
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let corner_offset = AxialPos::from(HexDirection::from(corner_direction));
+        let corner_pos = 0.5 * Vec2::new(corner_offset.q as f32, corner_offset.r as f32);
+        Self::project_row(corner_pos, grid_size)
+    }
+
+    /// Returns the coordinate of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space, assuming that:
+    ///     1) tiles are row-oriented ("pointy top"),
+    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    pub fn corner_in_world_row(
+        &self,
+        corner_direction: HexRowDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let center = Vec2::new(self.q as f32, self.r as f32);
+
+        let corner_offset = AxialPos::from(HexDirection::from(corner_direction));
+        let corner_pos = 0.5 * Vec2::new(corner_offset.q as f32, corner_offset.r as f32);
+
+        Self::project_row(center + corner_pos, grid_size)
+    }
+
+    /// Project a vector, representing a fractional axial position (i.e. the components can be `f32`)
+    /// on a column-oriented grid ("flat top"), into world space.
+    ///
+    /// This is a helper function for [`center_in_world_col`], [`corner_offset_in_world_col`] and
+    /// [`corner_in_world_col`].
+    pub fn project_col(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
+        let unscaled_pos = COL_BASIS * axial_pos;
         Vec2::new(
             COL_BASIS.x_axis.x * grid_size.x * unscaled_pos.x,
             grid_size.y * unscaled_pos.y,
         )
+    }
+
+    /// Returns the center of a hex tile world space, assuming that:
+    ///     1) tiles are col-oriented ("flat top"),
+    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    pub fn center_in_world_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
+        Self::project_col(Vec2::new(self.q as f32, self.r as f32), grid_size)
+    }
+
+    /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
+    /// in world space, assuming that tiles are col-oriented ("flat top")
+    pub fn corner_offset_in_world_col(
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let corner_offset = AxialPos::from(HexDirection::from(corner_direction));
+        let corner_pos = 0.5 * Vec2::new(corner_offset.q as f32, corner_offset.r as f32);
+        Self::project_col(corner_pos, grid_size)
+    }
+
+    /// Returns the coordinate of the corner of a hex tile in the specified `corner_direction`,
+    /// in world space, assuming that:
+    ///     1) tiles are col-oriented ("flat top"),
+    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    pub fn corner_in_world_col(
+        &self,
+        corner_direction: HexColDirection,
+        grid_size: &TilemapGridSize,
+    ) -> Vec2 {
+        let center = Vec2::new(self.q as f32, self.r as f32);
+
+        let corner_offset = AxialPos::from(HexDirection::from(corner_direction));
+        let corner_pos = 0.5 * Vec2::new(corner_offset.q as f32, corner_offset.r as f32);
+
+        Self::project_col(center + corner_pos, grid_size)
     }
 
     /// Returns the axial position of the hex_grid containing the given world position, assuming that:
