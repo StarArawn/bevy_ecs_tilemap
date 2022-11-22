@@ -252,12 +252,12 @@ impl HexColDirection {
 /// Stores some data `T` associated with each neighboring hex cell, if present.
 #[derive(Debug, Default)]
 pub struct HexNeighbors<T> {
-    zero: Option<T>,
-    one: Option<T>,
-    two: Option<T>,
-    three: Option<T>,
-    four: Option<T>,
-    five: Option<T>,
+    pub zero: Option<T>,
+    pub one: Option<T>,
+    pub two: Option<T>,
+    pub three: Option<T>,
+    pub four: Option<T>,
+    pub five: Option<T>,
 }
 
 impl<T> HexNeighbors<T> {
