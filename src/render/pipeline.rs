@@ -13,7 +13,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::BevyDefault,
-        view::ViewUniform,
+        view::{ViewTarget, ViewUniform},
     },
 };
 
@@ -146,6 +146,7 @@ impl FromWorld for TilemapPipeline {
 pub struct TilemapPipelineKey {
     pub msaa: u32,
     pub map_type: TilemapType,
+    pub hdr: bool,
 }
 
 impl SpecializedRenderPipeline for TilemapPipeline {
@@ -198,7 +199,11 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::bevy_default(),
+                    format: if key.hdr {
+                        ViewTarget::TEXTURE_FORMAT_HDR
+                    } else {
+                        TextureFormat::bevy_default()
+                    },
                     blend: Some(BlendState {
                         color: BlendComponent {
                             src_factor: BlendFactor::SrcAlpha,

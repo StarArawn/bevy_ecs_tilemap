@@ -119,7 +119,7 @@ pub fn queue_meshes(
     texture_array_cache.queue(&render_device, &render_queue, &gpu_images);
 
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        for (entity, _view, visible_entities, mut transparent_phase) in views.iter_mut() {
+        for (entity, view, visible_entities, mut transparent_phase) in views.iter_mut() {
             let view_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
                 entries: &[BindGroupEntry {
                     binding: 0,
@@ -192,6 +192,7 @@ pub fn queue_meshes(
                     let key = TilemapPipelineKey {
                         msaa: msaa.samples,
                         map_type: chunk.get_map_type(),
+                        hdr: view.hdr,
                     };
 
                     let pipeline_id =
