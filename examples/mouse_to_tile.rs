@@ -171,7 +171,8 @@ fn spawn_map_type_label(
 #[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
-        &Transform,
+        &mut Transform,
+        &TilemapSize,
         &mut TilemapType,
         &mut TilemapGridSize,
         &mut TilemapTexture,
@@ -194,8 +195,14 @@ fn swap_map_type(
     windows: Res<Windows>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for (map_transform, mut map_type, mut grid_size, mut map_texture, mut tile_size) in
-            tilemap_query.iter_mut()
+        for (
+            mut map_transform,
+            map_size,
+            mut map_type,
+            mut grid_size,
+            mut map_texture,
+            mut tile_size,
+        ) in tilemap_query.iter_mut()
         {
             match map_type.as_ref() {
                 TilemapType::Square { .. } => {
@@ -242,9 +249,11 @@ fn swap_map_type(
                 }
             }
 
+            *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
+
             for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
                 let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
-                *tile_label_transform = *map_transform * Transform::from_translation(tile_center);
+                *tile_label_transform = Transform::from_translation(tile_center);
             }
 
             for window in windows.iter() {
