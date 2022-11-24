@@ -68,6 +68,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
 
     let tile_size = TILE_SIZE_HEX_ROW;
     let grid_size = GRID_SIZE_HEX_ROW;
+    let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
@@ -75,7 +76,8 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
         storage: tile_storage,
         texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
         tile_size,
-        map_type: TilemapType::Hexagon(HexCoordSystem::Row),
+        map_type,
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 }
@@ -86,7 +88,7 @@ struct TileLabel;
 // Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
+    tilemap_q: Query<(&TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
     font_handle: Res<FontHandle>,
 ) {
@@ -96,11 +98,11 @@ fn spawn_tile_labels(
         color: Color::BLACK,
     };
     let text_alignment = TextAlignment::CENTER;
-    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
-            let transform = *map_transform * Transform::from_translation(tile_center);
+            let transform = Transform::from_translation(tile_center);
             commands.entity(*tile_entity).insert((
                 Text2dBundle {
                     text: Text::from_section(
@@ -159,7 +161,8 @@ fn spawn_map_type_label(
 #[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
-        &Transform,
+        &mut Transform,
+        &TilemapSize,
         &mut TilemapType,
         &mut TilemapGridSize,
         &mut TilemapTexture,
@@ -180,8 +183,14 @@ fn swap_map_type(
     windows: Res<Windows>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for (map_transform, mut map_type, mut grid_size, mut map_texture, mut tile_size) in
-            tilemap_query.iter_mut()
+        for (
+            mut map_transform,
+            map_size,
+            mut map_type,
+            mut grid_size,
+            mut map_texture,
+            mut tile_size,
+        ) in tilemap_query.iter_mut()
         {
             match map_type.as_ref() {
                 TilemapType::Hexagon(HexCoordSystem::Row) => {
@@ -211,9 +220,11 @@ fn swap_map_type(
                 _ => unreachable!(),
             }
 
+            *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
+
             for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
                 let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
-                *tile_label_transform = *map_transform * Transform::from_translation(tile_center);
+                *tile_label_transform = Transform::from_translation(tile_center);
             }
 
             for window in windows.iter() {
