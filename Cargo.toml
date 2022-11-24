@@ -61,7 +61,3 @@ features = [
     "bevy_text",
     "bevy_sprite",
 ]
-
-[[example]]
-name = "ldtk"
-path = "examples/ldtk/ldtk_usage.rs"
