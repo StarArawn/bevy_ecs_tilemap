@@ -121,14 +121,15 @@ fn spawn_map_type_label(
                     .extend(1.0),
                 ..Default::default()
             };
-            commands
-                .spawn(Text2dBundle {
+            commands.spawn((
+                Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
                         .with_alignment(text_alignment),
                     transform,
                     ..default()
-                })
-                .insert(MapTypeLabel);
+                },
+                MapTypeLabel,
+            ));
         }
     }
 }

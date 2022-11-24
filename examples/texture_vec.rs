@@ -56,8 +56,7 @@ mod no_atlas {
                 .unwrap()
                 .0;
             let tile_entity = commands
-                .spawn_empty()
-                .insert(TileBundle {
+                .spawn(TileBundle {
                     position,
                     tilemap_id,
                     texture_index: texture,

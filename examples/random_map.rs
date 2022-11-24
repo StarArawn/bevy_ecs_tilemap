@@ -20,12 +20,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for y in 0..320u32 {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    ..Default::default()
-                })
-                .insert(LastUpdate::default())
+                .spawn((
+                    TileBundle {
+                        position: tile_pos,
+                        tilemap_id: TilemapId(tilemap_entity),
+                        ..Default::default()
+                    },
+                    LastUpdate::default(),
+                ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }

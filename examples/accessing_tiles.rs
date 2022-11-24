@@ -82,9 +82,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawns a tilemap.
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        TilemapBundle {
             grid_size,
             size: map_size,
             storage: tile_storage,
@@ -93,9 +92,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             tile_size,
             transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
             ..Default::default()
-        })
-        .insert(LastUpdate(0.0))
-        .insert(CurrentColor(1));
+        },
+        LastUpdate(0.0),
+        CurrentColor(1),
+    ));
 }
 
 // A system that manipulates tile colors.

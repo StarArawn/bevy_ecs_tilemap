@@ -113,9 +113,8 @@ fn spawn_tile_labels(
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
             let transform = Transform::from_translation(tile_center);
 
-            commands
-                .entity(*tile_entity)
-                .insert(Text2dBundle {
+            commands.entity(*tile_entity).insert((
+                Text2dBundle {
                     text: Text::from_section(
                         format!("{}, {}", tile_pos.x, tile_pos.y),
                         text_style.clone(),
@@ -123,8 +122,9 @@ fn spawn_tile_labels(
                     .with_alignment(text_alignment),
                     transform,
                     ..default()
-                })
-                .insert(TileLabel);
+                },
+                TileLabel,
+            ));
         }
     }
 }
@@ -154,14 +154,15 @@ fn spawn_map_type_label(
                     .extend(1.0),
                 ..Default::default()
             };
-            commands
-                .spawn(Text2dBundle {
+            commands.spawn((
+                Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
                         .with_alignment(text_alignment),
                     transform,
                     ..default()
-                })
-                .insert(MapTypeLabel);
+                },
+                MapTypeLabel,
+            ));
         }
     }
 }

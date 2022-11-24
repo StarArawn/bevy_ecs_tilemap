@@ -89,23 +89,24 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
-            .spawn_empty()
-            .insert(TileBundle {
-                position: tile_pos,
-                tilemap_id: TilemapId(tilemap_entity),
-                texture_index: TileTextureIndex(0),
-                ..Default::default()
-            })
+            .spawn((
+                TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    texture_index: TileTextureIndex(0),
+                    ..Default::default()
+                },
+                // To enable animation, we must insert the `AnimatedTile` component on
+                // each tile that is to be animated.
+                AnimatedTile {
+                    start: 0,
+                    end: 13,
+                    speed: 0.95,
+                },
+            ))
             .id();
-        tile_storage.set(&tile_pos, tile_entity);
 
-        // To enable animation, we must insert the `AnimatedTile` component on
-        // each tile that is to be animated.
-        commands.entity(tile_entity).insert(AnimatedTile {
-            start: 0,
-            end: 13,
-            speed: 0.95,
-        });
+        tile_storage.set(&tile_pos, tile_entity);
     }
     let map_type = TilemapType::Square;
 

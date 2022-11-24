@@ -31,9 +31,8 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        TilemapBundle {
             grid_size,
             map_type,
             size: map_size,
@@ -42,8 +41,9 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             tile_size,
             transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
             ..Default::default()
-        })
-        .insert(LastUpdate::default());
+        },
+        LastUpdate::default(),
+    ));
 }
 
 #[derive(Default, Component)]
