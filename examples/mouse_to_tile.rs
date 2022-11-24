@@ -58,18 +58,18 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
     commands.spawn(Camera2dBundle::default());
 
-    let total_size = TilemapSize {
+    let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH_X,
         y: MAP_SIDE_LENGTH_Y,
     };
 
-    let mut tile_storage = TileStorage::empty(total_size);
+    let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
         TileTextureIndex(0),
-        total_size,
+        map_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -77,14 +77,16 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
 
     let tile_size = TILE_SIZE_SQUARE;
     let grid_size = GRID_SIZE_SQUARE;
+    let map_type = TilemapType::Square;
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
-        size: total_size,
+        size: map_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(tile_handle_square.clone()),
         tile_size,
-        map_type: TilemapType::Square,
+        map_type,
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 }
@@ -95,7 +97,7 @@ struct TileLabel;
 // Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
+    tilemap_q: Query<(&TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
     font_handle: Res<FontHandle>,
 ) {
@@ -105,11 +107,12 @@ fn spawn_tile_labels(
         color: Color::BLACK,
     };
     let text_alignment = TextAlignment::CENTER;
-    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
-            let transform = *map_transform * Transform::from_translation(tile_center);
+            let transform = Transform::from_translation(tile_center);
+
             commands
                 .entity(*tile_entity)
                 .insert(Text2dBundle {

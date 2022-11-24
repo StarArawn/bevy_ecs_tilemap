@@ -61,19 +61,19 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
     commands.spawn(Camera2dBundle::default());
 
-    let total_size = TilemapSize {
+    let map_size = TilemapSize {
         // Render chunks are of size 64, so let's create two render chunks
         x: MAP_SIDE_LENGTH_X * 2,
         y: MAP_SIDE_LENGTH_Y,
     };
 
-    let mut tile_storage = TileStorage::empty(total_size);
+    let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
         TileTextureIndex(0),
-        total_size,
+        map_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -84,7 +84,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
-        size: total_size,
+        size: map_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(tile_handle_square.clone()),
         tile_size,

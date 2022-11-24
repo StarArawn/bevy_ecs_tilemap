@@ -14,7 +14,7 @@ fn startup(
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    let tilemap_size = TilemapSize { x: 32, y: 32 };
+    let map_size = TilemapSize { x: 32, y: 32 };
 
     // Create a tilemap entity a little early.
     // We want this entity early because we need to tell each tile which tilemap entity
@@ -27,12 +27,12 @@ fn startup(
     // This component is a grid of tile entities and is used to help keep track of individual
     // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
     // per layer, each with their own `TileStorage` component.
-    let mut tile_storage = TileStorage::empty(tilemap_size);
+    let mut tile_storage = TileStorage::empty(map_size);
 
     // Spawn the elements of the tilemap.
     // Alternatively, you can use helpers::filling::fill_tilemap.
-    for x in 0..tilemap_size.x {
-        for y in 0..tilemap_size.y {
+    for x in 0..map_size.x {
+        for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
                 .spawn(TileBundle {
@@ -52,11 +52,11 @@ fn startup(
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
         map_type,
-        size: tilemap_size,
+        size: map_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&tilemap_size, &grid_size, &map_type, 0.0),
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 

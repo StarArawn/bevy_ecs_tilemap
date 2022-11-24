@@ -12,7 +12,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle: Handle<Image> = asset_server.load("flat_hex_tiles.png");
 
     // In total, there will be `(QUADRANT_SIDE_LENGTH * 2) * (QUADRANT_SIDE_LENGTH * 2)` tiles.
-    let total_size = TilemapSize {
+    let map_size = TilemapSize {
         x: QUADRANT_SIDE_LENGTH * 2,
         y: QUADRANT_SIDE_LENGTH * 2,
     };
@@ -21,7 +21,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         y: QUADRANT_SIDE_LENGTH,
     };
 
-    let mut tile_storage = TileStorage::empty(total_size);
+    let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
@@ -72,14 +72,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 17.0, y: 15.0 };
     let grid_size = TilemapGridSize { x: 17.0, y: 15.0 };
+    let map_type = TilemapType::Hexagon(HexCoordSystem::Column);
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
-        size: total_size,
+        size: map_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        map_type: TilemapType::Hexagon(HexCoordSystem::Column),
+        map_type,
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });
 }

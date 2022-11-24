@@ -49,18 +49,18 @@ fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
     commands.spawn(Camera2dBundle::default());
 
-    let total_size = TilemapSize {
+    let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH_X,
         y: MAP_SIDE_LENGTH_Y,
     };
 
-    let mut tile_storage = TileStorage::empty(total_size);
+    let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
     let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
         TileTextureIndex(0),
-        total_size,
+        map_size,
         tilemap_id,
         &mut commands,
         &mut tile_storage,
@@ -71,7 +71,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
-        size: total_size,
+        size: map_size,
         storage: tile_storage,
         texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
         tile_size,
