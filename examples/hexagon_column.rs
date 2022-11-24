@@ -86,21 +86,31 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<Input<KeyCode>>) {
+fn swap_mesh_type(
+    mut query: Query<(
+        &mut Transform,
+        &TilemapSize,
+        &TilemapGridSize,
+        &mut TilemapType,
+    )>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for mut tilemap_mesh_type in query.iter_mut() {
-            match *tilemap_mesh_type {
+        for (mut transform, map_size, grid_size, mut map_type) in query.iter_mut() {
+            match *map_type {
                 TilemapType::Hexagon(HexCoordSystem::Column) => {
-                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
                 }
                 TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
                 }
                 TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-                    *tilemap_mesh_type = TilemapType::Hexagon(HexCoordSystem::Column);
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
                 }
                 _ => {}
             }
+
+            *transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
         }
     }
 }
