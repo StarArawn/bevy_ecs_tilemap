@@ -31,15 +31,23 @@ pub struct TileHandleIso(Handle<Image>);
 #[derive(Deref, Resource)]
 pub struct FontHandle(Handle<Font>);
 
-// Spawns different tiles that are used for this example.
-fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tile_handle_hex_row: Handle<Image> = asset_server.load("bw-tile-hex-row.png");
-    let tile_handle_hex_col: Handle<Image> = asset_server.load("bw-tile-hex-col.png");
-    let font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    commands.insert_resource(TileHandleHexCol(tile_handle_hex_col));
-    commands.insert_resource(TileHandleHexRow(tile_handle_hex_row));
-    commands.insert_resource(FontHandle(font));
+impl FromWorld for TileHandleHexCol {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("bw-tile-hex-col.png"))
+    }
+}
+impl FromWorld for TileHandleHexRow {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("bw-tile-hex-row.png"))
+    }
+}
+impl FromWorld for FontHandle {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
+    }
 }
 
 // Generates the initial tilemap, which is a square grid.
@@ -242,8 +250,10 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugin(TilemapPlugin)
-        .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
-        .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
+        .init_resource::<TileHandleHexCol>()
+        .init_resource::<TileHandleHexRow>()
+        .init_resource::<FontHandle>()
+        .add_startup_system(spawn_tilemap)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
         .add_system(camera_movement)
         .add_system(swap_map_type)

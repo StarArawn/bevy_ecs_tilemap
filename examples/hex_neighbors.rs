@@ -24,28 +24,29 @@ pub struct TileHandleHexRow(Handle<Image>);
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexCol(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleSquare(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleIso(Handle<Image>);
-
 #[derive(Deref, Resource)]
 pub struct FontHandle(Handle<Font>);
 
-// Spawns different tiles that are used for this example.
-fn spawn_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tile_handle_hex_row: Handle<Image> = asset_server.load("bw-tile-hex-row.png");
-    let tile_handle_hex_col: Handle<Image> = asset_server.load("bw-tile-hex-col.png");
-    let font: Handle<Font> = asset_server.load("fonts/FiraSans-Bold.ttf");
-
-    commands.insert_resource(TileHandleHexCol(tile_handle_hex_col));
-    commands.insert_resource(TileHandleHexRow(tile_handle_hex_row));
-    commands.insert_resource(FontHandle(font));
+impl FromWorld for TileHandleHexCol {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("bw-tile-hex-col.png"))
+    }
+}
+impl FromWorld for TileHandleHexRow {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("bw-tile-hex-row.png"))
+    }
+}
+impl FromWorld for FontHandle {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
+    }
 }
 
-// Generates the initial tilemap, which is a square grid.
+// Generates the initial tilemap, which is a hex grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
     commands.spawn(Camera2dBundle::default());
 
@@ -274,8 +275,15 @@ pub fn cursor_pos_in_world(
     ndc_to_world.project_point3(ndc.extend(0.0))
 }
 
-#[derive(Default, Resource)]
+#[derive(Resource)]
 pub struct CursorPos(Vec3);
+impl Default for CursorPos {
+    fn default() -> Self {
+        // Initialize the cursor pos at some far away place. It will get updated
+        // correctly when the cursor moves.
+        Self(Vec3::new(-100.0, -100.0, 0.0))
+    }
+}
 
 // We need to keep the cursor position updated based on any `CursorMoved` events.
 pub fn update_cursor_pos(
@@ -457,24 +465,18 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        // Initialize the cursor pos at some far away place. It will get updated
-        // correctly when the cursor moves.
-        .insert_resource(CursorPos(Vec3::new(-100.0, -100.0, 0.0)))
         .add_plugin(TilemapPlugin)
-        .add_startup_system_to_stage(StartupStage::PreStartup, spawn_assets)
-        .add_startup_system_to_stage(StartupStage::Startup, spawn_tilemap)
+        .init_resource::<CursorPos>()
+        .init_resource::<TileHandleHexCol>()
+        .init_resource::<TileHandleHexRow>()
+        .init_resource::<FontHandle>()
+        .add_startup_system(spawn_tilemap)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
         .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
         .add_system_to_stage(CoreStage::First, camera_movement)
         .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
-        .add_system_to_stage(CoreStage::Update, swap_map_type)
-        .add_system_to_stage(
-            CoreStage::Update,
-            hover_highlight_tile_label.after(swap_map_type),
-        )
-        .add_system_to_stage(
-            CoreStage::Update,
-            highlight_neighbor_label.after(hover_highlight_tile_label),
-        )
+        .add_system(swap_map_type)
+        .add_system(hover_highlight_tile_label.after(swap_map_type))
+        .add_system(highlight_neighbor_label.after(hover_highlight_tile_label))
         .run();
 }
