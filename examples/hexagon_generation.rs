@@ -130,6 +130,8 @@ fn swap_map_type(
     mut commands: Commands,
     mut tilemap_query: Query<(
         Entity,
+        &mut Transform,
+        &TilemapSize,
         &mut TilemapType,
         &mut TilemapGridSize,
         &mut TilemapTexture,
@@ -149,6 +151,8 @@ fn swap_map_type(
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (
             map_id,
+            mut map_transform,
+            map_size,
             mut map_type,
             mut grid_size,
             mut map_texture,
@@ -182,6 +186,8 @@ fn swap_map_type(
                 *tile_size = TILE_SIZE_HEX_ROW;
                 *grid_size = GRID_SIZE_HEX_ROW;
             }
+
+            *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
 
             // Re-generate tiles in a hexagonal pattern.
             fill_tilemap_hexagon(
