@@ -225,8 +225,6 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     window: WindowDescriptor {
-                        width: 1270.0,
-                        height: 720.0,
                         title: String::from("Generating a hexagonal hex map"),
                         ..Default::default()
                     },

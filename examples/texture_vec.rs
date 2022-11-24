@@ -89,8 +89,6 @@ mod no_atlas {
                 DefaultPlugins
                     .set(WindowPlugin {
                         window: WindowDescriptor {
-                            width: 1270.0,
-                            height: 720.0,
                             title: String::from("Using TilemapTexture::Vector"),
                             ..Default::default()
                         },

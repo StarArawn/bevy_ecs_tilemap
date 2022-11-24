@@ -153,8 +153,6 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     window: WindowDescriptor {
-                        width: 1270.0,
-                        height: 720.0,
                         title: String::from("Accessing Tiles Example"),
                         ..Default::default()
                     },
