@@ -186,6 +186,7 @@ pub enum HexColDirection {
 }
 
 impl From<HexDirection> for HexRowDirection {
+    #[inline]
     fn from(direction: HexDirection) -> Self {
         use HexDirection::*;
         use HexRowDirection::*;
@@ -201,6 +202,7 @@ impl From<HexDirection> for HexRowDirection {
 }
 
 impl From<HexDirection> for HexColDirection {
+    #[inline]
     fn from(direction: HexDirection) -> Self {
         use HexColDirection::*;
         use HexDirection::*;
@@ -216,18 +218,21 @@ impl From<HexDirection> for HexColDirection {
 }
 
 impl From<HexRowDirection> for HexDirection {
+    #[inline]
     fn from(direction: HexRowDirection) -> Self {
         (direction as usize).into()
     }
 }
 
 impl From<HexColDirection> for HexDirection {
+    #[inline]
     fn from(direction: HexColDirection) -> Self {
         (direction as usize).into()
     }
 }
 
 impl HexRowDirection {
+    #[inline]
     pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_row(*self)
@@ -236,6 +241,7 @@ impl HexRowDirection {
 }
 
 impl HexColDirection {
+    #[inline]
     pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_col(*self)
@@ -246,18 +252,19 @@ impl HexColDirection {
 /// Stores some data `T` associated with each neighboring hex cell, if present.
 #[derive(Debug, Default)]
 pub struct HexNeighbors<T> {
-    zero: Option<T>,
-    one: Option<T>,
-    two: Option<T>,
-    three: Option<T>,
-    four: Option<T>,
-    five: Option<T>,
+    pub zero: Option<T>,
+    pub one: Option<T>,
+    pub two: Option<T>,
+    pub three: Option<T>,
+    pub four: Option<T>,
+    pub five: Option<T>,
 }
 
 impl<T> HexNeighbors<T> {
     /// Get an item that lies in a particular hex direction, specified by a [`HexDirection`].
     ///
     /// Will be `None` if no such items exists.
+    #[inline]
     pub fn get(&self, direction: HexDirection) -> Option<&T> {
         use HexDirection::*;
         match direction {
@@ -273,6 +280,7 @@ impl<T> HexNeighbors<T> {
     /// Get a mutable reference to an item that lies in a particular hex direction.
     ///
     /// Will be `None` if no such items exists.
+    #[inline]
     pub fn get_inner_mut(&mut self, direction: HexDirection) -> Option<&mut T> {
         use HexDirection::*;
         match direction {
@@ -288,6 +296,7 @@ impl<T> HexNeighbors<T> {
     /// Get a mutable reference to the optional item that lies in a particular hex direction.
     ///
     /// Will be `None` if no such items exists.
+    #[inline]
     pub fn get_mut(&mut self, direction: HexDirection) -> &mut Option<T> {
         use HexDirection::*;
         match direction {
@@ -303,6 +312,7 @@ impl<T> HexNeighbors<T> {
     /// Set item that lies in a particular hex direction.
     ///
     /// This does an [`Option::replace`](Option::replace) under the hood.
+    #[inline]
     pub fn set(&mut self, direction: HexDirection, data: T) {
         self.get_mut(direction).replace(data);
     }
@@ -310,6 +320,7 @@ impl<T> HexNeighbors<T> {
     /// Iterate over neighbors, in the order specified by [`HEX_DIRECTIONS`].
     ///
     /// If a neighbor is `None`, this iterator will skip it.
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &'_ T> + '_ {
         HEX_DIRECTIONS
             .into_iter()
@@ -318,6 +329,7 @@ impl<T> HexNeighbors<T> {
 
     /// Applies the supplied closure `f` with an [`and_then`](std::option::Option::and_then) to each
     /// neighbor element, where `f` takes `T` by value.
+    #[inline]
     pub fn and_then<U, F>(self, f: F) -> HexNeighbors<U>
     where
         F: Fn(T) -> Option<U>,
@@ -334,6 +346,7 @@ impl<T> HexNeighbors<T> {
 
     /// Applies the supplied closure `f` with an [`and_then`](std::option::Option::and_then) to each
     /// neighbor element, where `f` takes `T` by reference.
+    #[inline]
     pub fn and_then_ref<'a, U, F>(&'a self, f: F) -> HexNeighbors<U>
     where
         F: Fn(&'a T) -> Option<U>,
@@ -350,6 +363,7 @@ impl<T> HexNeighbors<T> {
 
     /// Applies the supplied closure `f` with a [`map`](std::option::Option::map) to each
     /// neighbor element, where `f` takes `T` by reference.
+    #[inline]
     pub fn map_ref<'a, U, F>(&'a self, f: F) -> HexNeighbors<U>
     where
         F: Fn(&'a T) -> U,
@@ -366,6 +380,7 @@ impl<T> HexNeighbors<T> {
 
     /// Generates `HexNeighbors<T>` from a closure that takes a hex direction and outputs
     /// `Option<T>`.
+    #[inline]
     pub fn from_directional_closure<F>(f: F) -> HexNeighbors<T>
     where
         F: Fn(HexDirection) -> Option<T>,
@@ -395,6 +410,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -433,6 +449,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions_standard(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -450,6 +467,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions_row_even(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -465,6 +483,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions_row_odd(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -480,6 +499,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions_col_even(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -495,6 +515,7 @@ impl HexNeighbors<TilePos> {
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
+    #[inline]
     pub fn get_neighboring_positions_col_odd(
         tile_pos: &TilePos,
         map_size: &TilemapSize,
@@ -507,6 +528,7 @@ impl HexNeighbors<TilePos> {
     }
 
     /// Returns the entities associated with each tile position.
+    #[inline]
     pub fn entities(&self, tile_storage: &TileStorage) -> HexNeighbors<Entity> {
         let f = |tile_pos| tile_storage.get(tile_pos);
         self.and_then_ref(f)

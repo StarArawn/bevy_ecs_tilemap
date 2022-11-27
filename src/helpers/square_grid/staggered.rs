@@ -90,12 +90,14 @@ impl Mul<StaggeredPos> for i32 {
 
 impl StaggeredPos {
     /// Returns the position of this tile's center, in world space.
+    #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         DiamondPos::from(self).center_in_world(grid_size)
     }
 
     /// Returns the offset to the corner of a tile in the specified `corner_direction`,
     /// in world space
+    #[inline]
     pub fn corner_offset_in_world(
         corner_direction: SquareDirection,
         grid_size: &TilemapGridSize,
@@ -105,6 +107,7 @@ impl StaggeredPos {
 
     /// Returns the coordinate of the corner of a tile in the specified `corner_direction`,
     /// in world space
+    #[inline]
     pub fn corner_in_world(
         &self,
         corner_direction: SquareDirection,
@@ -121,6 +124,7 @@ impl StaggeredPos {
     }
 
     /// Returns the tile containing the given world position.
+    #[inline]
     pub fn from_world_pos(world_pos: &Vec2, grid_size: &TilemapGridSize) -> StaggeredPos {
         DiamondPos::from_world_pos(world_pos, grid_size).into()
     }
@@ -129,12 +133,29 @@ impl StaggeredPos {
     ///
     /// Returns `None` if either one of `self.x` or `self.y` is negative, or lies outside of the
     /// bounds of `map_size`.
+    #[inline]
     pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.x, self.y, map_size)
     }
 
     /// Calculate offset in the given direction.
+    #[inline]
     pub fn offset(&self, direction: &SquareDirection) -> StaggeredPos {
         StaggeredPos::from(SquarePos::from(self) + SQUARE_OFFSETS[*direction as usize])
+    }
+}
+
+impl TilePos {
+    /// Get the neighbor lying in the specified direction from this position, if it  fits on the map
+    /// and assuming that this is a map that is using the isometric staggered coordinate system.
+    #[inline]
+    pub fn staggered_offset(
+        &self,
+        direction: &SquareDirection,
+        map_size: &TilemapSize,
+    ) -> Option<TilePos> {
+        StaggeredPos::from(self)
+            .offset(direction)
+            .as_tile_pos(map_size)
     }
 }

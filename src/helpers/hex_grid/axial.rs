@@ -95,6 +95,7 @@ impl Mul<AxialPos> for u32 {
     }
 }
 
+#[inline]
 fn ceiled_division_by_2(x: i32) -> i32 {
     if x < 0 {
         (x - 1) / 2
@@ -104,6 +105,7 @@ fn ceiled_division_by_2(x: i32) -> i32 {
 }
 
 impl From<AxialPos> for RowOddPos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         let delta = r / 2;
@@ -112,6 +114,7 @@ impl From<AxialPos> for RowOddPos {
 }
 
 impl From<RowOddPos> for AxialPos {
+    #[inline]
     fn from(offset_pos: RowOddPos) -> Self {
         let RowOddPos { q, r } = offset_pos;
         let delta = r / 2;
@@ -120,6 +123,7 @@ impl From<RowOddPos> for AxialPos {
 }
 
 impl From<AxialPos> for RowEvenPos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         // (n + 1) / 2 is a ceil'ed rather than floored division
@@ -129,6 +133,7 @@ impl From<AxialPos> for RowEvenPos {
 }
 
 impl From<RowEvenPos> for AxialPos {
+    #[inline]
     fn from(offset_pos: RowEvenPos) -> Self {
         let RowEvenPos { q, r } = offset_pos;
         let delta = ceiled_division_by_2(r);
@@ -137,6 +142,7 @@ impl From<RowEvenPos> for AxialPos {
 }
 
 impl From<AxialPos> for ColOddPos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         let delta = q / 2;
@@ -145,6 +151,7 @@ impl From<AxialPos> for ColOddPos {
 }
 
 impl From<ColOddPos> for AxialPos {
+    #[inline]
     fn from(offset_pos: ColOddPos) -> Self {
         let ColOddPos { q, r } = offset_pos;
         let delta = q / 2;
@@ -153,6 +160,7 @@ impl From<ColOddPos> for AxialPos {
 }
 
 impl From<AxialPos> for ColEvenPos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         let delta = ceiled_division_by_2(q);
@@ -161,6 +169,7 @@ impl From<AxialPos> for ColEvenPos {
 }
 
 impl From<ColEvenPos> for AxialPos {
+    #[inline]
     fn from(offset_pos: ColEvenPos) -> Self {
         let ColEvenPos { q, r } = offset_pos;
         let delta = ceiled_division_by_2(q);
@@ -206,12 +215,14 @@ impl AxialPos {
     /// The magnitude of a cube position is its distance away from the `(0, 0)` hex_grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
+    #[inline]
     pub fn magnitude(&self) -> i32 {
         let cube_pos = CubePos::from(*self);
         cube_pos.magnitude()
     }
 
     /// Returns the hex_grid distance between `self` and `other`.
+    #[inline]
     pub fn distance_from(&self, other: &AxialPos) -> i32 {
         (*self - *other).magnitude()
     }
@@ -221,6 +232,7 @@ impl AxialPos {
     ///
     /// This is a helper function for [`center_in_world_row`], [`corner_offset_in_world_row`] and
     /// [`corner_in_world_row`].
+    #[inline]
     pub fn project_row(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         let unscaled_pos = ROW_BASIS * axial_pos;
         Vec2::new(
@@ -232,12 +244,14 @@ impl AxialPos {
     /// Returns the center of a hex tile world space, assuming that:
     ///     1) tiles are row-oriented ("pointy top"),
     ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    #[inline]
     pub fn center_in_world_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
         Self::project_row(Vec2::new(self.q as f32, self.r as f32), grid_size)
     }
 
     /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
     /// in world space, assuming that tiles are row-oriented ("pointy top")
+    #[inline]
     pub fn corner_offset_in_world_row(
         corner_direction: HexRowDirection,
         grid_size: &TilemapGridSize,
@@ -251,6 +265,7 @@ impl AxialPos {
     /// in world space, assuming that:
     ///     1) tiles are row-oriented ("pointy top"),
     ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    #[inline]
     pub fn corner_in_world_row(
         &self,
         corner_direction: HexRowDirection,
@@ -269,6 +284,7 @@ impl AxialPos {
     ///
     /// This is a helper function for [`center_in_world_col`], [`corner_offset_in_world_col`] and
     /// [`corner_in_world_col`].
+    #[inline]
     pub fn project_col(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         let unscaled_pos = COL_BASIS * axial_pos;
         Vec2::new(
@@ -280,12 +296,14 @@ impl AxialPos {
     /// Returns the center of a hex tile world space, assuming that:
     ///     1) tiles are col-oriented ("flat top"),
     ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    #[inline]
     pub fn center_in_world_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
         Self::project_col(Vec2::new(self.q as f32, self.r as f32), grid_size)
     }
 
     /// Returns the offset to the corner of a hex tile in the specified `corner_direction`,
     /// in world space, assuming that tiles are col-oriented ("flat top")
+    #[inline]
     pub fn corner_offset_in_world_col(
         corner_direction: HexColDirection,
         grid_size: &TilemapGridSize,
@@ -299,6 +317,7 @@ impl AxialPos {
     /// in world space, assuming that:
     ///     1) tiles are col-oriented ("flat top"),
     ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    #[inline]
     pub fn corner_in_world_col(
         &self,
         corner_direction: HexColDirection,
@@ -315,6 +334,7 @@ impl AxialPos {
     /// Returns the axial position of the hex_grid containing the given world position, assuming that:
     ///     1) tiles are row-oriented ("pointy top") and that
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex_grid indexed `(0, 0)`.
+    #[inline]
     pub fn from_world_pos_row(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(
             world_pos.x / grid_size.x,
@@ -327,6 +347,7 @@ impl AxialPos {
     /// Returns the axial position of the hex_grid containing the given world position, assuming that:
     ///     1) tiles are column-oriented ("flat top") and that
     ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex_grid indexed `(0, 0)`.
+    #[inline]
     pub fn from_world_pos_col(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(
             world_pos.x / (COL_BASIS.x_axis.x * grid_size.x),
@@ -340,6 +361,7 @@ impl AxialPos {
     ///
     /// Returns `None` if either one of `q` or `r` is negative, or lies out of the bounds of
     /// `map_size`.
+    #[inline]
     pub fn as_tile_pos_given_map_size(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.q, self.r, map_size)
     }
@@ -347,6 +369,7 @@ impl AxialPos {
     /// Convert naively into a [`TilePos`].
     ///
     /// `q` becomes `x` and `r` becomes `y`.
+    #[inline]
     pub fn as_tile_pos_unchecked(&self) -> TilePos {
         TilePos {
             x: self.q as u32,
@@ -360,6 +383,7 @@ impl AxialPos {
     /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
     /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
     /// coordinate system before being returned as a `TilePos`.
+    #[inline]
     pub fn as_tile_pos_given_coord_system(&self, hex_coord_sys: HexCoordSystem) -> TilePos {
         match hex_coord_sys {
             HexCoordSystem::RowEven => RowEvenPos::from(*self).as_tile_pos_unchecked(),
@@ -377,6 +401,7 @@ impl AxialPos {
     /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
     /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
     /// coordinate system before being returned as a `TilePos`.
+    #[inline]
     pub fn as_tile_pos_given_coord_system_and_map_size(
         &self,
         hex_coord_sys: HexCoordSystem,
@@ -403,6 +428,7 @@ impl AxialPos {
     /// [`RowOdd`](HexCoordSystem::RowOdd), or [`ColumnEven`](HexCoordSystem::ColumnEven),
     /// [`ColumnOdd`](HexCoordSystem::ColumnOdd), `self` will be converted into the appropriate
     /// coordinate system before being returned as a `TilePos`.
+    #[inline]
     pub fn from_tile_pos_given_coord_system(
         tile_pos: &TilePos,
         hex_coord_sys: HexCoordSystem,
@@ -416,14 +442,17 @@ impl AxialPos {
         }
     }
 
+    #[inline]
     pub fn offset(&self, direction: HexDirection) -> AxialPos {
         *self + HEX_OFFSETS[direction as usize]
     }
 
+    #[inline]
     pub fn offset_compass_row(&self, direction: HexRowDirection) -> AxialPos {
         *self + HEX_OFFSETS[direction as usize]
     }
 
+    #[inline]
     pub fn offset_compass_col(&self, direction: HexColDirection) -> AxialPos {
         *self + HEX_OFFSETS[direction as usize]
     }
@@ -440,6 +469,7 @@ pub struct FractionalAxialPos {
 }
 
 impl FractionalAxialPos {
+    #[inline]
     fn round(&self) -> AxialPos {
         let frac_cube_pos = FractionalCubePos::from(*self);
         let cube_pos = frac_cube_pos.round();
@@ -448,12 +478,14 @@ impl FractionalAxialPos {
 }
 
 impl From<Vec2> for FractionalAxialPos {
+    #[inline]
     fn from(v: Vec2) -> Self {
         FractionalAxialPos { q: v.x, r: v.y }
     }
 }
 
 impl From<AxialPos> for FractionalAxialPos {
+    #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         FractionalAxialPos {
             q: axial_pos.q as f32,

@@ -58,6 +58,7 @@ impl Mul<SquarePos> for i32 {
 }
 
 impl From<&TilePos> for SquarePos {
+    #[inline]
     fn from(tile_pos: &TilePos) -> Self {
         Self {
             x: tile_pos.x as i32,
@@ -67,6 +68,7 @@ impl From<&TilePos> for SquarePos {
 }
 
 impl From<&DiamondPos> for SquarePos {
+    #[inline]
     fn from(diamond_pos: &DiamondPos) -> Self {
         let DiamondPos { x, y } = *diamond_pos;
         SquarePos { x, y }
@@ -74,6 +76,7 @@ impl From<&DiamondPos> for SquarePos {
 }
 
 impl From<DiamondPos> for SquarePos {
+    #[inline]
     fn from(diamond_pos: DiamondPos) -> Self {
         let DiamondPos { x, y } = diamond_pos;
         SquarePos { x, y }
@@ -81,6 +84,7 @@ impl From<DiamondPos> for SquarePos {
 }
 
 impl From<&StaggeredPos> for SquarePos {
+    #[inline]
     fn from(staggered_pos: &StaggeredPos) -> Self {
         let StaggeredPos { x, y } = *staggered_pos;
         SquarePos { x, y: y + x }
@@ -88,6 +92,7 @@ impl From<&StaggeredPos> for SquarePos {
 }
 
 impl From<StaggeredPos> for SquarePos {
+    #[inline]
     fn from(staggered_pos: StaggeredPos) -> Self {
         let StaggeredPos { x, y } = staggered_pos;
         SquarePos { x, y: y + x }
@@ -100,17 +105,20 @@ impl SquarePos {
     ///
     /// This is a helper function for [`center_in_world`], [`corner_offset_in_world`] and
     /// [`corner_in_world`].
+    #[inline]
     pub fn project(pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         Vec2::new(grid_size.x * pos.x, grid_size.y * pos.y)
     }
 
     /// Returns the position of this tile's center, in world space.
+    #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
         Self::project(Vec2::new(self.x as f32, self.y as f32), grid_size)
     }
 
     /// Returns the offset to the corner of a tile in the specified `corner_direction`,
     /// in world space
+    #[inline]
     pub fn corner_offset_in_world(
         corner_direction: SquareDirection,
         grid_size: &TilemapGridSize,
@@ -122,6 +130,7 @@ impl SquarePos {
 
     /// Returns the coordinate of the corner of a tile in the specified `corner_direction`,
     /// in world space
+    #[inline]
     pub fn corner_in_world(
         &self,
         corner_direction: SquareDirection,
@@ -136,6 +145,7 @@ impl SquarePos {
     }
 
     /// Returns the tile containing the given world position.
+    #[inline]
     pub fn from_world_pos(world_pos: &Vec2, grid_size: &TilemapGridSize) -> SquarePos {
         let normalized_world_pos = Vec2::new(world_pos.x / grid_size.x, world_pos.y / grid_size.y);
         let Vec2 { x, y } = normalized_world_pos;
@@ -149,12 +159,29 @@ impl SquarePos {
     ///
     /// Returns `None` if either one of `self.x` or `self.y` is negative, or lies outside of the
     /// bounds of `map_size`.
+    #[inline]
     pub fn as_tile_pos(&self, map_size: &TilemapSize) -> Option<TilePos> {
         TilePos::from_i32_pair(self.x, self.y, map_size)
     }
 
     /// Calculate offset in the given direction.
+    #[inline]
     pub fn offset(&self, direction: &SquareDirection) -> SquarePos {
         *self + SQUARE_OFFSETS[*direction as usize]
+    }
+}
+
+impl TilePos {
+    /// Get the neighbor lying in the specified direction from this position, if it  fits on the map
+    /// and assuming that this is a map using the standard (non-isometric) square coordinate system
+    #[inline]
+    pub fn square_offset(
+        &self,
+        direction: &SquareDirection,
+        map_size: &TilemapSize,
+    ) -> Option<TilePos> {
+        SquarePos::from(self)
+            .offset(direction)
+            .as_tile_pos(map_size)
     }
 }
