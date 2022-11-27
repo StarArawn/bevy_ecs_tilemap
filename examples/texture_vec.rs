@@ -12,8 +12,8 @@ mod no_atlas {
     const MAP_RADIUS: u32 = 10;
     const MAP_DIAMETER: u32 = 2 * MAP_RADIUS + 1;
     const MAP_CENTER: TilePos = TilePos {
-        x: MAP_RADIUS + 1,
-        y: MAP_RADIUS + 1,
+        x: MAP_RADIUS,
+        y: MAP_RADIUS,
     };
     const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 48.0, y: 54.0 };
     const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
