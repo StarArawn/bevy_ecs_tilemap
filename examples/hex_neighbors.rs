@@ -84,12 +84,12 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
 }
 
 #[derive(Component)]
-struct TileLabel;
+struct TileLabel(Entity);
 
 // Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&TilemapType, &TilemapGridSize, &TileStorage)>,
+    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
     font_handle: Res<FontHandle>,
 ) {
@@ -99,13 +99,14 @@ fn spawn_tile_labels(
         color: Color::BLACK,
     };
     let text_alignment = TextAlignment::CENTER;
-    for (map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
-            let transform = Transform::from_translation(tile_center);
-            commands.entity(*tile_entity).insert((
-                Text2dBundle {
+            let transform = *map_transform * Transform::from_translation(tile_center);
+
+            let label_entity = commands
+                .spawn(Text2dBundle {
                     text: Text::from_section(
                         format!("{}, {}", tile_pos.x, tile_pos.y),
                         text_style.clone(),
@@ -113,9 +114,11 @@ fn spawn_tile_labels(
                     .with_alignment(text_alignment),
                     transform,
                     ..default()
-                },
-                TileLabel,
-            ));
+                })
+                .id();
+            commands
+                .entity(*tile_entity)
+                .insert(TileLabel(label_entity));
         }
     }
 }
@@ -170,11 +173,12 @@ fn swap_map_type(
         &mut TilemapTileSize,
     )>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut tile_label_q: Query<
-        (&TilePos, &mut Transform),
+    tile_label_q: Query<
+        (&TileLabel, &TilePos),
         (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),
     >,
     mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
+    mut transform_q: Query<&mut Transform, Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
 ) {
@@ -218,9 +222,12 @@ fn swap_map_type(
 
             *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
 
-            for (tile_pos, mut tile_label_transform) in tile_label_q.iter_mut() {
-                let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
-                *tile_label_transform = Transform::from_translation(tile_center);
+            for (label, tile_pos) in tile_label_q.iter() {
+                if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
+                    let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
+                    *tile_label_transform =
+                        *map_transform * Transform::from_translation(tile_center);
+                }
             }
 
             for mut label_text in map_type_label_q.iter_mut() {
@@ -296,15 +303,18 @@ fn hover_highlight_tile_label(
         &Transform,
     )>,
     highlighted_tiles_q: Query<Entity, With<Hovered>>,
-    mut tile_label_q: Query<&mut Text, (With<TileLabel>, Without<MapTypeLabel>)>,
+    tile_label_q: Query<&TileLabel>,
+    mut text_q: Query<&mut Text>,
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(mut tile_text) = tile_label_q.get_mut(highlighted_tile_entity) {
-            for mut section in tile_text.sections.iter_mut() {
-                section.style.color = Color::BLACK;
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
+            if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                for mut section in tile_text.sections.iter_mut() {
+                    section.style.color = Color::BLACK;
+                }
+                commands.entity(highlighted_tile_entity).remove::<Hovered>();
             }
-            commands.entity(highlighted_tile_entity).remove::<Hovered>();
         }
     }
 
@@ -325,11 +335,13 @@ fn hover_highlight_tile_label(
         {
             // Highlight the relevant tile's label
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
-                if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
-                    for mut section in tile_text.sections.iter_mut() {
-                        section.style.color = Color::RED;
+                if let Ok(label) = tile_label_q.get(tile_entity) {
+                    if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                        for mut section in tile_text.sections.iter_mut() {
+                            section.style.color = Color::RED;
+                        }
+                        commands.entity(tile_entity).insert(Hovered);
                     }
-                    commands.entity(tile_entity).insert(Hovered);
                 }
             }
         }
@@ -347,17 +359,20 @@ fn highlight_neighbor_label(
     keyboard_input: Res<Input<KeyCode>>,
     highlighted_tiles_q: Query<Entity, With<NeighborHighlight>>,
     hovered_tiles_q: Query<&TilePos, With<Hovered>>,
-    mut tile_label_q: Query<&mut Text, (With<TileLabel>, Without<MapTypeLabel>)>,
+    tile_label_q: Query<&TileLabel>,
+    mut text_q: Query<&mut Text>,
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(mut tile_text) = tile_label_q.get_mut(highlighted_tile_entity) {
-            for mut section in tile_text.sections.iter_mut() {
-                section.style.color = Color::BLACK;
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
+            if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                for mut section in tile_text.sections.iter_mut() {
+                    section.style.color = Color::BLACK;
+                }
+                commands
+                    .entity(highlighted_tile_entity)
+                    .remove::<NeighborHighlight>();
             }
-            commands
-                .entity(highlighted_tile_entity)
-                .remove::<NeighborHighlight>();
         }
     }
 
@@ -376,11 +391,13 @@ fn highlight_neighbor_label(
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
                 if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos) {
-                    if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
-                        for mut section in tile_text.sections.iter_mut() {
-                            section.style.color = Color::BLUE;
+                    if let Ok(label) = tile_label_q.get(tile_entity) {
+                        if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                            for mut section in tile_text.sections.iter_mut() {
+                                section.style.color = Color::BLUE;
+                            }
+                            commands.entity(tile_entity).insert(NeighborHighlight);
                         }
-                        commands.entity(tile_entity).insert(NeighborHighlight);
                     }
                 }
             }
@@ -415,11 +432,13 @@ fn highlight_neighbor_label(
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
                 if let Some(tile_entity) = tile_storage.checked_get(&tile_pos) {
-                    if let Ok(mut tile_text) = tile_label_q.get_mut(tile_entity) {
-                        for mut section in tile_text.sections.iter_mut() {
-                            section.style.color = Color::GREEN;
+                    if let Ok(label) = tile_label_q.get(tile_entity) {
+                        if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                            for mut section in tile_text.sections.iter_mut() {
+                                section.style.color = Color::GREEN;
+                            }
+                            commands.entity(tile_entity).insert(NeighborHighlight);
                         }
-                        commands.entity(tile_entity).insert(NeighborHighlight);
                     }
                 }
             }
