@@ -174,14 +174,9 @@ fn swap_map_type(
         (&TilePos, &mut Transform),
         (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),
     >,
-    mut map_type_label_q: Query<
-        (&mut Text, &mut Transform),
-        (With<MapTypeLabel>, Without<TileLabel>, Without<TilemapType>),
-    >,
+    mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
-    font_handle: Res<FontHandle>,
-    windows: Res<Windows>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (
@@ -228,26 +223,8 @@ fn swap_map_type(
                 *tile_label_transform = Transform::from_translation(tile_center);
             }
 
-            for window in windows.iter() {
-                for (mut label_text, mut label_transform) in map_type_label_q.iter_mut() {
-                    *label_transform = Transform {
-                        translation: Vec2::new(
-                            -0.5 * window.width() / 2.0,
-                            0.8 * window.height() / 2.0,
-                        )
-                        .extend(1.0),
-                        ..Default::default()
-                    };
-                    *label_text = Text::from_section(
-                        format!("{:?}", map_type.as_ref()),
-                        TextStyle {
-                            font: font_handle.clone(),
-                            font_size: 20.0,
-                            color: Color::BLACK,
-                        },
-                    )
-                    .with_alignment(TextAlignment::CENTER);
-                }
+            for mut label_text in map_type_label_q.iter_mut() {
+                label_text.sections[0].value = format!("{:?}", map_type.as_ref());
             }
         }
     }

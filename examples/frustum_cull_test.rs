@@ -160,16 +160,11 @@ fn swap_map_type(
         &mut TilemapTileSize,
     )>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut map_type_label_q: Query<
-        (&mut Text, &mut Transform),
-        (With<MapTypeLabel>, Without<TilemapType>),
-    >,
+    mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
     tile_handle_square: Res<TileHandleSquare>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
     tile_handle_iso: Res<TileHandleIso>,
-    font_handle: Res<FontHandle>,
-    windows: Res<Windows>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (mut map_type, mut grid_size, mut map_texture, mut tile_size) in
@@ -220,26 +215,8 @@ fn swap_map_type(
                 }
             }
 
-            for window in windows.iter() {
-                for (mut label_text, mut label_transform) in map_type_label_q.iter_mut() {
-                    *label_transform = Transform {
-                        translation: Vec2::new(
-                            -0.5 * window.width() / 2.0,
-                            0.8 * window.height() / 2.0,
-                        )
-                        .extend(1.0),
-                        ..Default::default()
-                    };
-                    *label_text = Text::from_section(
-                        format!("{:?}", map_type.as_ref()),
-                        TextStyle {
-                            font: font_handle.clone(),
-                            font_size: 20.0,
-                            color: Color::BLACK,
-                        },
-                    )
-                    .with_alignment(TextAlignment::CENTER);
-                }
+            for mut label_text in map_type_label_q.iter_mut() {
+                label_text.sections[0].value = format!("{:?}", map_type.as_ref());
             }
         }
     }
