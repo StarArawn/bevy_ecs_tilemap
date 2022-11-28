@@ -302,7 +302,7 @@ impl Default for CursorPos {
     fn default() -> Self {
         // Initialize the cursor pos at some far away place. It will get updated
         // correctly when the cursor moves.
-        Self(Vec3::new(-100.0, -100.0, 0.0))
+        Self(Vec3::new(-1000.0, -1000.0, 0.0))
     }
 }
 
@@ -395,8 +395,6 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        // Initialize the cursor pos at some far away place. It will get updated
-        // correctly when the cursor moves.
         .init_resource::<CursorPos>()
         .init_resource::<TileHandleIso>()
         .init_resource::<TileHandleHexCol>()
