@@ -57,12 +57,11 @@ fn vertex(vertex_input: VertexInput) -> VertexOutput {
 
     var texture_index: u32 = u32(current_animation_frame);
 
+    #ifdef ATLAS
     var columns: u32 = u32((tilemap_data.texture_size.x - tilemap_data.spacing.x) / (tilemap_data.tile_size.x + tilemap_data.spacing.x));
-
     var sprite_sheet_x: f32 = tilemap_data.spacing.x + floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
     var sprite_sheet_y: f32 = tilemap_data.spacing.y + floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
 
-    #ifdef ATLAS
     var start_u: f32 = sprite_sheet_x / tilemap_data.texture_size.x;
     var end_u: f32 = (sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
     var start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
