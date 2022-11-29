@@ -33,19 +33,19 @@ pub struct FontHandle(Handle<Font>);
 
 impl FromWorld for TileHandleHexCol {
     fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("bw-tile-hex-col.png"))
     }
 }
 impl FromWorld for TileHandleHexRow {
     fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("bw-tile-hex-row.png"))
     }
 }
 impl FromWorld for FontHandle {
     fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
     }
 }
