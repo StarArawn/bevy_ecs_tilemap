@@ -62,9 +62,6 @@ features = [
     "bevy_sprite",
 ]
 
-[target.wasm32-unknown-unknown]
-runner = "wasm-server-runner"
-
 [[example]]
 name = "ldtk"
 path = "examples/ldtk/ldtk_usage.rs"

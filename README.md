@@ -72,9 +72,12 @@ cargo run --release --example basic
 ```
 
 ### Running examples on web!
+
+This can be made simple with [wasm-server-runner](https://github.com/jakobhellermann/wasm-server-runner).
+
+After that's installed and configured, run:
 ```
-cargo build --target wasm32-unknown-unknown --example animation --release --features atlas
-wasm-server-runner .\target\wasm32-unknown-unknown\release\examples\animation.wasm
+cargo run --target wasm32-unknown-unknown --example animation --release --features atlas
 ```
 
 ## Known Issues
