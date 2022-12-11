@@ -24,7 +24,7 @@ impl TileStorage {
     /// Gets a tile entity for the given tile position, if an entity is associated with that tile
     /// position.
     ///
-    /// Panics if the given `tile_pos` does lie within the extents of the underlying tile map.
+    /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn get(&self, tile_pos: &TilePos) -> Option<Entity> {
         self.tiles[tile_pos.to_index(&self.size)]
     }
@@ -45,7 +45,7 @@ impl TileStorage {
     ///
     /// If there is an entity already at that position, it will be replaced.
     ///
-    /// Panics if the given `tile_pos` does lie within the extents of the underlying tile map.
+    /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn set(&mut self, tile_pos: &TilePos, tile_entity: Entity) {
         self.tiles[tile_pos.to_index(&self.size)].replace(tile_entity);
     }
@@ -72,7 +72,7 @@ impl TileStorage {
 
     /// Remove entity at the given tile position, if there was one, leaving `None` in its place.
     ///
-    /// Panics if the given `tile_pos` does lie within the extents of the underlying tile map.
+    /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn remove(&mut self, tile_pos: &TilePos) {
         self.tiles[tile_pos.to_index(&self.size)].take();
     }
