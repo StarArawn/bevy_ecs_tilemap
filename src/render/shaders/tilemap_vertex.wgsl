@@ -58,6 +58,8 @@ fn vertex(vertex_input: VertexInput) -> VertexOutput {
     var texture_index: u32 = u32(current_animation_frame);
 
     #ifdef ATLAS
+    // Get the top-left corner of the current frame in the texture, accounting for padding around the whole texture
+    // as well as spacing between the tiles.
     var columns: u32 = u32((tilemap_data.texture_size.x - tilemap_data.spacing.x) / (tilemap_data.tile_size.x + tilemap_data.spacing.x));
     var sprite_sheet_x: f32 = tilemap_data.spacing.x + floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
     var sprite_sheet_y: f32 = tilemap_data.spacing.y + floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
