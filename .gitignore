@@ -15,3 +15,6 @@
 .idea
 
 Cargo.lock
+
+# Ignore Chrome traces, usually produced by bevy/trace_chrome
+trace-*.json
