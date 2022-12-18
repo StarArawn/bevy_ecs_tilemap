@@ -9,7 +9,7 @@ mod no_atlas {
     use rand::prelude::SliceRandom;
     use rand::thread_rng;
 
-    const MAP_RADIUS: u32 = 10;
+    const MAP_RADIUS: u32 = 60;
     const MAP_DIAMETER: u32 = 2 * MAP_RADIUS + 1;
     const MAP_CENTER: TilePos = TilePos {
         x: MAP_RADIUS,

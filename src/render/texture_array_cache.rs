@@ -45,7 +45,7 @@ impl TextureArrayCache {
     pub(crate) fn add_extracted_texture(&mut self, extracted_texture: &ExtractedTilemapTexture) {
         if !self.meta_data.contains_key(&extracted_texture.texture) {
             self.meta_data.insert(
-                extracted_texture.texture.clone_weak(),
+                extracted_texture.texture.clone(),
                 (
                     extracted_texture.tile_count,
                     extracted_texture.tile_size,
@@ -113,7 +113,7 @@ impl TextureArrayCache {
 
         if !self.meta_data.contains_key(&texture) {
             self.meta_data.insert(
-                texture.clone_weak(),
+                texture.clone(),
                 (
                     tile_count,
                     tile_size,
