@@ -58,7 +58,7 @@ fn update_damage(
  - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
  - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
  - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
- - [`ldtk`](examples/ldtk/ldtk.rs) - An example of loading and rendering of a LDTK map. Use: `cargo run --example ldtk`. We recommend checking out: [`bevy_ecs_ldtk`](https://crates.io/crates/bevy_ecs_ldtk).
+ - [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a LDTK map. Use: `cargo run --example ldtk`. We recommend checking out: [`bevy_ecs_ldtk`](https://crates.io/crates/bevy_ecs_ldtk).
  - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
  - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
  - [`tiled_rotated`](examples/tiled_rotated.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation. Use: `cargo run --example tiled_rotated`

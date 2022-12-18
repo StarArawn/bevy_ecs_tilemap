@@ -25,7 +25,7 @@ impl Plugin for LdtkPlugin {
 }
 
 #[derive(TypeUuid)]
-#[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
+#[uuid = "abf9eaf2-f21c-4b46-89b0-8aa5c42199af"]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,
     pub tilesets: HashMap<i64, Handle<Image>>,
