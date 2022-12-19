@@ -45,34 +45,34 @@ struct VertexOutput {
 @vertex
 fn vertex(vertex_input: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    var animation_speed = vertex_input.position.z;
+    let animation_speed = vertex_input.position.z;
 
-    var mesh_data: MeshOutput = get_mesh(vertex_input.v_index, vec3(vertex_input.position.xy, 0.0));
+    let mesh_data: MeshOutput = get_mesh(vertex_input.v_index, vec3(vertex_input.position.xy, 0.0));
 
-    var frames: f32 = f32(vertex_input.uv.w - vertex_input.uv.z);
+    let frames: f32 = f32(vertex_input.uv.w - vertex_input.uv.z);
 
     var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
 
     current_animation_frame = clamp(f32(vertex_input.uv.z) + current_animation_frame, f32(vertex_input.uv.z), f32(vertex_input.uv.w));
 
-    var texture_index: u32 = u32(current_animation_frame);
+    let texture_index: u32 = u32(current_animation_frame);
 
     #ifdef ATLAS
     // Get the top-left corner of the current frame in the texture, accounting for padding around the whole texture
     // as well as spacing between the tiles.
-    var columns: u32 = u32(round((tilemap_data.texture_size.x - tilemap_data.spacing.x) / (tilemap_data.tile_size.x + tilemap_data.spacing.x)));
-    var sprite_sheet_x: f32 = tilemap_data.spacing.x + floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
-    var sprite_sheet_y: f32 = tilemap_data.spacing.y + floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
+    let columns: u32 = u32(round((tilemap_data.texture_size.x - tilemap_data.spacing.x) / (tilemap_data.tile_size.x + tilemap_data.spacing.x)));
+    let sprite_sheet_x: f32 = tilemap_data.spacing.x + floor(f32(texture_index % columns)) * (tilemap_data.tile_size.x + tilemap_data.spacing.x);
+    let sprite_sheet_y: f32 = tilemap_data.spacing.y + floor(f32(texture_index / columns)) * (tilemap_data.tile_size.y + tilemap_data.spacing.y);
 
-    var start_u: f32 = sprite_sheet_x / tilemap_data.texture_size.x;
-    var end_u: f32 = (sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
-    var start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
-    var end_v: f32 = (sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
+    let start_u: f32 = sprite_sheet_x / tilemap_data.texture_size.x;
+    let end_u: f32 = (sprite_sheet_x + tilemap_data.tile_size.x) / tilemap_data.texture_size.x;
+    let start_v: f32 = sprite_sheet_y / tilemap_data.texture_size.y;
+    let end_v: f32 = (sprite_sheet_y + tilemap_data.tile_size.y) / tilemap_data.texture_size.y;
     #else
-    var start_u: f32 = 0.0;
-    var end_u: f32 = 1.0;
-    var start_v: f32 = 0.0;
-    var end_v: f32 = 1.0;
+    let start_u: f32 = 0.0;
+    let end_u: f32 = 1.0;
+    let start_v: f32 = 0.0;
+    let end_v: f32 = 1.0;
     #endif
 
     var atlas_uvs: array<vec4<f32>, 4>;
