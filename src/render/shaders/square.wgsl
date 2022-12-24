@@ -5,9 +5,9 @@
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
     var out: MeshOutput;
 
-    var center = vertex_position.xy * tilemap_data.grid_size;
-    var bot_left = center - 0.5 * tilemap_data.tile_size;
-    var top_right = bot_left + tilemap_data.tile_size;
+    let center = vertex_position.xy * tilemap_data.grid_size;
+    let bot_left = center - 0.5 * tilemap_data.tile_size;
+    let top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,

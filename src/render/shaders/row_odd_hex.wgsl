@@ -21,10 +21,10 @@ fn row_odd_to_axial(offset_pos: vec2<f32>) -> vec2<f32> {
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
     var out: MeshOutput;
 
-    var axial_pos = row_odd_to_axial(vertex_position.xy);
-    var center = hex_row_tile_pos_to_world_pos(axial_pos, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var bot_left = center - 0.5 * tilemap_data.tile_size;
-    var top_right = bot_left + tilemap_data.tile_size;
+    let axial_pos = row_odd_to_axial(vertex_position.xy);
+    let center = hex_row_tile_pos_to_world_pos(axial_pos, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    let bot_left = center - 0.5 * tilemap_data.tile_size;
+    let top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,
