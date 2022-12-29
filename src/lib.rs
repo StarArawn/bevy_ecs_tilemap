@@ -30,7 +30,7 @@ use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
-use prelude::{TilemapId, TilemapRenderSettings};
+use prelude::{TilemapId, TilemapRenderSettings, TilemapPhysicalTileSize};
 #[cfg(feature = "render")]
 use render::material::{MaterialTilemap, StandardTilemapMaterial};
 use tiles::{
@@ -120,6 +120,7 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub storage: TileStorage,
     pub texture: TilemapTexture,
     pub tile_size: TilemapTileSize,
+    pub physical_tile_size: TilemapPhysicalTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub render_settings: TilemapRenderSettings,

@@ -276,9 +276,60 @@ impl From<&TilemapTileSize> for Vec2 {
 }
 
 impl From<Vec2> for TilemapTileSize {
-    fn from(v: Vec2) -> Self {
-        let Vec2 { x, y } = v;
+    fn from(Vec2 { x, y }: Vec2) -> Self {
         TilemapTileSize { x, y }
+    }
+}
+
+/// Physical size of the tiles in units when rendered in-world
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
+pub struct TilemapPhysicalTileSize {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl From<TilemapPhysicalTileSize> for TilemapGridSize {
+    fn from(tile_size: TilemapPhysicalTileSize) -> Self {
+        TilemapGridSize {
+            x: tile_size.x,
+            y: tile_size.y,
+        }
+    }
+}
+
+impl From<TilemapPhysicalTileSize> for Vec2 {
+    fn from(tile_size: TilemapPhysicalTileSize) -> Self {
+        Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<&TilemapPhysicalTileSize> for Vec2 {
+    fn from(tile_size: &TilemapPhysicalTileSize) -> Self {
+        Vec2::new(tile_size.x, tile_size.y)
+    }
+}
+
+impl From<Vec2> for TilemapPhysicalTileSize {
+    fn from(Vec2 { x, y }: Vec2) -> Self {
+        Self { x, y }
+    }
+}
+
+impl From<TilemapTileSize> for TilemapPhysicalTileSize {
+    fn from(tile_size: TilemapTileSize) -> Self {
+        Self {
+            x: tile_size.x,
+            y: tile_size.y,
+        }
+    }
+}
+
+impl From<&TilemapTileSize> for TilemapPhysicalTileSize {
+    fn from(tile_size: &TilemapTileSize) -> Self {
+        Self {
+            x: tile_size.x,
+            y: tile_size.y,
+        }
     }
 }
 
