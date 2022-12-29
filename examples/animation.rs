@@ -58,6 +58,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         grid_size,
         map_type,
         tile_size,
+        physical_tile_size: tile_size.into(),
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),

@@ -44,6 +44,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size: TILE_SIZE,
+        physical_tile_size: TILE_SIZE.into(),
         transform,
         render_settings: TilemapRenderSettings {
             render_chunk_size: RENDER_CHUNK_SIZE,

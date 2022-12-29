@@ -80,6 +80,7 @@ mod no_atlas {
             grid_size,
             map_type,
             tile_size,
+            physical_tile_size: tile_size.into(),
             size: map_size,
             storage: tile_storage,
             texture: texture_vec,
