@@ -15,21 +15,25 @@ pub fn fill_tilemap(
     commands: &mut Commands,
     tile_storage: &mut TileStorage,
 ) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture_index,
-                    ..Default::default()
-                })
-                .id();
-            commands.entity(tilemap_id.0).add_child(tile_entity);
-            tile_storage.set(&tile_pos, tile_entity);
+    let mut tilemap = commands.entity(tilemap_id.0);
+    tilemap.add_children(|parent| {
+        for x in 0..size.x {
+            for y in 0..size.y {
+                let tile_pos = TilePos { x, y };
+                let tile_entity = {
+                    parent
+                        .spawn(TileBundle {
+                            position: tile_pos,
+                            tilemap_id,
+                            texture_index,
+                            ..Default::default()
+                        })
+                        .id()
+                };
+                tile_storage.set(&tile_pos, tile_entity);
+            }
         }
-    }
+    });
 }
 
 /// Fills a rectangular region with the given tile.
