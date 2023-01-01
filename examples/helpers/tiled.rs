@@ -1,7 +1,16 @@
+// Limitations:
+//   Some Tiled tilesets use a single image (a.k.a spritesheet) and then find the image based on
+//   caclculated pixel offsets within that image. Other tilesets use a separate image per tile in
+//   the tileset. This loader is compatible with either style but will not work with maps that mix
+//   the two styles.
+//   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
+
 use std::io::BufReader;
+use std::path::{Path, PathBuf};
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
+    log,
     prelude::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
         Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
@@ -10,6 +19,8 @@ use bevy::{
     utils::HashMap,
 };
 use bevy_ecs_tilemap::prelude::*;
+
+use anyhow::{Context, Result};
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -22,11 +33,16 @@ impl Plugin for TiledMapPlugin {
     }
 }
 
-#[derive(TypeUuid)]
+#[derive(Debug, TypeUuid)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,
-    pub tilesets: HashMap<u32, Handle<Image>>,
+
+    // For maps that use a single image per tileset the offset into this vector will be the tileset
+    // index in the map (0-based). For maps that use a separate image for each tile in the tileset
+    // the offset into this vector must be found via lookup in the tile_texture_indexes map below.
+    pub tilesets: Vec<Handle<Image>>,
+    pub tile_texture_indexes: HashMap<(usize, tiled::TileId), TileTextureIndex>,
 }
 
 // Stores a list of tiled layers.
@@ -50,30 +66,60 @@ impl AssetLoader for TiledLoader {
         &'a self,
         bytes: &'a [u8],
         load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::asset::BoxedFuture<'a, anyhow::Result<(), anyhow::Error>> {
+    ) -> bevy::asset::BoxedFuture<'a, Result<()>> {
         Box::pin(async move {
-            let root_dir = load_context.path().parent().unwrap();
-            let map = tiled::parse(BufReader::new(bytes))?;
+            // The load context path is the TMX file itself. If the file is at the root of the
+            // assets/ directory structure then the tmx_dir will be empty, which is fine.
+            let tmx_dir = load_context
+                .path()
+                .parent()
+                .expect("The asset load context was empty.");
+
+            let mut loader = tiled::Loader::new();
+            let map = loader
+                .load_tmx_map_from(BufReader::new(bytes), load_context.path())
+                .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
 
             let mut dependencies = Vec::new();
-            let mut handles = HashMap::default();
+            let mut handles = Vec::new();
+            let mut tile_texture_indexes = HashMap::default();
 
-            for tileset in &map.tilesets {
-                let tile_path = root_dir.join(tileset.images.first().unwrap().source.as_str());
-                let asset_path = AssetPath::new(tile_path, None);
-                let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
-
-                for i in tileset.first_gid..(tileset.first_gid + tileset.tilecount.unwrap_or(1)) {
-                    handles.insert(i, texture.clone());
+            for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+                match &tileset.image {
+                    None => {
+                        for (tile_id, tile) in tileset.tiles() {
+                            if let Some(img) = &tile.image {
+                                let tile_path = tmx_dir.join(&img.source);
+                                let asset_path = AssetPath::new(tile_path, None);
+                                log::debug!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                let texture: Handle<Image> =
+                                    load_context.get_handle(asset_path.clone());
+                                handles.push(texture.clone());
+                                tile_texture_indexes.insert(
+                                    (tileset_index, tile_id),
+                                    TileTextureIndex(handles.len() as u32 - 1),
+                                );
+                                dependencies.push(asset_path);
+                            }
+                        }
+                    }
+                    Some(img) => {
+                        let tile_path = tmx_dir.join(&img.source);
+                        let asset_path = AssetPath::new(tile_path, None);
+                        let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
+                        handles.push(texture.clone());
+                        dependencies.push(asset_path);
+                    }
                 }
-
-                dependencies.push(asset_path);
             }
 
-            let loaded_asset = LoadedAsset::new(TiledMap {
+            let asset_map = TiledMap {
                 map,
                 tilesets: handles,
-            });
+                tile_texture_indexes: tile_texture_indexes,
+            };
+            log::info!("Loaded map: {}", load_context.path().display());
+            let loaded_asset = LoadedAsset::new(asset_map);
             load_context.set_default_asset(loaded_asset.with_dependencies(dependencies));
             Ok(())
         })
@@ -135,115 +181,159 @@ pub fn process_loaded_maps(
                     // commands.entity(*layer_entity).despawn_recursive();
                 }
 
-                for tileset in tiled_map.map.tilesets.iter() {
-                    // Once materials have been created/added we need to then create the layers.
-                    for layer in tiled_map.map.layers.iter() {
-                        let tile_size = TilemapTileSize {
-                            x: tileset.tile_width as f32,
-                            y: tileset.tile_height as f32,
-                        };
-                        let tile_spacing = TilemapSpacing {
-                            x: tileset.spacing as f32,
-                            y: tileset.spacing as f32,
-                        };
+                // The TilemapBundle requires that all tile images come exclusively from a single
+                // tiled texture or from a Vec of independent per-tile images. Furthermore, all of
+                // the per-tile images must be the same size. Since Tiled allows tiles of mixed
+                // tilesets on each layer and allows differently-sized tile images in each tileset,
+                // this means we need to load each combination of tileset and layer separately.
+                for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
+                    let tile_size = TilemapTileSize {
+                        x: tileset.tile_width as f32,
+                        y: tileset.tile_height as f32,
+                    };
 
+                    let tile_spacing = TilemapSpacing {
+                        x: tileset.spacing as f32,
+                        y: tileset.spacing as f32,
+                    };
+
+                    // Once materials have been created/added we need to then create the layers.
+                    for (layer_index, layer) in tiled_map.map.layers().enumerate() {
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
-                        let map_size = TilemapSize {
-                            x: tiled_map.map.width,
-                            y: tiled_map.map.height,
-                        };
+                        match layer.layer_type() {
+                            tiled::LayerType::TileLayer(t) => match t {
+                                tiled::TileLayer::Finite(layer_data) => {
+                                    let map_size = TilemapSize {
+                                        x: tiled_map.map.width,
+                                        y: tiled_map.map.height,
+                                    };
 
-                        let grid_size = TilemapGridSize {
-                            x: tiled_map.map.tile_width as f32,
-                            y: tiled_map.map.tile_height as f32,
-                        };
+                                    let grid_size = TilemapGridSize {
+                                        x: tiled_map.map.tile_width as f32,
+                                        y: tiled_map.map.tile_height as f32,
+                                    };
 
-                        let map_type = match tiled_map.map.orientation {
-                            tiled::Orientation::Hexagonal => {
-                                TilemapType::Hexagon(HexCoordSystem::Row)
-                            }
-                            tiled::Orientation::Isometric => {
-                                TilemapType::Isometric(IsoCoordSystem::Diamond)
-                            }
-                            tiled::Orientation::Staggered => {
-                                TilemapType::Isometric(IsoCoordSystem::Staggered)
-                            }
-                            tiled::Orientation::Orthogonal => TilemapType::Square,
-                        };
+                                    let map_type = match tiled_map.map.orientation {
+                                        tiled::Orientation::Hexagonal => {
+                                            TilemapType::Hexagon(HexCoordSystem::Row)
+                                        }
+                                        tiled::Orientation::Isometric => {
+                                            TilemapType::Isometric(IsoCoordSystem::Diamond)
+                                        }
+                                        tiled::Orientation::Staggered => {
+                                            TilemapType::Isometric(IsoCoordSystem::Staggered)
+                                        }
+                                        tiled::Orientation::Orthogonal => TilemapType::Square,
+                                    };
 
-                        let mut tile_storage = TileStorage::empty(map_size);
-                        let layer_entity = commands.spawn_empty().id();
+                                    let mut tile_storage = TileStorage::empty(map_size);
+                                    let layer_entity = commands.spawn_empty().id();
 
-                        for x in 0..map_size.x {
-                            for y in 0..map_size.y {
-                                let mut mapped_y = y;
-                                if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
-                                    mapped_y = (tiled_map.map.height - 1) - y;
-                                }
+                                    for x in 0..map_size.x {
+                                        for y in 0..map_size.y {
+                                            let mut mapped_y = y;
+                                            if tiled_map.map.orientation
+                                                == tiled::Orientation::Orthogonal
+                                            {
+                                                mapped_y = (tiled_map.map.height - 1) - y;
+                                            }
 
-                                let mapped_x = x as usize;
-                                let mapped_y = mapped_y as usize;
+                                            let mapped_x = x as usize;
+                                            let mapped_y = mapped_y as usize;
 
-                                let map_tile = match &layer.tiles {
-                                    tiled::LayerData::Finite(tiles) => &tiles[mapped_y][mapped_x],
-                                    _ => panic!("Infinite maps not supported"),
-                                };
+                                            let layer_tile = match layer_data
+                                                .get_tile(mapped_x as i32, mapped_y as i32)
+                                            {
+                                                Some(t) => t,
+                                                None => {
+                                                    continue;
+                                                }
+                                            };
+                                            if tileset_index != layer_tile.tileset_index() {
+                                                continue;
+                                            }
+                                            let layer_tile_data = match layer_data
+                                                .get_tile_data(mapped_x as i32, mapped_y as i32)
+                                            {
+                                                Some(d) => d,
+                                                None => {
+                                                    continue;
+                                                }
+                                            };
 
-                                if map_tile.gid < tileset.first_gid
-                                    || map_tile.gid
-                                        >= tileset.first_gid + tileset.tilecount.unwrap()
-                                {
-                                    continue;
-                                }
+                                            let texture_index = match tileset.image {
+                                                Some(_) => TileTextureIndex(tileset_index as u32),
+                                                None => {
+                                                    tiled_map
+                                                        .tile_texture_indexes
+                                                        .get(&(tileset_index, layer_tile.id()))
+                                                        .expect("The tile should have been mapped previously.")
+                                                        .clone()
+                                                }
+                                            };
 
-                                let tile_id = map_tile.gid - tileset.first_gid;
+                                            let tile_pos = TilePos { x, y };
+                                            let tile_entity = commands
+                                                .spawn(TileBundle {
+                                                    position: tile_pos,
+                                                    tilemap_id: TilemapId(layer_entity),
+                                                    texture_index: texture_index,
+                                                    flip: TileFlip {
+                                                        x: layer_tile_data.flip_h,
+                                                        y: layer_tile_data.flip_v,
+                                                        d: layer_tile_data.flip_d,
+                                                    },
+                                                    ..Default::default()
+                                                })
+                                                .id();
+                                            tile_storage.set(&tile_pos, tile_entity);
+                                        }
+                                    }
 
-                                let tile_pos = TilePos { x, y };
-                                let tile_entity = commands
-                                    .spawn(TileBundle {
-                                        position: tile_pos,
-                                        tilemap_id: TilemapId(layer_entity),
-                                        texture_index: TileTextureIndex(tile_id),
-                                        flip: TileFlip {
-                                            x: map_tile.flip_h,
-                                            y: map_tile.flip_v,
-                                            d: map_tile.flip_d,
-                                        },
+                                    let texture = if tiled_map.tile_texture_indexes.is_empty() {
+                                        TilemapTexture::Single(
+                                            tiled_map.tilesets[tileset_index].clone_weak(),
+                                        )
+                                    } else {
+                                        TilemapTexture::Vector(tiled_map.tilesets.clone())
+                                    };
+
+                                    commands.entity(layer_entity).insert(TilemapBundle {
+                                        grid_size,
+                                        size: map_size,
+                                        storage: tile_storage,
+                                        texture: texture,
+                                        tile_size,
+                                        spacing: tile_spacing,
+                                        transform: get_tilemap_center_transform(
+                                            &map_size,
+                                            &grid_size,
+                                            &map_type,
+                                            layer_index as f32,
+                                        ) * Transform::from_xyz(
+                                            offset_x, -offset_y, 0.0,
+                                        ),
+                                        map_type,
                                         ..Default::default()
-                                    })
-                                    .id();
-                                tile_storage.set(&tile_pos, tile_entity);
+                                    });
+
+                                    layer_storage
+                                        .storage
+                                        .insert(layer_index as u32, layer_entity);
+                                }
+                                _ => {
+                                    log::info!("Skipping layer because {:?} is not supported.", t);
+                                }
+                            },
+                            _ => {
+                                log::info!(
+                                    "Skipping layer because {:?} is not supported.",
+                                    layer.layer_type()
+                                );
                             }
                         }
-
-                        commands.entity(layer_entity).insert(TilemapBundle {
-                            grid_size,
-                            size: map_size,
-                            storage: tile_storage,
-                            texture: TilemapTexture::Single(
-                                tiled_map
-                                    .tilesets
-                                    .get(&tileset.first_gid)
-                                    .unwrap()
-                                    .clone_weak(),
-                            ),
-                            tile_size,
-                            spacing: tile_spacing,
-                            transform: get_tilemap_center_transform(
-                                &map_size,
-                                &grid_size,
-                                &map_type,
-                                layer.layer_index as f32,
-                            ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
-                            map_type,
-                            ..Default::default()
-                        });
-
-                        layer_storage
-                            .storage
-                            .insert(layer.layer_index, layer_entity);
                     }
                 }
             }
