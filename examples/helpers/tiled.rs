@@ -1,12 +1,8 @@
 // Limitations:
-//   Some Tiled tilesets use a single image (a.k.a spritesheet) and then find the image based on
-//   caclculated pixel offsets within that image. Other tilesets use a separate image per tile in
-//   the tileset. This loader is compatible with either style but will not work with maps that mix
-//   the two styles.
+//   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
@@ -20,7 +16,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -38,11 +34,11 @@ impl Plugin for TiledMapPlugin {
 pub struct TiledMap {
     pub map: tiled::Map,
 
-    // For maps that use a single image per tileset the offset into this vector will be the tileset
-    // index in the map (0-based). For maps that use a separate image for each tile in the tileset
-    // the offset into this vector must be found via lookup in the tile_texture_indexes map below.
-    pub tilesets: Vec<Handle<Image>>,
-    pub tile_texture_indexes: HashMap<(usize, tiled::TileId), TileTextureIndex>,
+    // Tilesets that use a single image will have a 1-length Vec in this map.
+    pub tileset_images: HashMap<usize, Vec<Handle<Image>>>,
+
+    // The offset into the tileset_images for each tile id within each tileset.
+    pub tile_image_offsets: HashMap<(usize, tiled::TileId), u32>,
 }
 
 // Stores a list of tiled layers.
@@ -81,24 +77,27 @@ impl AssetLoader for TiledLoader {
                 .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
 
             let mut dependencies = Vec::new();
-            let mut handles = Vec::new();
-            let mut tile_texture_indexes = HashMap::default();
+            let mut tileset_images = HashMap::default();
+            let mut tile_image_offsets = HashMap::default();
 
             for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+                let mut tile_images: Vec<Handle<Image>> = Vec::new();
                 match &tileset.image {
                     None => {
+                        #[cfg(feature = "atlas")]
+                        log::info!("Skipping tileset '{}' because it uses a collection of images, which is incompatibile with the 'atlas' feature.", tileset.name);
+
+                        #[cfg(not(feature = "atlas"))]
                         for (tile_id, tile) in tileset.tiles() {
                             if let Some(img) = &tile.image {
                                 let tile_path = tmx_dir.join(&img.source);
                                 let asset_path = AssetPath::new(tile_path, None);
-                                log::debug!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
                                 let texture: Handle<Image> =
                                     load_context.get_handle(asset_path.clone());
-                                handles.push(texture.clone());
-                                tile_texture_indexes.insert(
-                                    (tileset_index, tile_id),
-                                    TileTextureIndex(handles.len() as u32 - 1),
-                                );
+                                tile_image_offsets
+                                    .insert((tileset_index, tile_id), tile_images.len() as u32);
+                                tile_images.push(texture.clone());
                                 dependencies.push(asset_path);
                             }
                         }
@@ -107,16 +106,17 @@ impl AssetLoader for TiledLoader {
                         let tile_path = tmx_dir.join(&img.source);
                         let asset_path = AssetPath::new(tile_path, None);
                         let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
-                        handles.push(texture.clone());
+                        tile_images.push(texture.clone());
                         dependencies.push(asset_path);
                     }
                 }
+                tileset_images.insert(tileset_index, tile_images);
             }
 
             let asset_map = TiledMap {
                 map,
-                tilesets: handles,
-                tile_texture_indexes: tile_texture_indexes,
+                tileset_images: tileset_images,
+                tile_image_offsets: tile_image_offsets,
             };
             log::info!("Loaded map: {}", load_context.path().display());
             let loaded_asset = LoadedAsset::new(asset_map);
@@ -187,6 +187,16 @@ pub fn process_loaded_maps(
                 // tilesets on each layer and allows differently-sized tile images in each tileset,
                 // this means we need to load each combination of tileset and layer separately.
                 for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
+                    let tile_images = tiled_map
+                        .tileset_images
+                        .get(&tileset_index)
+                        .expect("The tileset images should have been previously loaded.");
+
+                    if tile_images.len() == 0 {
+                        log::info!("No images were loaded for tileset '{}'.", tileset.name);
+                        continue;
+                    }
+
                     let tile_size = TilemapTileSize {
                         x: tileset.tile_width as f32,
                         y: tileset.tile_height as f32,
@@ -204,8 +214,16 @@ pub fn process_loaded_maps(
 
                         let tiled::LayerType::TileLayer(tile_layer) = layer.layer_type() else {
                             log::info!(
-                                "Skipping layer because {:?} is not supported.",
-                                layer.layer_type()
+                                "Skipping layer {} because only tile layers are supported.",
+                                layer.id()
+                            );
+                            continue;
+                        };
+
+                        let tiled::TileLayer::Finite(_layer_data) = tile_layer else {
+                            log::info!(
+                                "Skipping layer {} because only finite layers are supported.",
+                                layer.id()
                             );
                             continue;
                         };
@@ -269,15 +287,10 @@ pub fn process_loaded_maps(
                                                 }
                                             };
 
-                                        let texture_index = match tileset.image {
-                                            Some(_) => TileTextureIndex(layer_tile_data.id()),
-                                            None => tiled_map
-                                                .tile_texture_indexes
-                                                .get(&(tileset_index, layer_tile.id()))
-                                                .expect(
-                                                    "The tile should have been mapped previously.",
-                                                )
-                                                .clone(),
+                                        let texture_index = if tile_images.len() == 1 {
+                                            TileTextureIndex(layer_tile.id())
+                                        } else {
+                                            TileTextureIndex(*tiled_map.tile_image_offsets.get(&(tileset_index, layer_tile.id())).expect("The offset into to image vector should have been saved during the initial load."))
                                         };
 
                                         let tile_pos = TilePos { x, y };
@@ -298,12 +311,14 @@ pub fn process_loaded_maps(
                                     }
                                 }
 
-                                let texture = if tiled_map.tile_texture_indexes.is_empty() {
-                                    TilemapTexture::Single(
-                                        tiled_map.tilesets[tileset_index].clone_weak(),
-                                    )
+                                let texture = if tile_images.len() == 1 {
+                                    TilemapTexture::Single(tile_images[0].clone_weak())
                                 } else {
-                                    TilemapTexture::Vector(tiled_map.tilesets.clone())
+                                    #[cfg(feature = "atlas")]
+                                    panic!("Cannot use Tiled maps with a tileset that uses a collection of images due to incompatibility with the 'atlas' feature.");
+
+                                    #[cfg(not(feature = "atlas"))]
+                                    TilemapTexture::Vector(tile_images.clone())
                                 };
 
                                 commands.entity(layer_entity).insert(TilemapBundle {
