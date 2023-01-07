@@ -220,7 +220,7 @@ pub fn process_loaded_maps(
                             continue;
                         };
 
-                        let tiled::TileLayer::Finite(_layer_data) = tile_layer else {
+                        let tiled::TileLayer::Finite(layer_data) = tile_layer else {
                             log::info!(
                                 "Skipping layer {} because only finite layers are supported.",
                                 layer.id()
@@ -228,127 +228,114 @@ pub fn process_loaded_maps(
                             continue;
                         };
 
-                        match tile_layer {
-                            tiled::TileLayer::Finite(layer_data) => {
-                                let map_size = TilemapSize {
-                                    x: tiled_map.map.width,
-                                    y: tiled_map.map.height,
-                                };
+                        let map_size = TilemapSize {
+                            x: tiled_map.map.width,
+                            y: tiled_map.map.height,
+                        };
 
-                                let grid_size = TilemapGridSize {
-                                    x: tiled_map.map.tile_width as f32,
-                                    y: tiled_map.map.tile_height as f32,
-                                };
+                        let grid_size = TilemapGridSize {
+                            x: tiled_map.map.tile_width as f32,
+                            y: tiled_map.map.tile_height as f32,
+                        };
 
-                                let map_type = match tiled_map.map.orientation {
-                                    tiled::Orientation::Hexagonal => {
-                                        TilemapType::Hexagon(HexCoordSystem::Row)
-                                    }
-                                    tiled::Orientation::Isometric => {
-                                        TilemapType::Isometric(IsoCoordSystem::Diamond)
-                                    }
-                                    tiled::Orientation::Staggered => {
-                                        TilemapType::Isometric(IsoCoordSystem::Staggered)
-                                    }
-                                    tiled::Orientation::Orthogonal => TilemapType::Square,
-                                };
+                        let map_type = match tiled_map.map.orientation {
+                            tiled::Orientation::Hexagonal => {
+                                TilemapType::Hexagon(HexCoordSystem::Row)
+                            }
+                            tiled::Orientation::Isometric => {
+                                TilemapType::Isometric(IsoCoordSystem::Diamond)
+                            }
+                            tiled::Orientation::Staggered => {
+                                TilemapType::Isometric(IsoCoordSystem::Staggered)
+                            }
+                            tiled::Orientation::Orthogonal => TilemapType::Square,
+                        };
 
-                                let mut tile_storage = TileStorage::empty(map_size);
-                                let layer_entity = commands.spawn_empty().id();
+                        let mut tile_storage = TileStorage::empty(map_size);
+                        let layer_entity = commands.spawn_empty().id();
 
-                                for x in 0..map_size.x {
-                                    for y in 0..map_size.y {
-                                        let mut mapped_y = y;
-                                        if tiled_map.map.orientation
-                                            == tiled::Orientation::Orthogonal
-                                        {
-                                            mapped_y = (tiled_map.map.height - 1) - y;
-                                        }
-
-                                        let mapped_x = x as i32;
-                                        let mapped_y = mapped_y as i32;
-
-                                        let layer_tile = match layer_data
-                                            .get_tile(mapped_x as i32, mapped_y as i32)
-                                        {
-                                            Some(t) => t,
-                                            None => {
-                                                continue;
-                                            }
-                                        };
-                                        if tileset_index != layer_tile.tileset_index() {
-                                            continue;
-                                        }
-                                        let layer_tile_data =
-                                            match layer_data.get_tile_data(mapped_x, mapped_y) {
-                                                Some(d) => d,
-                                                None => {
-                                                    continue;
-                                                }
-                                            };
-
-                                        let texture_index = if tile_images.len() == 1 {
-                                            TileTextureIndex(layer_tile.id())
-                                        } else {
-                                            TileTextureIndex(*tiled_map.tile_image_offsets.get(&(tileset_index, layer_tile.id())).expect("The offset into to image vector should have been saved during the initial load."))
-                                        };
-
-                                        let tile_pos = TilePos { x, y };
-                                        let tile_entity = commands
-                                            .spawn(TileBundle {
-                                                position: tile_pos,
-                                                tilemap_id: TilemapId(layer_entity),
-                                                texture_index: texture_index,
-                                                flip: TileFlip {
-                                                    x: layer_tile_data.flip_h,
-                                                    y: layer_tile_data.flip_v,
-                                                    d: layer_tile_data.flip_d,
-                                                },
-                                                ..Default::default()
-                                            })
-                                            .id();
-                                        tile_storage.set(&tile_pos, tile_entity);
-                                    }
+                        for x in 0..map_size.x {
+                            for y in 0..map_size.y {
+                                let mut mapped_y = y;
+                                if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
+                                    mapped_y = (tiled_map.map.height - 1) - y;
                                 }
 
-                                let texture = if tile_images.len() == 1 {
-                                    TilemapTexture::Single(tile_images[0].clone_weak())
-                                } else {
-                                    #[cfg(feature = "atlas")]
-                                    panic!("Cannot use Tiled maps with a tileset that uses a collection of images due to incompatibility with the 'atlas' feature.");
+                                let mapped_x = x as i32;
+                                let mapped_y = mapped_y as i32;
 
-                                    #[cfg(not(feature = "atlas"))]
-                                    TilemapTexture::Vector(tile_images.clone())
+                                let layer_tile =
+                                    match layer_data.get_tile(mapped_x as i32, mapped_y as i32) {
+                                        Some(t) => t,
+                                        None => {
+                                            continue;
+                                        }
+                                    };
+                                if tileset_index != layer_tile.tileset_index() {
+                                    continue;
+                                }
+                                let layer_tile_data =
+                                    match layer_data.get_tile_data(mapped_x, mapped_y) {
+                                        Some(d) => d,
+                                        None => {
+                                            continue;
+                                        }
+                                    };
+
+                                let texture_index = if tile_images.len() == 1 {
+                                    TileTextureIndex(layer_tile.id())
+                                } else {
+                                    TileTextureIndex(*tiled_map.tile_image_offsets.get(&(tileset_index, layer_tile.id())).expect("The offset into to image vector should have been saved during the initial load."))
                                 };
 
-                                commands.entity(layer_entity).insert(TilemapBundle {
-                                    grid_size,
-                                    size: map_size,
-                                    storage: tile_storage,
-                                    texture: texture,
-                                    tile_size,
-                                    spacing: tile_spacing,
-                                    transform: get_tilemap_center_transform(
-                                        &map_size,
-                                        &grid_size,
-                                        &map_type,
-                                        layer_index as f32,
-                                    ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
-                                    map_type,
-                                    ..Default::default()
-                                });
-
-                                layer_storage
-                                    .storage
-                                    .insert(layer_index as u32, layer_entity);
-                            }
-                            _ => {
-                                log::info!(
-                                    "Skipping layer because {:?} is not supported.",
-                                    tile_layer
-                                );
+                                let tile_pos = TilePos { x, y };
+                                let tile_entity = commands
+                                    .spawn(TileBundle {
+                                        position: tile_pos,
+                                        tilemap_id: TilemapId(layer_entity),
+                                        texture_index: texture_index,
+                                        flip: TileFlip {
+                                            x: layer_tile_data.flip_h,
+                                            y: layer_tile_data.flip_v,
+                                            d: layer_tile_data.flip_d,
+                                        },
+                                        ..Default::default()
+                                    })
+                                    .id();
+                                tile_storage.set(&tile_pos, tile_entity);
                             }
                         }
+
+                        let texture = if tile_images.len() == 1 {
+                            TilemapTexture::Single(tile_images[0].clone_weak())
+                        } else {
+                            #[cfg(feature = "atlas")]
+                            panic!("Cannot use Tiled maps with a tileset that uses a collection of images due to incompatibility with the 'atlas' feature.");
+
+                            #[cfg(not(feature = "atlas"))]
+                            TilemapTexture::Vector(tile_images.clone())
+                        };
+
+                        commands.entity(layer_entity).insert(TilemapBundle {
+                            grid_size,
+                            size: map_size,
+                            storage: tile_storage,
+                            texture: texture,
+                            tile_size,
+                            spacing: tile_spacing,
+                            transform: get_tilemap_center_transform(
+                                &map_size,
+                                &grid_size,
+                                &map_type,
+                                layer_index as f32,
+                            ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
+                            map_type,
+                            ..Default::default()
+                        });
+
+                        layer_storage
+                            .storage
+                            .insert(layer_index as u32, layer_entity);
                     }
                 }
             }
