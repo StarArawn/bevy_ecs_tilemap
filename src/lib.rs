@@ -16,7 +16,7 @@
 
 use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
-    Query, Reflect, Transform, Visibility,
+    Query, Reflect, ReflectComponent, Transform, Visibility,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -82,6 +82,7 @@ impl Plugin for TilemapPlugin {
 }
 
 #[derive(Component, Reflect, Debug, Clone, Copy, Deref)]
+#[reflect(Component)]
 pub struct FrustumCulling(pub bool);
 
 impl Default for FrustumCulling {

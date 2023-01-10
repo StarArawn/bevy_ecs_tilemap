@@ -1,5 +1,5 @@
 use bevy::asset::Assets;
-use bevy::prelude::{Res, ResMut, Resource};
+use bevy::prelude::{ReflectComponent, Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
@@ -34,6 +34,7 @@ pub struct TilemapRenderSettings {
 
 /// A component which stores a reference to the tilemap entity.
 #[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
+#[reflect(Component)]
 pub struct TilemapId(pub Entity);
 
 impl Default for TilemapId {
@@ -44,6 +45,7 @@ impl Default for TilemapId {
 
 /// Size of the tilemap in tiles.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[reflect(Component)]
 pub struct TilemapSize {
     pub x: u32,
     pub y: u32,
@@ -74,6 +76,7 @@ impl From<UVec2> for TilemapSize {
 }
 
 #[derive(Component, Reflect, Clone, Debug, Hash, PartialEq, Eq)]
+#[reflect(Component)]
 pub enum TilemapTexture {
     /// All textures for tiles are inside a single image asset.
     Single(Handle<Image>),
@@ -175,6 +178,7 @@ impl TilemapTexture {
 
 /// Size of the tiles in pixels
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[reflect(Component)]
 pub struct TilemapTileSize {
     pub x: f32,
     pub y: f32,
@@ -213,6 +217,7 @@ impl From<Vec2> for TilemapTileSize {
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
 /// a grid size of 16x8.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[reflect(Component)]
 pub struct TilemapGridSize {
     pub x: f32,
     pub y: f32,
@@ -245,6 +250,7 @@ impl From<&Vec2> for TilemapGridSize {
 /// Spacing between tiles in pixels inside of the texture atlas.
 /// Defaults to 0.0
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[reflect(Component)]
 pub struct TilemapSpacing {
     pub x: f32,
     pub y: f32,
@@ -264,6 +270,7 @@ impl TilemapSpacing {
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[reflect(Component)]
 pub struct TilemapTextureSize {
     pub x: f32,
     pub y: f32,
@@ -311,6 +318,7 @@ pub enum IsoCoordSystem {
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
 #[derive(Component, Reflect, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[reflect(Component)]
 pub enum TilemapType {
     /// A tilemap with rectangular tiles.
     Square,
