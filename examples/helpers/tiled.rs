@@ -37,6 +37,7 @@ pub struct TiledMap {
     pub tilemap_textures: HashMap<usize, TilemapTexture>,
 
     // The offset into the tileset_images for each tile id within each tileset.
+    #[cfg(not(feature = "atlas"))]
     pub tile_image_offsets: HashMap<(usize, tiled::TileId), u32>,
 }
 
@@ -77,6 +78,7 @@ impl AssetLoader for TiledLoader {
 
             let mut dependencies = Vec::new();
             let mut tilemap_textures = HashMap::default();
+            #[cfg(not(feature = "atlas"))]
             let mut tile_image_offsets = HashMap::default();
 
             for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
@@ -124,6 +126,7 @@ impl AssetLoader for TiledLoader {
             let asset_map = TiledMap {
                 map,
                 tilemap_textures,
+                #[cfg(not(feature = "atlas"))]
                 tile_image_offsets,
             };
 
@@ -295,6 +298,7 @@ pub fn process_loaded_maps(
                                     TilemapTexture::Vector(_) =>
                                         *tiled_map.tile_image_offsets.get(&(tileset_index, layer_tile.id()))
                                         .expect("The offset into to image vector should have been saved during the initial load."),
+                                    #[cfg(not(feature = "atlas"))]
                                     _ => unreachable!()
                                 };
 
