@@ -34,7 +34,6 @@ impl Plugin for TiledMapPlugin {
 pub struct TiledMap {
     pub map: tiled::Map,
 
-    // Tilesets that use a single image will have a 1-length Vec in this map.
     pub tilemap_textures: HashMap<usize, TilemapTexture>,
 
     // The offset into the tileset_images for each tile id within each tileset.
