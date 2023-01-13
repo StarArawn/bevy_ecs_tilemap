@@ -1,4 +1,14 @@
-// Limitations:
+// How to use this:
+//   You should copy/paste this into your project and use it much like examples/tiles.rs uses this
+//   file. When you do so you will need to adjust the code based on whether you're using the
+//   'atlas` feature in bevy_ecs_tilemap. The bevy_ecs_tilemap uses this as an example of how to
+//   use both single image tilesets and image collection tilesets. Since your project won't have
+//   the 'atlas' feature defined in your Cargo config, the expressions prefixed by the #[cfg(...)]
+//   macro will not compile in your project as-is. If your project depends on the bevy_ecs_tilemap
+//   'atlas' feature then move all of the expressions prefixed by #[cfg(not(feature = "atlas"))].
+//   Otherwise remove all of the expressions prefixed by #[cfg(feature = "atlas")].
+//
+// Functional limitations:
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
