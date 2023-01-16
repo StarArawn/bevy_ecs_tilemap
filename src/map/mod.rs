@@ -69,6 +69,12 @@ impl From<&TilemapSize> for Vec2 {
     }
 }
 
+impl From<TilemapSize> for UVec2 {
+    fn from(size: TilemapSize) -> Self {
+        UVec2::new(size.x, size.y)
+    }
+}
+
 impl From<UVec2> for TilemapSize {
     fn from(vec: UVec2) -> Self {
         TilemapSize { x: vec.x, y: vec.y }
