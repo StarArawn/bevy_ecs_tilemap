@@ -281,7 +281,10 @@ pub fn extract(
             color: color.0.into(),
         };
 
-        let data = tilemap_query.get(tilemap_id.0).unwrap();
+        let data = match tilemap_query.get(tilemap_id.0) {
+            Ok(data) => data,
+            Err(_) => continue,
+        };
 
         extracted_tilemaps.insert(
             data.0,
