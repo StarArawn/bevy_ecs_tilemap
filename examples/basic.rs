@@ -56,6 +56,7 @@ fn startup(
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
+        physical_tile_size: tile_size.into(),
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });

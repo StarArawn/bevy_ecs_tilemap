@@ -22,7 +22,7 @@ use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
-use prelude::TilemapId;
+use prelude::{TilemapId, TilemapPhysicalTileSize};
 use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
@@ -102,6 +102,7 @@ pub struct TilemapBundle {
     pub storage: TileStorage,
     pub texture: TilemapTexture,
     pub tile_size: TilemapTileSize,
+    pub physical_tile_size: TilemapPhysicalTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     /// User indication of whether an entity is visible

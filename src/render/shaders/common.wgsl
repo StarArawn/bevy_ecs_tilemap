@@ -11,12 +11,13 @@ var<uniform> mesh: Mesh;
 struct TilemapData {
     texture_size: vec2<f32>,
     tile_size: vec2<f32>,
+    physical_tile_size: vec2<f32>,
     grid_size: vec2<f32>,
     spacing: vec2<f32>,
     chunk_pos: vec2<f32>,
     map_size: vec2<f32>,
     time: f32,
-    _padding: vec3<f32>, // hack for webgl2 16 byte alignment
+    _padding: f32, // hack for webgl2 16 byte alignment
 };
 @group(2) @binding(0)
 var<uniform> tilemap_data: TilemapData;

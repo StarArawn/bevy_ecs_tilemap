@@ -104,6 +104,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
         storage: tile_storage,
         texture: TilemapTexture::Single(tile_handle_square.clone()),
         tile_size,
+        physical_tile_size: tile_size.into(),
         map_type: TilemapType::Square,
         // The default behaviour is `FrustumCulling(true)`, but we supply this explicitly here
         // for the purposes of the example.
