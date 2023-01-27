@@ -115,9 +115,8 @@ impl ExtractedTilemapTexture {
                     let this_tile_size: TilemapTileSize = image.size().into();
                     if this_tile_size != tile_size {
                         panic!(
-                            "Expected all provided image assets to have size {:?}, \
-                                    but found image with size: {:?}",
-                            tile_size, this_tile_size
+                            "Expected all provided image assets to have size {tile_size:?}, \
+                                    but found image with size: {this_tile_size:?}"
                         );
                     }
                 }
