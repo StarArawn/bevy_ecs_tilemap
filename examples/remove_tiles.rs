@@ -23,7 +23,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 
@@ -66,10 +66,10 @@ fn remove_tiles(
                 y: random.gen_range(0..32),
             };
 
-            if let Some(tile_entity) = tile_storage.get(&position) {
+            if let Some(tile_entity) = tile_storage.get(position) {
                 commands.entity(tile_entity).despawn_recursive();
                 // Don't forget to remove tiles from the tile storage!
-                tile_storage.remove(&position);
+                tile_storage.remove(position);
             }
 
             last_update.value = current_time;

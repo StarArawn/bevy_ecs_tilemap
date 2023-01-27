@@ -82,9 +82,9 @@ impl RowOddPos {
     }
 }
 
-impl From<&TilePos> for RowOddPos {
+impl From<TilePos> for RowOddPos {
     #[inline]
-    fn from(tile_pos: &TilePos) -> Self {
+    fn from(tile_pos: TilePos) -> Self {
         RowOddPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,
@@ -168,9 +168,9 @@ impl RowEvenPos {
     }
 }
 
-impl From<&TilePos> for RowEvenPos {
+impl From<TilePos> for RowEvenPos {
     #[inline]
-    fn from(tile_pos: &TilePos) -> Self {
+    fn from(tile_pos: TilePos) -> Self {
         RowEvenPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,
@@ -254,9 +254,9 @@ impl ColOddPos {
     }
 }
 
-impl From<&TilePos> for ColOddPos {
+impl From<TilePos> for ColOddPos {
     #[inline]
-    fn from(tile_pos: &TilePos) -> Self {
+    fn from(tile_pos: TilePos) -> Self {
         ColOddPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,
@@ -340,9 +340,9 @@ impl ColEvenPos {
     }
 }
 
-impl From<&TilePos> for ColEvenPos {
+impl From<TilePos> for ColEvenPos {
     #[inline]
-    fn from(tile_pos: &TilePos) -> Self {
+    fn from(tile_pos: TilePos) -> Self {
         ColEvenPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,

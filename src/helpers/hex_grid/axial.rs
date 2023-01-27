@@ -35,8 +35,8 @@ pub struct AxialPos {
     pub r: i32,
 }
 
-impl From<&TilePos> for AxialPos {
-    fn from(tile_pos: &TilePos) -> Self {
+impl From<TilePos> for AxialPos {
+    fn from(tile_pos: TilePos) -> Self {
         AxialPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,
@@ -430,7 +430,7 @@ impl AxialPos {
     /// coordinate system before being returned as a `TilePos`.
     #[inline]
     pub fn from_tile_pos_given_coord_system(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         hex_coord_sys: HexCoordSystem,
     ) -> AxialPos {
         match hex_coord_sys {

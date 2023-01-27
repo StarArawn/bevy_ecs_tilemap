@@ -334,7 +334,7 @@ fn hover_highlight_tile_label(
             TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type)
         {
             // Highlight the relevant tile's label
-            if let Some(tile_entity) = tile_storage.get(&tile_pos) {
+            if let Some(tile_entity) = tile_storage.get(tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                         for mut section in tile_text.sections.iter_mut() {
@@ -385,12 +385,12 @@ fn highlight_neighbor_label(
 
         for hovered_tile_pos in hovered_tiles_q.iter() {
             let neighboring_positions =
-                HexNeighbors::get_neighboring_positions(hovered_tile_pos, map_size, hex_coord_sys);
+                HexNeighbors::get_neighboring_positions(*hovered_tile_pos, map_size, hex_coord_sys);
 
             for neighbor_pos in neighboring_positions.iter() {
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
-                if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos) {
+                if let Some(tile_entity) = tile_storage.checked_get(*neighbor_pos) {
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                             for mut section in tile_text.sections.iter_mut() {
@@ -424,14 +424,14 @@ fn highlight_neighbor_label(
                         // Get the neighbor in a particular direction.
                         // This function does not check to see if the calculated neighbor lies
                         // within the tile map.
-                        hex_direction.offset(hovered_tile_pos, *hex_coord_sys)
+                        hex_direction.offset(*hovered_tile_pos, *hex_coord_sys)
                     }
                     _ => unreachable!(),
                 };
 
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
-                if let Some(tile_entity) = tile_storage.checked_get(&tile_pos) {
+                if let Some(tile_entity) = tile_storage.checked_get(tile_pos) {
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                             for mut section in tile_text.sections.iter_mut() {

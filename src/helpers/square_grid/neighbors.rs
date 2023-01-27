@@ -331,7 +331,7 @@ impl Neighbors<TilePos> {
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
     pub fn get_square_neighboring_positions(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
         include_diagonals: bool,
     ) -> Neighbors<TilePos> {
@@ -360,7 +360,7 @@ impl Neighbors<TilePos> {
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
     pub fn get_staggered_neighboring_positions(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
         include_diagonals: bool,
     ) -> Neighbors<TilePos> {
@@ -385,7 +385,7 @@ impl Neighbors<TilePos> {
 
     /// Returns the entities associated with each tile position.
     pub fn entities(&self, tile_storage: &TileStorage) -> Neighbors<Entity> {
-        let f = |tile_pos| tile_storage.get(tile_pos);
+        let f = |tile_pos: &TilePos| tile_storage.get(*tile_pos);
         self.and_then_ref(f)
     }
 }

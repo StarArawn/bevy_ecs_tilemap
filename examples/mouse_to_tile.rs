@@ -379,7 +379,7 @@ fn highlight_tile_labels(
             TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type)
         {
             // Highlight the relevant tile's label
-            if let Some(tile_entity) = tile_storage.get(&tile_pos) {
+            if let Some(tile_entity) = tile_storage.get(tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                         for mut section in tile_text.sections.iter_mut() {

@@ -20,8 +20,8 @@ pub struct StaggeredPos {
     pub y: i32,
 }
 
-impl From<&TilePos> for StaggeredPos {
-    fn from(tile_pos: &TilePos) -> Self {
+impl From<TilePos> for StaggeredPos {
+    fn from(tile_pos: TilePos) -> Self {
         Self {
             x: tile_pos.x as i32,
             y: tile_pos.y as i32,
@@ -150,7 +150,7 @@ impl TilePos {
     /// and assuming that this is a map that is using the isometric staggered coordinate system.
     #[inline]
     pub fn staggered_offset(
-        &self,
+        self,
         direction: &SquareDirection,
         map_size: &TilemapSize,
     ) -> Option<TilePos> {

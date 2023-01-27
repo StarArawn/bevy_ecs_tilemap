@@ -151,7 +151,7 @@ impl Sub<i32> for HexDirection {
 }
 
 impl HexDirection {
-    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+    pub fn offset(&self, tile_pos: TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset(*self)
             .as_tile_pos_given_coord_system(coord_sys)
@@ -233,7 +233,7 @@ impl From<HexColDirection> for HexDirection {
 
 impl HexRowDirection {
     #[inline]
-    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+    pub fn offset(&self, tile_pos: TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_row(*self)
             .as_tile_pos_given_coord_system(coord_sys)
@@ -242,7 +242,7 @@ impl HexRowDirection {
 
 impl HexColDirection {
     #[inline]
-    pub fn offset(&self, tile_pos: &TilePos, coord_sys: HexCoordSystem) -> TilePos {
+    pub fn offset(&self, tile_pos: TilePos, coord_sys: HexCoordSystem) -> TilePos {
         AxialPos::from_tile_pos_given_coord_system(tile_pos, coord_sys)
             .offset_compass_col(*self)
             .as_tile_pos_given_coord_system(coord_sys)
@@ -412,7 +412,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
         hex_coord_sys: &HexCoordSystem,
     ) -> HexNeighbors<TilePos> {
@@ -451,7 +451,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions_standard(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
     ) -> HexNeighbors<TilePos> {
         let axial_pos = AxialPos::from(tile_pos);
@@ -469,7 +469,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions_row_even(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
     ) -> HexNeighbors<TilePos> {
         let axial_pos = AxialPos::from(RowEvenPos::from(tile_pos));
@@ -485,7 +485,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions_row_odd(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
     ) -> HexNeighbors<TilePos> {
         let axial_pos = AxialPos::from(RowOddPos::from(tile_pos));
@@ -501,7 +501,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions_col_even(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
     ) -> HexNeighbors<TilePos> {
         let axial_pos = AxialPos::from(ColEvenPos::from(tile_pos));
@@ -517,7 +517,7 @@ impl HexNeighbors<TilePos> {
     /// on the map.
     #[inline]
     pub fn get_neighboring_positions_col_odd(
-        tile_pos: &TilePos,
+        tile_pos: TilePos,
         map_size: &TilemapSize,
     ) -> HexNeighbors<TilePos> {
         let axial_pos = AxialPos::from(ColOddPos::from(tile_pos));
@@ -530,7 +530,7 @@ impl HexNeighbors<TilePos> {
     /// Returns the entities associated with each tile position.
     #[inline]
     pub fn entities(&self, tile_storage: &TileStorage) -> HexNeighbors<Entity> {
-        let f = |tile_pos| tile_storage.get(tile_pos);
+        let f = |tile_pos: &TilePos| tile_storage.get(*tile_pos);
         self.and_then_ref(f)
     }
 }

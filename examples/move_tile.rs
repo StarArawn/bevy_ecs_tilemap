@@ -24,7 +24,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         })
         .id();
-    tile_storage.set(&tile_pos, tile_entity);
+    tile_storage.set(tile_pos, tile_entity);
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();

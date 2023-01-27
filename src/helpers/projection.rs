@@ -11,7 +11,7 @@ impl TilePos {
     /// Get the center of this tile in world space.
     ///
     /// The center is well defined for all [`TilemapType`](crate::map::TilemapType)s.
-    pub fn center_in_world(&self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
+    pub fn center_in_world(self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
         match map_type {
             TilemapType::Square { .. } => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))

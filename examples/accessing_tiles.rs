@@ -45,17 +45,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 })
                 .id();
             // Here we let the tile storage component know what tiles we have.
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 
     // We can grab a list of neighbors.
     let neighbor_positions =
-        Neighbors::get_square_neighboring_positions(&TilePos { x: 0, y: 0 }, &map_size, true);
+        Neighbors::get_square_neighboring_positions(TilePos { x: 0, y: 0 }, &map_size, true);
     let neighbor_entities = neighbor_positions.entities(&tile_storage);
 
     // We can access tiles using:
-    assert!(tile_storage.get(&TilePos { x: 0, y: 0 }).is_some());
+    assert!(tile_storage.get(TilePos { x: 0, y: 0 }).is_some());
     assert_eq!(neighbor_entities.iter().count(), 3); // Only 3 neighbors since negative is outside of map.
 
     // This changes some of our tiles by looking at neighbors.
@@ -66,11 +66,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
             // Grabbing neighbors is easy.
 
             let neighbors =
-                Neighbors::get_square_neighboring_positions(&TilePos { x, y }, &map_size, true);
+                Neighbors::get_square_neighboring_positions(TilePos { x, y }, &map_size, true);
             for pos in neighbors.iter() {
                 // We can replace the tile texture component like so:
                 commands
-                    .entity(tile_storage.get(pos).unwrap())
+                    .entity(tile_storage.get(*pos).unwrap())
                     .insert(TileTextureIndex(color));
             }
         }
@@ -123,7 +123,7 @@ fn update_map(
                 for y in (2..128).step_by(4) {
                     // Grab the neighboring tiles
                     let neighboring_entities = Neighbors::get_square_neighboring_positions(
-                        &TilePos { x, y },
+                        TilePos { x, y },
                         map_size,
                         true,
                     )

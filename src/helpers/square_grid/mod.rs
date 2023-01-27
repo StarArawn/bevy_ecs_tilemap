@@ -57,9 +57,9 @@ impl Mul<SquarePos> for i32 {
     }
 }
 
-impl From<&TilePos> for SquarePos {
+impl From<TilePos> for SquarePos {
     #[inline]
-    fn from(tile_pos: &TilePos) -> Self {
+    fn from(tile_pos: TilePos) -> Self {
         Self {
             x: tile_pos.x as i32,
             y: tile_pos.y as i32,
@@ -176,7 +176,7 @@ impl TilePos {
     /// and assuming that this is a map using the standard (non-isometric) square coordinate system
     #[inline]
     pub fn square_offset(
-        &self,
+        self,
         direction: &SquareDirection,
         map_size: &TilemapSize,
     ) -> Option<TilePos> {

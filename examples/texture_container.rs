@@ -44,7 +44,7 @@ mod no_atlas {
         let tilemap_id = TilemapId(tilemap_entity);
 
         let tile_positions = generate_hexagon(
-            AxialPos::from_tile_pos_given_coord_system(&MAP_CENTER, COORD_SYS),
+            AxialPos::from_tile_pos_given_coord_system(MAP_CENTER, COORD_SYS),
             MAP_RADIUS,
         )
         .into_iter()
@@ -69,7 +69,7 @@ mod no_atlas {
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&position, tile_entity);
+            tile_storage.set(position, tile_entity);
         }
 
         let tile_size = TILE_SIZE;

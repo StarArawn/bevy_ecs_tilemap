@@ -23,7 +23,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 
@@ -67,7 +67,7 @@ fn remove_tiles(
             };
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.
-            if let Some(tile_entity) = tile_storage.get(&position) {
+            if let Some(tile_entity) = tile_storage.get(position) {
                 let mut visibility = tile_query.get_mut(tile_entity).unwrap();
                 visibility.0 = !visibility.0;
             }

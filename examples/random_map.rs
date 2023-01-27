@@ -29,7 +29,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     LastUpdate::default(),
                 ))
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 

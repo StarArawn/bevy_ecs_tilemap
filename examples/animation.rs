@@ -106,7 +106,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             ))
             .id();
 
-        tile_storage.set(&tile_pos, tile_entity);
+        tile_storage.set(tile_pos, tile_entity);
     }
     let map_type = TilemapType::Square;
 

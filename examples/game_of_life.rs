@@ -25,7 +25,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
             i += 1;
         }
     }
@@ -63,7 +63,7 @@ fn update(
     if current_time - last_update.0 > 0.1 {
         for (entity, position, visibility) in tile_query.iter() {
             let neighbor_count =
-                Neighbors::get_square_neighboring_positions(position, map_size, true)
+                Neighbors::get_square_neighboring_positions(*position, map_size, true)
                     .entities(tile_storage)
                     .iter()
                     .filter(|neighbor| {

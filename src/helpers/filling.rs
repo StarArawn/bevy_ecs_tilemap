@@ -27,7 +27,7 @@ pub fn fill_tilemap(
                 })
                 .id();
             commands.entity(tilemap_id.0).add_child(tile_entity);
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 }
@@ -59,7 +59,7 @@ pub fn fill_tilemap_rect(
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 }
@@ -93,7 +93,7 @@ pub fn fill_tilemap_rect_color(
                     ..Default::default()
                 })
                 .id();
-            tile_storage.set(&tile_pos, tile_entity);
+            tile_storage.set(tile_pos, tile_entity);
         }
     }
 }
@@ -152,7 +152,7 @@ pub fn fill_tilemap_hexagon(
     tile_storage: &mut TileStorage,
 ) {
     let tile_positions = generate_hexagon(
-        AxialPos::from_tile_pos_given_coord_system(&origin, hex_coord_system),
+        AxialPos::from_tile_pos_given_coord_system(origin, hex_coord_system),
         radius,
     )
     .into_iter()
@@ -168,6 +168,6 @@ pub fn fill_tilemap_hexagon(
                 ..Default::default()
             })
             .id();
-        tile_storage.checked_set(&tile_pos, tile_entity)
+        tile_storage.checked_set(tile_pos, tile_entity)
     }
 }
