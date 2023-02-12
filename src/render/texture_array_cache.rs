@@ -163,6 +163,7 @@ impl TextureArrayCache {
                         dimension: TextureDimension::D2,
                         format: *format,
                         usage: TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[],
                     });
 
                     let sampler = render_device.create_sampler(&SamplerDescriptor {

@@ -93,10 +93,10 @@ mod no_atlas {
             .add_plugins(
                 DefaultPlugins
                     .set(WindowPlugin {
-                        window: WindowDescriptor {
+                        primary_window: Some(Window {
                             title: String::from("Using TilemapTexture::TextureContainer"),
                             ..Default::default()
-                        },
+                        }),
                         ..default()
                     })
                     .set(ImagePlugin::default_nearest()),

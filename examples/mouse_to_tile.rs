@@ -1,4 +1,5 @@
 use bevy::math::Vec4Swizzles;
+use bevy::window::PrimaryWindow;
 use bevy::{ecs::system::Resource, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -122,7 +123,7 @@ fn spawn_tile_labels(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::CENTER;
+    let text_alignment = TextAlignment::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -154,7 +155,7 @@ pub struct MapTypeLabel;
 fn spawn_map_type_label(
     mut commands: Commands,
     font_handle: Res<FontHandle>,
-    windows: Res<Windows>,
+    windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
     let text_style = TextStyle {
@@ -162,7 +163,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::CENTER;
+    let text_alignment = TextAlignment::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -286,12 +287,12 @@ struct HighlightedLabel;
 // Converts the cursor position into a world position, taking into account any transforms applied
 // the camera.
 pub fn cursor_pos_in_world(
-    windows: &Windows,
+    windows: &Query<&Window, With<PrimaryWindow>>,
     cursor_pos: Vec2,
     cam_t: &Transform,
     cam: &Camera,
 ) -> Vec3 {
-    let window = windows.primary();
+    let window = windows.single();
 
     let window_size = Vec2::new(window.width(), window.height());
 
@@ -314,7 +315,7 @@ impl Default for CursorPos {
 
 // We need to keep the cursor position updated based on any `CursorMoved` events.
 pub fn update_cursor_pos(
-    windows: Res<Windows>,
+    windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Transform, &Camera)>,
     mut cursor_moved_events: EventReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
@@ -398,10 +399,10 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Some(Window {
                         title: String::from("Mouse Position to Tile Position"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
@@ -414,10 +415,14 @@ fn main() {
         .init_resource::<FontHandle>()
         .add_plugin(TilemapPlugin)
         .add_startup_system(spawn_tilemap)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        .add_system_to_stage(CoreStage::First, camera_movement)
-        .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
+        .add_startup_systems(
+            (spawn_tile_labels, spawn_map_type_label).in_set(StartupSet::PostStartup),
+        )
+        .add_systems(
+            (camera_movement, update_cursor_pos)
+                .chain()
+                .in_base_set(CoreSet::First),
+        )
         .add_system(swap_map_type)
         .add_system(highlight_tile_labels.after(swap_map_type))
         .run();

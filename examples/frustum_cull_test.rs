@@ -119,7 +119,7 @@ pub struct MapTypeLabel;
 fn spawn_map_type_label(
     mut commands: Commands,
     font_handle: Res<FontHandle>,
-    windows: Res<Windows>,
+    windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
     let text_style = TextStyle {
@@ -127,7 +127,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::CENTER;
+    let text_alignment = TextAlignment::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -227,10 +227,10 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Some(Window {
                         title: String::from("Frustum cull test"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())
@@ -249,8 +249,8 @@ fn main() {
         .init_resource::<TileHandleSquare>()
         .init_resource::<FontHandle>()
         .add_startup_system(spawn_tilemap)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        .add_system_to_stage(CoreStage::First, camera_movement)
+        .add_startup_system(spawn_map_type_label.in_base_set(StartupSet::PostStartup))
+        .add_system(camera_movement.in_set(CoreSet::First))
         .add_system(swap_map_type)
         .run();
 }
