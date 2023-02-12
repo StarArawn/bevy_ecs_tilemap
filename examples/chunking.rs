@@ -90,8 +90,8 @@ fn despawn_outofrange_chunks(
             let chunk_pos = chunk_transform.translation.xy();
             let distance = camera_transform.translation.xy().distance(chunk_pos);
             if distance > 320.0 {
-                let x = (chunk_pos.x as f32 / (CHUNK_SIZE.x as f32 * TILE_SIZE.x)).floor() as i32;
-                let y = (chunk_pos.y as f32 / (CHUNK_SIZE.y as f32 * TILE_SIZE.y)).floor() as i32;
+                let x = (chunk_pos.x / (CHUNK_SIZE.x as f32 * TILE_SIZE.x)).floor() as i32;
+                let y = (chunk_pos.y / (CHUNK_SIZE.y as f32 * TILE_SIZE.y)).floor() as i32;
                 chunk_manager.spawned_chunks.remove(&IVec2::new(x, y));
                 commands.entity(entity).despawn_recursive();
             }

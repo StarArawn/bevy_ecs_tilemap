@@ -100,7 +100,7 @@ pub fn queue_meshes(
     render_device: Res<RenderDevice>,
     tilemap_pipeline: Res<TilemapPipeline>,
     mut pipelines: ResMut<SpecializedRenderPipelines<TilemapPipeline>>,
-    mut pipeline_cache: ResMut<PipelineCache>,
+    pipeline_cache: Res<PipelineCache>,
     view_uniforms: Res<ViewUniforms>,
     gpu_images: Res<RenderAssets<Image>>,
     msaa: Res<Msaa>,
@@ -195,8 +195,7 @@ pub fn queue_meshes(
                         hdr: view.hdr,
                     };
 
-                    let pipeline_id =
-                        pipelines.specialize(&mut pipeline_cache, &tilemap_pipeline, key);
+                    let pipeline_id = pipelines.specialize(&pipeline_cache, &tilemap_pipeline, key);
                     transparent_phase.add(Transparent2d {
                         entity,
                         draw_function: draw_tilemap,

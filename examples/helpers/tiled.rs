@@ -284,13 +284,12 @@ pub fn process_loaded_maps(
                                 let mapped_x = x as i32;
                                 let mapped_y = mapped_y as i32;
 
-                                let layer_tile =
-                                    match layer_data.get_tile(mapped_x as i32, mapped_y as i32) {
-                                        Some(t) => t,
-                                        None => {
-                                            continue;
-                                        }
-                                    };
+                                let layer_tile = match layer_data.get_tile(mapped_x, mapped_y) {
+                                    Some(t) => t,
+                                    None => {
+                                        continue;
+                                    }
+                                };
                                 if tileset_index != layer_tile.tileset_index() {
                                     continue;
                                 }

@@ -110,10 +110,7 @@ pub fn process_loaded_tile_maps(
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps = changed_maps
-                    .into_iter()
-                    .filter(|changed_handle| changed_handle == handle)
-                    .collect();
+                changed_maps.retain(|changed_handle| changed_handle == handle);
             }
         }
     }
@@ -140,7 +137,7 @@ pub fn process_loaded_tile_maps(
                         tileset.uid,
                         (
                             ldtk_map.tilesets.get(&tileset.uid).unwrap().clone(),
-                            tileset.clone(),
+                            tileset,
                         ),
                     );
                 });

@@ -190,7 +190,7 @@ fn swap_map_type(
                 *grid_size = GRID_SIZE_HEX_ROW;
             }
 
-            *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
+            *map_transform = get_tilemap_center_transform(map_size, &grid_size, &map_type, 0.0);
 
             // Re-generate tiles in a hexagonal pattern.
             fill_tilemap_hexagon(
