@@ -416,7 +416,7 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_startup_system(spawn_tilemap)
         .add_startup_systems(
-            (spawn_tile_labels, spawn_map_type_label).in_set(StartupSet::PostStartup),
+            (spawn_tile_labels, spawn_map_type_label).in_base_set(StartupSet::PostStartup),
         )
         .add_systems(
             (camera_movement, update_cursor_pos)

@@ -468,7 +468,7 @@ fn main() {
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
         .add_startup_system(spawn_tilemap)
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).in_set(StartupSet::PostStartup))
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).in_base_set(StartupSet::PostStartup))
         .add_systems((camera_movement, update_cursor_pos).chain().in_base_set(CoreSet::First))
         .add_system(swap_map_type)
         .add_system(hover_highlight_tile_label.after(swap_map_type))
