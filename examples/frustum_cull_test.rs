@@ -248,8 +248,7 @@ fn main() {
         .init_resource::<TileHandleHexRow>()
         .init_resource::<TileHandleSquare>()
         .init_resource::<FontHandle>()
-        .add_startup_system(spawn_tilemap)
-        .add_startup_system(spawn_map_type_label.in_base_set(StartupSet::PostStartup))
+        .add_startup_systems((spawn_tilemap, apply_system_buffers, spawn_map_type_label).chain())
         .add_system(camera_movement.in_base_set(CoreSet::First))
         .add_system(swap_map_type)
         .run();

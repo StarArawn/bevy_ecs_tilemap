@@ -390,10 +390,13 @@ fn main() {
         .init_resource::<TileHandleSquare>()
         .init_resource::<FontHandle>()
         .add_plugin(TilemapPlugin)
-        .add_startup_system(spawn_tilemap)
         .add_startup_systems(
-            (spawn_tile_labels, spawn_map_type_label).in_base_set(StartupSet::PostStartup),
+            (spawn_tilemap, apply_system_buffers)
+                .chain()
+                .before(spawn_tile_labels)
+                .before(spawn_map_type_label),
         )
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label))
         .add_systems(
             (camera_movement, update_cursor_pos)
                 .chain()
