@@ -1,8 +1,10 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
-    ecs::system::lifetimeless::{Read, SRes},
+    ecs::system::{
+        lifetimeless::{Read, SRes},
+        SystemParamItem,
+    },
     math::UVec4,
-    prelude::Res,
     render::{
         mesh::GpuBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
@@ -52,7 +54,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
         _item: &Transparent2d,
         _view: (),
         transform_index: &'w DynamicUniformIndex<MeshUniform>,
-        transform_bind_group: Res<'w, TransformBindGroup>,
+        transform_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         pass.set_bind_group(
@@ -75,7 +77,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
         _item: &Transparent2d,
         _view: (),
         tilemap_uniform_index: &'w DynamicUniformIndex<TilemapUniformData>,
-        tilemap_bind_group: Res<'w, TilemapUniformDataBindGroup>,
+        tilemap_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         pass.set_bind_group(
@@ -98,7 +100,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
         _item: &Transparent2d,
         _view: (),
         texture: &'w TilemapTexture,
-        image_bind_groups: Res<'w, ImageBindGroups>,
+        image_bind_groups: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
@@ -118,7 +120,7 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
         item: &Transparent2d,
         _view: (),
         _entity: (),
-        pipeline_cache: Res<'w, PipelineCache>,
+        pipeline_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         if let Some(pipeline) = pipeline_cache
@@ -152,7 +154,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         _item: &Transparent2d,
         _view: (),
         (chunk_id, tilemap_id): (&'w ChunkId, &'w TilemapId),
-        chunk_storage: Res<'w, RenderChunk2dStorage>,
+        chunk_storage: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
