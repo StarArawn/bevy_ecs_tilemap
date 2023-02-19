@@ -1,6 +1,5 @@
 use bevy::math::Vec4Swizzles;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -241,39 +240,19 @@ fn swap_map_type(
 #[derive(Component)]
 struct Hovered;
 
-// Converts the cursor position into a world position, taking into account any transforms applied
-// the camera.
-pub fn cursor_pos_in_world(
-    window: &Query<&Window, With<PrimaryWindow>>,
-    cursor_pos: Vec2,
-    cam_t: &Transform,
-    cam: &Camera,
-) -> Vec3 {
-    let window = window.single();
-
-    let window_size = Vec2::new(window.width(), window.height());
-
-    // Convert screen position [0..resolution] to ndc [-1..1]
-    // (ndc = normalized device coordinates)
-    let ndc_to_world = cam_t.compute_matrix() * cam.projection_matrix().inverse();
-    let ndc = (cursor_pos / window_size) * 2.0 - Vec2::ONE;
-    ndc_to_world.project_point3(ndc.extend(0.0))
-}
-
 #[derive(Resource)]
-pub struct CursorPos(Vec3);
+pub struct CursorPos(Vec2);
 impl Default for CursorPos {
     fn default() -> Self {
         // Initialize the cursor pos at some far away place. It will get updated
         // correctly when the cursor moves.
-        Self(Vec3::new(-1000.0, -1000.0, 0.0))
+        Self(Vec2::new(-1000.0, -1000.0))
     }
 }
 
 // We need to keep the cursor position updated based on any `CursorMoved` events.
 pub fn update_cursor_pos(
-    windows: Query<&Window, With<PrimaryWindow>>,
-    camera_q: Query<(&Transform, &Camera)>,
+    camera_q: Query<(&GlobalTransform, &Camera)>,
     mut cursor_moved_events: EventReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
 ) {
@@ -282,12 +261,9 @@ pub fn update_cursor_pos(
         // any transforms on the camera. This is done by projecting the cursor position into
         // camera space (world space).
         for (cam_t, cam) in camera_q.iter() {
-            *cursor_pos = CursorPos(cursor_pos_in_world(
-                &windows,
-                cursor_moved.position,
-                cam_t,
-                cam,
-            ));
+            if let Some(pos) = cam.viewport_to_world_2d(cam_t, cursor_moved.position) {
+                *cursor_pos = CursorPos(pos);
+            }
         }
     }
 }
@@ -321,12 +297,12 @@ fn hover_highlight_tile_label(
 
     for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
         // Grab the cursor position from the `Res<CursorPos>`
-        let cursor_pos: Vec3 = cursor_pos.0;
+        let cursor_pos: Vec2 = cursor_pos.0;
         // We need to make sure that the cursor's world position is correct relative to the map
         // due to any map transformation.
         let cursor_in_map_pos: Vec2 = {
-            // Extend the cursor_pos vec3 by 1.0
-            let cursor_pos = Vec4::from((cursor_pos, 1.0));
+            // Extend the cursor_pos vec2 by 0.0 and 1.0
+            let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
             let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
