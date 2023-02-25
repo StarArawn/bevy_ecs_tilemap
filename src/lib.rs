@@ -16,7 +16,8 @@
 
 use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
-    IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
+    IntoSystemAppConfig, IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform,
+    Visibility,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -58,7 +59,7 @@ impl Plugin for TilemapPlugin {
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
             let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_system_to_schedule(ExtractSchedule, array_texture_preload::extract);
+            render_app.add_system(array_texture_preload::extract.in_schedule(ExtractSchedule));
         }
 
         app.register_type::<FrustumCulling>()

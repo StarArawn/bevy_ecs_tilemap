@@ -191,12 +191,15 @@ impl TextureArrayCache {
                         array_layer_count: NonZeroU32::new(count),
                     });
 
+                    let mip_level_count = gpu_texture.mip_level_count();
+
                     let gpu_image = GpuImage {
                         texture_format: *format,
                         texture: gpu_texture,
                         sampler,
                         texture_view,
                         size: tile_size.into(),
+                        mip_level_count,
                     };
 
                     self.textures.insert(texture.clone_weak(), gpu_image);
