@@ -163,6 +163,7 @@ impl TextureArrayCache {
                         dimension: TextureDimension::D2,
                         format: *format,
                         usage: TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[],
                     });
 
                     let sampler = render_device.create_sampler(&SamplerDescriptor {
@@ -197,6 +198,7 @@ impl TextureArrayCache {
                         sampler,
                         texture_view,
                         size: tile_size.into(),
+                        mip_level_count: 1, // todo: is this right?
                     };
 
                     self.textures.insert(texture.clone_weak(), gpu_image);

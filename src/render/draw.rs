@@ -1,11 +1,10 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
-    ecs::system::{
-        lifetimeless::{Read, SQuery, SRes},
+    ecs::{system::{
+        lifetimeless::{Read, SRes},
         SystemParamItem,
-    },
+    }, query::ROQueryItem},
     math::UVec4,
-    prelude::Entity,
     render::{
         mesh::GpuBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
@@ -28,35 +27,38 @@ use super::{
 
 pub struct SetMeshViewBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetMeshViewBindGroup<I> {
-    type Param = SQuery<(Read<ViewUniformOffset>, Read<TilemapViewBindGroup>)>;
+    type Param = ();
+    type ViewWorldQuery = (Read<ViewUniformOffset>, Read<TilemapViewBindGroup>);
+    type ItemWorldQuery = ();
+    
     #[inline]
     fn render<'w>(
-        view: Entity,
         _item: &Transparent2d,
-        view_query: SystemParamItem<'w, '_, Self::Param>,
+        // _view: (),
+        (view_uniform, pbr_view_bind_group): ROQueryItem<'w, Self::ViewWorldQuery>,
+        _entity: ROQueryItem<'w, Self::ItemWorldQuery>,
+        _param: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let (view_uniform, pbr_view_bind_group) = view_query.get_inner(view).unwrap();
         pass.set_bind_group(I, &pbr_view_bind_group.value, &[view_uniform.offset]);
-
         RenderCommandResult::Success
     }
 }
 
 pub struct SetTransformBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
-    type Param = (
-        SRes<TransformBindGroup>,
-        SQuery<Read<DynamicUniformIndex<MeshUniform>>>,
-    );
+    type Param = SRes<TransformBindGroup>;
+    type ViewWorldQuery = ();
+    type ItemWorldQuery = Read<DynamicUniformIndex<MeshUniform>>;
+    
     #[inline]
     fn render<'w>(
-        _view: Entity,
-        item: &Transparent2d,
-        (transform_bind_group, mesh_query): SystemParamItem<'w, '_, Self::Param>,
+        _item: &Transparent2d,
+        _view: (),
+        transform_index: ROQueryItem<'w, Self::ItemWorldQuery>,
+        transform_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let transform_index = mesh_query.get(item.entity).unwrap();
         pass.set_bind_group(
             I,
             &transform_bind_group.into_inner().value,
@@ -69,18 +71,18 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
 
 pub struct SetTilemapBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
-    type Param = (
-        SRes<TilemapUniformDataBindGroup>,
-        SQuery<Read<DynamicUniformIndex<TilemapUniformData>>>,
-    );
+    type Param = SRes<TilemapUniformDataBindGroup>;
+    type ItemWorldQuery = Read<DynamicUniformIndex<TilemapUniformData>>;
+    type ViewWorldQuery = ();
+    
     #[inline]
     fn render<'w>(
-        _view: Entity,
-        item: &Transparent2d,
-        (tilemap_bind_group, mesh_query): SystemParamItem<'w, '_, Self::Param>,
+        _item: &Transparent2d,
+        _view: (),
+        tilemap_uniform_index: ROQueryItem<'w, Self::ItemWorldQuery>,
+        tilemap_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let tilemap_uniform_index = mesh_query.get(item.entity).unwrap();
         pass.set_bind_group(
             I,
             &tilemap_bind_group.into_inner().value,
@@ -93,15 +95,18 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
 
 pub struct SetMaterialBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
-    type Param = (SRes<ImageBindGroups>, SQuery<Read<TilemapTexture>>);
+    type Param = SRes<ImageBindGroups>;
+    type ItemWorldQuery = Read<TilemapTexture>;
+    type ViewWorldQuery = ();
+    
     #[inline]
     fn render<'w>(
-        _view: Entity,
-        item: &Transparent2d,
-        (image_bind_groups, entities_with_textures): SystemParamItem<'w, '_, Self::Param>,
+        _item: &Transparent2d,
+        _view: (),
+        texture: ROQueryItem<'w, Self::ItemWorldQuery>,
+        image_bind_groups: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let texture = entities_with_textures.get(item.entity).unwrap();
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
         pass.set_bind_group(I, bind_group, &[]);
 
@@ -112,10 +117,14 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
 pub struct SetItemPipeline;
 impl RenderCommand<Transparent2d> for SetItemPipeline {
     type Param = SRes<PipelineCache>;
+    type ViewWorldQuery = ();
+    type ItemWorldQuery = ();
+    
     #[inline]
     fn render<'w>(
-        _view: Entity,
         item: &Transparent2d,
+        _view: (),
+        _entity: (),
         pipeline_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -142,18 +151,18 @@ pub type DrawTilemap = (
 
 pub struct DrawMesh;
 impl RenderCommand<Transparent2d> for DrawMesh {
-    type Param = (
-        SRes<RenderChunk2dStorage>,
-        SQuery<(Read<ChunkId>, Read<TilemapId>)>,
-    );
+    type Param = SRes<RenderChunk2dStorage>;
+    type ItemWorldQuery = (Read<ChunkId>, Read<TilemapId>);
+    type ViewWorldQuery = ();
+        
     #[inline]
     fn render<'w>(
-        _view: Entity,
-        item: &Transparent2d,
-        (chunk_storage, chunk_query): SystemParamItem<'w, '_, Self::Param>,
+        _item: &Transparent2d,
+        _view: (),
+        (chunk_id, tilemap_id): ROQueryItem<'w, Self::ItemWorldQuery>,
+        chunk_storage: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let (chunk_id, tilemap_id) = chunk_query.get(item.entity).unwrap();
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
             chunk_id.0.x,
             chunk_id.0.y,

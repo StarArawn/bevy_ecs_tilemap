@@ -190,7 +190,7 @@ pub fn queue_meshes(
                         });
 
                     let key = TilemapPipelineKey {
-                        msaa: msaa.samples,
+                        msaa: msaa.samples(),
                         map_type: chunk.get_map_type(),
                         hdr: view.hdr,
                     };

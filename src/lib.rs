@@ -14,10 +14,10 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreStage, Deref, GlobalTransform, Plugin,
-    Query, Reflect, ReflectComponent, Transform, Visibility,
-};
+use bevy::{prelude::{
+    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform, Plugin,
+    Query, Reflect, ReflectComponent, Transform, Visibility, IntoSystemConfig, IntoSystemAppConfig,
+}, render::ExtractSchedule};
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
@@ -29,7 +29,7 @@ use tiles::{
 };
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
-use bevy::render::{RenderApp, RenderStage};
+use bevy::render::RenderApp;
 
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -52,13 +52,13 @@ impl Plugin for TilemapPlugin {
         #[cfg(feature = "render")]
         app.add_plugin(render::TilemapRenderingPlugin);
 
-        app.add_system_to_stage(CoreStage::First, update_changed_tile_positions);
+        app.add_system(update_changed_tile_positions.in_base_set(CoreSet::First));
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
             let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_system_to_stage(RenderStage::Extract, array_texture_preload::extract);
+            render_app.add_system(array_texture_preload::extract.in_schedule(ExtractSchedule));
         }
 
         app.register_type::<FrustumCulling>()
