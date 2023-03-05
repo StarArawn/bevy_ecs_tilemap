@@ -176,7 +176,8 @@ pub struct ExtractedFrustum {
 
 impl ExtractedFrustum {
     pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
-        self.frustum.intersects_obb(aabb, transform_matrix, true, false)
+        self.frustum
+            .intersects_obb(aabb, transform_matrix, true, false)
     }
 }
 

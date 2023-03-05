@@ -14,10 +14,14 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::{prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform, Plugin,
-    Query, Reflect, ReflectComponent, Transform, Visibility, IntoSystemConfig, IntoSystemAppConfig,
-}, render::ExtractSchedule};
+use bevy::{
+    prelude::{
+        Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
+        IntoSystemAppConfig, IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform,
+        Visibility,
+    },
+    render::ExtractSchedule,
+};
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,

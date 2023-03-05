@@ -1,9 +1,12 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
-    ecs::{system::{
-        lifetimeless::{Read, SRes},
-        SystemParamItem,
-    }, query::ROQueryItem},
+    ecs::{
+        query::ROQueryItem,
+        system::{
+            lifetimeless::{Read, SRes},
+            SystemParamItem,
+        },
+    },
     math::UVec4,
     render::{
         mesh::GpuBufferInfo,
@@ -30,7 +33,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMeshViewBindGroup<I> {
     type Param = ();
     type ViewWorldQuery = (Read<ViewUniformOffset>, Read<TilemapViewBindGroup>);
     type ItemWorldQuery = ();
-    
+
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
@@ -50,7 +53,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
     type Param = SRes<TransformBindGroup>;
     type ViewWorldQuery = ();
     type ItemWorldQuery = Read<DynamicUniformIndex<MeshUniform>>;
-    
+
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
@@ -74,7 +77,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
     type Param = SRes<TilemapUniformDataBindGroup>;
     type ItemWorldQuery = Read<DynamicUniformIndex<TilemapUniformData>>;
     type ViewWorldQuery = ();
-    
+
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
@@ -98,7 +101,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
     type Param = SRes<ImageBindGroups>;
     type ItemWorldQuery = Read<TilemapTexture>;
     type ViewWorldQuery = ();
-    
+
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
@@ -119,7 +122,7 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
     type Param = SRes<PipelineCache>;
     type ViewWorldQuery = ();
     type ItemWorldQuery = ();
-    
+
     #[inline]
     fn render<'w>(
         item: &Transparent2d,
@@ -154,7 +157,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
     type Param = SRes<RenderChunk2dStorage>;
     type ItemWorldQuery = (Read<ChunkId>, Read<TilemapId>);
     type ViewWorldQuery = ();
-        
+
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,

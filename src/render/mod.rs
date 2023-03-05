@@ -233,7 +233,9 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .add_system(prepare::prepare.in_set(RenderSet::Prepare))
             .add_system(
-                prepare::prepare_removal.before(prepare::prepare).in_set(RenderSet::Prepare),
+                prepare::prepare_removal
+                    .before(prepare::prepare)
+                    .in_set(RenderSet::Prepare),
             )
             .add_system(queue::queue_meshes.in_set(RenderSet::Queue))
             .add_system(queue::queue_transform_bind_group.in_set(RenderSet::Queue))
@@ -296,7 +298,10 @@ fn removal_helper(mut commands: Commands, mut removed_query: RemovedComponents<T
     }
 }
 
-fn removal_helper_tilemap(mut commands: Commands, mut removed_query: RemovedComponents<TileStorage>) {
+fn removal_helper_tilemap(
+    mut commands: Commands,
+    mut removed_query: RemovedComponents<TileStorage>,
+) {
     for entity in removed_query.iter() {
         commands.spawn(RemovedMapEntity(entity));
     }
