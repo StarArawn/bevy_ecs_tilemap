@@ -16,8 +16,7 @@
 
 use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
-    IntoSystemAppConfig, IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform,
-    Visibility,
+    IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -30,7 +29,10 @@ use tiles::{
 };
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
-use bevy::render::{ExtractSchedule, RenderApp};
+use bevy::{
+    prelude::IntoSystemAppConfig,
+    render::{ExtractSchedule, RenderApp},
+};
 
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
