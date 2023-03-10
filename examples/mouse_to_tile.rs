@@ -370,6 +370,9 @@ fn highlight_tile_labels(
     }
 }
 
+#[derive(SystemSet, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub struct SpawnLabelsSet;
+
 fn main() {
     App::new()
         .add_plugins(
@@ -393,10 +396,9 @@ fn main() {
         .add_startup_systems(
             (spawn_tilemap, apply_system_buffers)
                 .chain()
-                .before(spawn_tile_labels)
-                .before(spawn_map_type_label),
+                .before(SpawnLabelsSet),
         )
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label))
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).in_set(SpawnLabelsSet))
         .add_systems(
             (camera_movement, update_cursor_pos)
                 .chain()

@@ -423,6 +423,9 @@ fn highlight_neighbor_label(
     }
 }
 
+#[derive(SystemSet, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub struct SpawnLabelsSet;
+
 fn main() {
     App::new()
         .add_plugins(
@@ -443,8 +446,8 @@ fn main() {
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
-        .add_startup_systems((spawn_tilemap, apply_system_buffers).chain().before(spawn_tile_labels).before(spawn_map_type_label))
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label))
+        .add_startup_systems((spawn_tilemap, apply_system_buffers).chain().before(spawn_tile_labels).before(SpawnLabelsSet))
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).in_set(SpawnLabelsSet))
         .add_systems((camera_movement, update_cursor_pos).chain().in_base_set(CoreSet::First))
         .add_system(swap_map_type)
         .add_system(hover_highlight_tile_label.after(swap_map_type))
