@@ -371,7 +371,7 @@ fn highlight_tile_labels(
 }
 
 #[derive(SystemSet, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub struct SpawnLabelsSet;
+pub struct SpawnTilemapSet;
 
 fn main() {
     App::new()
@@ -396,9 +396,9 @@ fn main() {
         .add_startup_systems(
             (spawn_tilemap, apply_system_buffers)
                 .chain()
-                .before(SpawnLabelsSet),
+                .in_set(SpawnTilemapSet),
         )
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).in_set(SpawnLabelsSet))
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(
             (camera_movement, update_cursor_pos)
                 .chain()
