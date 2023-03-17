@@ -82,10 +82,10 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Some(Window {
                         title: String::from("Visibility Example"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),

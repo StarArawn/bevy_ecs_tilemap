@@ -98,7 +98,7 @@ fn spawn_tile_labels(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::CENTER;
+    let text_alignment = TextAlignment::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -130,7 +130,7 @@ pub struct MapTypeLabel;
 fn spawn_map_type_label(
     mut commands: Commands,
     font_handle: Res<FontHandle>,
-    windows: Res<Windows>,
+    windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
     let text_style = TextStyle {
@@ -138,7 +138,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::CENTER;
+    let text_alignment = TextAlignment::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -220,7 +220,7 @@ fn swap_map_type(
                 _ => unreachable!(),
             }
 
-            *map_transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
+            *map_transform = get_tilemap_center_transform(map_size, &grid_size, &map_type, 0.0);
 
             for (label, tile_pos) in tile_label_q.iter() {
                 if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
@@ -240,39 +240,19 @@ fn swap_map_type(
 #[derive(Component)]
 struct Hovered;
 
-// Converts the cursor position into a world position, taking into account any transforms applied
-// the camera.
-pub fn cursor_pos_in_world(
-    windows: &Windows,
-    cursor_pos: Vec2,
-    cam_t: &Transform,
-    cam: &Camera,
-) -> Vec3 {
-    let window = windows.primary();
-
-    let window_size = Vec2::new(window.width(), window.height());
-
-    // Convert screen position [0..resolution] to ndc [-1..1]
-    // (ndc = normalized device coordinates)
-    let ndc_to_world = cam_t.compute_matrix() * cam.projection_matrix().inverse();
-    let ndc = (cursor_pos / window_size) * 2.0 - Vec2::ONE;
-    ndc_to_world.project_point3(ndc.extend(0.0))
-}
-
 #[derive(Resource)]
-pub struct CursorPos(Vec3);
+pub struct CursorPos(Vec2);
 impl Default for CursorPos {
     fn default() -> Self {
         // Initialize the cursor pos at some far away place. It will get updated
         // correctly when the cursor moves.
-        Self(Vec3::new(-1000.0, -1000.0, 0.0))
+        Self(Vec2::new(-1000.0, -1000.0))
     }
 }
 
 // We need to keep the cursor position updated based on any `CursorMoved` events.
 pub fn update_cursor_pos(
-    windows: Res<Windows>,
-    camera_q: Query<(&Transform, &Camera)>,
+    camera_q: Query<(&GlobalTransform, &Camera)>,
     mut cursor_moved_events: EventReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
 ) {
@@ -281,12 +261,9 @@ pub fn update_cursor_pos(
         // any transforms on the camera. This is done by projecting the cursor position into
         // camera space (world space).
         for (cam_t, cam) in camera_q.iter() {
-            *cursor_pos = CursorPos(cursor_pos_in_world(
-                &windows,
-                cursor_moved.position,
-                cam_t,
-                cam,
-            ));
+            if let Some(pos) = cam.viewport_to_world_2d(cam_t, cursor_moved.position) {
+                *cursor_pos = CursorPos(pos);
+            }
         }
     }
 }
@@ -320,12 +297,12 @@ fn hover_highlight_tile_label(
 
     for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
         // Grab the cursor position from the `Res<CursorPos>`
-        let cursor_pos: Vec3 = cursor_pos.0;
+        let cursor_pos: Vec2 = cursor_pos.0;
         // We need to make sure that the cursor's world position is correct relative to the map
         // due to any map transformation.
         let cursor_in_map_pos: Vec2 = {
-            // Extend the cursor_pos vec3 by 1.0
-            let cursor_pos = Vec4::from((cursor_pos, 1.0));
+            // Extend the cursor_pos vec2 by 0.0 and 1.0
+            let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
             let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
@@ -446,17 +423,20 @@ fn highlight_neighbor_label(
     }
 }
 
+#[derive(SystemSet, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub struct SpawnTilemapSet;
+
 fn main() {
     App::new()
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Some(Window {
                         title: String::from(
                             "Hexagon Neighbors - Hover over a tile, and then press 0-5 to mark neighbors",
                         ),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
@@ -466,11 +446,9 @@ fn main() {
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
-        .add_startup_system(spawn_tilemap)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_tile_labels)
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_map_type_label)
-        .add_system_to_stage(CoreStage::First, camera_movement)
-        .add_system_to_stage(CoreStage::First, update_cursor_pos.after(camera_movement))
+        .add_startup_systems((spawn_tilemap, apply_system_buffers).chain().in_set(SpawnTilemapSet))
+        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
+        .add_systems((camera_movement, update_cursor_pos).chain().in_base_set(CoreSet::First))
         .add_system(swap_map_type)
         .add_system(hover_highlight_tile_label.after(swap_map_type))
         .add_system(highlight_neighbor_label.after(hover_highlight_tile_label))

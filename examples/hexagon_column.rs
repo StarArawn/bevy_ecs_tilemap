@@ -110,7 +110,7 @@ fn swap_mesh_type(
                 _ => {}
             }
 
-            *transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
+            *transform = get_tilemap_center_transform(map_size, grid_size, &map_type, 0.0);
         }
     }
 }
@@ -120,10 +120,10 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Some(Window {
                         title: String::from("Hexagon Column Example"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),

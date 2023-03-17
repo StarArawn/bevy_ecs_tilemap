@@ -115,9 +115,8 @@ impl ExtractedTilemapTexture {
                     let this_tile_size: TilemapTileSize = image.size().into();
                     if this_tile_size != tile_size {
                         panic!(
-                            "Expected all provided image assets to have size {:?}, \
-                                    but found image with size: {:?}",
-                            tile_size, this_tile_size
+                            "Expected all provided image assets to have size {tile_size:?}, \
+                                    but found image with size: {this_tile_size:?}",
                         );
                     }
                 }
@@ -176,7 +175,8 @@ pub struct ExtractedFrustum {
 
 impl ExtractedFrustum {
     pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
-        self.frustum.intersects_obb(aabb, transform_matrix, false)
+        self.frustum
+            .intersects_obb(aabb, transform_matrix, true, false)
     }
 }
 
