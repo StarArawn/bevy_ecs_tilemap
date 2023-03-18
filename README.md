@@ -13,13 +13,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
  - Layers and sparse tile maps.
  - GPU powered animations.
  - Isometric and Hexagonal tile maps.
- - Initial support for Tiled file exports.
-
-## Upcoming Features
- - [x] Support for isometric and hexagon rendering.
- - [x] Built in animation support  – see [`animation` example](examples/animation.rs).
- - [x] Texture array support.
-
+ - Examples for integration with [Tiled](https://www.mapeditor.org/) and [LDTK](https://ldtk.io/) editors.
 
 ## Screenshots
 ![iso](screenshots/iso.png)
@@ -87,13 +81,13 @@ cargo run --target wasm32-unknown-unknown --example animation --release --featur
 
 ## Known Issues
  - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
- - Besides the above no known issues.
 
 ## Bevy Compatibility
 
 |bevy|bevy_ecs_tilemap|
 |---|---|
 |`main`|`bevy-track`|
+|0.10|0.10|
 |0.9|0.9|
 |0.8|0.8|
 |0.8|0.7|
