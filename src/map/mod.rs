@@ -153,15 +153,19 @@ impl TilemapTexture {
     /// Sets images with the `COPY_SRC` flag.
     pub fn set_images_to_copy_src(&self, images: &mut ResMut<Assets<Image>>) {
         for handle in self.image_handles() {
-            if let Some(mut image) = images.get_mut(handle) {
+            // NOTE: We retrieve it non-mutably first to avoid triggering an `AssetEvent::Modified`
+            // if we didn't actually need to modify it
+            if let Some(image) = images.get(handle) {
                 if !image
                     .texture_descriptor
                     .usage
                     .contains(TextureUsages::COPY_SRC)
                 {
-                    image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
-                        | TextureUsages::COPY_SRC
-                        | TextureUsages::COPY_DST;
+                    if let Some(mut image) = images.get_mut(handle) {
+                        image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+                            | TextureUsages::COPY_SRC
+                            | TextureUsages::COPY_DST;
+                    };
                 }
             }
         }
