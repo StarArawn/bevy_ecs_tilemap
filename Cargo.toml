@@ -15,7 +15,7 @@ atlas = []
 render = []
 
 [dependencies]
-bevy = { version = "0.9", default-features = false, features = [
+bevy = { version = "0.10", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
@@ -30,10 +30,10 @@ ldtk_rust = { version = "0.6" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
-tiled = { version = "0.9", default-features = false }
+tiled = { version = "0.10.2", default-features = false }
 
 [dev-dependencies.bevy]
-version = "0.9"
+version = "0.10"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -48,7 +48,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.9"
+version = "0.10"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -61,7 +61,3 @@ features = [
     "bevy_text",
     "bevy_sprite",
 ]
-
-[[example]]
-name = "ldtk"
-path = "examples/ldtk/ldtk_usage.rs"

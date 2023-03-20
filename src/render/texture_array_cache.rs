@@ -90,9 +90,8 @@ impl TextureArrayCache {
                     let this_tile_size: TilemapTileSize = image.size().try_into().unwrap();
                     if this_tile_size != tile_size {
                         panic!(
-                            "Expected all provided image assets to have size {:?}, \
-                                    but found image with size: {:?}",
-                            tile_size, this_tile_size
+                            "Expected all provided image assets to have size {tile_size:?}, \
+                                    but found image with size: {this_tile_size:?}",
                         );
                     }
                 }
@@ -163,6 +162,7 @@ impl TextureArrayCache {
                         dimension: TextureDimension::D2,
                         format: *format,
                         usage: TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[],
                     });
 
                     let sampler = render_device.create_sampler(&SamplerDescriptor {
@@ -191,12 +191,15 @@ impl TextureArrayCache {
                         array_layer_count: NonZeroU32::new(count),
                     });
 
+                    let mip_level_count = gpu_texture.mip_level_count();
+
                     let gpu_image = GpuImage {
                         texture_format: *format,
                         texture: gpu_texture,
                         sampler,
                         texture_view,
                         size: tile_size.into(),
+                        mip_level_count,
                     };
 
                     self.textures.insert(texture.clone_weak(), gpu_image);

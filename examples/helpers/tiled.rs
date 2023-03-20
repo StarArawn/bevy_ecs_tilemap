@@ -1,7 +1,22 @@
+// How to use this:
+//   You should copy/paste this into your project and use it much like examples/tiles.rs uses this
+//   file. When you do so you will need to adjust the code based on whether you're using the
+//   'atlas` feature in bevy_ecs_tilemap. The bevy_ecs_tilemap uses this as an example of how to
+//   use both single image tilesets and image collection tilesets. Since your project won't have
+//   the 'atlas' feature defined in your Cargo config, the expressions prefixed by the #[cfg(...)]
+//   macro will not compile in your project as-is. If your project depends on the bevy_ecs_tilemap
+//   'atlas' feature then move all of the expressions prefixed by #[cfg(not(feature = "atlas"))].
+//   Otherwise remove all of the expressions prefixed by #[cfg(feature = "atlas")].
+//
+// Functional limitations:
+//   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
+//   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
+
 use std::io::BufReader;
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
+    log,
     prelude::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
         Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
@@ -10,6 +25,8 @@ use bevy::{
     utils::HashMap,
 };
 use bevy_ecs_tilemap::prelude::*;
+
+use anyhow::Result;
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -26,7 +43,12 @@ impl Plugin for TiledMapPlugin {
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,
-    pub tilesets: HashMap<u32, Handle<Image>>,
+
+    pub tilemap_textures: HashMap<usize, TilemapTexture>,
+
+    // The offset into the tileset_images for each tile id within each tileset.
+    #[cfg(not(feature = "atlas"))]
+    pub tile_image_offsets: HashMap<(usize, tiled::TileId), u32>,
 }
 
 // Stores a list of tiled layers.
@@ -50,30 +72,77 @@ impl AssetLoader for TiledLoader {
         &'a self,
         bytes: &'a [u8],
         load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::asset::BoxedFuture<'a, anyhow::Result<(), anyhow::Error>> {
+    ) -> bevy::asset::BoxedFuture<'a, Result<()>> {
         Box::pin(async move {
-            let root_dir = load_context.path().parent().unwrap();
-            let map = tiled::parse(BufReader::new(bytes))?;
+            // The load context path is the TMX file itself. If the file is at the root of the
+            // assets/ directory structure then the tmx_dir will be empty, which is fine.
+            let tmx_dir = load_context
+                .path()
+                .parent()
+                .expect("The asset load context was empty.");
+
+            let mut loader = tiled::Loader::new();
+            let map = loader
+                .load_tmx_map_from(BufReader::new(bytes), load_context.path())
+                .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
 
             let mut dependencies = Vec::new();
-            let mut handles = HashMap::default();
+            let mut tilemap_textures = HashMap::default();
+            #[cfg(not(feature = "atlas"))]
+            let mut tile_image_offsets = HashMap::default();
 
-            for tileset in &map.tilesets {
-                let tile_path = root_dir.join(tileset.images.first().unwrap().source.as_str());
-                let asset_path = AssetPath::new(tile_path, None);
-                let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
+            for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+                let tilemap_texture = match &tileset.image {
+                    None => {
+                        #[cfg(feature = "atlas")]
+                        {
+                            log::info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
+                            continue;
+                        }
 
-                for i in tileset.first_gid..(tileset.first_gid + tileset.tilecount.unwrap_or(1)) {
-                    handles.insert(i, texture.clone());
-                }
+                        #[cfg(not(feature = "atlas"))]
+                        {
+                            let mut tile_images: Vec<Handle<Image>> = Vec::new();
+                            for (tile_id, tile) in tileset.tiles() {
+                                if let Some(img) = &tile.image {
+                                    let tile_path = tmx_dir.join(&img.source);
+                                    let asset_path = AssetPath::new(tile_path, None);
+                                    log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                    let texture: Handle<Image> =
+                                        load_context.get_handle(asset_path.clone());
+                                    tile_image_offsets
+                                        .insert((tileset_index, tile_id), tile_images.len() as u32);
+                                    tile_images.push(texture.clone());
+                                    dependencies.push(asset_path);
+                                }
+                            }
 
-                dependencies.push(asset_path);
+                            TilemapTexture::Vector(tile_images)
+                        }
+                    }
+                    Some(img) => {
+                        let tile_path = tmx_dir.join(&img.source);
+                        let asset_path = AssetPath::new(tile_path, None);
+                        let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
+                        dependencies.push(asset_path);
+
+                        TilemapTexture::Single(texture.clone())
+                    }
+                };
+
+                tilemap_textures.insert(tileset_index, tilemap_texture);
             }
 
-            let loaded_asset = LoadedAsset::new(TiledMap {
+            let asset_map = TiledMap {
                 map,
-                tilesets: handles,
-            });
+                tilemap_textures,
+                #[cfg(not(feature = "atlas"))]
+                tile_image_offsets,
+            };
+
+            log::info!("Loaded map: {}", load_context.path().display());
+
+            let loaded_asset = LoadedAsset::new(asset_map);
             load_context.set_default_asset(loaded_asset.with_dependencies(dependencies));
             Ok(())
         })
@@ -135,20 +204,49 @@ pub fn process_loaded_maps(
                     // commands.entity(*layer_entity).despawn_recursive();
                 }
 
-                for tileset in tiled_map.map.tilesets.iter() {
-                    // Once materials have been created/added we need to then create the layers.
-                    for layer in tiled_map.map.layers.iter() {
-                        let tile_size = TilemapTileSize {
-                            x: tileset.tile_width as f32,
-                            y: tileset.tile_height as f32,
-                        };
-                        let tile_spacing = TilemapSpacing {
-                            x: tileset.spacing as f32,
-                            y: tileset.spacing as f32,
+                // The TilemapBundle requires that all tile images come exclusively from a single
+                // tiled texture or from a Vec of independent per-tile images. Furthermore, all of
+                // the per-tile images must be the same size. Since Tiled allows tiles of mixed
+                // tilesets on each layer and allows differently-sized tile images in each tileset,
+                // this means we need to load each combination of tileset and layer separately.
+                for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
+                    let Some(tilemap_texture) = tiled_map
+                        .tilemap_textures
+                        .get(&tileset_index) else {
+                            log::warn!("Skipped creating layer with missing tilemap textures.");
+                            continue;
                         };
 
+                    let tile_size = TilemapTileSize {
+                        x: tileset.tile_width as f32,
+                        y: tileset.tile_height as f32,
+                    };
+
+                    let tile_spacing = TilemapSpacing {
+                        x: tileset.spacing as f32,
+                        y: tileset.spacing as f32,
+                    };
+
+                    // Once materials have been created/added we need to then create the layers.
+                    for (layer_index, layer) in tiled_map.map.layers().enumerate() {
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
+
+                        let tiled::LayerType::TileLayer(tile_layer) = layer.layer_type() else {
+                            log::info!(
+                                "Skipping layer {} because only tile layers are supported.",
+                                layer.id()
+                            );
+                            continue;
+                        };
+
+                        let tiled::TileLayer::Finite(layer_data) = tile_layer else {
+                            log::info!(
+                                "Skipping layer {} because only finite layers are supported.",
+                                layer.id()
+                            );
+                            continue;
+                        };
 
                         let map_size = TilemapSize {
                             x: tiled_map.map.width,
@@ -183,33 +281,46 @@ pub fn process_loaded_maps(
                                     mapped_y = (tiled_map.map.height - 1) - y;
                                 }
 
-                                let mapped_x = x as usize;
-                                let mapped_y = mapped_y as usize;
+                                let mapped_x = x as i32;
+                                let mapped_y = mapped_y as i32;
 
-                                let map_tile = match &layer.tiles {
-                                    tiled::LayerData::Finite(tiles) => &tiles[mapped_y][mapped_x],
-                                    _ => panic!("Infinite maps not supported"),
+                                let layer_tile = match layer_data.get_tile(mapped_x, mapped_y) {
+                                    Some(t) => t,
+                                    None => {
+                                        continue;
+                                    }
                                 };
-
-                                if map_tile.gid < tileset.first_gid
-                                    || map_tile.gid
-                                        >= tileset.first_gid + tileset.tilecount.unwrap()
-                                {
+                                if tileset_index != layer_tile.tileset_index() {
                                     continue;
                                 }
+                                let layer_tile_data =
+                                    match layer_data.get_tile_data(mapped_x, mapped_y) {
+                                        Some(d) => d,
+                                        None => {
+                                            continue;
+                                        }
+                                    };
 
-                                let tile_id = map_tile.gid - tileset.first_gid;
+                                let texture_index = match tilemap_texture {
+                                    TilemapTexture::Single(_) => layer_tile.id(),
+                                    #[cfg(not(feature = "atlas"))]
+                                    TilemapTexture::Vector(_) =>
+                                        *tiled_map.tile_image_offsets.get(&(tileset_index, layer_tile.id()))
+                                        .expect("The offset into to image vector should have been saved during the initial load."),
+                                    #[cfg(not(feature = "atlas"))]
+                                    _ => unreachable!()
+                                };
 
                                 let tile_pos = TilePos { x, y };
                                 let tile_entity = commands
                                     .spawn(TileBundle {
                                         position: tile_pos,
                                         tilemap_id: TilemapId(layer_entity),
-                                        texture_index: TileTextureIndex(tile_id),
+                                        texture_index: TileTextureIndex(texture_index),
                                         flip: TileFlip {
-                                            x: map_tile.flip_h,
-                                            y: map_tile.flip_v,
-                                            d: map_tile.flip_d,
+                                            x: layer_tile_data.flip_h,
+                                            y: layer_tile_data.flip_v,
+                                            d: layer_tile_data.flip_d,
                                         },
                                         ..Default::default()
                                     })
@@ -222,20 +333,14 @@ pub fn process_loaded_maps(
                             grid_size,
                             size: map_size,
                             storage: tile_storage,
-                            texture: TilemapTexture::Single(
-                                tiled_map
-                                    .tilesets
-                                    .get(&tileset.first_gid)
-                                    .unwrap()
-                                    .clone_weak(),
-                            ),
+                            texture: tilemap_texture.clone(),
                             tile_size,
                             spacing: tile_spacing,
                             transform: get_tilemap_center_transform(
                                 &map_size,
                                 &grid_size,
                                 &map_type,
-                                layer.layer_index as f32,
+                                layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
                             map_type,
                             ..Default::default()
@@ -243,7 +348,7 @@ pub fn process_loaded_maps(
 
                         layer_storage
                             .storage
-                            .insert(layer.layer_index, layer_entity);
+                            .insert(layer_index as u32, layer_entity);
                     }
                 }
             }

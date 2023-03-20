@@ -115,9 +115,8 @@ impl ExtractedTilemapTexture {
                     let this_tile_size: TilemapTileSize = image.size().into();
                     if this_tile_size != tile_size {
                         panic!(
-                            "Expected all provided image assets to have size {:?}, \
-                                    but found image with size: {:?}",
-                            tile_size, this_tile_size
+                            "Expected all provided image assets to have size {tile_size:?}, \
+                                    but found image with size: {this_tile_size:?}",
                         );
                     }
                 }
@@ -176,7 +175,8 @@ pub struct ExtractedFrustum {
 
 impl ExtractedFrustum {
     pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
-        self.frustum.intersects_obb(aabb, transform_matrix, false)
+        self.frustum
+            .intersects_obb(aabb, transform_matrix, true, false)
     }
 }
 
@@ -294,7 +294,7 @@ pub fn extract(
                     spacing: *data.3,
                     grid_size: *data.4,
                     map_type: *data.5,
-                    texture: data.6.clone(),
+                    texture: data.6.clone_weak(),
                     map_size: *data.7,
                     visibility: data.8.clone(),
                     frustum_culling: *data.9,
@@ -329,7 +329,7 @@ pub fn extract(
                         spacing: *data.3,
                         grid_size: *data.4,
                         map_type: *data.5,
-                        texture: data.6.clone(),
+                        texture: data.6.clone_weak(),
                         map_size: *data.7,
                         visibility: data.8.clone(),
                         frustum_culling: *data.9,
@@ -350,7 +350,7 @@ pub fn extract(
                 ExtractedTilemapTextureBundle {
                     data: ExtractedTilemapTexture::new(
                         entity,
-                        texture.clone(),
+                        texture.clone_weak(),
                         *tile_size,
                         *tile_spacing,
                         default_image_settings.0.min_filter,

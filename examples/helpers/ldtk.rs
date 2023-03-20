@@ -25,7 +25,7 @@ impl Plugin for LdtkPlugin {
 }
 
 #[derive(TypeUuid)]
-#[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
+#[uuid = "abf9eaf2-f21c-4b46-89b0-8aa5c42199af"]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,
     pub tilesets: HashMap<i64, Handle<Image>>,
@@ -110,10 +110,7 @@ pub fn process_loaded_tile_maps(
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps = changed_maps
-                    .into_iter()
-                    .filter(|changed_handle| changed_handle == handle)
-                    .collect();
+                changed_maps.retain(|changed_handle| changed_handle == handle);
             }
         }
     }
@@ -140,7 +137,7 @@ pub fn process_loaded_tile_maps(
                         tileset.uid,
                         (
                             ldtk_map.tilesets.get(&tileset.uid).unwrap().clone(),
-                            tileset.clone(),
+                            tileset,
                         ),
                     );
                 });

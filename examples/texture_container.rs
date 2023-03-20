@@ -62,8 +62,7 @@ mod no_atlas {
                 .unwrap()
                 .0;
             let tile_entity = commands
-                .spawn_empty()
-                .insert(TileBundle {
+                .spawn(TileBundle {
                     position,
                     tilemap_id,
                     texture_index: texture,
@@ -94,12 +93,10 @@ mod no_atlas {
             .add_plugins(
                 DefaultPlugins
                     .set(WindowPlugin {
-                        window: WindowDescriptor {
-                            width: 1270.0,
-                            height: 720.0,
+                        primary_window: Some(Window {
                             title: String::from("Using TilemapTexture::TextureContainer"),
                             ..Default::default()
-                        },
+                        }),
                         ..default()
                     })
                     .set(ImagePlugin::default_nearest()),

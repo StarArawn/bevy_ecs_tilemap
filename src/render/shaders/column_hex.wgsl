@@ -2,10 +2,10 @@
 
 #import bevy_ecs_tilemap::mesh_output
 
-let SQRT_3: f32 = 1.7320508;
-let HALF_SQRT_3: f32 = 0.8660254;
-let COL_BASIS_X: vec2<f32> = vec2<f32>(HALF_SQRT_3, 0.5);
-let COL_BASIS_Y: vec2<f32> = vec2<f32>(0.0, 1.0);
+const SQRT_3: f32 = 1.7320508;
+const HALF_SQRT_3: f32 = 0.8660254;
+const COL_BASIS_X: vec2<f32> = vec2<f32>(HALF_SQRT_3, 0.5);
+const COL_BASIS_Y: vec2<f32> = vec2<f32>(0.0, 1.0);
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
@@ -13,13 +13,12 @@ fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f
     return vec2<f32>(COL_BASIS_X.x * grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
 }
 
-
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
     var out: MeshOutput;
 
-    var center = hex_col_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var bot_left = center - 0.5 * tilemap_data.tile_size;
-    var top_right = bot_left + tilemap_data.tile_size;
+    let center = hex_col_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    let bot_left = center - 0.5 * tilemap_data.tile_size;
+    let top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,

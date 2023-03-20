@@ -19,12 +19,10 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
-                        width: 1270.0,
-                        height: 720.0,
+                    primary_window: Some(Window {
                         title: String::from("Tiled Map Editor Rotated Example"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())

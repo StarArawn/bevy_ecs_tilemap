@@ -2,8 +2,8 @@
 
 #import bevy_ecs_tilemap::mesh_output
 
-let DIAMOND_BASIS_X: vec2<f32> = vec2<f32>(0.5, -0.5);
-let DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);
+const DIAMOND_BASIS_X: vec2<f32> = vec2<f32>(0.5, -0.5);
+const DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn diamond_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
@@ -19,9 +19,9 @@ fn staggered_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height:
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
     var out: MeshOutput;
 
-    var center = staggered_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
-    var bot_left = center - 0.5 * tilemap_data.tile_size;
-    var top_right = bot_left + tilemap_data.tile_size;
+    let center = staggered_tile_pos_to_world_pos(vertex_position.xy, tilemap_data.grid_size.x, tilemap_data.grid_size.y);
+    let bot_left = center - 0.5 * tilemap_data.tile_size;
+    let top_right = bot_left + tilemap_data.tile_size;
 
     var positions = array<vec2<f32>, 4>(
         bot_left,

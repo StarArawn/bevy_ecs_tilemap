@@ -219,12 +219,12 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                     write_mask: ColorWrites::ALL,
                 })],
             }),
-            layout: Some(vec![
+            layout: vec![
                 self.view_layout.clone(),
                 self.mesh_layout.clone(),
                 self.uniform_layout.clone(),
                 self.material_layout.clone(),
-            ]),
+            ],
             primitive: PrimitiveState {
                 conservative: false,
                 cull_mode: Some(Face::Back),
@@ -241,6 +241,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 alpha_to_coverage_enabled: false,
             },
             label: Some("tilemap_pipeline".into()),
+            push_constant_ranges: vec![],
         }
     }
 }
