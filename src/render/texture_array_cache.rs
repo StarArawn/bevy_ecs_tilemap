@@ -248,9 +248,9 @@ impl TextureArrayCache {
                     for i in 0..count {
                         let columns = (texture_size.x / (tile_size.x + spacing.x)).floor();
                         let sprite_sheet_x: f32 =
-                            (i as f32 % columns).floor() * (tile_size.x + spacing.x) + spacing.x;
+                            (i as f32 % columns).floor() * (tile_size.x + spacing.x);
                         let sprite_sheet_y: f32 =
-                            (i as f32 / columns).floor() * (tile_size.y + spacing.y) + spacing.y;
+                            (i as f32 / columns).floor() * (tile_size.y + spacing.y);
 
                         command_encoder.copy_texture_to_texture(
                             ImageCopyTexture {
