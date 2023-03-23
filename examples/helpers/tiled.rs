@@ -12,7 +12,7 @@
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
-use std::io::BufReader;
+use std::path::Path;
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
@@ -27,6 +27,7 @@ use bevy::{
 use bevy_ecs_tilemap::prelude::*;
 
 use anyhow::Result;
+use tiled::{StaggerAxis, StaggerIndex};
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -65,6 +66,58 @@ pub struct TiledMapBundle {
     pub global_transform: GlobalTransform,
 }
 
+// Because bevy assetloader is pre load bytes for our
+// so we do not need reopen tmx file which supply from rs-tiled.
+struct BytesResourceReader<'a>(&'a [u8], &'a Path);
+
+impl<'a> tiled::ResourceReader for BytesResourceReader<'a> {
+    type Resource = &'a [u8];
+    type Error = std::io::Error;
+    fn read_from(&mut self, path: &Path) -> std::result::Result<Self::Resource, Self::Error> {
+        if path == self.1 {
+            Ok(self.0)
+        } else {
+            // It is not safe for rust-lang to really open file and return bytes
+            // So we just send file no found.
+            Err(std::io::Error::new(std::io::ErrorKind::NotFound, "file not found"))
+        }
+    }
+}
+
+// This cache do not cache anything because we use bevy cache
+// not rs-tiled's cache system.
+struct NoopResourceCache;
+
+impl tiled::ResourceCache for NoopResourceCache {
+    fn get_tileset(
+        &self,
+        _path: impl AsRef<tiled::ResourcePath>,
+    ) -> Option<std::sync::Arc<tiled::Tileset>> {
+        None
+    }
+
+    fn get_template(
+        &self,
+        _path: impl AsRef<tiled::ResourcePath>,
+    ) -> Option<std::sync::Arc<tiled::Template>> {
+        None
+    }
+
+    fn insert_tileset(
+        &mut self,
+        _path: impl AsRef<tiled::ResourcePath>,
+        _tileset: std::sync::Arc<tiled::Tileset>,
+    ) {
+    }
+
+    fn insert_template(
+        &mut self,
+        _path: impl AsRef<tiled::ResourcePath>,
+        _template: std::sync::Arc<tiled::Template>,
+    ) {
+    }
+}
+
 pub struct TiledLoader;
 
 impl AssetLoader for TiledLoader {
@@ -81,9 +134,10 @@ impl AssetLoader for TiledLoader {
                 .parent()
                 .expect("The asset load context was empty.");
 
-            let mut loader = tiled::Loader::new();
-            let map = loader
-                .load_tmx_map_from(BufReader::new(bytes), load_context.path())
+            // BytesResourceReader ONLY read from bytes.
+            let mm = BytesResourceReader(bytes, load_context.path());
+            let map = tiled::Loader::with_cache_and_reader(NoopResourceCache, mm)
+                .load_tmx_map(load_context.path())
                 .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
 
             let mut dependencies = Vec::new();
@@ -121,10 +175,9 @@ impl AssetLoader for TiledLoader {
                         }
                     }
                     Some(img) => {
-                        let tile_path = tmx_dir.join(&img.source);
-                        let asset_path = AssetPath::new(tile_path, None);
+                        let asset_path = AssetPath::new(img.source.clone(), None);
                         let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
-                        dependencies.push(asset_path);
+                        dependencies.push(img.source.clone().into());
 
                         TilemapTexture::Single(texture.clone())
                     }
@@ -232,7 +285,7 @@ pub fn process_loaded_maps(
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
-                        let tiled::LayerType::TileLayer(tile_layer) = layer.layer_type() else {
+                        let tiled::LayerType::Tiles(tile_layer) = layer.layer_type() else {
                             log::info!(
                                 "Skipping layer {} because only tile layers are supported.",
                                 layer.id()
@@ -259,9 +312,28 @@ pub fn process_loaded_maps(
                         };
 
                         let map_type = match tiled_map.map.orientation {
-                            tiled::Orientation::Hexagonal => {
-                                TilemapType::Hexagon(HexCoordSystem::Row)
-                            }
+                            tiled::Orientation::Hexagonal => match tiled_map.map.stagger_axis {
+                                StaggerAxis::X => match tiled_map.map.stagger_index {
+                                    StaggerIndex::Even => {
+                                        // TODO: Why Even is Odd?
+                                        TilemapType::Hexagon(HexCoordSystem::ColumnOdd)
+                                    }
+                                    StaggerIndex::Odd => {
+                                        // TODO: Why Odd is Even?
+                                        TilemapType::Hexagon(HexCoordSystem::ColumnEven)
+                                    }
+                                },
+                                StaggerAxis::Y => match tiled_map.map.stagger_index {
+                                    StaggerIndex::Even => {
+                                        // TODO: Why Even is Odd?
+                                        TilemapType::Hexagon(HexCoordSystem::RowOdd)
+                                    }
+                                    StaggerIndex::Odd => {
+                                        // TODO: Why Odd is Even?
+                                        TilemapType::Hexagon(HexCoordSystem::RowEven)
+                                    }
+                                },
+                            },
                             tiled::Orientation::Isometric => {
                                 TilemapType::Isometric(IsoCoordSystem::Diamond)
                             }
@@ -277,8 +349,10 @@ pub fn process_loaded_maps(
                         for x in 0..map_size.x {
                             for y in 0..map_size.y {
                                 let mut mapped_y = y;
-                                if tiled_map.map.orientation == tiled::Orientation::Orthogonal {
-                                    mapped_y = (tiled_map.map.height - 1) - y;
+                                if tiled_map.map.orientation == tiled::Orientation::Orthogonal
+                                    || tiled_map.map.orientation == tiled::Orientation::Hexagonal
+                                {
+                                    mapped_y = tiled_map.map.height - 1 - y;
                                 }
 
                                 let mapped_x = x as i32;
