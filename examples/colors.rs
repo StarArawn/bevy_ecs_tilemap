@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use rand::{thread_rng, Rng};
 
 mod helpers;
 
@@ -90,6 +91,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+fn change_color(mut query: Query<&mut TileColor>) {
+    let mut random = thread_rng();
+
+    for mut color in query.iter_mut() {
+        *color = TileColor(Color::rgb(random.gen(), random.gen(), random.gen()));
+    } 
+}
+
 fn main() {
     App::new()
         .add_plugins(
@@ -106,5 +115,6 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_startup_system(startup)
         .add_system(helpers::camera::movement)
+        .add_system(change_color)
         .run();
 }

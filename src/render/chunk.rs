@@ -186,9 +186,9 @@ pub struct RenderChunk2d {
     /// [`TilemapType`] of the map this chunk belongs to.
     map_type: TilemapType,
     /// The grid size of the map this chunk belongs to.
-    grid_size: TilemapGridSize,
+    pub grid_size: TilemapGridSize,
     /// The tile size of the map this chunk belongs to.
-    tile_size: TilemapTileSize,
+    pub tile_size: TilemapTileSize,
     /// The [`Aabb`] of this chunk, based on the map type, grid size, and tile size. It is not
     /// transformed by the `global_transform` or [`local_transform`]
     aabb: Aabb,

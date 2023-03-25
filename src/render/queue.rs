@@ -196,11 +196,12 @@ pub fn queue_meshes(
                     };
 
                     let pipeline_id = pipelines.specialize(&pipeline_cache, &tilemap_pipeline, key);
+                    let z = transform.translation.z + (1.0 - (transform.translation.y / (chunk.map_size.y as f32 * chunk.tile_size.y)));
                     transparent_phase.add(Transparent2d {
                         entity,
                         draw_function: draw_tilemap,
                         pipeline: pipeline_id,
-                        sort_key: FloatOrd(transform.translation.z),
+                        sort_key: FloatOrd(z),
                         batch_range: None,
                     });
                 }
