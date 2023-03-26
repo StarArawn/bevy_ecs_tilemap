@@ -25,7 +25,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: String::from("Color Example"),
+                        title: String::from("3D Isometric Example"),
                         ..Default::default()
                     }),
                     ..default()
