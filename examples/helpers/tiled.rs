@@ -278,7 +278,7 @@ pub fn process_loaded_maps(
                             for y in 0..map_size.y {
                                 // Transform TMX coords into bevy coords.
                                 let mapped_y = tiled_map.map.height - 1 - y;
-                                
+
                                 let mapped_x = x as i32;
                                 let mapped_y = mapped_y as i32;
 
