@@ -15,21 +15,22 @@ pub fn fill_tilemap(
     commands: &mut Commands,
     tile_storage: &mut TileStorage,
 ) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture_index,
-                    ..Default::default()
-                })
-                .id();
-            commands.entity(tilemap_id.0).add_child(tile_entity);
-            tile_storage.set(&tile_pos, tile_entity);
+    commands.entity(tilemap_id.0).with_children(|parent| {
+        for x in 0..size.x {
+            for y in 0..size.y {
+                let tile_pos = TilePos { x, y };
+                let tile_entity = parent
+                    .spawn(TileBundle {
+                        position: tile_pos,
+                        tilemap_id,
+                        texture_index,
+                        ..Default::default()
+                    })
+                    .id();
+                tile_storage.set(&tile_pos, tile_entity);
+            }
         }
-    }
+    });
 }
 
 /// Fills a rectangular region with the given tile.
@@ -44,24 +45,26 @@ pub fn fill_tilemap_rect(
     commands: &mut Commands,
     tile_storage: &mut TileStorage,
 ) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos {
-                x: origin.x + x,
-                y: origin.y + y,
-            };
+    commands.entity(tilemap_id.0).with_children(|parent| {
+        for x in 0..size.x {
+            for y in 0..size.y {
+                let tile_pos = TilePos {
+                    x: origin.x + x,
+                    y: origin.y + y,
+                };
 
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture_index,
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
+                let tile_entity = parent
+                    .spawn(TileBundle {
+                        position: tile_pos,
+                        tilemap_id,
+                        texture_index,
+                        ..Default::default()
+                    })
+                    .id();
+                tile_storage.set(&tile_pos, tile_entity);
+            }
         }
-    }
+    });
 }
 
 /// Fills a rectangular region with colored versions of the given tile.
@@ -77,25 +80,27 @@ pub fn fill_tilemap_rect_color(
     commands: &mut Commands,
     tile_storage: &mut TileStorage,
 ) {
-    for x in 0..size.x {
-        for y in 0..size.y {
-            let tile_pos = TilePos {
-                x: origin.x + x,
-                y: origin.y + y,
-            };
+    commands.entity(tilemap_id.0).with_children(|parent| {
+        for x in 0..size.x {
+            for y in 0..size.y {
+                let tile_pos = TilePos {
+                    x: origin.x + x,
+                    y: origin.y + y,
+                };
 
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture_index,
-                    color: TileColor(color),
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
+                let tile_entity = parent
+                    .spawn(TileBundle {
+                        position: tile_pos,
+                        tilemap_id,
+                        texture_index,
+                        color: TileColor(color),
+                        ..Default::default()
+                    })
+                    .id();
+                tile_storage.set(&tile_pos, tile_entity);
+            }
         }
-    }
+    });
 }
 
 /// Generates a vector of hex positions that form a ring of given `radius` around the specified
@@ -159,15 +164,17 @@ pub fn fill_tilemap_hexagon(
     .map(|axial_pos| axial_pos.as_tile_pos_given_coord_system(hex_coord_system))
     .collect::<Vec<TilePos>>();
 
-    for tile_pos in tile_positions {
-        let tile_entity = commands
-            .spawn(TileBundle {
-                position: tile_pos,
-                tilemap_id,
-                texture_index,
-                ..Default::default()
-            })
-            .id();
-        tile_storage.checked_set(&tile_pos, tile_entity)
-    }
+    commands.entity(tilemap_id.0).with_children(|parent| {
+        for tile_pos in tile_positions {
+            let tile_entity = parent
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id,
+                    texture_index,
+                    ..Default::default()
+                })
+                .id();
+            tile_storage.checked_set(&tile_pos, tile_entity)
+        }
+    });
 }
