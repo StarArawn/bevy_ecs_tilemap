@@ -52,6 +52,9 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
+        .insert_resource(TilemapRenderSettings {
+            render_chunk_size: UVec2::new(256, 256),
+        })
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(TilemapPlugin)
