@@ -29,7 +29,8 @@ use super::{
     chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemap,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
-    prepare::{MeshUniformResource, TilemapUniformResource}, RenderYSort,
+    prepare::{MeshUniformResource, TilemapUniformResource},
+    RenderYSort,
 };
 
 #[derive(Resource)]
