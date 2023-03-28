@@ -6,7 +6,7 @@ use std::ops::{Add, Mul, Sub};
 /// Identical to [`AxialPos`], but has an extra component `s`. Together, `q`, `r`, `s`
 /// satisfy the identity: `q + r + s = 0`.
 ///
-/// It is vector-like. In others: two `AxialPos` can be added/subtracted, and it can be multiplied
+/// It is vector-like. In other words: two `AxialPos` can be added/subtracted, and it can be multiplied
 /// by an `i32` scalar.
 ///
 /// It can be converted from/into to [`AxialPos`].
@@ -92,7 +92,7 @@ impl Mul<CubePos> for u32 {
 }
 
 impl CubePos {
-    /// The magnitude of a cube position is its distance away from the `[0, 0, 0]` hex_grid.
+    /// The magnitude of a cube position is its distance away from `[0, 0, 0]` in the cube grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
     #[inline]
@@ -100,7 +100,7 @@ impl CubePos {
         self.q.abs().max(self.r.abs().max(self.s.abs()))
     }
 
-    /// Returns the hex_grid distance between `self` and `other`.
+    /// Returns the distance between `self` and `other` in the cube grid.
     #[inline]
     pub fn distance_from(&self, other: &CubePos) -> i32 {
         let cube_pos: CubePos = *self - *other;

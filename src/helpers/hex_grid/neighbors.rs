@@ -438,7 +438,7 @@ impl HexNeighbors<TilePos> {
     /// Returns neighboring tile positions. This works for maps using [`HexCoordSystem::Row`] and
     /// [`HexCoordSystem::Column`].
     ///
-    /// For maps using [`HexCoordSystem::RowEven`], [`HexCoordSystem::ColEven`],
+    /// For maps using [`HexCoordSystem::RowEven`], [`HexCoordSystem::ColumnEven`],
     /// [`HexCoordSystem::RowOdd`], [`HexCoordSystem::RowOdd`], use one of:
     ///     * [`HexNeighbors::get_neighboring_positions_row_even`]
     ///     * [`HexNeighbors::get_neighboring_positions_row_odd`]
@@ -495,7 +495,7 @@ impl HexNeighbors<TilePos> {
         HexNeighbors::from_directional_closure(f)
     }
 
-    /// Returns neighboring tile positions on a map using [`HexCoordSystem::ColEven`].
+    /// Returns neighboring tile positions on a map using [`HexCoordSystem::ColumnEven`].
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
@@ -511,7 +511,7 @@ impl HexNeighbors<TilePos> {
         HexNeighbors::from_directional_closure(f)
     }
 
-    /// Returns neighboring tile positions on a map using [`HexCoordSystem::ColOdd`].
+    /// Returns neighboring tile positions on a map using [`HexCoordSystem::ColumnOdd`].
     ///
     /// A tile position will be `None` for a particular direction, if that neighbor would not lie
     /// on the map.
