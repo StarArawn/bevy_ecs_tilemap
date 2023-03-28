@@ -12,7 +12,7 @@ use std::ops::{Add, Mul, Sub};
 
 /// Position for tiles arranged in a square coordinate system.
 ///
-/// It is a vector-like. In other words: it makes sense to add and subtract
+/// It is vector-like. In other words: it makes sense to add and subtract
 /// two `SquarePos`, and it makes sense to multiply a `SquarePos` by
 /// an [`i32`](i32) scalar.
 ///
