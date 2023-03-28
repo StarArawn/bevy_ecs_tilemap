@@ -54,6 +54,7 @@ fn main() {
         )
         .insert_resource(TilemapRenderSettings {
             render_chunk_size: UVec2::new(256, 256),
+            ..Default::default()
         })
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())

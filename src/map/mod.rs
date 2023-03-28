@@ -30,6 +30,13 @@ pub struct TilemapRenderSettings {
     ///
     /// Smaller chunk sizes will benefit tilemaps which change frequently.
     pub render_chunk_size: UVec2,
+    /// If true, uses the chunk's `z` and `y` values when sorting during rendering.
+    ///
+    /// When using this option with layered tilemaps, `z` values for layers should be separated by
+    /// at least `1.0` units.
+    ///
+    /// `render_chunk_size`'s `z` value should be `1` when using this for 3d isometric tilemaps.
+    pub y_sort: bool,
 }
 
 /// A component which stores a reference to the tilemap entity.

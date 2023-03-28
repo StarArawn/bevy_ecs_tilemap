@@ -30,6 +30,7 @@ use super::{
     draw::DrawTilemap,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare::{MeshUniformResource, TilemapUniformResource},
+    RenderYSort,
 };
 
 #[derive(Resource)]
@@ -95,6 +96,7 @@ pub struct ImageBindGroups {
 #[allow(clippy::too_many_arguments)]
 pub fn queue_meshes(
     mut commands: Commands,
+    y_sort: Res<RenderYSort>,
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     render_device: Res<RenderDevice>,
@@ -196,10 +198,14 @@ pub fn queue_meshes(
                     };
 
                     let pipeline_id = pipelines.specialize(&pipeline_cache, &tilemap_pipeline, key);
-                    let z = transform.translation.z
-                        + (1.0
-                            - (transform.translation.y
-                                / (chunk.map_size.y as f32 * chunk.tile_size.y)));
+                    let z = if **y_sort {
+                        transform.translation.z
+                            + (1.0
+                                - (transform.translation.y
+                                    / (chunk.map_size.y as f32 * chunk.tile_size.y)))
+                    } else {
+                        transform.translation.z
+                    };
                     transparent_phase.add(Transparent2d {
                         entity,
                         draw_function: draw_tilemap,

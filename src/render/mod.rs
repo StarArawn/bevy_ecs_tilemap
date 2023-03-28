@@ -83,6 +83,13 @@ impl RenderChunkSize {
     }
 }
 
+/// Sorts chunks using Y sort during render.
+///
+/// Initialized from [`TilemapRenderSettings`](crate::map::TilemapRenderSettings) resource, if
+/// provided. Otherwise, defaults to false.
+#[derive(Resource, Debug, Copy, Clone, Deref)]
+pub struct RenderYSort(bool);
+
 pub struct TilemapRenderingPlugin;
 
 #[derive(Resource, Default, Deref, DerefMut)]
@@ -123,10 +130,10 @@ impl Plugin for TilemapRenderingPlugin {
 
         // Extract the chunk size from the TilemapRenderSettings used to initialize the
         // ChunkCoordinate resource to insert into the render pipeline
-        let chunk_size = {
+        let (chunk_size, y_sort) = {
             match app.world.get_resource::<TilemapRenderSettings>() {
-                Some(settings) => settings.render_chunk_size,
-                None => CHUNK_SIZE_2D,
+                Some(settings) => (settings.render_chunk_size, settings.y_sort),
+                None => (CHUNK_SIZE_2D, false),
             }
         };
 
@@ -225,6 +232,7 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .insert_resource(DefaultSampler(sampler))
             .insert_resource(RenderChunkSize(chunk_size))
+            .insert_resource(RenderYSort(y_sort))
             .insert_resource(RenderChunk2dStorage::default())
             .insert_resource(SecondsSinceStartup(0.0))
             .add_systems((extract::extract, extract::extract_removal).in_schedule(ExtractSchedule))

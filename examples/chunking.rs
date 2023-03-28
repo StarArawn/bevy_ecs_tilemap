@@ -120,6 +120,7 @@ fn main() {
         // `TilemapRenderSettings` be added before the `TilemapPlugin`.
         .insert_resource(TilemapRenderSettings {
             render_chunk_size: RENDER_CHUNK_SIZE,
+            ..Default::default()
         })
         .add_plugin(TilemapPlugin)
         .insert_resource(ChunkManager::default())
