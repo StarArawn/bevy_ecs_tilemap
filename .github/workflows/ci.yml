@@ -12,6 +12,8 @@ jobs:
   check:
     name: Run cargo check
 
+    env:
+      RUSTDOCFLAGS: -D warnings
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -41,6 +43,12 @@ jobs:
         with:
           command: check
           args: --all-targets --no-default-features
+
+      - name: Run cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all-features --no-deps
 
   #   test:
   #     name: Tests
