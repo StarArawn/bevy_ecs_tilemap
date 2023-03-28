@@ -11,7 +11,7 @@ use std::ops::{Add, Mul, Sub};
 /// Position for tiles arranged in [`Diamond`](crate::map::IsoCoordSystem::Diamond) isometric
 /// coordinate system.
 ///
-/// It is a vector-like. In other words: it makes sense to add and subtract
+/// It is vector-like. In other words: it makes sense to add and subtract
 /// two `DiamondPos`, and it makes sense to multiply a `DiamondPos` by
 /// an [`i32`](i32) scalar.
 ///
