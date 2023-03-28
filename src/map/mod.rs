@@ -30,6 +30,7 @@ pub struct TilemapRenderSettings {
     ///
     /// Smaller chunk sizes will benefit tilemaps which change frequently.
     pub render_chunk_size: UVec2,
+    pub y_sort: bool,
 }
 
 /// A component which stores a reference to the tilemap entity.

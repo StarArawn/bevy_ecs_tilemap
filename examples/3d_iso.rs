@@ -20,6 +20,7 @@ fn main() {
             // Map size is 12x12 so we'll have render chunks that are:
             // 12 tiles wide and 1 tile tall.
             render_chunk_size: UVec2::new(3, 1),
+            y_sort: true,
         })
         .add_plugins(
             DefaultPlugins
