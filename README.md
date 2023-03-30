@@ -8,21 +8,25 @@
 A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS friendly as it makes tiles entities.
 
 ## Features
- - A tile per entity.
- - Fast rendering using a chunked approach.
- - Layers and sparse tile maps.
- - GPU powered animations.
- - Isometric and Hexagonal tile maps.
- - Examples for integration with [Tiled](https://www.mapeditor.org/) and [LDTK](https://ldtk.io/) editors.
+
+- A tile per entity.
+- Fast rendering using a chunked approach.
+- Layers and sparse tile maps.
+- GPU powered animations.
+- Isometric and Hexagonal tile maps.
+- Examples for integration with [Tiled](https://www.mapeditor.org/) and [LDTK](https://ldtk.io/) editors.
 
 ## Screenshots
+
 ![iso](screenshots/iso.png)
 ![hex](screenshots/hex.png)
 
 ### How Does This Work?
+
 Quite simple there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
 
 ### Why Use This Instead of X?
+
 Because each tile is an entity of its own editing tiles is super easy and convenient. This allows you to tag entities for updating and makes stuff like animation easier. Want to have a mining simulation where damage is applied to tiles? That’s easy with this plugin:
 
 ```rust
@@ -40,47 +44,50 @@ fn update_damage(
 ```
 
 ## Examples
- - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
- - [`animation`](examples/animation.rs) – Basic CPU animation example.
- - [`basic`](examples/basic.rs) - The simplest example of how to create a tile map.
- - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
- - [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
- - [`colors`](examples/colors.rs) - Showcases how each tile can have an individual color.
- - [`frustum_cull_test`](examples/frustum_cull_test.rs) - An environment for testing frustum culling.
- - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
- - [`hexagon_column`](examples/hexagon_column.rs) - A map that is meshed using “pointy” hexagons.
- - [`hexagon_generation`](examples/hexagon_generation.rs) - Shows how to generate hexagonal maps.
- - [`hexagon_row`](examples/hexagon_row.rs) - A map that is meshed using flat hexagons.
- - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
- - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
- - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
- - [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a LDTK map. Use: `cargo run --example ldtk`. We recommend checking out: [`bevy_ecs_ldtk`] (https://crates.io/crates/bevy_ecs_ldtk).
- - [`mouse_to_tile`](examples/mouse_to_tile.rs) - Shows how to convert a mouse cursor position into a tile position.
- - [`move_tile`](examples/move_tile.rs) - Shows how to move a tile without despawning and respawning it.
- - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
- - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
- - [`spacing`](examples/spacing.rs) - Shows how to load tilemap textures that contain spacing between the tiles.
- - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map. Use: `cargo run --example tiled`
- - [`tiled_rotated`](examples/tiled_rotated.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation. Use: `cargo run  --example tiled_rotated`
- - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
+
+- [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
+- [`animation`](examples/animation.rs) – Basic CPU animation example.
+- [`basic`](examples/basic.rs) - The simplest example of how to create a tile map.
+- [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
+- [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
+- [`colors`](examples/colors.rs) - Showcases how each tile can have an individual color.
+- [`frustum_cull_test`](examples/frustum_cull_test.rs) - An environment for testing frustum culling.
+- [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
+- [`hexagon_column`](examples/hexagon_column.rs) - A map that is meshed using “pointy” hexagons.
+- [`hexagon_generation`](examples/hexagon_generation.rs) - Shows how to generate hexagonal maps.
+- [`hexagon_row`](examples/hexagon_row.rs) - A map that is meshed using flat hexagons.
+- [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
+- [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
+- [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
+- [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a LDTK map. Use: `cargo run --example ldtk`. We recommend checking out: [`bevy_ecs_ldtk`] (<https://crates.io/crates/bevy_ecs_ldtk>).
+- [`mouse_to_tile`](examples/mouse_to_tile.rs) - Shows how to convert a mouse cursor position into a tile position.
+- [`move_tile`](examples/move_tile.rs) - Shows how to move a tile without despawning and respawning it.
+- [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
+- [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
+- [`spacing`](examples/spacing.rs) - Shows how to load tilemap textures that contain spacing between the tiles.
+- [`tiled`](examples/tiled.rs) - An example of loading and rendering of a tiled map editor map. Use: `cargo run --example tiled`
+- [`tiled_rotated`](examples/tiled_rotated.rs) - An example of loading and rendering of a tiled map editor map with flipping and rotation. Use: `cargo run  --example tiled_rotated`
+- [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
 ### Running Examples
 
-```
+```bash
 cargo run --release --example basic
 ```
 
-### Running examples on web!
+### Running examples on web
 
 This can be made simple with [wasm-server-runner](https://github.com/jakobhellermann/wasm-server-runner).
 
 After that's installed and configured, run:
-```
+
+```bash
 cargo run --target wasm32-unknown-unknown --example animation --release --features atlas
 ```
 
 ## Known Issues
- - Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
+
+- Tile flipping by x, y and d, should work for all maps, however "d" (anti diagonal) flipping is not implemented for non-square maps.
 
 ## Bevy Compatibility
 
@@ -95,4 +102,5 @@ cargo run --target wasm32-unknown-unknown --example animation --release --featur
 |0.6|0.5|
 
 ## Asset credits
- - Field of green by [GuttyKreum](https://guttykreum.itch.io/).
+
+- Field of green by [GuttyKreum](https://guttykreum.itch.io/).
