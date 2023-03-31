@@ -16,7 +16,7 @@ use std::ops::{Add, Mul, Sub};
 /// [`HexCoordSystem::Column`]. It is composed of a pair of `i32` digits named `q` and `r`. When
 /// converting from a [`TilePos`], `TilePos.x` is mapped to `q`, while `TilePos.y` is mapped to `r`.
 ///
-/// It is vector-like. In others: two `AxialPos` can be added/subtracted, and it can be multiplied
+/// It is vector-like. In other words: two `AxialPos` can be added/subtracted, and it can be multiplied
 /// by an `i32` scalar.
 ///
 /// Since this position type covers both [`HexCoordSystem::Row`] and [`HexCoordSystem::Column`],
@@ -212,7 +212,7 @@ pub const UNIT_R: AxialPos = AxialPos { q: 0, r: -1 };
 pub const UNIT_S: AxialPos = AxialPos { q: 1, r: -1 };
 
 impl AxialPos {
-    /// The magnitude of a cube position is its distance away from the `(0, 0)` hex_grid.
+    /// The magnitude of an axial position is its distance away from `(0, 0)` in the hex grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
     #[inline]
@@ -221,7 +221,7 @@ impl AxialPos {
         cube_pos.magnitude()
     }
 
-    /// Returns the hex_grid distance between `self` and `other`.
+    /// Returns the distance between `self` and `other` on the hex grid.
     #[inline]
     pub fn distance_from(&self, other: &AxialPos) -> i32 {
         (*self - *other).magnitude()
@@ -229,9 +229,6 @@ impl AxialPos {
 
     /// Project a vector representing a fractional axial position (i.e. the components can be `f32`)
     /// into world space.
-    ///
-    /// This is a helper function for [`center_in_world_row`], [`corner_offset_in_world_row`] and
-    /// [`corner_in_world_row`].
     #[inline]
     pub fn project_row(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         let unscaled_pos = ROW_BASIS * axial_pos;
@@ -242,8 +239,9 @@ impl AxialPos {
     }
 
     /// Returns the center of a hex tile world space, assuming that:
-    ///     1) tiles are row-oriented ("pointy top"),
-    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    ///
+    /// * Tiles are row-oriented ("pointy top"),
+    /// * The center of the hex grid with index `(0, 0)` is located at `[0.0, 0.0]`.
     #[inline]
     pub fn center_in_world_row(&self, grid_size: &TilemapGridSize) -> Vec2 {
         Self::project_row(Vec2::new(self.q as f32, self.r as f32), grid_size)
@@ -263,8 +261,9 @@ impl AxialPos {
 
     /// Returns the coordinate of the corner of a hex tile in the specified `corner_direction`,
     /// in world space, assuming that:
-    ///     1) tiles are row-oriented ("pointy top"),
-    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    ///
+    /// * Tiles are row-oriented ("pointy top"),
+    /// * The center of the hex grid with index `(0, 0)` is located at `[0.0, 0.0]`.
     #[inline]
     pub fn corner_in_world_row(
         &self,
@@ -282,8 +281,9 @@ impl AxialPos {
     /// Project a vector, representing a fractional axial position (i.e. the components can be `f32`)
     /// on a column-oriented grid ("flat top"), into world space.
     ///
-    /// This is a helper function for [`center_in_world_col`], [`corner_offset_in_world_col`] and
-    /// [`corner_in_world_col`].
+    /// This is a helper function for [`center_in_world_col`](`Self::center_in_world_col`),
+    /// [`corner_offset_in_world_col`](`Self::corner_offset_in_world_col`) and
+    /// [`corner_in_world_col`](`Self::corner_in_world_col`).
     #[inline]
     pub fn project_col(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         let unscaled_pos = COL_BASIS * axial_pos;
@@ -294,8 +294,9 @@ impl AxialPos {
     }
 
     /// Returns the center of a hex tile world space, assuming that:
-    ///     1) tiles are col-oriented ("flat top"),
-    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    ///
+    /// * Tiles are column-oriented ("flat top"),
+    /// * The center of the hex grid with index `(0, 0)` is located at `[0.0, 0.0]`.
     #[inline]
     pub fn center_in_world_col(&self, grid_size: &TilemapGridSize) -> Vec2 {
         Self::project_col(Vec2::new(self.q as f32, self.r as f32), grid_size)
@@ -315,8 +316,9 @@ impl AxialPos {
 
     /// Returns the coordinate of the corner of a hex tile in the specified `corner_direction`,
     /// in world space, assuming that:
-    ///     1) tiles are col-oriented ("flat top"),
-    ///     2) the center of the hex_grid with index `(0, 0)` is located at `[0.0, 0.0]`.
+    ///
+    /// * Tiles are column-oriented ("flat top"),
+    /// * The center of the hex grid with index `(0, 0)` is located at `[0.0, 0.0]`.
     #[inline]
     pub fn corner_in_world_col(
         &self,
@@ -331,9 +333,10 @@ impl AxialPos {
         Self::project_col(center + corner_pos, grid_size)
     }
 
-    /// Returns the axial position of the hex_grid containing the given world position, assuming that:
-    ///     1) tiles are row-oriented ("pointy top") and that
-    ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex_grid indexed `(0, 0)`.
+    /// Returns the axial position of the hex grid containing the given world position, assuming that:
+    ///
+    /// * Tiles are row-oriented ("pointy top") and that
+    /// * The world position corresponding to `[0.0, 0.0]` lies on the hex grid at index `(0, 0)`.
     #[inline]
     pub fn from_world_pos_row(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(
@@ -344,9 +347,10 @@ impl AxialPos {
         frac_pos.round()
     }
 
-    /// Returns the axial position of the hex_grid containing the given world position, assuming that:
-    ///     1) tiles are column-oriented ("flat top") and that
-    ///     2) the world position corresponding to `[0.0, 0.0]` lies in the hex_grid indexed `(0, 0)`.
+    /// Returns the axial position of the hex grid containing the given world position, assuming that:
+    ///
+    /// * Tiles are column-oriented ("flat top") and that
+    /// * The world position corresponding to `[0.0, 0.0]` lies on the hex grid at index `(0, 0)`.
     #[inline]
     pub fn from_world_pos_col(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
         let normalized_world_pos = Vec2::new(

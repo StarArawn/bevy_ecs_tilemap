@@ -2,21 +2,23 @@
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 name: Continuous Integration
 
 jobs:
   check:
     name: Run cargo check
-        
+
+    env:
+      RUSTDOCFLAGS: -D warnings
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-        
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -29,7 +31,7 @@ jobs:
         with:
           command: check
           args: --all-targets
-      
+
       - name: Run cargo check feature atlas
         uses: actions-rs/cargo@v1
         with:
@@ -42,29 +44,35 @@ jobs:
           command: check
           args: --all-targets --no-default-features
 
-#   test:
-#     name: Tests
-#     strategy:
-#       # Tests are most likely to have OS-specific behavior
-#       matrix:
-#         os: [ubuntu-latest, windows-latest, macOS-latest]
-        
-#     runs-on: ${{ matrix.os }}
-#     steps:
-#       - name: Checkout sources
-#         uses: actions/checkout@v2
-        
-#       - name: Install stable toolchain
-#         uses: actions-rs/toolchain@v1
-#         with:
-#           profile: minimal
-#           toolchain: stable
-#           override: true
+      - name: Run cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all-features --no-deps
 
-#       - name: Run cargo test
-#         uses: actions-rs/cargo@v1
-#         with:
-#           command: test
+  #   test:
+  #     name: Tests
+  #     strategy:
+  #       # Tests are most likely to have OS-specific behavior
+  #       matrix:
+  #         os: [ubuntu-latest, windows-latest, macOS-latest]
+
+  #     runs-on: ${{ matrix.os }}
+  #     steps:
+  #       - name: Checkout sources
+  #         uses: actions/checkout@v2
+
+  #       - name: Install stable toolchain
+  #         uses: actions-rs/toolchain@v1
+  #         with:
+  #           profile: minimal
+  #           toolchain: stable
+  #           override: true
+
+  #       - name: Run cargo test
+  #         uses: actions-rs/cargo@v1
+  #         with:
+  #           command: test
 
   build_examples:
     name: Build examples

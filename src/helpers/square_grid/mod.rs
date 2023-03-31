@@ -10,9 +10,9 @@ use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;
 use std::ops::{Add, Mul, Sub};
 
-/// Position for tiles arranged in [`Square`](crate::map::IsoCoordSystem::Square) coordinate system.
+/// Position for tiles arranged in a square coordinate system.
 ///
-/// It is a vector-like. In other words: it makes sense to add and subtract
+/// It is vector-like. In other words: it makes sense to add and subtract
 /// two `SquarePos`, and it makes sense to multiply a `SquarePos` by
 /// an [`i32`](i32) scalar.
 ///
@@ -103,8 +103,10 @@ impl SquarePos {
     /// Project a vector representing a fractional tile position (i.e. the components can be `f32`)
     /// into world space.
     ///
-    /// This is a helper function for [`center_in_world`], [`corner_offset_in_world`] and
-    /// [`corner_in_world`].
+    /// This is a helper function for
+    /// [`center_in_world`](Self::center_in_world),
+    /// [`corner_offset_in_world`](Self::corner_offset_in_world) and
+    /// [`corner_in_world`](Self::corner_in_world).
     #[inline]
     pub fn project(pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
         Vec2::new(grid_size.x * pos.x, grid_size.y * pos.y)

@@ -315,7 +315,7 @@ impl From<TilemapTileSize> for TilemapTextureSize {
     }
 }
 
-/// Different hex_grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
+/// Different hex grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub enum HexCoordSystem {
     RowEven,
