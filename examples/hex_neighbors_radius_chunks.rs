@@ -14,6 +14,8 @@ const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 
+const MAX_RADIUS: u32 = 6;
+
 #[derive(Deref, Resource)]
 pub struct TileHandleHexRow(Handle<Image>);
 
@@ -337,6 +339,22 @@ fn hover_highlight_tile_label(
     }
 }
 
+#[derive(Deref, Resource)]
+struct HighlightRadius(u32);
+impl Default for HighlightRadius {
+    fn default() -> Self {
+        Self(2)
+    }
+}
+
+fn update_radius(mut radius: ResMut<HighlightRadius>, keyboard_input: Res<Input<KeyCode>>) {
+    if keyboard_input.just_pressed(KeyCode::Up) {
+        radius.0 = std::cmp::min(MAX_RADIUS, radius.0 + 1);
+    } else if keyboard_input.just_pressed(KeyCode::Down) {
+        radius.0 = std::cmp::max(1, radius.0 - 1);
+    }
+}
+
 #[derive(Component)]
 struct NeighborHighlight;
 
@@ -349,6 +367,7 @@ fn highlight_neighbor_labels(
     tiles_q: Query<&TilePos, Without<Hovered>>,
     tile_label_q: Query<&TileLabel>,
     mut text_q: Query<&mut Text>,
+    radius: Res<HighlightRadius>,
 ) {
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
@@ -374,7 +393,7 @@ fn highlight_neighbor_labels(
                         grid_size,
                         map_type,
                         map_t,
-                        2,
+                        **radius,
                     ));
                 }
             }
@@ -425,6 +444,7 @@ fn main() {
         )
         .add_plugin(TilemapPlugin)
         .init_resource::<CursorPos>()
+        .init_resource::<HighlightRadius>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
@@ -432,6 +452,7 @@ fn main() {
         .add_startup_system(spawn_tile_labels.after(SpawnChunksSet))
         .add_systems((camera_movement, update_cursor_pos).chain().in_base_set(CoreSet::First))
         .add_system(hover_highlight_tile_label)
-        .add_system(highlight_neighbor_labels.after(hover_highlight_tile_label))
+        .add_system(update_radius.after(hover_highlight_tile_label))
+        .add_system(highlight_neighbor_labels.after(update_radius))
         .run();
 }
