@@ -50,29 +50,29 @@ jobs:
           command: doc
           args: --all-features --no-deps
 
-  #   test:
-  #     name: Tests
-  #     strategy:
-  #       # Tests are most likely to have OS-specific behavior
-  #       matrix:
-  #         os: [ubuntu-latest, windows-latest, macOS-latest]
+  test:
+    name: Tests
+    strategy:
+      # Tests are most likely to have OS-specific behavior
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
-  #     runs-on: ${{ matrix.os }}
-  #     steps:
-  #       - name: Checkout sources
-  #         uses: actions/checkout@v2
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
 
-  #       - name: Install stable toolchain
-  #         uses: actions-rs/toolchain@v1
-  #         with:
-  #           profile: minimal
-  #           toolchain: stable
-  #           override: true
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
-  #       - name: Run cargo test
-  #         uses: actions-rs/cargo@v1
-  #         with:
-  #           command: test
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
   build_examples:
     name: Build examples
