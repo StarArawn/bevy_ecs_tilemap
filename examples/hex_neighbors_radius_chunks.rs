@@ -243,7 +243,6 @@ fn spawn_chunks(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRo
 fn swap_map_type(
     mut tilemap_query: Query<(
         &mut Transform,
-        &TilemapSize,
         &mut TilemapType,
         &mut TilemapGridSize,
         &mut TilemapTexture,
@@ -260,7 +259,6 @@ fn swap_map_type(
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (
             mut map_transform,
-            map_size,
             mut map_type,
             mut grid_size,
             mut map_texture,
