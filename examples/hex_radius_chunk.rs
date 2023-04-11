@@ -100,12 +100,7 @@ fn hex_pos_from_tile_pos(
     }
 }
 
-fn hex_neighbors_radius(
-    hex_pos: IVec2,
-    radius: u32,
-    grid_size: &TilemapGridSize,
-    map_type: &TilemapType,
-) -> Vec<IVec2> {
+fn hex_neighbors_radius(hex_pos: IVec2, radius: u32, map_type: &TilemapType) -> Vec<IVec2> {
     let neighbors = generate_hexagon(
         match map_type {
             TilemapType::Hexagon(HexCoordSystem::RowEven) => RowEvenPos {
@@ -164,7 +159,7 @@ fn hex_neighbors_radius_from_tile_pos(
     radius: u32,
 ) -> Vec<IVec2> {
     let hex_pos = hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_transform);
-    hex_neighbors_radius(hex_pos, radius, grid_size, map_type)
+    hex_neighbors_radius(hex_pos, radius, map_type)
 }
 
 fn spawn_chunks(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
@@ -348,13 +343,7 @@ struct NeighborHighlight;
 // Highlight neighbors of a tile in a radius
 fn highlight_neighbor_labels(
     mut commands: Commands,
-    tilemap_query: Query<(
-        &TilemapType,
-        &TilemapSize,
-        &TilemapGridSize,
-        &TileStorage,
-        &Transform,
-    )>,
+    tilemap_query: Query<(&TilemapType, &TilemapGridSize, &TileStorage, &Transform)>,
     highlighted_tiles_q: Query<Entity, With<NeighborHighlight>>,
     hovered_tiles_q: Query<(Entity, &TilePos), With<Hovered>>,
     tiles_q: Query<&TilePos, Without<Hovered>>,
@@ -376,7 +365,7 @@ fn highlight_neighbor_labels(
 
     let mut neighbors: Option<Vec<IVec2>> = None;
 
-    for (map_type, map_size, grid_size, tile_storage, map_t) in tilemap_query.iter() {
+    for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
         for (hovered_tile_entity, hovered_tile_pos) in hovered_tiles_q.iter() {
             if let Some(ent) = tile_storage.checked_get(hovered_tile_pos) {
                 if ent == hovered_tile_entity {
@@ -393,7 +382,7 @@ fn highlight_neighbor_labels(
     }
 
     if let Some(neighbors) = neighbors {
-        for (map_type, map_size, grid_size, tile_storage, map_t) in tilemap_query.iter() {
+        for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
             for opt_tile_entity in tile_storage.iter() {
                 if let Some(tile_entity) = opt_tile_entity {
                     if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
