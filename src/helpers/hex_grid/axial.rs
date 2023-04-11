@@ -521,6 +521,7 @@ impl From<AxialPos> for FractionalAxialPos {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::prelude::{
         axial::AxialPos,
