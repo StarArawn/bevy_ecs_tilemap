@@ -61,16 +61,39 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
         | TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => GRID_SIZE_HEX_COL,
         _ => unreachable!(),
     };
-    Vec3::new(
-        tile_size.x * CHUNK_MAP_SIDE_LENGTH_X as f32 * pos.x as f32,
-        TilePos {
-            x: 0,
-            y: CHUNK_MAP_SIDE_LENGTH_Y,
-        }
-        .center_in_world(&grid_size, &map_type)
-        .y * pos.y as f32,
-        0.0,
-    )
+    if matches!(
+        map_type,
+        TilemapType::Hexagon(HexCoordSystem::RowEven)
+            | TilemapType::Hexagon(HexCoordSystem::RowOdd)
+    ) {
+        Vec3::new(
+            tile_size.x * CHUNK_MAP_SIDE_LENGTH_X as f32 * pos.x as f32,
+            TilePos {
+                x: 0,
+                y: CHUNK_MAP_SIDE_LENGTH_Y,
+            }
+            .center_in_world(&grid_size, &map_type)
+            .y * pos.y as f32,
+            0.0,
+        )
+    } else if matches!(
+        map_type,
+        TilemapType::Hexagon(HexCoordSystem::ColumnEven)
+            | TilemapType::Hexagon(HexCoordSystem::ColumnOdd)
+    ) {
+        Vec3::new(
+            TilePos {
+                x: CHUNK_MAP_SIDE_LENGTH_X,
+                y: 0,
+            }
+            .center_in_world(&grid_size, &map_type)
+            .x * pos.x as f32,
+            tile_size.y * CHUNK_MAP_SIDE_LENGTH_Y as f32 * pos.y as f32,
+            0.0,
+        )
+    } else {
+        unreachable!()
+    }
 }
 
 fn hex_pos_from_tile_pos(
@@ -213,6 +236,69 @@ fn spawn_chunks(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRo
                     ..Default::default()
                 })
                 .insert(chunk_pos);
+        }
+    }
+}
+
+fn swap_map_type(
+    mut tilemap_query: Query<(
+        &mut Transform,
+        &TilemapSize,
+        &mut TilemapType,
+        &mut TilemapGridSize,
+        &mut TilemapTexture,
+        &mut TilemapTileSize,
+        &ChunkPos,
+    )>,
+    keyboard_input: Res<Input<KeyCode>>,
+    tile_label_q: Query<(&TileLabel, &TilePos), Without<TilemapType>>,
+    mut transform_q: Query<&mut Transform, Without<TilemapType>>,
+    tile_handle_hex_row: Res<TileHandleHexRow>,
+    tile_handle_hex_col: Res<TileHandleHexCol>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        for (
+            mut map_transform,
+            map_size,
+            mut map_type,
+            mut grid_size,
+            mut map_texture,
+            mut tile_size,
+            chunk_pos,
+        ) in tilemap_query.iter_mut()
+        {
+            match map_type.as_ref() {
+                TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowOdd)
+                }
+                TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
+                    *tile_size = TILE_SIZE_HEX_COL;
+                    *grid_size = GRID_SIZE_HEX_COL;
+                }
+                TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
+                }
+                TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
+                    *tile_size = TILE_SIZE_HEX_ROW;
+                    *grid_size = GRID_SIZE_HEX_ROW;
+                }
+                _ => unreachable!(),
+            }
+
+            *map_transform =
+                Transform::from_translation(chunk_in_world_position(**chunk_pos, *map_type));
+
+            for (label, tile_pos) in tile_label_q.iter() {
+                if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
+                    let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(0.0);
+                    *tile_label_transform =
+                        *map_transform * Transform::from_translation(tile_center);
+                }
+            }
         }
     }
 }
@@ -451,7 +537,8 @@ fn main() {
         .add_startup_systems((spawn_chunks, apply_system_buffers).chain().in_set(SpawnChunksSet))
         .add_startup_system(spawn_tile_labels.after(SpawnChunksSet))
         .add_systems((camera_movement, update_cursor_pos).chain().in_base_set(CoreSet::First))
-        .add_system(hover_highlight_tile_label)
+        .add_system(swap_map_type)
+        .add_system(hover_highlight_tile_label.after(swap_map_type))
         .add_system(update_radius.after(hover_highlight_tile_label))
         .add_system(highlight_neighbor_labels.after(update_radius))
         .run();
