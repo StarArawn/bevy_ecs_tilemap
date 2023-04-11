@@ -248,10 +248,11 @@ fn swap_map_type(
         &mut TilemapGridSize,
         &mut TilemapTexture,
         &mut TilemapTileSize,
+        &TileStorage,
         &ChunkPos,
     )>,
     keyboard_input: Res<Input<KeyCode>>,
-    tile_label_q: Query<(&TileLabel, &TilePos), Without<TilemapType>>,
+    tile_label_q: Query<(Entity, &TileLabel, &TilePos), Without<TilemapType>>,
     mut transform_q: Query<&mut Transform, Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
@@ -264,6 +265,7 @@ fn swap_map_type(
             mut grid_size,
             mut map_texture,
             mut tile_size,
+            tile_storage,
             chunk_pos,
         ) in tilemap_query.iter_mut()
         {
@@ -292,11 +294,16 @@ fn swap_map_type(
             *map_transform =
                 Transform::from_translation(chunk_in_world_position(**chunk_pos, *map_type));
 
-            for (label, tile_pos) in tile_label_q.iter() {
+            for (tile_entity, label, tile_pos) in tile_label_q.iter() {
                 if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
-                    let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(0.0);
-                    *tile_label_transform =
-                        *map_transform * Transform::from_translation(tile_center);
+                    if let Some(ent) = tile_storage.checked_get(tile_pos) {
+                        if ent == tile_entity {
+                            let tile_center =
+                                tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
+                            *tile_label_transform =
+                                *map_transform * Transform::from_translation(tile_center);
+                        }
+                    }
                 }
             }
         }
