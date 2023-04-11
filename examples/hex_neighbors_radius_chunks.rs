@@ -252,7 +252,7 @@ fn swap_map_type(
     )>,
     keyboard_input: Res<Input<KeyCode>>,
     tile_label_q: Query<(Entity, &TileLabel, &TilePos), Without<TilemapType>>,
-    mut transform_q: Query<&mut Transform, Without<TilemapType>>,
+    mut transform_q: Query<(&mut Transform, &mut Text), Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
 ) {
@@ -293,13 +293,23 @@ fn swap_map_type(
                 Transform::from_translation(chunk_in_world_position(**chunk_pos, *map_type));
 
             for (tile_entity, label, tile_pos) in tile_label_q.iter() {
-                if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
+                if let Ok((mut tile_label_transform, mut tile_label_text)) =
+                    transform_q.get_mut(label.0)
+                {
                     if let Some(ent) = tile_storage.checked_get(tile_pos) {
                         if ent == tile_entity {
                             let tile_center =
                                 tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
                             *tile_label_transform =
                                 *map_transform * Transform::from_translation(tile_center);
+                            let hex_pos = hex_pos_from_tile_pos(
+                                tile_pos,
+                                &grid_size,
+                                &map_type,
+                                &map_transform,
+                            );
+                            tile_label_text.sections.get_mut(0).unwrap().value =
+                                format!("{}, {}", hex_pos.x, hex_pos.y);
                         }
                     }
                 }
