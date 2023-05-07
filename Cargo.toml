@@ -21,6 +21,8 @@ bevy = { version = "0.10", default-features = false, features = [
     "bevy_asset",
     "bevy_sprite",
 ] }
+
+futures-lite = "1.13.0"
 log = "0.4"
 regex = "1.5.4"
 
