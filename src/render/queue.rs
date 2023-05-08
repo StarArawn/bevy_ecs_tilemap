@@ -43,41 +43,25 @@ pub fn queue_transform_bind_group(
     tilemap_pipeline: Res<TilemapPipeline>,
     render_device: Res<RenderDevice>,
     transform_uniforms: Res<MeshUniformResource>,
-) {
-    if let Some(binding) = transform_uniforms.0.binding() {
-        commands.insert_resource(TransformBindGroup {
-            value: render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: binding,
-                }],
-                label: Some("transform_bind_group"),
-                layout: &tilemap_pipeline.mesh_layout,
-            }),
-        });
-    }
-}
-
-#[derive(Resource)]
-pub struct TilemapUniformDataBindGroup {
-    pub value: BindGroup,
-}
-
-pub fn queue_tilemap_bind_group(
-    mut commands: Commands,
-    tilemap_pipeline: Res<TilemapPipeline>,
-    render_device: Res<RenderDevice>,
     tilemap_uniforms: Res<TilemapUniformResource>,
 ) {
-    if let Some(binding) = tilemap_uniforms.0.binding() {
-        commands.insert_resource(TilemapUniformDataBindGroup {
+    if let (Some(binding1), Some(binding2)) =
+        (transform_uniforms.0.binding(), tilemap_uniforms.0.binding())
+    {
+        commands.insert_resource(TransformBindGroup {
             value: render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: binding,
-                }],
-                label: Some("tilemap_bind_group"),
-                layout: &tilemap_pipeline.uniform_layout,
+                entries: &[
+                    BindGroupEntry {
+                        binding: 0,
+                        resource: binding1,
+                    },
+                    BindGroupEntry {
+                        binding: 1,
+                        resource: binding2,
+                    },
+                ],
+                label: Some("transform_bind_group"),
+                layout: &tilemap_pipeline.mesh_layout,
             }),
         });
     }

@@ -29,7 +29,6 @@ pub const TILEMAP_SHADER_FRAGMENT: HandleUntyped =
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
     pub view_layout: BindGroupLayout,
-    pub uniform_layout: BindGroupLayout,
     pub material_layout: BindGroupLayout,
     pub mesh_layout: BindGroupLayout,
 }
@@ -59,33 +58,31 @@ impl FromWorld for TilemapPipeline {
         });
 
         let mesh_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            entries: &[BindGroupLayoutEntry {
-                binding: 0,
-                visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: true,
-                    // TODO: change this to MeshUniform::std140_size_static once crevice fixes this!
-                    // Context: https://github.com/LPGhatguy/crevice/issues/29
-                    min_binding_size: Some(MeshUniform::min_size()),
+            entries: &[
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: true,
+                        // TODO: change this to MeshUniform::std140_size_static once crevice fixes this!
+                        // Context: https://github.com/LPGhatguy/crevice/issues/29
+                        min_binding_size: Some(MeshUniform::min_size()),
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::VERTEX_FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: true,
+                        min_binding_size: Some(TilemapUniformData::min_size()),
+                    },
+                    count: None,
+                },
+            ],
             label: Some("tilemap_mesh_layout"),
-        });
-
-        let uniform_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            entries: &[BindGroupLayoutEntry {
-                binding: 0,
-                visibility: ShaderStages::VERTEX_FRAGMENT,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: true,
-                    min_binding_size: Some(TilemapUniformData::min_size()),
-                },
-                count: None,
-            }],
-            label: Some("tilemap_material_layout"),
         });
 
         #[cfg(not(feature = "atlas"))]
@@ -138,7 +135,6 @@ impl FromWorld for TilemapPipeline {
             view_layout,
             material_layout,
             mesh_layout,
-            uniform_layout,
         }
     }
 }
@@ -222,7 +218,6 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             layout: vec![
                 self.view_layout.clone(),
                 self.mesh_layout.clone(),
-                self.uniform_layout.clone(),
                 self.material_layout.clone(),
             ],
             primitive: PrimitiveState {

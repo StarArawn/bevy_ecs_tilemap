@@ -18,7 +18,7 @@ struct TilemapData {
     time: f32,
     _padding: vec3<f32>, // hack for webgl2 16 byte alignment
 };
-@group(2) @binding(0)
+@group(1) @binding(1)
 var<uniform> tilemap_data: TilemapData;
 
 struct VertexInput {
@@ -29,12 +29,12 @@ struct VertexInput {
 }
 
 #ifdef ATLAS
-@group(3) @binding(0)
+@group(2) @binding(0)
 var sprite_texture: texture_2d<f32>;
 #else
-@group(3) @binding(0)
+@group(2) @binding(0)
 var sprite_texture: texture_2d_array<f32>;
 #endif
 
-@group(3) @binding(1)
+@group(2) @binding(1)
 var sprite_sampler: sampler;

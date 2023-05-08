@@ -19,9 +19,7 @@ use crate::TilemapTexture;
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
     prepare::MeshUniform,
-    queue::{
-        ImageBindGroups, TilemapUniformDataBindGroup, TilemapViewBindGroup, TransformBindGroup,
-    },
+    queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
     DynamicUniformIndex,
 };
 
@@ -48,42 +46,25 @@ pub struct SetTransformBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
     type Param = SRes<TransformBindGroup>;
     type ViewWorldQuery = ();
-    type ItemWorldQuery = Read<DynamicUniformIndex<MeshUniform>>;
+    type ItemWorldQuery = (
+        Read<DynamicUniformIndex<MeshUniform>>,
+        Read<DynamicUniformIndex<TilemapUniformData>>,
+    );
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
         _view: (),
-        transform_index: &'w DynamicUniformIndex<MeshUniform>,
+        (transform_index, tilemap_index): (
+            &'w DynamicUniformIndex<MeshUniform>,
+            &'w DynamicUniformIndex<TilemapUniformData>,
+        ),
         transform_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         pass.set_bind_group(
             I,
             &transform_bind_group.into_inner().value,
-            &[transform_index.index()],
-        );
-
-        RenderCommandResult::Success
-    }
-}
-
-pub struct SetTilemapBindGroup<const I: usize>;
-impl<const I: usize> RenderCommand<Transparent2d> for SetTilemapBindGroup<I> {
-    type Param = SRes<TilemapUniformDataBindGroup>;
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = Read<DynamicUniformIndex<TilemapUniformData>>;
-    #[inline]
-    fn render<'w>(
-        _item: &Transparent2d,
-        _view: (),
-        tilemap_uniform_index: &'w DynamicUniformIndex<TilemapUniformData>,
-        tilemap_bind_group: SystemParamItem<'w, '_, Self::Param>,
-        pass: &mut TrackedRenderPass<'w>,
-    ) -> RenderCommandResult {
-        pass.set_bind_group(
-            I,
-            &tilemap_bind_group.into_inner().value,
-            &[tilemap_uniform_index.index()],
+            &[transform_index.index(), tilemap_index.index()],
         );
 
         RenderCommandResult::Success
@@ -139,8 +120,7 @@ pub type DrawTilemap = (
     SetItemPipeline,
     SetMeshViewBindGroup<0>,
     SetTransformBindGroup<1>,
-    SetTilemapBindGroup<2>,
-    SetMaterialBindGroup<3>,
+    SetMaterialBindGroup<2>,
     DrawMesh,
 );
 

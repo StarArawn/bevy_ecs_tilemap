@@ -38,6 +38,7 @@ mod include_shader;
 mod pipeline;
 pub(crate) mod prepare;
 mod queue;
+// pub mod material;
 
 #[cfg(not(feature = "atlas"))]
 mod texture_array_cache;
@@ -242,12 +243,7 @@ impl Plugin for TilemapRenderingPlugin {
                     .in_set(RenderSet::Prepare),
             )
             .add_systems(
-                (
-                    queue::queue_meshes,
-                    queue::queue_transform_bind_group,
-                    queue::queue_tilemap_bind_group,
-                )
-                    .in_set(RenderSet::Queue),
+                (queue::queue_meshes, queue::queue_transform_bind_group).in_set(RenderSet::Queue),
             )
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
