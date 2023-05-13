@@ -15,14 +15,19 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform, Handle,
+    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
     IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
 };
+
+#[cfg(feature = "render")]
+use bevy::prelude::Handle;
+
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
 use prelude::TilemapId;
+#[cfg(feature = "render")]
 use render::material::{MaterialTilemap, StandardTilemapMaterial};
 use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
@@ -96,8 +101,10 @@ impl Default for FrustumCulling {
     }
 }
 
+#[cfg(feature = "render")]
 pub type StandardTilemapBundle = TilemapBundle<StandardTilemapMaterial>;
 
+#[cfg(feature = "render")]
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
 pub struct TilemapBundle<M: MaterialTilemap> {
@@ -120,6 +127,28 @@ pub struct TilemapBundle<M: MaterialTilemap> {
     pub material: Handle<M>,
 }
 
+#[cfg(not(feature = "render"))]
+/// The default tilemap bundle. All of the components within are required.
+#[derive(Bundle, Debug, Default, Clone)]
+pub struct StandardTilemapBundle {
+    pub grid_size: TilemapGridSize,
+    pub map_type: TilemapType,
+    pub size: TilemapSize,
+    pub spacing: TilemapSpacing,
+    pub storage: TileStorage,
+    pub texture: TilemapTexture,
+    pub tile_size: TilemapTileSize,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    /// User indication of whether an entity is visible
+    pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted
+    /// for rendering
+    pub computed_visibility: ComputedVisibility,
+    /// User indication of whether tilemap should be frustum culled.
+    pub frustum_culling: FrustumCulling,
+}
+
 /// A module which exports commonly used dependencies.
 pub mod prelude {
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -132,11 +161,15 @@ pub mod prelude {
     pub use crate::helpers::square_grid::*;
     pub use crate::helpers::transform::*;
     pub use crate::map::*;
+    #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemap;
+    #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapPlugin;
+    #[cfg(feature = "render")]
     pub use crate::render::material::StandardTilemapMaterial;
     pub use crate::tiles::*;
     pub use crate::StandardTilemapBundle;
+    #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }

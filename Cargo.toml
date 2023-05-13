@@ -61,3 +61,8 @@ features = [
     "bevy_text",
     "bevy_sprite",
 ]
+
+[[example]]
+name = "custom_shader"
+path = "examples/custom_shader.rs"
+required-features = ["render"]
