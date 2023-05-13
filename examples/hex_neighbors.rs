@@ -328,7 +328,7 @@ fn hover_highlight_tile_label(
 #[derive(Component)]
 struct NeighborHighlight;
 
-// Swaps the map type, when user presses SPACE
+// Highlight neighbor tiles of hovered tile
 #[allow(clippy::too_many_arguments)]
 fn highlight_neighbor_label(
     mut commands: Commands,
