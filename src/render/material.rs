@@ -13,7 +13,7 @@ use bevy::{
             RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
             SpecializedRenderPipelines,
         },
-        renderer::{RenderDevice},
+        renderer::RenderDevice,
         texture::FallbackImage,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, RenderApp, RenderSet,
