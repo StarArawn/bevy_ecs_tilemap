@@ -38,15 +38,17 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         0.0,
     ));
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size: TILE_SIZE.into(),
-        size: CHUNK_SIZE.into(),
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size: TILE_SIZE,
-        transform,
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(StandardTilemapBundle {
+            grid_size: TILE_SIZE.into(),
+            size: CHUNK_SIZE.into(),
+            storage: tile_storage,
+            texture: TilemapTexture::Single(texture_handle),
+            tile_size: TILE_SIZE,
+            transform,
+            ..Default::default()
+        });
 }
 
 fn startup(mut commands: Commands) {

@@ -1,10 +1,13 @@
+use std::marker::PhantomData;
+
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::{
-        lifetimeless::{Read, SRes},
+        lifetimeless::{Read, SQuery, SRes},
         SystemParamItem,
     },
     math::UVec4,
+    prelude::Handle,
     render::{
         mesh::GpuBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
@@ -18,6 +21,7 @@ use crate::TilemapTexture;
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
+    material::{MaterialTilemap, RenderMaterialsTilemap},
     prepare::MeshUniform,
     queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
     DynamicUniformIndex,
@@ -71,8 +75,8 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
     }
 }
 
-pub struct SetMaterialBindGroup<const I: usize>;
-impl<const I: usize> RenderCommand<Transparent2d> for SetMaterialBindGroup<I> {
+pub struct SetTextureBindGroup<const I: usize>;
+impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
     type Param = SRes<ImageBindGroups>;
     type ViewWorldQuery = ();
     type ItemWorldQuery = Read<TilemapTexture>;
@@ -120,9 +124,45 @@ pub type DrawTilemap = (
     SetItemPipeline,
     SetMeshViewBindGroup<0>,
     SetTransformBindGroup<1>,
-    SetMaterialBindGroup<2>,
+    SetTextureBindGroup<2>,
     DrawMesh,
 );
+
+pub type DrawTilemapMaterial<M> = (
+    SetItemPipeline,
+    SetMeshViewBindGroup<0>,
+    SetTransformBindGroup<1>,
+    SetTextureBindGroup<2>,
+    SetMaterialBindGroup<M, 3>,
+    DrawMesh,
+);
+
+pub struct SetMaterialBindGroup<M: MaterialTilemap, const I: usize>(PhantomData<M>);
+impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
+    for SetMaterialBindGroup<M, I>
+{
+    type Param = (SRes<RenderMaterialsTilemap<M>>, SQuery<&'static Handle<M>>);
+    type ViewWorldQuery = ();
+    type ItemWorldQuery = Read<TilemapId>;
+    #[inline]
+    fn render<'w>(
+        _item: &Transparent2d,
+        _view: (),
+        id: &'w TilemapId,
+        (material_bind_groups, material_handles): SystemParamItem<'w, '_, Self::Param>,
+        pass: &mut TrackedRenderPass<'w>,
+    ) -> RenderCommandResult {
+        if let Ok(material_handle) = material_handles.get(id.0) {
+            let bind_group = material_bind_groups
+                .into_inner()
+                .get(material_handle)
+                .unwrap();
+            pass.set_bind_group(I, &bind_group.bind_group, &[]);
+        }
+
+        RenderCommandResult::Success
+    }
+}
 
 pub struct DrawMesh;
 impl RenderCommand<Transparent2d> for DrawMesh {

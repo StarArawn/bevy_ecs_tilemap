@@ -76,16 +76,18 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = tile_size.into();
     let map_type = TilemapType::Isometric(IsoCoordSystem::Staggered);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size,
-        map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(StandardTilemapBundle {
+            grid_size,
+            size: map_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(texture_handle),
+            tile_size,
+            map_type,
+            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+            ..Default::default()
+        });
 }
 
 fn main() {

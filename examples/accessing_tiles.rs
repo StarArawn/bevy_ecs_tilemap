@@ -83,7 +83,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawns a tilemap.
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands.entity(tilemap_entity).insert((
-        TilemapBundle {
+        StandardTilemapBundle {
             grid_size,
             size: map_size,
             storage: tile_storage,

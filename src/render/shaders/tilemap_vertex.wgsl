@@ -1,10 +1,5 @@
 #import bevy_ecs_tilemap::common
 
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    #import bevy_ecs_tilemap::vertex_output
-}
-
 #ifdef SQUARE
     #import bevy_ecs_tilemap::square
 #endif

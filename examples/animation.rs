@@ -4,7 +4,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
-use bevy_ecs_tilemap::{TilemapBundle, TilemapPlugin};
+use bevy_ecs_tilemap::TilemapPlugin;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
@@ -53,16 +53,18 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        size,
-        grid_size,
-        map_type,
-        tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(StandardTilemapBundle {
+            size,
+            grid_size,
+            map_type,
+            tile_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(texture_handle),
+            transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
+            ..Default::default()
+        });
 }
 
 fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -110,16 +112,18 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     }
     let map_type = TilemapType::Square;
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        size: map_size,
-        grid_size,
-        map_type,
-        tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0),
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(StandardTilemapBundle {
+            size: map_size,
+            grid_size,
+            map_type,
+            tile_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(texture_handle),
+            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0),
+            ..Default::default()
+        });
 }
 
 fn startup(mut commands: Commands) {

@@ -2,6 +2,7 @@ use bevy::{
     prelude::{Component, FromWorld, HandleUntyped, Resource, Shader, World},
     reflect::TypeUuid,
     render::{
+        globals::GlobalsUniform,
         render_resource::{
             BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType,
             BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType,
@@ -47,9 +48,17 @@ impl FromWorld for TilemapPipeline {
                     ty: BindingType::Buffer {
                         ty: BufferBindingType::Uniform,
                         has_dynamic_offset: true,
-                        // TODO: change this to ViewUniform::std140_size_static once crevice fixes this!
-                        // Context: https://github.com/LPGhatguy/crevice/issues/29
                         min_binding_size: Some(ViewUniform::min_size()),
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::VERTEX_FRAGMENT,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: Some(GlobalsUniform::min_size()),
                     },
                     count: None,
                 },

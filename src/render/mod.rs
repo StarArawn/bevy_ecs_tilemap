@@ -18,7 +18,10 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::render::prepare::{MeshUniformResource, TilemapUniformResource};
+use crate::render::{
+    material::{MaterialTilemapPlugin, StandardTilemapMaterial},
+    prepare::{MeshUniformResource, TilemapUniformResource},
+};
 use crate::{
     prelude::{TilemapRenderSettings, TilemapTexture},
     tiles::{TilePos, TileStorage},
@@ -35,10 +38,10 @@ mod chunk;
 mod draw;
 mod extract;
 mod include_shader;
+pub mod material;
 mod pipeline;
 pub(crate) mod prepare;
 mod queue;
-// pub mod material;
 
 #[cfg(not(feature = "atlas"))]
 mod texture_array_cache;
@@ -242,9 +245,7 @@ impl Plugin for TilemapRenderingPlugin {
                     .chain()
                     .in_set(RenderSet::Prepare),
             )
-            .add_systems(
-                (queue::queue_meshes, queue::queue_transform_bind_group).in_set(RenderSet::Queue),
-            )
+            .add_system(queue::queue_transform_bind_group.in_set(RenderSet::Queue))
             .init_resource::<TilemapPipeline>()
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
@@ -257,6 +258,15 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .init_resource::<TextureArrayCache>()
             .add_system(prepare_textures.in_set(RenderSet::Prepare));
+
+        app.add_plugin(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
+
+        app.world
+            .resource_mut::<Assets<StandardTilemapMaterial>>()
+            .set_untracked(
+                Handle::<StandardTilemapMaterial>::default(),
+                StandardTilemapMaterial::default(),
+            );
     }
 }
 

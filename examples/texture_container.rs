@@ -76,16 +76,18 @@ mod no_atlas {
         let grid_size = TILE_SIZE.into();
         let map_type = TilemapType::Hexagon(COORD_SYS);
 
-        commands.entity(tilemap_entity).insert(TilemapBundle {
-            grid_size,
-            map_type,
-            tile_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: texture_vec,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+        commands
+            .entity(tilemap_entity)
+            .insert(StandardTilemapBundle {
+                grid_size,
+                map_type,
+                tile_size,
+                size: map_size,
+                storage: tile_storage,
+                texture: texture_vec,
+                transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+                ..Default::default()
+            });
     }
 
     pub fn main() {

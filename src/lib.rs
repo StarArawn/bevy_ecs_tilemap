@@ -15,7 +15,7 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
+    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform, Handle,
     IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
 };
 use map::{
@@ -23,6 +23,7 @@ use map::{
     TilemapTileSize, TilemapType,
 };
 use prelude::TilemapId;
+use render::material::{MaterialTilemap, StandardTilemapMaterial};
 use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
@@ -95,9 +96,11 @@ impl Default for FrustumCulling {
     }
 }
 
+pub type StandardTilemapBundle = TilemapBundle<StandardTilemapMaterial>;
+
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
-pub struct TilemapBundle {
+pub struct TilemapBundle<M: MaterialTilemap> {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
     pub size: TilemapSize,
@@ -114,6 +117,7 @@ pub struct TilemapBundle {
     pub computed_visibility: ComputedVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
+    pub material: Handle<M>,
 }
 
 /// A module which exports commonly used dependencies.
@@ -128,7 +132,11 @@ pub mod prelude {
     pub use crate::helpers::square_grid::*;
     pub use crate::helpers::transform::*;
     pub use crate::map::*;
+    pub use crate::render::material::MaterialTilemap;
+    pub use crate::render::material::MaterialTilemapPlugin;
+    pub use crate::render::material::StandardTilemapMaterial;
     pub use crate::tiles::*;
+    pub use crate::StandardTilemapBundle;
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }

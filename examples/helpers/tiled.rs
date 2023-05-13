@@ -327,7 +327,7 @@ pub fn process_loaded_maps(
                             }
                         }
 
-                        commands.entity(layer_entity).insert(TilemapBundle {
+                        commands.entity(layer_entity).insert(StandardTilemapBundle {
                             grid_size,
                             size: map_size,
                             storage: tile_storage,

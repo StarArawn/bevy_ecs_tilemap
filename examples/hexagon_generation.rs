@@ -82,16 +82,18 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
     let grid_size = GRID_SIZE_HEX_ROW;
     let map_type = TilemapType::Hexagon(hex_coord_system);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
-        tile_size,
-        map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+    commands
+        .entity(tilemap_entity)
+        .insert(StandardTilemapBundle {
+            grid_size,
+            size: map_size,
+            storage: tile_storage,
+            texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
+            tile_size,
+            map_type,
+            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+            ..Default::default()
+        });
 }
 
 #[derive(Component)]
