@@ -13,7 +13,7 @@ use bevy::{
             RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
             SpecializedRenderPipelines,
         },
-        renderer::{RenderDevice, RenderQueue},
+        renderer::{RenderDevice},
         texture::FallbackImage,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, RenderApp, RenderSet,
@@ -22,6 +22,9 @@ use bevy::{
 };
 use std::{hash::Hash, marker::PhantomData};
 
+#[cfg(not(feature = "atlas"))]
+use bevy::render::renderer::RenderQueue;
+
 use crate::prelude::TilemapId;
 
 use super::{
@@ -29,8 +32,11 @@ use super::{
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     queue::{ImageBindGroups, TilemapViewBindGroup},
-    RenderYSort, TextureArrayCache,
+    RenderYSort,
 };
+
+#[cfg(not(feature = "atlas"))]
+pub(crate) use super::TextureArrayCache;
 
 pub trait MaterialTilemap: AsBindGroup + Send + Sync + Clone + TypeUuid + Sized + 'static {
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
