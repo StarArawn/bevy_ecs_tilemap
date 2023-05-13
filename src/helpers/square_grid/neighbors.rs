@@ -237,6 +237,16 @@ impl<T> Neighbors<T> {
             .filter_map(|direction| self.get(direction))
     }
 
+    /// Iterate over neighbors, in the order specified by [`SQUARE_DIRECTIONS`].
+    /// Returns the neighbor and the [`SQUARE_DIRECTIONS`].
+    ///
+    /// If a neighbor is `None`, this iterator will skip it.
+    pub fn iter_with_direction(&self) -> impl Iterator<Item = (SquareDirection, &'_ T)> + '_ {
+        SQUARE_DIRECTIONS
+            .into_iter()
+            .filter_map(|direction| self.get(direction).map(|value| (direction, value)))
+    }
+
     /// Applies the supplied closure `f` with an [`and_then`](std::option::Option::and_then) to each
     /// neighbor element, where `f` takes `T` by value.
     pub fn and_then<U, F>(self, f: F) -> Neighbors<U>

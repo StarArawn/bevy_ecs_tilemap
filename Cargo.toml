@@ -30,7 +30,7 @@ ldtk_rust = { version = "0.6" }
 rand = "0.8"
 env_logger = "0.9"
 serde_json = { version = "1.0" }
-tiled = { version = "0.10.2", default-features = false }
+tiled = { version = "0.11.0", default-features = false }
 
 [dev-dependencies.bevy]
 version = "0.10"

@@ -12,7 +12,9 @@
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
-use std::io::BufReader;
+use std::io::Cursor;
+use std::path::Path;
+use std::sync::Arc;
 
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadedAsset},
@@ -65,6 +67,28 @@ pub struct TiledMapBundle {
     pub global_transform: GlobalTransform,
 }
 
+struct BytesResourceReader {
+    bytes: Arc<[u8]>,
+}
+
+impl BytesResourceReader {
+    fn new(bytes: &[u8]) -> Self {
+        Self {
+            bytes: Arc::from(bytes),
+        }
+    }
+}
+
+impl tiled::ResourceReader for BytesResourceReader {
+    type Resource = Cursor<Arc<[u8]>>;
+    type Error = std::io::Error;
+
+    fn read_from(&mut self, _path: &Path) -> std::result::Result<Self::Resource, Self::Error> {
+        // In this case, the path is ignored because the byte data is already provided.
+        Ok(Cursor::new(self.bytes.clone()))
+    }
+}
+
 pub struct TiledLoader;
 
 impl AssetLoader for TiledLoader {
@@ -81,9 +105,12 @@ impl AssetLoader for TiledLoader {
                 .parent()
                 .expect("The asset load context was empty.");
 
-            let mut loader = tiled::Loader::new();
+            let mut loader = tiled::Loader::with_cache_and_reader(
+                tiled::DefaultResourceCache::new(),
+                BytesResourceReader::new(bytes),
+            );
             let map = loader
-                .load_tmx_map_from(BufReader::new(bytes), load_context.path())
+                .load_tmx_map(load_context.path())
                 .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
 
             let mut dependencies = Vec::new();
@@ -232,7 +259,7 @@ pub fn process_loaded_maps(
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
-                        let tiled::LayerType::TileLayer(tile_layer) = layer.layer_type() else {
+                        let tiled::LayerType::Tiles(tile_layer) = layer.layer_type() else {
                             log::info!(
                                 "Skipping layer {} because only tile layers are supported.",
                                 layer.id()
