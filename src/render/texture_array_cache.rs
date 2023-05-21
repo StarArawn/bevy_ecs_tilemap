@@ -1,7 +1,7 @@
 use crate::render::extract::ExtractedTilemapTexture;
 use crate::{TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize};
 use bevy::asset::Assets;
-use bevy::prelude::Resource;
+use bevy::prelude::{ResMut, Resource};
 use bevy::{
     prelude::{Image, Res},
     render::{
@@ -16,6 +16,8 @@ use bevy::{
     },
     utils::{HashMap, HashSet},
 };
+
+use super::ModifiedImageHandles;
 
 #[derive(Resource, Default, Debug, Clone)]
 pub struct TextureArrayCache {
@@ -338,4 +340,25 @@ impl TextureArrayCache {
             }
         }
     }
+}
+
+// A system to remove any modified textures from the TextureArrayCache. Modified images will be
+// added back to the pipeline, and so will be reloaded. This allows the TextureArrayCache to be
+// responsive to hot-reloading, for example.
+pub fn remove_modified_textures(
+    modified_image_handles: Res<ModifiedImageHandles>,
+    mut texture_cache: ResMut<TextureArrayCache>,
+) {
+    let texture_is_unmodified =
+        |texture: &TilemapTexture| !modified_image_handles.is_texture_modified(texture);
+
+    texture_cache
+        .textures
+        .retain(|texture, _| texture_is_unmodified(texture));
+    texture_cache
+        .meta_data
+        .retain(|texture, _| texture_is_unmodified(texture));
+    texture_cache.prepare_queue.retain(texture_is_unmodified);
+    texture_cache.queue_queue.retain(texture_is_unmodified);
+    texture_cache.bad_flag_queue.retain(texture_is_unmodified);
 }
