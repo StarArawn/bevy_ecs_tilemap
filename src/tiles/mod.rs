@@ -67,7 +67,7 @@ impl From<&TilePos> for Vec2 {
 }
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, FromReflect)]
 #[reflect(Component)]
 pub struct TileTextureIndex(pub u32);
 
