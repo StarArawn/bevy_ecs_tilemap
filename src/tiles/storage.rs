@@ -6,7 +6,7 @@ use super::TilePos;
 
 /// Used to store tile entities for fast look up.
 /// Tile entities are stored in a grid. The grid is always filled with None.
-#[derive(Component, Reflect, Default, Debug, Clone)]
+#[derive(Component, Reflect, Default, Debug, Clone, FromReflect)]
 #[reflect(Component)]
 pub struct TileStorage {
     tiles: Vec<Option<Entity>>,
