@@ -14,9 +14,12 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
-    IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
+use bevy::{
+    prelude::{
+        Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
+        IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
+    },
+    reflect::FromReflect,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -84,7 +87,7 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-#[derive(Component, Reflect, Debug, Clone, Copy, Deref)]
+#[derive(Component, Reflect, Debug, Clone, Copy, Deref, FromReflect)]
 #[reflect(Component)]
 pub struct FrustumCulling(pub bool);
 

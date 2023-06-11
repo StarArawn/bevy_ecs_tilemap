@@ -67,12 +67,12 @@ impl From<&TilePos> for Vec2 {
 }
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, FromReflect)]
 #[reflect(Component)]
 pub struct TileTextureIndex(pub u32);
 
 /// A custom color for the tile.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, FromReflect)]
 #[reflect(Component)]
 pub struct TileColor(pub Color);
 
@@ -83,7 +83,7 @@ impl From<Color> for TileColor {
 }
 
 /// Hides or shows a tile based on the boolean. Default: True
-#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash, FromReflect)]
 #[reflect(Component)]
 pub struct TileVisible(pub bool);
 
@@ -94,7 +94,7 @@ impl Default for TileVisible {
 }
 
 /// Flips the tiles texture along the X, Y or diagonal axes
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, FromReflect)]
 #[reflect(Component)]
 pub struct TileFlip {
     /// Flip tile along the x axis.
@@ -116,14 +116,14 @@ pub struct TileBundle {
     pub old_position: TilePosOld,
 }
 
-#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, FromReflect)]
 #[reflect(Component)]
 pub struct TilePosOld(pub TilePos);
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
-#[derive(Component, Reflect, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Clone, Copy, Debug, FromReflect)]
 pub struct AnimatedTile {
     /// The start frame index in the tilemap atlas/array (inclusive).
     pub start: u32,
