@@ -98,20 +98,18 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let tile_size = TILE_SIZE_SQUARE;
     let grid_size = GRID_SIZE_SQUARE;
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
-            grid_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(tile_handle_square.clone()),
-            tile_size,
-            map_type: TilemapType::Square,
-            // The default behaviour is `FrustumCulling(true)`, but we supply this explicitly here
-            // for the purposes of the example.
-            frustum_culling: FrustumCulling(true),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        size: map_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(tile_handle_square.clone()),
+        tile_size,
+        map_type: TilemapType::Square,
+        // The default behaviour is `FrustumCulling(true)`, but we supply this explicitly here
+        // for the purposes of the example.
+        frustum_culling: FrustumCulling(true),
+        ..Default::default()
+    });
 }
 
 #[derive(Component)]

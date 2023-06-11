@@ -25,18 +25,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle.clone()),
-            tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: map_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle.clone()),
+        tile_size,
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        ..Default::default()
+    });
 
     // Layer 2
     let mut tile_storage = TileStorage::empty(map_size);
@@ -50,19 +48,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
-                * Transform::from_xyz(32.0, 32.0, 0.0),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: map_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
+            * Transform::from_xyz(32.0, 32.0, 0.0),
+        ..Default::default()
+    });
 }
 
 fn main() {
