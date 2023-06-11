@@ -121,9 +121,9 @@ pub mod prelude {
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
     pub use crate::helpers;
+    pub use crate::helpers::filling::*;
     pub use crate::helpers::geometry::*;
     pub use crate::helpers::transform::*;
-    pub use crate::helpers::filling::*;
     pub use crate::map::*;
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;

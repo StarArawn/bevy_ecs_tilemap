@@ -506,8 +506,7 @@ fn highlight_neighbor_labels(
         for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
             for tile_entity in tile_storage.iter().flatten() {
                 if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
-                    let tile_hex_pos =
-                        hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_t);
+                    let tile_hex_pos = hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_t);
                     if neighbors.contains(&tile_hex_pos) {
                         if let Ok(label) = tile_label_q.get(*tile_entity) {
                             if let Ok(mut tile_text) = text_q.get_mut(label.0) {
