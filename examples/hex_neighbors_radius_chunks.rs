@@ -459,6 +459,7 @@ fn update_radius(mut radius: ResMut<HighlightRadius>, keyboard_input: Res<Input<
 #[derive(Component)]
 struct NeighborHighlight;
 
+#[allow(clippy::too_many_arguments)]
 // Highlight neighbors of a tile in a radius
 fn highlight_neighbor_labels(
     mut commands: Commands,
@@ -503,19 +504,17 @@ fn highlight_neighbor_labels(
 
     if let Some(neighbors) = neighbors {
         for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
-            for opt_tile_entity in tile_storage.iter() {
-                if let Some(tile_entity) = opt_tile_entity {
-                    if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
-                        let tile_hex_pos =
-                            hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_t);
-                        if neighbors.contains(&tile_hex_pos) {
-                            if let Ok(label) = tile_label_q.get(*tile_entity) {
-                                if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                                    for mut section in tile_text.sections.iter_mut() {
-                                        section.style.color = Color::BLUE;
-                                    }
-                                    commands.entity(*tile_entity).insert(NeighborHighlight);
+            for tile_entity in tile_storage.iter().flatten() {
+                if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
+                    let tile_hex_pos =
+                        hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_t);
+                    if neighbors.contains(&tile_hex_pos) {
+                        if let Ok(label) = tile_label_q.get(*tile_entity) {
+                            if let Ok(mut tile_text) = text_q.get_mut(label.0) {
+                                for mut section in tile_text.sections.iter_mut() {
+                                    section.style.color = Color::BLUE;
                                 }
+                                commands.entity(*tile_entity).insert(NeighborHighlight);
                             }
                         }
                     }

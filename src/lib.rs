@@ -120,13 +120,10 @@ pub struct TilemapBundle {
 pub mod prelude {
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
-    pub use crate::helpers::filling::*;
+    pub use crate::helpers;
     pub use crate::helpers::geometry::*;
-    pub use crate::helpers::hex_grid::*;
-    pub use crate::helpers::projection::*;
-    pub use crate::helpers::selection::*;
-    pub use crate::helpers::square_grid::*;
     pub use crate::helpers::transform::*;
+    pub use crate::helpers::filling::*;
     pub use crate::map::*;
     pub use crate::tiles::*;
     pub use crate::TilemapBundle;
