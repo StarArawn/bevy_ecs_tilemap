@@ -14,7 +14,7 @@ use bevy::{
     utils::HashMap,
 };
 
-use crate::prelude::{chunk_aabb, chunk_index_to_world_space};
+use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
     map::{TilemapSize, TilemapTexture, TilemapType},
