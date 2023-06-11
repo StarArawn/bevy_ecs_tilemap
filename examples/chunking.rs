@@ -40,7 +40,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             grid_size: TILE_SIZE.into(),
             size: CHUNK_SIZE.into(),
             storage: tile_storage,

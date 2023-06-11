@@ -84,7 +84,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             size: map_size,
             storage: tile_storage,

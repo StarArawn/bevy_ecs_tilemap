@@ -51,7 +51,7 @@ fn startup(
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             map_type,
             size: map_size,

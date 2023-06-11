@@ -102,12 +102,12 @@ impl Default for FrustumCulling {
 }
 
 #[cfg(feature = "render")]
-pub type StandardTilemapBundle = TilemapBundle<StandardTilemapMaterial>;
+pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
 
 #[cfg(feature = "render")]
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
-pub struct TilemapBundle<M: MaterialTilemap> {
+pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
     pub size: TilemapSize,
@@ -168,9 +168,9 @@ pub mod prelude {
     #[cfg(feature = "render")]
     pub use crate::render::material::StandardTilemapMaterial;
     pub use crate::tiles::*;
-    pub use crate::StandardTilemapBundle;
-    #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
+    #[cfg(feature = "render")]
+    pub use crate::MaterialTilemapBundle;
     pub use crate::TilemapPlugin;
 }
 

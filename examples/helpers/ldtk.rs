@@ -2,7 +2,7 @@ use bevy_ecs_tilemap::{
     helpers::geometry::get_tilemap_center_transform,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
-    StandardTilemapBundle,
+    TilemapBundle,
 };
 use std::collections::HashMap;
 
@@ -201,7 +201,7 @@ pub fn process_loaded_tile_maps(
                         let map_type = TilemapType::default();
 
                         // Create the tilemap
-                        commands.entity(map_entity).insert(StandardTilemapBundle {
+                        commands.entity(map_entity).insert(TilemapBundle {
                             grid_size,
                             map_type,
                             size,

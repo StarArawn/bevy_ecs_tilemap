@@ -78,7 +78,7 @@ mod no_atlas {
 
         commands
             .entity(tilemap_entity)
-            .insert(StandardTilemapBundle {
+            .insert(TilemapBundle {
                 grid_size,
                 map_type,
                 tile_size,

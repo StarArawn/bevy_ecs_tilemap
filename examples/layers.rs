@@ -27,7 +27,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             map_type,
             size: map_size,
@@ -52,7 +52,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             grid_size,
             map_type,
             size: map_size,

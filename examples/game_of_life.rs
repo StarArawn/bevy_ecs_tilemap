@@ -35,7 +35,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let map_type = TilemapType::Square;
 
     commands.entity(tilemap_entity).insert((
-        StandardTilemapBundle {
+        TilemapBundle {
             grid_size,
             map_type,
             size: map_size,

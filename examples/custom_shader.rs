@@ -41,7 +41,7 @@ fn startup(
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert(MaterialTilemapBundle {
         grid_size,
         map_type,
         size: map_size,
@@ -65,7 +65,7 @@ fn startup(
         &mut tile_storage,
     );
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert(MaterialTilemapBundle {
         grid_size,
         map_type,
         size: map_size,

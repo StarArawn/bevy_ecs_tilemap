@@ -55,7 +55,7 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             size,
             grid_size,
             map_type,
@@ -114,7 +114,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 
     commands
         .entity(tilemap_entity)
-        .insert(StandardTilemapBundle {
+        .insert(TilemapBundle {
             size: map_size,
             grid_size,
             map_type,
