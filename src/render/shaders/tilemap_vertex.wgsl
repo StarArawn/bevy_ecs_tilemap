@@ -1,44 +1,49 @@
-#import bevy_ecs_tilemap::common
+#import bevy_ecs_tilemap::common VertexInput, tilemap_data
+#import bevy_ecs_tilemap::mesh_output MeshOutput
+#import bevy_sprite::mesh2d_view_bindings view
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
-    #import bevy_ecs_tilemap::vertex_output
+    // #import bevy_ecs_tilemap::vertex_output globals
+    @location(0) uv: vec4<f32>,
+    @location(1) color: vec4<f32>,
+    @location(2) @interpolate(flat) tile_id: i32,
 }
 
 #ifdef SQUARE
-    #import bevy_ecs_tilemap::square
+    #import bevy_ecs_tilemap::square get_mesh
 #endif
 
 #ifdef ISO_DIAMOND
-    #import bevy_ecs_tilemap::diamond_iso
+    #import bevy_ecs_tilemap::diamond_iso get_mesh
 #endif
 
 #ifdef ISO_STAGGERED
-    #import bevy_ecs_tilemap::staggered_iso
+    #import bevy_ecs_tilemap::staggered_iso get_mesh
 #endif
 
 #ifdef COLUMN_EVEN_HEX
-    #import bevy_ecs_tilemap::column_even_hex
+    #import bevy_ecs_tilemap::column_even_hex get_mesh
 #endif
 
 #ifdef COLUMN_HEX
-    #import bevy_ecs_tilemap::column_hex
+    #import bevy_ecs_tilemap::column_hex get_mesh
 #endif
 
 #ifdef COLUMN_ODD_HEX
-    #import bevy_ecs_tilemap::column_odd_hex
+    #import bevy_ecs_tilemap::column_odd_hex get_mesh
 #endif
 
 #ifdef ROW_EVEN_HEX
-    #import bevy_ecs_tilemap::row_even_hex
+    #import bevy_ecs_tilemap::row_even_hex get_mesh
 #endif
 
 #ifdef ROW_HEX
-    #import bevy_ecs_tilemap::row_hex
+    #import bevy_ecs_tilemap::row_hex get_mesh
 #endif
 
 #ifdef ROW_ODD_HEX
-    #import bevy_ecs_tilemap::row_odd_hex
+    #import bevy_ecs_tilemap::row_odd_hex get_mesh
 #endif
 
 

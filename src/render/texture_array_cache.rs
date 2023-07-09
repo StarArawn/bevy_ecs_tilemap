@@ -16,7 +16,6 @@ use bevy::{
     },
     utils::{HashMap, HashSet},
 };
-use std::num::NonZeroU32;
 
 #[derive(Resource, Default, Debug, Clone)]
 pub struct TextureArrayCache {

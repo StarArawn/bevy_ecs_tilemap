@@ -1,8 +1,11 @@
-#import bevy_ecs_tilemap::common
+#import bevy_ecs_tilemap::common sprite_texture, sprite_sampler
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
-    #import bevy_ecs_tilemap::vertex_output
+    // #import bevy_ecs_tilemap::vertex_output
+    @location(0) uv: vec4<f32>,
+    @location(1) color: vec4<f32>,
+    @location(2) @interpolate(flat) tile_id: i32,
 }
 
 @fragment
