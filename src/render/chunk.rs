@@ -413,7 +413,6 @@ impl RenderChunk2d {
                 label: Some("Mesh Vertex Buffer"),
                 contents: &vertex_buffer_data,
             });
-            // println!("{:?}", self.mesh);
 
             let buffer_info =
                 self.mesh
