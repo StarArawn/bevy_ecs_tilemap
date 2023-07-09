@@ -541,7 +541,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(TilemapPlugin)
+        .add_plugins(TilemapPlugin)
         .init_resource::<CursorPos>()
         .init_resource::<HighlightRadius>()
         .init_resource::<TileHandleHexCol>()
@@ -550,9 +550,9 @@ fn main() {
         .add_systems(Startup, (spawn_chunks, apply_deferred).chain().in_set(SpawnChunksSet))
         .add_systems(Startup, spawn_tile_labels.after(SpawnChunksSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
-        .add_system(swap_map_type)
-        .add_system(hover_highlight_tile_label.after(swap_map_type))
-        .add_system(update_radius.after(hover_highlight_tile_label))
-        .add_system(highlight_neighbor_labels.after(update_radius))
+        .add_systems(Update, swap_map_type)
+        .add_systems(Update, hover_highlight_tile_label.after(swap_map_type))
+        .add_systems(Update, update_radius.after(hover_highlight_tile_label))
+        .add_systems(Update, highlight_neighbor_labels.after(update_radius))
         .run();
 }

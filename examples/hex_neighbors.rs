@@ -441,16 +441,16 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(TilemapPlugin)
+        .add_plugins(TilemapPlugin)
         .init_resource::<CursorPos>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
-        .add_startup_systems((spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
+        .add_systems(Startup, (spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
+        .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
-        .add_system(swap_map_type)
-        .add_system(hover_highlight_tile_label.after(swap_map_type))
-        .add_system(highlight_neighbor_label.after(hover_highlight_tile_label))
+        .add_systems(Update, swap_map_type)
+        .add_systems(Update, hover_highlight_tile_label.after(swap_map_type))
+        .add_systems(Update, highlight_neighbor_label.after(hover_highlight_tile_label))
         .run();
 }

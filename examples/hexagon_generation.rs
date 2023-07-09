@@ -226,7 +226,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(TilemapPlugin)
+        .add_plugins(TilemapPlugin)
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<FontHandle>()
@@ -234,7 +234,7 @@ fn main() {
             Startup,
             (spawn_tilemap, apply_deferred, spawn_map_type_label).chain(),
         )
-        .add_system(camera_movement)
-        .add_system(swap_map_type)
+        .add_systems(Update, camera_movement)
+        .add_systems(Update, swap_map_type)
         .run();
 }

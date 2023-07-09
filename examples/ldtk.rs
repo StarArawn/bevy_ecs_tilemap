@@ -44,9 +44,9 @@ fn main() {
                     ..default()
                 }),
         )
-        .add_plugin(TilemapPlugin)
-        .add_plugin(helpers::ldtk::LdtkPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
+        .add_plugins(TilemapPlugin)
+        .add_plugins(helpers::ldtk::LdtkPlugin)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }

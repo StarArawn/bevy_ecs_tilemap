@@ -139,12 +139,12 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_startup_system(create_background)
-        .add_startup_system(create_animated_flowers)
-        .add_system(helpers::camera::movement)
+        .add_plugins(LogDiagnosticsPlugin::default())
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(TilemapPlugin)
+        .add_systems(Startup, startup)
+        .add_systems(Startup, create_background)
+        .add_systems(Startup, create_animated_flowers)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }

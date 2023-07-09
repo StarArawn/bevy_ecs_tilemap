@@ -91,9 +91,8 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
             TilemapPlugin,
         ))
-        //.add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
-        .add_system(remove_tiles)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, remove_tiles)
         .run();
 }

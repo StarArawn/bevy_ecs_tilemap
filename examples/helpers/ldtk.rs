@@ -20,7 +20,7 @@ impl Plugin for LdtkPlugin {
     fn build(&self, app: &mut App) {
         app.add_asset::<LdtkMap>()
             .add_asset_loader(LdtkLoader)
-            .add_system(process_loaded_tile_maps);
+            .add_systems(Update, process_loaded_tile_maps);
     }
 }
 

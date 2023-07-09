@@ -56,10 +56,10 @@ fn main() {
             render_chunk_size: UVec2::new(256, 256),
             ..Default::default()
         })
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
+        .add_plugins(LogDiagnosticsPlugin::default())
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(TilemapPlugin)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }

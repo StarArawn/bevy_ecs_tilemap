@@ -122,11 +122,11 @@ fn main() {
             render_chunk_size: RENDER_CHUNK_SIZE,
             ..Default::default()
         })
-        .add_plugin(TilemapPlugin)
+        .add_plugins(TilemapPlugin)
         .insert_resource(ChunkManager::default())
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
-        .add_system(spawn_chunks_around_camera)
-        .add_system(despawn_outofrange_chunks)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, spawn_chunks_around_camera)
+        .add_systems(Update, despawn_outofrange_chunks)
         .run();
 }

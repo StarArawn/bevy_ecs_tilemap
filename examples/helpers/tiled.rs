@@ -21,7 +21,7 @@ use bevy::{
     log,
     prelude::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
-        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
+        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform, Update,
     },
     reflect::{TypePath, TypeUuid},
     utils::HashMap,
@@ -37,7 +37,7 @@ impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_asset::<TiledMap>()
             .add_asset_loader(TiledLoader)
-            .add_system(process_loaded_maps);
+            .add_systems(Update, process_loaded_maps);
     }
 }
 
