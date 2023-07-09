@@ -264,7 +264,7 @@ impl Plugin for TilemapRenderingPlugin {
         #[cfg(not(feature = "atlas"))]
         render_app
             .init_resource::<TextureArrayCache>()
-            .add_system(prepare_textures.in_set(RenderSet::Prepare));
+            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
     }
 
     fn finish(&self, app: &mut App) {
