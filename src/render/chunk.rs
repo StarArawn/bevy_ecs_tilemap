@@ -413,26 +413,29 @@ impl RenderChunk2d {
                 label: Some("Mesh Vertex Buffer"),
                 contents: &vertex_buffer_data,
             });
+            // println!("{:?}", self.mesh);
 
-            let buffer_info = self.mesh.get_index_buffer_bytes().map_or(
-                GpuBufferInfo::NonIndexed {
-                    vertex_count: self.mesh.count_vertices() as u32,
-                },
-                |data| GpuBufferInfo::Indexed {
-                    buffer: device.create_buffer_with_data(&BufferInitDescriptor {
-                        usage: BufferUsages::INDEX,
-                        contents: data,
-                        label: Some("Mesh Index Buffer"),
-                    }),
-                    count: self.mesh.indices().unwrap().len() as u32,
-                    index_format: self.mesh.indices().unwrap().into(),
-                },
-            );
+            let buffer_info =
+                self.mesh
+                    .get_index_buffer_bytes()
+                    .map_or(GpuBufferInfo::NonIndexed {}, |data| {
+                        GpuBufferInfo::Indexed {
+                            buffer: device.create_buffer_with_data(&BufferInitDescriptor {
+                                usage: BufferUsages::INDEX,
+                                contents: data,
+                                label: Some("Mesh Index Buffer"),
+                            }),
+                            count: self.mesh.indices().unwrap().len() as u32,
+                            index_format: self.mesh.indices().unwrap().into(),
+                        }
+                    });
 
             let mesh_vertex_buffer_layout = self.mesh.get_mesh_vertex_buffer_layout();
             self.gpu_mesh = Some(GpuMesh {
                 vertex_buffer,
+                vertex_count: self.mesh.count_vertices() as u32,
                 buffer_info,
+                morph_targets: None,
                 layout: mesh_vertex_buffer_layout,
                 primitive_topology: bevy::render::render_resource::PrimitiveTopology::TriangleList,
             });

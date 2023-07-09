@@ -2,7 +2,7 @@ mod storage;
 
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Bundle, Color, Component, FromReflect, Reflect, ReflectComponent},
+    prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
 };
 pub use storage::*;
 
@@ -10,9 +10,7 @@ use crate::map::TilemapId;
 use crate::TilemapSize;
 
 /// A tile position in the tilemap grid.
-#[derive(
-    Component, Reflect, FromReflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd,
-)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 #[reflect(Component)]
 pub struct TilePos {
     pub x: u32,
@@ -67,12 +65,12 @@ impl From<&TilePos> for Vec2 {
 }
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, FromReflect)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 #[reflect(Component)]
 pub struct TileTextureIndex(pub u32);
 
 /// A custom color for the tile.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, FromReflect)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
 pub struct TileColor(pub Color);
 
@@ -83,7 +81,7 @@ impl From<Color> for TileColor {
 }
 
 /// Hides or shows a tile based on the boolean. Default: True
-#[derive(Component, Reflect, Clone, Copy, Debug, Hash, FromReflect)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
 #[reflect(Component)]
 pub struct TileVisible(pub bool);
 
@@ -94,7 +92,7 @@ impl Default for TileVisible {
 }
 
 /// Flips the tiles texture along the X, Y or diagonal axes
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, FromReflect)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 #[reflect(Component)]
 pub struct TileFlip {
     /// Flip tile along the x axis.
@@ -116,14 +114,14 @@ pub struct TileBundle {
     pub old_position: TilePosOld,
 }
 
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, FromReflect)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
 pub struct TilePosOld(pub TilePos);
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
-#[derive(Component, Reflect, Clone, Copy, Debug, FromReflect)]
+#[derive(Component, Reflect, Clone, Copy, Debug)]
 pub struct AnimatedTile {
     /// The start frame index in the tilemap atlas/array (inclusive).
     pub start: u32,

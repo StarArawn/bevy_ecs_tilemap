@@ -23,7 +23,7 @@ use bevy::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
         Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform,
     },
-    reflect::TypeUuid,
+    reflect::{TypePath, TypeUuid},
     utils::HashMap,
 };
 use bevy_ecs_tilemap::prelude::*;
@@ -41,7 +41,7 @@ impl Plugin for TiledMapPlugin {
     }
 }
 
-#[derive(TypeUuid)]
+#[derive(TypeUuid, TypePath)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,

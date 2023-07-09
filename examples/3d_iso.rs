@@ -1,4 +1,6 @@
-use bevy::prelude::*;
+use std::time::Duration;
+
+use bevy::{asset::ChangeWatcher, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -33,13 +35,12 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
-                    watch_for_changes: true,
+                    watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
                     ..default()
                 }),
         )
-        .add_plugin(TilemapPlugin)
-        .add_plugin(helpers::tiled::TiledMapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
+        .add_plugins((TilemapPlugin, helpers::tiled::TiledMapPlugin))
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }

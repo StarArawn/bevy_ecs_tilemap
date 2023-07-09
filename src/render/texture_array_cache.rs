@@ -176,7 +176,7 @@ impl TextureArrayCache {
                         lod_min_clamp: 0.0,
                         lod_max_clamp: f32::MAX,
                         compare: None,
-                        anisotropy_clamp: None,
+                        anisotropy_clamp: 1,
                         border_color: None,
                     });
 
@@ -188,7 +188,7 @@ impl TextureArrayCache {
                         base_mip_level: 0,
                         mip_level_count: None,
                         base_array_layer: 0,
-                        array_layer_count: NonZeroU32::new(count),
+                        array_layer_count: Some(count),
                     });
 
                     let mip_level_count = gpu_texture.mip_level_count();
