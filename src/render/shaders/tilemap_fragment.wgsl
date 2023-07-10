@@ -1,4 +1,4 @@
-#import bevy_ecs_tilemap::common sprite_texture, sprite_sampler
+#import bevy_ecs_tilemap::common sprite_texture, sprite_sampler, tilemap_data
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
