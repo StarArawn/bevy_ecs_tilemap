@@ -1,15 +1,8 @@
 #import bevy_ecs_tilemap::common sprite_texture, sprite_sampler, tilemap_data
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    // #import bevy_ecs_tilemap::vertex_output
-    @location(0) uv: vec4<f32>,
-    @location(1) color: vec4<f32>,
-    @location(2) @interpolate(flat) tile_id: i32,
-}
+#import bevy_ecs_tilemap::vertex_output MeshVertexOutput
 
 @fragment
-fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
+fn fragment(in: MeshVertexOutput) -> @location(0) vec4<f32> {
     #ifdef ATLAS
     let half_texture_pixel_size_u = 0.5 / tilemap_data.texture_size.x;
     let half_texture_pixel_size_v = 0.5 / tilemap_data.texture_size.y;

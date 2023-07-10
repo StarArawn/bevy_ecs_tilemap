@@ -1,14 +1,7 @@
 #import bevy_ecs_tilemap::common VertexInput, tilemap_data
 #import bevy_ecs_tilemap::mesh_output MeshOutput
 #import bevy_sprite::mesh2d_view_bindings view
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    // #import bevy_ecs_tilemap::vertex_output globals
-    @location(0) uv: vec4<f32>,
-    @location(1) color: vec4<f32>,
-    @location(2) @interpolate(flat) tile_id: i32,
-}
+#import bevy_ecs_tilemap::vertex_output MeshVertexOutput
 
 #ifdef SQUARE
     #import bevy_ecs_tilemap::square get_mesh
@@ -48,8 +41,8 @@ struct VertexOutput {
 
 
 @vertex
-fn vertex(vertex_input: VertexInput) -> VertexOutput {
-    var out: VertexOutput;
+fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
+    var out: MeshVertexOutput;
     let animation_speed = vertex_input.position.z;
 
     let mesh_data: MeshOutput = get_mesh(vertex_input.v_index, vec3(vertex_input.position.xy, 0.0));
