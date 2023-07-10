@@ -45,6 +45,7 @@ features = [
     "bevy_text",
     "bevy_sprite",
     "filesystem_watcher",
+    "webgl2"
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
