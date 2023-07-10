@@ -1,4 +1,4 @@
-use std::time::Duration;
+use bevy::utils::Duration;
 
 use bevy::{asset::ChangeWatcher, prelude::*};
 use bevy_ecs_tilemap::prelude::*;

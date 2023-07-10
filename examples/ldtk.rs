@@ -8,7 +8,7 @@
 //!
 //! For a more comprehensive LDtk solution, consider [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk), which uses bevy_ecs_tilemap internally.
 
-use std::time::Duration;
+use bevy::utils::Duration;
 
 use bevy::{asset::ChangeWatcher, prelude::*};
 use bevy_ecs_tilemap::*;
