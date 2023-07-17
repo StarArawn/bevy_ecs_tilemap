@@ -39,12 +39,9 @@ var sprite_texture: texture_2d_array<f32>;
 @group(2) @binding(1)
 var sprite_sampler: sampler;
 
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    #import bevy_ecs_tilemap::vertex_output
-}
+#import bevy_ecs_tilemap::mesh_output MeshVertexOutput;
 
-fn process_fragment(in: VertexOutput) -> vec4<f32> {
+fn process_fragment(in: MeshVertexOutput) -> vec4<f32> {
     #ifdef ATLAS
     let half_texture_pixel_size_u = 0.5 / tilemap_data.texture_size.x;
     let half_texture_pixel_size_v = 0.5 / tilemap_data.texture_size.y;

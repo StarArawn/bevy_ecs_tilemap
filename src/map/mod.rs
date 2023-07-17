@@ -3,7 +3,7 @@ use bevy::prelude::{ReflectComponent, Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Component, Entity, FromReflect, Handle, Image, Reflect},
+    prelude::{Component, Entity, Handle, Image, Reflect},
 };
 
 /// Custom parameters for the render pipeline.
@@ -316,7 +316,7 @@ impl From<TilemapTileSize> for TilemapTextureSize {
 }
 
 /// Different hex grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
 pub enum HexCoordSystem {
     RowEven,
     RowOdd,
@@ -327,7 +327,7 @@ pub enum HexCoordSystem {
 }
 
 /// Different isometric coordinate systems.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
 pub enum IsoCoordSystem {
     Diamond,
     Staggered,

@@ -1,7 +1,7 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     prelude::*,
-    reflect::TypeUuid,
+    reflect::{TypeUuid, TypePath},
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
@@ -13,6 +13,7 @@ use bevy::{
             RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
             SpecializedRenderPipelines,
         },
+        Render,
         renderer::RenderDevice,
         texture::FallbackImage,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
@@ -38,7 +39,7 @@ use super::{
 #[cfg(not(feature = "atlas"))]
 pub(crate) use super::TextureArrayCache;
 
-pub trait MaterialTilemap: AsBindGroup + Send + Sync + Clone + TypeUuid + Sized + 'static {
+pub trait MaterialTilemap: AsBindGroup + Send + Sync + Clone + TypeUuid + TypePath + Sized + 'static {
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
     /// will be used.
     fn vertex_shader() -> ShaderRef {
@@ -110,7 +111,7 @@ where
 {
     fn build(&self, app: &mut App) {
         app.add_asset::<M>()
-            .add_plugin(ExtractComponentPlugin::<Handle<M>>::extract_visible());
+            .add_plugins(ExtractComponentPlugin::<Handle<M>>::extract_visible());
 
         if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
@@ -119,13 +120,13 @@ where
                 .init_resource::<ExtractedMaterialsTilemap<M>>()
                 .init_resource::<RenderMaterialsTilemap<M>>()
                 .init_resource::<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>()
-                .add_system(extract_materials_tilemap::<M>.in_schedule(ExtractSchedule))
-                .add_system(
+                .add_systems(ExtractSchedule, extract_materials_tilemap::<M>)
+                .add_systems(Render,
                     prepare_materials_tilemap::<M>
                         .in_set(RenderSet::Prepare)
                         .after(PrepareAssetSet::PreAssetPrepare),
                 )
-                .add_system(queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue));
+                .add_systems(Render, queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue));
         }
     }
 }
@@ -517,7 +518,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     }
 }
 
-#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default)]
+#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default, TypePath)]
 #[uuid = "d6f8aeb8-510c-499a-9c0b-38551ae0b72a"]
 pub struct StandardTilemapMaterial {}
 

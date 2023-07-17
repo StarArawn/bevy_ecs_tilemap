@@ -2,7 +2,7 @@ mod storage;
 
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Bundle, Color, Component, FromReflect, Reflect, ReflectComponent},
+    prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
 };
 pub use storage::*;
 
@@ -10,9 +10,7 @@ use crate::map::TilemapId;
 use crate::TilemapSize;
 
 /// A tile position in the tilemap grid.
-#[derive(
-    Component, Reflect, FromReflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd,
-)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 #[reflect(Component)]
 pub struct TilePos {
     pub x: u32,

@@ -1,14 +1,15 @@
 #define_import_path bevy_ecs_tilemap::row_even_hex
 
-#import bevy_ecs_tilemap::mesh_output
-
-const SQRT_3: f32 = 1.7320508;
-const HALF_SQRT_3: f32 = 0.8660254;
-const ROW_BASIS_X: vec2<f32> = vec2<f32>(1.0, 0.0);
-const ROW_BASIS_Y: vec2<f32> = vec2<f32>(0.5, HALF_SQRT_3);
+#import bevy_ecs_tilemap::common VertexInput, tilemap_data, mesh
+#import bevy_ecs_tilemap::mesh_output MeshOutput
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_row_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
+    let SQRT_3: f32 = 1.7320508;
+    let HALF_SQRT_3: f32 = 0.8660254;
+    let ROW_BASIS_X: vec2<f32> = vec2<f32>(1.0, 0.0);
+    let ROW_BASIS_Y: vec2<f32> = vec2<f32>(0.5, HALF_SQRT_3);
+
     let unscaled_pos = pos.x * ROW_BASIS_X + pos.y * ROW_BASIS_Y;
     return vec2<f32>(grid_width * unscaled_pos.x, ROW_BASIS_Y.y * grid_height * unscaled_pos.y);
 }

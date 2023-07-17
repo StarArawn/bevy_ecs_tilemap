@@ -80,11 +80,11 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
-        .add_system(random)
+        .add_plugins(LogDiagnosticsPlugin::default())
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(TilemapPlugin)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, random)
         .run();
 }

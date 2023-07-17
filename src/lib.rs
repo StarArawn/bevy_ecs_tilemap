@@ -15,8 +15,8 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
-    IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
+    Bundle, Changed, Component, ComputedVisibility, Deref, First, GlobalTransform, Plugin, Query,
+    Reflect, ReflectComponent, Transform, Visibility,
 };
 
 #[cfg(feature = "render")]
@@ -35,10 +35,7 @@ use tiles::{
 };
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
-use bevy::{
-    prelude::IntoSystemAppConfig,
-    render::{ExtractSchedule, RenderApp},
-};
+use bevy::render::{ExtractSchedule, RenderApp};
 
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -59,15 +56,15 @@ pub struct TilemapPlugin;
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
-        app.add_plugin(render::TilemapRenderingPlugin);
+        app.add_plugins(render::TilemapRenderingPlugin);
 
-        app.add_system(update_changed_tile_positions.in_base_set(CoreSet::First));
+        app.add_systems(First, update_changed_tile_positions);
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
             let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_system(array_texture_preload::extract.in_schedule(ExtractSchedule));
+            render_app.add_systems(ExtractSchedule, array_texture_preload::extract);
         }
 
         app.register_type::<FrustumCulling>()
@@ -153,12 +150,9 @@ pub struct StandardTilemapBundle {
 pub mod prelude {
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
+    pub use crate::helpers;
     pub use crate::helpers::filling::*;
     pub use crate::helpers::geometry::*;
-    pub use crate::helpers::hex_grid::*;
-    pub use crate::helpers::projection::*;
-    pub use crate::helpers::selection::*;
-    pub use crate::helpers::square_grid::*;
     pub use crate::helpers::transform::*;
     pub use crate::map::*;
     #[cfg(feature = "render")]

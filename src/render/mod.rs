@@ -11,7 +11,7 @@ use bevy::{
         render_resource::{
             FilterMode, SamplerDescriptor, SpecializedRenderPipelines, VertexFormat,
         },
-        RenderApp, RenderSet,
+        Render, RenderApp, RenderSet,
     },
 };
 
@@ -127,10 +127,10 @@ pub const TILEMAP_VERTEX_OUTPUT: HandleUntyped =
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(not(feature = "atlas"))]
-        app.add_system(set_texture_to_copy_src);
+        app.add_systems(Update, set_texture_to_copy_src);
 
-        app.add_system(clear_removed.in_base_set(CoreSet::First));
-        app.add_systems((removal_helper_tilemap, removal_helper).in_base_set(CoreSet::PostUpdate));
+        app.add_systems(First, clear_removed);
+        app.add_systems(PostUpdate, (removal_helper_tilemap, removal_helper));
 
         // Extract the chunk size from the TilemapRenderSettings used to initialize the
         // ChunkCoordinate resource to insert into the render pipeline
@@ -239,14 +239,17 @@ impl Plugin for TilemapRenderingPlugin {
             .insert_resource(RenderYSort(y_sort))
             .insert_resource(RenderChunk2dStorage::default())
             .insert_resource(SecondsSinceStartup(0.0))
-            .add_systems((extract::extract, extract::extract_removal).in_schedule(ExtractSchedule))
             .add_systems(
+                ExtractSchedule,
+                (extract::extract, extract::extract_removal),
+            )
+            .add_systems(
+                Render,
                 (prepare::prepare_removal, prepare::prepare)
                     .chain()
                     .in_set(RenderSet::Prepare),
             )
-            .add_system(queue::queue_transform_bind_group.in_set(RenderSet::Queue))
-            .init_resource::<TilemapPipeline>()
+            .add_systems(Render, queue::queue_transform_bind_group.in_set(RenderSet::Queue))
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
             .init_resource::<MeshUniformResource>()
@@ -257,9 +260,9 @@ impl Plugin for TilemapRenderingPlugin {
         #[cfg(not(feature = "atlas"))]
         render_app
             .init_resource::<TextureArrayCache>()
-            .add_system(prepare_textures.in_set(RenderSet::Prepare));
+            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
 
-        app.add_plugin(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
+        app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 
         app.world
             .resource_mut::<Assets<StandardTilemapMaterial>>()
@@ -267,6 +270,15 @@ impl Plugin for TilemapRenderingPlugin {
                 Handle::<StandardTilemapMaterial>::default(),
                 StandardTilemapMaterial::default(),
             );
+    }
+
+    fn finish(&self, app: &mut App) {
+        let render_app = match app.get_sub_app_mut(RenderApp) {
+            Ok(render_app) => render_app,
+            Err(_) => return,
+        };
+
+        render_app.init_resource::<TilemapPipeline>();
     }
 }
 

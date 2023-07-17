@@ -99,6 +99,6 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_plugin(MaterialTilemapPlugin::<MyMaterial>::default())
         .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }
