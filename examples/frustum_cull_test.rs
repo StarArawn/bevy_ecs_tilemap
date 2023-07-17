@@ -242,14 +242,17 @@ fn main() {
                     filter: "bevy_ecs_tilemap=trace".into(),
                 }),
         )
-        .add_plugin(TilemapPlugin)
+        .add_plugins(TilemapPlugin)
         .init_resource::<TileHandleIso>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<TileHandleSquare>()
         .init_resource::<FontHandle>()
-        .add_startup_systems((spawn_tilemap, apply_system_buffers, spawn_map_type_label).chain())
-        .add_system(camera_movement.in_base_set(CoreSet::First))
-        .add_system(swap_map_type)
+        .add_systems(
+            Startup,
+            (spawn_tilemap, apply_deferred, spawn_map_type_label).chain(),
+        )
+        .add_systems(First, camera_movement)
+        .add_systems(Update, swap_map_type)
         .run();
 }

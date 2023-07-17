@@ -6,7 +6,7 @@ use bevy_ecs_tilemap::{
 };
 use std::collections::HashMap;
 
-use bevy::reflect::TypeUuid;
+use bevy::reflect::{TypePath, TypeUuid};
 use bevy::{
     asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
     prelude::*,
@@ -20,11 +20,11 @@ impl Plugin for LdtkPlugin {
     fn build(&self, app: &mut App) {
         app.add_asset::<LdtkMap>()
             .add_asset_loader(LdtkLoader)
-            .add_system(process_loaded_tile_maps);
+            .add_systems(Update, process_loaded_tile_maps);
     }
 }
 
-#[derive(TypeUuid)]
+#[derive(TypeUuid, TypePath)]
 #[uuid = "abf9eaf2-f21c-4b46-89b0-8aa5c42199af"]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,

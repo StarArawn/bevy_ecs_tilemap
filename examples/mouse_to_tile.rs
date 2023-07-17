@@ -392,19 +392,19 @@ fn main() {
         .init_resource::<TileHandleHexRow>()
         .init_resource::<TileHandleSquare>()
         .init_resource::<FontHandle>()
-        .add_plugin(TilemapPlugin)
-        .add_startup_systems(
-            (spawn_tilemap, apply_system_buffers)
+        .add_plugins(TilemapPlugin)
+        .add_systems(
+            Startup,
+            (spawn_tilemap, apply_deferred)
                 .chain()
                 .in_set(SpawnTilemapSet),
         )
-        .add_startup_systems((spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(
-            (camera_movement, update_cursor_pos)
-                .chain()
-                .in_base_set(CoreSet::First),
+            Startup,
+            (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet),
         )
-        .add_system(swap_map_type)
-        .add_system(highlight_tile_labels.after(swap_map_type))
+        .add_systems(First, (camera_movement, update_cursor_pos).chain())
+        .add_systems(Update, swap_map_type)
+        .add_systems(Update, highlight_tile_labels.after(swap_map_type))
         .run();
 }

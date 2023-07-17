@@ -1,50 +1,48 @@
-#import bevy_ecs_tilemap::common
-
-struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    #import bevy_ecs_tilemap::vertex_output
-}
+#import bevy_ecs_tilemap::common VertexInput, tilemap_data
+#import bevy_ecs_tilemap::mesh_output MeshOutput
+#import bevy_sprite::mesh2d_view_bindings view
+#import bevy_ecs_tilemap::vertex_output MeshVertexOutput
 
 #ifdef SQUARE
-    #import bevy_ecs_tilemap::square
+    #import bevy_ecs_tilemap::square get_mesh
 #endif
 
 #ifdef ISO_DIAMOND
-    #import bevy_ecs_tilemap::diamond_iso
+    #import bevy_ecs_tilemap::diamond_iso get_mesh
 #endif
 
 #ifdef ISO_STAGGERED
-    #import bevy_ecs_tilemap::staggered_iso
+    #import bevy_ecs_tilemap::staggered_iso get_mesh
 #endif
 
 #ifdef COLUMN_EVEN_HEX
-    #import bevy_ecs_tilemap::column_even_hex
+    #import bevy_ecs_tilemap::column_even_hex get_mesh
 #endif
 
 #ifdef COLUMN_HEX
-    #import bevy_ecs_tilemap::column_hex
+    #import bevy_ecs_tilemap::column_hex get_mesh
 #endif
 
 #ifdef COLUMN_ODD_HEX
-    #import bevy_ecs_tilemap::column_odd_hex
+    #import bevy_ecs_tilemap::column_odd_hex get_mesh
 #endif
 
 #ifdef ROW_EVEN_HEX
-    #import bevy_ecs_tilemap::row_even_hex
+    #import bevy_ecs_tilemap::row_even_hex get_mesh
 #endif
 
 #ifdef ROW_HEX
-    #import bevy_ecs_tilemap::row_hex
+    #import bevy_ecs_tilemap::row_hex get_mesh
 #endif
 
 #ifdef ROW_ODD_HEX
-    #import bevy_ecs_tilemap::row_odd_hex
+    #import bevy_ecs_tilemap::row_odd_hex get_mesh
 #endif
 
 
 @vertex
-fn vertex(vertex_input: VertexInput) -> VertexOutput {
-    var out: VertexOutput;
+fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
+    var out: MeshVertexOutput;
     let animation_speed = vertex_input.position.z;
 
     let mesh_data: MeshOutput = get_mesh(vertex_input.v_index, vec3(vertex_input.position.xy, 0.0));

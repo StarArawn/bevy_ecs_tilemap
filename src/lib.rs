@@ -14,12 +14,9 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::{
-    prelude::{
-        Bundle, Changed, Component, ComputedVisibility, CoreSet, Deref, GlobalTransform,
-        IntoSystemConfig, Plugin, Query, Reflect, ReflectComponent, Transform, Visibility,
-    },
-    reflect::FromReflect,
+use bevy::prelude::{
+    Bundle, Changed, Component, ComputedVisibility, Deref, First, GlobalTransform, Plugin, Query,
+    Reflect, ReflectComponent, Transform, Visibility,
 };
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -32,10 +29,7 @@ use tiles::{
 };
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
-use bevy::{
-    prelude::IntoSystemAppConfig,
-    render::{ExtractSchedule, RenderApp},
-};
+use bevy::render::{ExtractSchedule, RenderApp};
 
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -56,15 +50,15 @@ pub struct TilemapPlugin;
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
-        app.add_plugin(render::TilemapRenderingPlugin);
+        app.add_plugins(render::TilemapRenderingPlugin);
 
-        app.add_system(update_changed_tile_positions.in_base_set(CoreSet::First));
+        app.add_systems(First, update_changed_tile_positions);
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
             let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_system(array_texture_preload::extract.in_schedule(ExtractSchedule));
+            render_app.add_systems(ExtractSchedule, array_texture_preload::extract);
         }
 
         app.register_type::<FrustumCulling>()
@@ -87,7 +81,7 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-#[derive(Component, Reflect, Debug, Clone, Copy, Deref, FromReflect)]
+#[derive(Component, Reflect, Debug, Clone, Copy, Deref)]
 #[reflect(Component)]
 pub struct FrustumCulling(pub bool);
 

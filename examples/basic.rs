@@ -109,9 +109,9 @@ fn main() {
             }),
             ..default()
         }).set(ImagePlugin::default_nearest()))
-        .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
-        .add_system(swap_texture_or_hide)
+        .add_plugins(TilemapPlugin)
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, swap_texture_or_hide)
         .run();
 }
