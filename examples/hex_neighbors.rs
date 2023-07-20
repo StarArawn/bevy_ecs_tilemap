@@ -287,7 +287,7 @@ fn hover_highlight_tile_label(
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
             if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                for mut section in tile_text.sections.iter_mut() {
+                for section in tile_text.sections.iter_mut() {
                     section.style.color = Color::BLACK;
                 }
                 commands.entity(highlighted_tile_entity).remove::<Hovered>();
@@ -314,7 +314,7 @@ fn hover_highlight_tile_label(
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                        for mut section in tile_text.sections.iter_mut() {
+                        for section in tile_text.sections.iter_mut() {
                             section.style.color = Color::RED;
                         }
                         commands.entity(tile_entity).insert(Hovered);
@@ -343,7 +343,7 @@ fn highlight_neighbor_label(
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
             if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                for mut section in tile_text.sections.iter_mut() {
+                for section in tile_text.sections.iter_mut() {
                     section.style.color = Color::BLACK;
                 }
                 commands
@@ -370,7 +370,7 @@ fn highlight_neighbor_label(
                 if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos) {
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                            for mut section in tile_text.sections.iter_mut() {
+                            for section in tile_text.sections.iter_mut() {
                                 section.style.color = Color::BLUE;
                             }
                             commands.entity(tile_entity).insert(NeighborHighlight);
@@ -411,7 +411,7 @@ fn highlight_neighbor_label(
                 if let Some(tile_entity) = tile_storage.checked_get(&tile_pos) {
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                            for mut section in tile_text.sections.iter_mut() {
+                            for section in tile_text.sections.iter_mut() {
                                 section.style.color = Color::GREEN;
                             }
                             commands.entity(tile_entity).insert(NeighborHighlight);
