@@ -1,4 +1,4 @@
-#import bevy_ecs_tilemap::common VertexInput
+#import bevy_ecs_tilemap::common VertexInput, tilemap_data
 #import bevy_ecs_tilemap::mesh_output MeshOutput
 #import bevy_sprite::mesh2d_view_bindings view
 #import bevy_ecs_tilemap::vertex_output MeshVertexOutput

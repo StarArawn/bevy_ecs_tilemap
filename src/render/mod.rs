@@ -132,6 +132,17 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(First, clear_removed);
         app.add_systems(PostUpdate, (removal_helper_tilemap, removal_helper));
 
+        app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
+
+        app.world
+            .resource_mut::<Assets<StandardTilemapMaterial>>()
+            .set_untracked(
+                Handle::<StandardTilemapMaterial>::default(),
+                StandardTilemapMaterial::default(),
+            );
+    }
+
+    fn finish(&self, app: &mut App) {
         // Extract the chunk size from the TilemapRenderSettings used to initialize the
         // ChunkCoordinate resource to insert into the render pipeline
         let (chunk_size, y_sort) = {
@@ -140,6 +151,11 @@ impl Plugin for TilemapRenderingPlugin {
                 None => (CHUNK_SIZE_2D, false),
             }
         };
+
+        let sampler = app.get_added_plugins::<ImagePlugin>().first().map_or_else(
+            || ImagePlugin::default_nearest().default_sampler,
+            |plugin| plugin.default_sampler.clone(),
+        );
 
         load_internal_asset!(
             app,
@@ -225,15 +241,20 @@ impl Plugin for TilemapRenderingPlugin {
             "shaders/tilemap_fragment.wgsl",
             Shader::from_wgsl
         );
+        
+        let render_app = match app.get_sub_app_mut(RenderApp) {
+            Ok(render_app) => render_app,
+            Err(_) => return,
+        };
 
-        let sampler = app.get_added_plugins::<ImagePlugin>().first().map_or_else(
-            || ImagePlugin::default_nearest().default_sampler,
-            |plugin| plugin.default_sampler.clone(),
-        );
+        render_app.init_resource::<TilemapPipeline>();
 
-        let render_app = app.sub_app_mut(RenderApp);
-
+        #[cfg(not(feature = "atlas"))]
         render_app
+            .init_resource::<TextureArrayCache>()
+            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
+
+            render_app
             .insert_resource(DefaultSampler(sampler))
             .insert_resource(RenderChunkSize(chunk_size))
             .insert_resource(RenderYSort(y_sort))
@@ -257,28 +278,7 @@ impl Plugin for TilemapRenderingPlugin {
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
 
-        #[cfg(not(feature = "atlas"))]
-        render_app
-            .init_resource::<TextureArrayCache>()
-            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
 
-        app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
-
-        app.world
-            .resource_mut::<Assets<StandardTilemapMaterial>>()
-            .set_untracked(
-                Handle::<StandardTilemapMaterial>::default(),
-                StandardTilemapMaterial::default(),
-            );
-    }
-
-    fn finish(&self, app: &mut App) {
-        let render_app = match app.get_sub_app_mut(RenderApp) {
-            Ok(render_app) => render_app,
-            Err(_) => return,
-        };
-
-        render_app.init_resource::<TilemapPipeline>();
     }
 }
 

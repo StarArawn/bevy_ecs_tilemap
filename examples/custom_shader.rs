@@ -1,8 +1,8 @@
-use bevy::{prelude::*, reflect::TypeUuid, render::render_resource::AsBindGroup};
+use bevy::{prelude::*, reflect::{TypeUuid, TypePath}, render::render_resource::AsBindGroup};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
-#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default)]
+#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Default)]
 #[uuid = "31575692-a956-4762-98e2-5d457f552d0a"]
 pub struct MyMaterial {}
 
@@ -96,9 +96,9 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(TilemapPlugin)
-        .add_plugin(MaterialTilemapPlugin::<MyMaterial>::default())
-        .add_startup_system(startup)
+        .add_plugins(TilemapPlugin)
+        .add_plugins(MaterialTilemapPlugin::<MyMaterial>::default())
+        .add_systems(Startup, startup)
         .add_systems(Update, helpers::camera::movement)
         .run();
 }
