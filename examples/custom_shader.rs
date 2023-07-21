@@ -1,4 +1,8 @@
-use bevy::{prelude::*, reflect::{TypeUuid, TypePath}, render::render_resource::AsBindGroup};
+use bevy::{
+    prelude::*,
+    reflect::{TypePath, TypeUuid},
+    render::render_resource::AsBindGroup,
+};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 

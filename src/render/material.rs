@@ -1,7 +1,7 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     prelude::*,
-    reflect::{TypeUuid, TypePath},
+    reflect::{TypePath, TypeUuid},
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
@@ -13,11 +13,10 @@ use bevy::{
             RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
             SpecializedRenderPipelines,
         },
-        Render,
         renderer::RenderDevice,
         texture::FallbackImage,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
-        Extract, RenderApp, RenderSet,
+        Extract, Render, RenderApp, RenderSet,
     },
     utils::{FloatOrd, HashMap, HashSet},
 };
@@ -39,7 +38,9 @@ use super::{
 #[cfg(not(feature = "atlas"))]
 pub(crate) use super::TextureArrayCache;
 
-pub trait MaterialTilemap: AsBindGroup + Send + Sync + Clone + TypeUuid + TypePath + Sized + 'static {
+pub trait MaterialTilemap:
+    AsBindGroup + Send + Sync + Clone + TypeUuid + TypePath + Sized + 'static
+{
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
     /// will be used.
     fn vertex_shader() -> ShaderRef {
@@ -113,7 +114,7 @@ where
         app.add_asset::<M>()
             .add_plugins(ExtractComponentPlugin::<Handle<M>>::extract_visible());
     }
-    
+
     fn finish(&self, app: &mut App) {
         if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
@@ -123,12 +124,16 @@ where
                 .init_resource::<RenderMaterialsTilemap<M>>()
                 .init_resource::<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>()
                 .add_systems(ExtractSchedule, extract_materials_tilemap::<M>)
-                .add_systems(Render,
+                .add_systems(
+                    Render,
                     prepare_materials_tilemap::<M>
                         .in_set(RenderSet::Prepare)
                         .after(PrepareAssetSet::PreAssetPrepare),
                 )
-                .add_systems(Render, queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue));
+                .add_systems(
+                    Render,
+                    queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue),
+                );
         }
     }
 }

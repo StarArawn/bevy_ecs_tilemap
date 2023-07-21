@@ -241,7 +241,7 @@ impl Plugin for TilemapRenderingPlugin {
             "shaders/tilemap_fragment.wgsl",
             Shader::from_wgsl
         );
-        
+
         let render_app = match app.get_sub_app_mut(RenderApp) {
             Ok(render_app) => render_app,
             Err(_) => return,
@@ -254,7 +254,7 @@ impl Plugin for TilemapRenderingPlugin {
             .init_resource::<TextureArrayCache>()
             .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
 
-            render_app
+        render_app
             .insert_resource(DefaultSampler(sampler))
             .insert_resource(RenderChunkSize(chunk_size))
             .insert_resource(RenderYSort(y_sort))
@@ -270,15 +270,16 @@ impl Plugin for TilemapRenderingPlugin {
                     .chain()
                     .in_set(RenderSet::Prepare),
             )
-            .add_systems(Render, queue::queue_transform_bind_group.in_set(RenderSet::Queue))
+            .add_systems(
+                Render,
+                queue::queue_transform_bind_group.in_set(RenderSet::Queue),
+            )
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
             .init_resource::<MeshUniformResource>()
             .init_resource::<TilemapUniformResource>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
-
-
     }
 }
 
