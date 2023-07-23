@@ -18,7 +18,10 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::render::prepare::{MeshUniformResource, TilemapUniformResource};
+use crate::render::{
+    material::{MaterialTilemapPlugin, StandardTilemapMaterial},
+    prepare::{MeshUniformResource, TilemapUniformResource},
+};
 use crate::{
     prelude::{TilemapRenderSettings, TilemapTexture},
     tiles::{TilePos, TileStorage},
@@ -35,6 +38,7 @@ mod chunk;
 mod draw;
 mod extract;
 mod include_shader;
+pub mod material;
 mod pipeline;
 pub(crate) mod prepare;
 mod queue;
@@ -128,6 +132,17 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(First, clear_removed);
         app.add_systems(PostUpdate, (removal_helper_tilemap, removal_helper));
 
+        app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
+
+        app.world
+            .resource_mut::<Assets<StandardTilemapMaterial>>()
+            .set_untracked(
+                Handle::<StandardTilemapMaterial>::default(),
+                StandardTilemapMaterial::default(),
+            );
+    }
+
+    fn finish(&self, app: &mut App) {
         // Extract the chunk size from the TilemapRenderSettings used to initialize the
         // ChunkCoordinate resource to insert into the render pipeline
         let (chunk_size, y_sort) = {
@@ -136,6 +151,11 @@ impl Plugin for TilemapRenderingPlugin {
                 None => (CHUNK_SIZE_2D, false),
             }
         };
+
+        let sampler = app.get_added_plugins::<ImagePlugin>().first().map_or_else(
+            || ImagePlugin::default_nearest().default_sampler,
+            |plugin| plugin.default_sampler.clone(),
+        );
 
         load_internal_asset!(
             app,
@@ -222,12 +242,17 @@ impl Plugin for TilemapRenderingPlugin {
             Shader::from_wgsl
         );
 
-        let sampler = app.get_added_plugins::<ImagePlugin>().first().map_or_else(
-            || ImagePlugin::default_nearest().default_sampler,
-            |plugin| plugin.default_sampler.clone(),
-        );
+        let render_app = match app.get_sub_app_mut(RenderApp) {
+            Ok(render_app) => render_app,
+            Err(_) => return,
+        };
 
-        let render_app = app.sub_app_mut(RenderApp);
+        render_app.init_resource::<TilemapPipeline>();
+
+        #[cfg(not(feature = "atlas"))]
+        render_app
+            .init_resource::<TextureArrayCache>()
+            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
 
         render_app
             .insert_resource(DefaultSampler(sampler))
@@ -247,12 +272,7 @@ impl Plugin for TilemapRenderingPlugin {
             )
             .add_systems(
                 Render,
-                (
-                    queue::queue_meshes,
-                    queue::queue_transform_bind_group,
-                    queue::queue_tilemap_bind_group,
-                )
-                    .in_set(RenderSet::Queue),
+                queue::queue_transform_bind_group.in_set(RenderSet::Queue),
             )
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
@@ -260,20 +280,6 @@ impl Plugin for TilemapRenderingPlugin {
             .init_resource::<TilemapUniformResource>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
-
-        #[cfg(not(feature = "atlas"))]
-        render_app
-            .init_resource::<TextureArrayCache>()
-            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
-    }
-
-    fn finish(&self, app: &mut App) {
-        let render_app = match app.get_sub_app_mut(RenderApp) {
-            Ok(render_app) => render_app,
-            Err(_) => return,
-        };
-
-        render_app.init_resource::<TilemapPipeline>();
     }
 }
 

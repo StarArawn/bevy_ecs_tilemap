@@ -18,11 +18,17 @@ use bevy::prelude::{
     Bundle, Changed, Component, ComputedVisibility, Deref, First, GlobalTransform, Plugin, Query,
     Reflect, ReflectComponent, Transform, Visibility,
 };
+
+#[cfg(feature = "render")]
+use bevy::prelude::Handle;
+
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
 use prelude::TilemapId;
+#[cfg(feature = "render")]
+use render::material::{MaterialTilemap, StandardTilemapMaterial};
 use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
@@ -92,9 +98,36 @@ impl Default for FrustumCulling {
     }
 }
 
+#[cfg(feature = "render")]
+pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
+
+#[cfg(feature = "render")]
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
-pub struct TilemapBundle {
+pub struct MaterialTilemapBundle<M: MaterialTilemap> {
+    pub grid_size: TilemapGridSize,
+    pub map_type: TilemapType,
+    pub size: TilemapSize,
+    pub spacing: TilemapSpacing,
+    pub storage: TileStorage,
+    pub texture: TilemapTexture,
+    pub tile_size: TilemapTileSize,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    /// User indication of whether an entity is visible
+    pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted
+    /// for rendering
+    pub computed_visibility: ComputedVisibility,
+    /// User indication of whether tilemap should be frustum culled.
+    pub frustum_culling: FrustumCulling,
+    pub material: Handle<M>,
+}
+
+#[cfg(not(feature = "render"))]
+/// The default tilemap bundle. All of the components within are required.
+#[derive(Bundle, Debug, Default, Clone)]
+pub struct StandardTilemapBundle {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
     pub size: TilemapSize,
@@ -122,7 +155,16 @@ pub mod prelude {
     pub use crate::helpers::geometry::*;
     pub use crate::helpers::transform::*;
     pub use crate::map::*;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::MaterialTilemap;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::MaterialTilemapPlugin;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::StandardTilemapMaterial;
     pub use crate::tiles::*;
+    #[cfg(feature = "render")]
+    pub use crate::MaterialTilemapBundle;
+    #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }

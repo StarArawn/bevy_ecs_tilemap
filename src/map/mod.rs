@@ -168,7 +168,7 @@ impl TilemapTexture {
                     .usage
                     .contains(TextureUsages::COPY_SRC)
                 {
-                    if let Some(mut image) = images.get_mut(handle) {
+                    if let Some(image) = images.get_mut(handle) {
                         image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
                             | TextureUsages::COPY_SRC
                             | TextureUsages::COPY_DST;

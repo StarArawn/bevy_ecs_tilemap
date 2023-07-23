@@ -32,6 +32,12 @@ jobs:
           command: check
           args: --all-targets
 
+      # Clean between builds to avoid disk space issues.
+      - name: Cargo Clean
+        uses: "actions-rs/cargo@v1"
+        with:
+          command: clean
+
       - name: Run cargo check feature atlas
         uses: actions-rs/cargo@v1
         with:
@@ -83,4 +89,5 @@ jobs:
         with:
           toolchain: stable
       - run: cargo build --examples
+      - run: cargo clean 
       - run: cargo build --examples --features atlas
