@@ -164,6 +164,7 @@ pub mod prelude {
     pub use crate::tiles::*;
     #[cfg(feature = "render")]
     pub use crate::MaterialTilemapBundle;
+    #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }
