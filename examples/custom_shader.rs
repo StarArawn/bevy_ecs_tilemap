@@ -82,7 +82,7 @@ fn startup(
             tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
             transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
                 * Transform::from_xyz(32.0, 32.0, 0.0),
-            material: my_material_handle.clone(),
+            material: my_material_handle,
             ..Default::default()
         });
 }
