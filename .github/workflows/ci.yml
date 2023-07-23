@@ -32,6 +32,11 @@ jobs:
           command: check
           args: --all-targets
 
+      - name: Cargo Clean
+        uses: "actions-rs/cargo@v1"
+        with:
+          command: clean
+
       - name: Run cargo check feature atlas
         uses: actions-rs/cargo@v1
         with:
