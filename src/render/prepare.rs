@@ -97,6 +97,7 @@ pub(crate) fn prepare(
         let chunk = chunk_storage.get_or_add(
             tile.entity,
             in_chunk_tile_index,
+            tile.tilemap_id.0,
             &chunk_data,
             **chunk_size,
             *mesh_type,
@@ -193,7 +194,7 @@ pub(crate) fn prepare(
             chunk.get_transform(),
             ChunkId(chunk.get_index()),
             chunk.get_map_type(),
-            TilemapId(Entity::from_raw(chunk.tilemap_id)),
+            TilemapId(Entity::from_bits(chunk.tilemap_id)),
             DynamicUniformIndex::<MeshUniform> {
                 index: mesh_uniforms.0.push(MeshUniform {
                     transform: chunk.get_transform_matrix(),
