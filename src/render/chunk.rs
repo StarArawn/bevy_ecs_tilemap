@@ -38,6 +38,7 @@ impl RenderChunk2dStorage {
         &mut self,
         tile_entity: Entity,
         tile_pos: UVec2,
+        chunk_entity: Entity,
         position: &UVec4,
         chunk_size: UVec2,
         mesh_type: TilemapType,
@@ -72,7 +73,7 @@ impl RenderChunk2dStorage {
         } else {
             let chunk = RenderChunk2d::new(
                 hasher.finish(),
-                position.w,
+                chunk_entity.to_bits(),
                 &pos,
                 chunk_size,
                 mesh_type,
@@ -86,8 +87,7 @@ impl RenderChunk2dStorage {
                 visibility.is_visible(),
                 **frustum_culling,
             );
-            self.entity_to_chunk
-                .insert(Entity::from_raw(position.w), pos);
+            self.entity_to_chunk.insert(chunk_entity, pos);
             chunk_storage.insert(pos, chunk);
             chunk_storage.get_mut(&pos).unwrap()
         }
@@ -173,7 +173,7 @@ pub struct PackedTileData {
 #[derive(Clone, Debug)]
 pub struct RenderChunk2d {
     pub id: u64,
-    pub tilemap_id: u32,
+    pub tilemap_id: u64,
     /// The index of the chunk. It is equivalent to the position of the chunk in "chunk
     /// coordinates".
     index: UVec3,
@@ -214,7 +214,7 @@ impl RenderChunk2d {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: u64,
-        tilemap_id: u32,
+        tilemap_id: u64,
         index: &UVec3,
         size_in_tiles: UVec2,
         map_type: TilemapType,
