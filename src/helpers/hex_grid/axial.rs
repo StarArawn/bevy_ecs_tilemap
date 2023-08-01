@@ -108,8 +108,11 @@ impl From<AxialPos> for RowOddPos {
     #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
-        let delta = r / 2;
-        RowOddPos { q: q + delta, r }
+
+        RowOddPos {
+            q: q + (r - (r & 1)) / 2,
+            r,
+        }
     }
 }
 
@@ -117,8 +120,11 @@ impl From<RowOddPos> for AxialPos {
     #[inline]
     fn from(offset_pos: RowOddPos) -> Self {
         let RowOddPos { q, r } = offset_pos;
-        let delta = r / 2;
-        AxialPos { q: q - delta, r }
+
+        AxialPos {
+            q: q - (r - (r & 1)) / 2,
+            r,
+        }
     }
 }
 
@@ -126,9 +132,11 @@ impl From<AxialPos> for RowEvenPos {
     #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
-        // (n + 1) / 2 is a ceil'ed rather than floored division
-        let delta = ceiled_division_by_2(r);
-        RowEvenPos { q: q + delta, r }
+
+        RowEvenPos {
+            q: q + (r + (r & 1)) / 2,
+            r,
+        }
     }
 }
 
@@ -136,8 +144,11 @@ impl From<RowEvenPos> for AxialPos {
     #[inline]
     fn from(offset_pos: RowEvenPos) -> Self {
         let RowEvenPos { q, r } = offset_pos;
-        let delta = ceiled_division_by_2(r);
-        AxialPos { q: q - delta, r }
+
+        AxialPos {
+            q: q - (r + (r & 1)) / 2,
+            r,
+        }
     }
 }
 
@@ -145,8 +156,11 @@ impl From<AxialPos> for ColOddPos {
     #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
-        let delta = q / 2;
-        ColOddPos { q, r: r + delta }
+
+        ColOddPos {
+            q,
+            r: r + (q - (q & 1)) / 2,
+        }
     }
 }
 
@@ -154,8 +168,11 @@ impl From<ColOddPos> for AxialPos {
     #[inline]
     fn from(offset_pos: ColOddPos) -> Self {
         let ColOddPos { q, r } = offset_pos;
-        let delta = q / 2;
-        AxialPos { q, r: r - delta }
+
+        AxialPos {
+            q,
+            r: r - (q - (q & 1)) / 2,
+        }
     }
 }
 
@@ -163,8 +180,11 @@ impl From<AxialPos> for ColEvenPos {
     #[inline]
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
-        let delta = ceiled_division_by_2(q);
-        ColEvenPos { q, r: r + delta }
+
+        ColEvenPos {
+            q,
+            r: r + (q + (q & 1)) / 2,
+        }
     }
 }
 
@@ -172,8 +192,11 @@ impl From<ColEvenPos> for AxialPos {
     #[inline]
     fn from(offset_pos: ColEvenPos) -> Self {
         let ColEvenPos { q, r } = offset_pos;
-        let delta = ceiled_division_by_2(q);
-        AxialPos { q, r: r - delta }
+
+        AxialPos {
+            q,
+            r: r - (q + (q & 1)) / 2,
+        }
     }
 }
 
@@ -494,6 +517,146 @@ impl From<AxialPos> for FractionalAxialPos {
         FractionalAxialPos {
             q: axial_pos.q as f32,
             r: axial_pos.r as f32,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::prelude::{
+        axial::AxialPos,
+        offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos},
+    };
+
+    #[test]
+    fn row_odd_conversion() {
+        let coords = [
+            // zero
+            (RowOddPos { q: 0, r: 0 }, AxialPos { q: 0, r: 0 }),
+            // first ring
+            (RowOddPos { q: -1, r: -1 }, AxialPos { q: 0, r: -1 }),
+            (RowOddPos { q: 0, r: -1 }, AxialPos { q: 1, r: -1 }),
+            (RowOddPos { q: 1, r: 0 }, AxialPos { q: 1, r: 0 }),
+            (RowOddPos { q: 0, r: 1 }, AxialPos { q: 0, r: 1 }),
+            (RowOddPos { q: -1, r: 1 }, AxialPos { q: -1, r: 1 }),
+            (RowOddPos { q: -1, r: 0 }, AxialPos { q: -1, r: 0 }),
+            // second ring
+            (RowOddPos { q: -1, r: -2 }, AxialPos { q: 0, r: -2 }),
+            (RowOddPos { q: 0, r: -2 }, AxialPos { q: 1, r: -2 }),
+            (RowOddPos { q: 1, r: -2 }, AxialPos { q: 2, r: -2 }),
+            (RowOddPos { q: 1, r: -1 }, AxialPos { q: 2, r: -1 }),
+            (RowOddPos { q: 2, r: 0 }, AxialPos { q: 2, r: 0 }),
+            (RowOddPos { q: 1, r: 1 }, AxialPos { q: 1, r: 1 }),
+            (RowOddPos { q: 1, r: 2 }, AxialPos { q: 0, r: 2 }),
+            (RowOddPos { q: 0, r: 2 }, AxialPos { q: -1, r: 2 }),
+            (RowOddPos { q: -1, r: 2 }, AxialPos { q: -2, r: 2 }),
+            (RowOddPos { q: -2, r: 1 }, AxialPos { q: -2, r: 1 }),
+            (RowOddPos { q: -2, r: 0 }, AxialPos { q: -2, r: 0 }),
+            (RowOddPos { q: -2, r: -1 }, AxialPos { q: -1, r: -1 }),
+        ];
+
+        for (row_odd, axial) in coords {
+            assert_eq!(row_odd, RowOddPos::from(axial));
+            assert_eq!(axial, AxialPos::from(row_odd));
+        }
+    }
+
+    #[test]
+    fn row_even_conversion() {
+        let coords = [
+            // zero
+            (RowEvenPos { q: 0, r: 0 }, AxialPos { q: 0, r: 0 }),
+            // first ring
+            (RowEvenPos { q: 0, r: -1 }, AxialPos { q: 0, r: -1 }),
+            (RowEvenPos { q: 1, r: -1 }, AxialPos { q: 1, r: -1 }),
+            (RowEvenPos { q: 1, r: 0 }, AxialPos { q: 1, r: 0 }),
+            (RowEvenPos { q: 1, r: 1 }, AxialPos { q: 0, r: 1 }),
+            (RowEvenPos { q: 0, r: 1 }, AxialPos { q: -1, r: 1 }),
+            (RowEvenPos { q: -1, r: 0 }, AxialPos { q: -1, r: 0 }),
+            // second ring
+            (RowEvenPos { q: -1, r: -2 }, AxialPos { q: 0, r: -2 }),
+            (RowEvenPos { q: 0, r: -2 }, AxialPos { q: 1, r: -2 }),
+            (RowEvenPos { q: 1, r: -2 }, AxialPos { q: 2, r: -2 }),
+            (RowEvenPos { q: 2, r: -1 }, AxialPos { q: 2, r: -1 }),
+            (RowEvenPos { q: 2, r: 0 }, AxialPos { q: 2, r: 0 }),
+            (RowEvenPos { q: 2, r: 1 }, AxialPos { q: 1, r: 1 }),
+            (RowEvenPos { q: 1, r: 2 }, AxialPos { q: 0, r: 2 }),
+            (RowEvenPos { q: 0, r: 2 }, AxialPos { q: -1, r: 2 }),
+            (RowEvenPos { q: -1, r: 2 }, AxialPos { q: -2, r: 2 }),
+            (RowEvenPos { q: -1, r: 1 }, AxialPos { q: -2, r: 1 }),
+            (RowEvenPos { q: -2, r: 0 }, AxialPos { q: -2, r: 0 }),
+            (RowEvenPos { q: -1, r: -1 }, AxialPos { q: -1, r: -1 }),
+        ];
+
+        for (row_even, axial) in coords {
+            assert_eq!(row_even, RowEvenPos::from(axial));
+            assert_eq!(axial, AxialPos::from(row_even));
+        }
+    }
+
+    #[test]
+    fn col_odd_conversion() {
+        let coords = [
+            // zero
+            (ColOddPos { q: 0, r: 0 }, AxialPos { q: 0, r: 0 }),
+            // first ring
+            (ColOddPos { q: 0, r: -1 }, AxialPos { q: 0, r: -1 }),
+            (ColOddPos { q: 1, r: -1 }, AxialPos { q: 1, r: -1 }),
+            (ColOddPos { q: 1, r: 0 }, AxialPos { q: 1, r: 0 }),
+            (ColOddPos { q: 0, r: 1 }, AxialPos { q: 0, r: 1 }),
+            (ColOddPos { q: -1, r: 0 }, AxialPos { q: -1, r: 1 }),
+            (ColOddPos { q: -1, r: -1 }, AxialPos { q: -1, r: 0 }),
+            // second ring
+            (ColOddPos { q: 0, r: -2 }, AxialPos { q: 0, r: -2 }),
+            (ColOddPos { q: 1, r: -2 }, AxialPos { q: 1, r: -2 }),
+            (ColOddPos { q: 2, r: -1 }, AxialPos { q: 2, r: -2 }),
+            (ColOddPos { q: 2, r: 0 }, AxialPos { q: 2, r: -1 }),
+            (ColOddPos { q: 2, r: 1 }, AxialPos { q: 2, r: 0 }),
+            (ColOddPos { q: 1, r: 1 }, AxialPos { q: 1, r: 1 }),
+            (ColOddPos { q: 0, r: 2 }, AxialPos { q: 0, r: 2 }),
+            (ColOddPos { q: -1, r: 1 }, AxialPos { q: -1, r: 2 }),
+            (ColOddPos { q: -2, r: 1 }, AxialPos { q: -2, r: 2 }),
+            (ColOddPos { q: -2, r: 0 }, AxialPos { q: -2, r: 1 }),
+            (ColOddPos { q: -2, r: -1 }, AxialPos { q: -2, r: 0 }),
+            (ColOddPos { q: -1, r: -2 }, AxialPos { q: -1, r: -1 }),
+        ];
+
+        for (col_odd, axial) in coords {
+            assert_eq!(col_odd, ColOddPos::from(axial));
+            assert_eq!(axial, AxialPos::from(col_odd));
+        }
+    }
+
+    #[test]
+    fn col_even_conversion() {
+        let coords = [
+            // zero
+            (ColEvenPos { q: 0, r: 0 }, AxialPos { q: 0, r: 0 }),
+            // first ring
+            (ColEvenPos { q: 0, r: -1 }, AxialPos { q: 0, r: -1 }),
+            (ColEvenPos { q: 1, r: 0 }, AxialPos { q: 1, r: -1 }),
+            (ColEvenPos { q: 1, r: 1 }, AxialPos { q: 1, r: 0 }),
+            (ColEvenPos { q: 0, r: 1 }, AxialPos { q: 0, r: 1 }),
+            (ColEvenPos { q: -1, r: 1 }, AxialPos { q: -1, r: 1 }),
+            (ColEvenPos { q: -1, r: 0 }, AxialPos { q: -1, r: 0 }),
+            // second ring
+            (ColEvenPos { q: 0, r: -2 }, AxialPos { q: 0, r: -2 }),
+            (ColEvenPos { q: 1, r: -1 }, AxialPos { q: 1, r: -2 }),
+            (ColEvenPos { q: 2, r: -1 }, AxialPos { q: 2, r: -2 }),
+            (ColEvenPos { q: 2, r: 0 }, AxialPos { q: 2, r: -1 }),
+            (ColEvenPos { q: 2, r: 1 }, AxialPos { q: 2, r: 0 }),
+            (ColEvenPos { q: 1, r: 2 }, AxialPos { q: 1, r: 1 }),
+            (ColEvenPos { q: 0, r: 2 }, AxialPos { q: 0, r: 2 }),
+            (ColEvenPos { q: -1, r: 2 }, AxialPos { q: -1, r: 2 }),
+            (ColEvenPos { q: -2, r: 1 }, AxialPos { q: -2, r: 2 }),
+            (ColEvenPos { q: -2, r: 0 }, AxialPos { q: -2, r: 1 }),
+            (ColEvenPos { q: -2, r: -1 }, AxialPos { q: -2, r: 0 }),
+            (ColEvenPos { q: -1, r: -1 }, AxialPos { q: -1, r: -1 }),
+        ];
+
+        for (col_even, axial) in coords {
+            assert_eq!(col_even, ColEvenPos::from(axial));
+            assert_eq!(axial, AxialPos::from(col_even));
         }
     }
 }
