@@ -199,7 +199,7 @@ where
             self.tilemap_pipeline.view_layout.clone(),
             self.tilemap_pipeline.mesh_layout.clone(),
             self.tilemap_pipeline.material_layout.clone(),
-            self.material_tilemap_layout.clone()
+            self.material_tilemap_layout.clone(),
         ];
 
         M::specialize(&mut descriptor, key);
