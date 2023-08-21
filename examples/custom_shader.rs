@@ -11,6 +11,9 @@ mod helpers;
 pub struct MyMaterial {
     #[uniform(0)]
     brightness: f32,
+    // webgl2 requires 16 byte alignment
+    #[uniform(0)]
+    _padding: Vec3,
 }
 
 impl MaterialTilemap for MyMaterial {
@@ -26,7 +29,10 @@ fn startup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let my_material_handle = materials.add(MyMaterial { brightness: 0.5 });
+    let my_material_handle = materials.add(MyMaterial {
+        brightness: 0.5,
+        ..default()
+    });
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
