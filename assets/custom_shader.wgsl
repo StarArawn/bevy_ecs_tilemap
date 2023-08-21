@@ -2,6 +2,9 @@
 #import bevy_ecs_tilemap::vertex_output MeshVertexOutput
 #import bevy_sprite::mesh2d_view_bindings globals
 
+@group(3) @binding(0)
+var<uniform> brighness: f32;
+
 fn hsv2rgb(c: vec3<f32>) -> vec3<f32>
 {
     let K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -14,5 +17,5 @@ fn fragment(in: MeshVertexOutput) -> @location(0) vec4<f32> {
     let color = process_fragment(in);
     
     let hsv = vec3(abs(sin(globals.time)), 1.0, 1.0);
-    return vec4(color.rgb + hsv2rgb(hsv), color.a);
+    return vec4((color.rgb + hsv2rgb(hsv)) * brighness, color.a);
 }

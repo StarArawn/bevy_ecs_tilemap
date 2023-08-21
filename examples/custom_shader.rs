@@ -8,7 +8,10 @@ mod helpers;
 
 #[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Default)]
 #[uuid = "31575692-a956-4762-98e2-5d457f552d0a"]
-pub struct MyMaterial {}
+pub struct MyMaterial {
+    #[uniform(0)]
+    brightness: f32
+}
 
 impl MaterialTilemap for MyMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
@@ -23,7 +26,9 @@ fn startup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let my_material_handle = materials.add(MyMaterial {});
+    let my_material_handle = materials.add(MyMaterial {
+        brightness: 0.5
+    });
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
