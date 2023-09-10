@@ -3,7 +3,7 @@ use bevy::prelude::{ReflectComponent, Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Component, Entity, Handle, Image, Reflect},
+    prelude::{Component, Deref, DerefMut, Entity, Handle, Image, Reflect},
 };
 
 /// Custom parameters for the render pipeline.
@@ -40,7 +40,7 @@ pub struct TilemapRenderSettings {
 }
 
 /// A component which stores a reference to the tilemap entity.
-#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash, Deref, DerefMut, PartialEq, Eq)]
 #[reflect(Component)]
 pub struct TilemapId(pub Entity);
 
