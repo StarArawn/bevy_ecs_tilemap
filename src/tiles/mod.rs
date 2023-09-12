@@ -12,6 +12,7 @@ use crate::TilemapSize;
 /// A tile position in the tilemap grid.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 #[reflect(Component)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TilePos {
     pub x: u32,
     pub y: u32,

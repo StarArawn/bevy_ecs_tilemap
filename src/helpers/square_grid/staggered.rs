@@ -15,6 +15,7 @@ use std::ops::{Add, Mul, Sub};
 /// Under the hood, in order to reduce code duplication, a `StaggeredPos` is mapped to
 /// [`DiamondPos`] for world space to grid space related calculations.
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StaggeredPos {
     pub x: i32,
     pub y: i32,

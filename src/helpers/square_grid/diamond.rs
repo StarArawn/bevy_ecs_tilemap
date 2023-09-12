@@ -18,6 +18,7 @@ use std::ops::{Add, Mul, Sub};
 /// A `DiamondPos` can be mapped to world space, and a world space position can be mapped to
 /// the tile with `DiamondPos` containing said world space position.
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DiamondPos {
     pub x: i32,
     pub y: i32,

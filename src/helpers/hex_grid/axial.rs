@@ -30,6 +30,7 @@ use std::ops::{Add, Mul, Sub};
 /// however, that while positive `r` goes "downward" in RBG's article, we consider it as going
 /// "upward".
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AxialPos {
     pub q: i32,
     pub r: i32,
@@ -467,6 +468,7 @@ impl AxialPos {
 ///
 /// It can be rounded into an [`AxialPos`].
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FractionalAxialPos {
     pub q: f32,
     pub r: f32,

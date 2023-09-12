@@ -17,6 +17,7 @@ use std::ops::{Add, Mul, Sub};
 /// (RBG). Note however, that while positive `r` goes "downward" in RBG's article, we consider it as
 /// going "upward".
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CubePos {
     pub q: i32,
     pub r: i32,
@@ -109,6 +110,7 @@ impl CubePos {
 }
 
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FractionalCubePos {
     q: f32,
     r: f32,
