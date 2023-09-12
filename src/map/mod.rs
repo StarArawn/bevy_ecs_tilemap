@@ -6,6 +6,22 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image, Reflect},
 };
 
+/// For the convenience in implementing `Add<Vec2>` for Vec2-like structures which are common in
+/// this module.
+macro_rules! impl_add_vec2 {
+    ($ty:ty $(, $inner_ty:ty)?) => {
+        impl std::ops::Add<Vec2> for $ty {
+            type Output = Self;
+            fn add(self, rhs: Vec2) -> Self::Output {
+                Self {
+                    x: self.x + rhs.x $(as $inner_ty)?,
+                    y: self.y + rhs.y $(as $inner_ty)?,
+                }
+            }
+        }
+    }
+}
+
 /// Custom parameters for the render pipeline.
 ///
 /// It must be added as a resource before [`TilemapPlugin`](crate::TilemapPlugin). For example:
@@ -87,6 +103,8 @@ impl From<UVec2> for TilemapSize {
         TilemapSize { x: vec.x, y: vec.y }
     }
 }
+
+impl_add_vec2!(TilemapSize, u32);
 
 #[derive(Component, Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 #[reflect(Component)]
@@ -229,6 +247,8 @@ impl From<Vec2> for TilemapTileSize {
     }
 }
 
+impl_add_vec2!(TilemapTileSize);
+
 /// Size of the tiles on the grid in pixels.
 /// This can be used to overlay tiles on top of each other.
 /// Ex. A 16x16 pixel tile can be overlapped by 8 pixels by using
@@ -264,6 +284,8 @@ impl From<&Vec2> for TilemapGridSize {
     }
 }
 
+impl_add_vec2!(TilemapGridSize);
+
 /// Spacing between tiles in pixels inside of the texture atlas.
 /// Defaults to 0.0
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
@@ -284,6 +306,8 @@ impl TilemapSpacing {
         Self { x: 0.0, y: 0.0 }
     }
 }
+
+impl_add_vec2!(TilemapSpacing);
 
 /// Size of the atlas texture in pixels.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
@@ -314,6 +338,8 @@ impl From<TilemapTileSize> for TilemapTextureSize {
         TilemapTextureSize { x, y }
     }
 }
+
+impl_add_vec2!(TilemapTextureSize);
 
 /// Different hex grid coordinate systems. You can find out more at this link: <https://www.redblobgames.com/grids/hexagons/>
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
