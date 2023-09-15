@@ -35,12 +35,18 @@ pub struct AxialPos {
     pub r: i32,
 }
 
-impl From<&TilePos> for AxialPos {
-    fn from(tile_pos: &TilePos) -> Self {
+impl From<TilePos> for AxialPos {
+    fn from(tile_pos: TilePos) -> Self {
         AxialPos {
             q: tile_pos.x as i32,
             r: tile_pos.y as i32,
         }
+    }
+}
+
+impl From<&TilePos> for AxialPos {
+    fn from(tile_pos: &TilePos) -> Self {
+        AxialPos::from(*tile_pos)
     }
 }
 
