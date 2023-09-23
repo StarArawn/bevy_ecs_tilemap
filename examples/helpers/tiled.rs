@@ -237,12 +237,11 @@ pub fn process_loaded_maps(
                 // tilesets on each layer and allows differently-sized tile images in each tileset,
                 // this means we need to load each combination of tileset and layer separately.
                 for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
-                    let Some(tilemap_texture) = tiled_map
-                        .tilemap_textures
-                        .get(&tileset_index) else {
-                            log::warn!("Skipped creating layer with missing tilemap textures.");
-                            continue;
-                        };
+                    let Some(tilemap_texture) = tiled_map.tilemap_textures.get(&tileset_index)
+                    else {
+                        log::warn!("Skipped creating layer with missing tilemap textures.");
+                        continue;
+                    };
 
                     let tile_size = TilemapTileSize {
                         x: tileset.tile_width as f32,
