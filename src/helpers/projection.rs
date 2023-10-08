@@ -10,7 +10,7 @@ use bevy::math::Vec2;
 impl TilePos {
     /// Get the center of this tile in world space.
     ///
-    /// The center is well defined for all [`TilemapType`](crate::map::TilemapType)s.
+    /// The center is well defined for all [`TilemapType`]s.
     pub fn center_in_world(&self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
         match map_type {
             TilemapType::Square { .. } => {

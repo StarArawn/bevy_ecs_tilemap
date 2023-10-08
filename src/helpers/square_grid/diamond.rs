@@ -13,7 +13,7 @@ use std::ops::{Add, Mul, Sub};
 ///
 /// It is vector-like. In other words: it makes sense to add and subtract
 /// two `DiamondPos`, and it makes sense to multiply a `DiamondPos` by
-/// an [`i32`](i32) scalar.
+/// an [`i32`] scalar.
 ///
 /// A `DiamondPos` can be mapped to world space, and a world space position can be mapped to
 /// the tile with `DiamondPos` containing said world space position.

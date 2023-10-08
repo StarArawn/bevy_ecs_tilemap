@@ -35,8 +35,8 @@ pub fn fill_tilemap(
 
 /// Fills a rectangular region with the given tile.
 ///
-/// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a
-/// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).  
+/// The rectangular region is defined by an `origin` in [`TilePos`], and a
+/// `size` in tiles ([`TilemapSize`]).
 pub fn fill_tilemap_rect(
     texture_index: TileTextureIndex,
     origin: TilePos,
@@ -69,8 +69,8 @@ pub fn fill_tilemap_rect(
 
 /// Fills a rectangular region with colored versions of the given tile.
 ///
-/// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a
-/// `size` in tiles ([`TilemapSize`](crate::map::TilemapSize)).   
+/// The rectangular region is defined by an `origin` in [`TilePos`], and a
+/// `size` in tiles ([`TilemapSize`]).
 pub fn fill_tilemap_rect_color(
     texture_index: TileTextureIndex,
     origin: TilePos,
@@ -143,8 +143,7 @@ pub fn generate_hexagon(origin: AxialPos, radius: u32) -> Vec<AxialPos> {
 
 /// Fills a hexagonal region with the given `tile_texture`.
 ///
-/// The rectangular region is defined by an `origin` in [`TilePos`](crate::tiles::TilePos), and a
-/// `radius`.
+/// The rectangular region is defined by an `origin` in [`TilePos`], and a `radius`.
 ///
 /// Tiles that do not fit in the tilemap will not be created.
 pub fn fill_tilemap_hexagon(
