@@ -146,5 +146,14 @@ fn main() {
         .add_systems(Startup, create_background)
         .add_systems(Startup, create_animated_flowers)
         .add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, pause_animation)
         .run();
+}
+
+fn pause_animation(mut query: Query<&mut AnimatedTile>, keys: Res<Input<KeyCode>>) {
+    if keys.just_pressed(KeyCode::P) {
+        for mut anim in &mut query {
+            anim.speed = if anim.speed == 0.0 { 1.0 } else { 0.0 }
+        }
+    }
 }

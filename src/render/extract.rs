@@ -203,6 +203,7 @@ pub fn extract(
                 Changed<TileTextureIndex>,
                 Changed<TileFlip>,
                 Changed<TileColor>,
+                Changed<AnimatedTile>,
             )>,
         >,
     >,
