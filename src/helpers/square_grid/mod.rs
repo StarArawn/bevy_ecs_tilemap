@@ -14,7 +14,7 @@ use std::ops::{Add, Mul, Sub};
 ///
 /// It is vector-like. In other words: it makes sense to add and subtract
 /// two `SquarePos`, and it makes sense to multiply a `SquarePos` by
-/// an [`i32`](i32) scalar.
+/// an [`i32`] scalar.
 ///
 /// A `SquarePos` can be mapped to world space, and a world space position can be mapped to
 /// the tile with `SquarePos` containing said world space position.

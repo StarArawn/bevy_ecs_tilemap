@@ -177,7 +177,7 @@ impl From<ColEvenPos> for AxialPos {
     }
 }
 
-/// The matrix for mapping from [`AxialPos`](AxialPos), to world position when hexes are arranged
+/// The matrix for mapping from [`AxialPos`], to world position when hexes are arranged
 /// in row format ("pointy top" per Red Blob Games). See
 /// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
 /// at Red Blob Games for an interactive visual explanation, but note that:
@@ -185,13 +185,13 @@ impl From<ColEvenPos> for AxialPos {
 ///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
 pub const ROW_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 0.0), Vec2::new(0.5, HALF_SQRT_3));
 
-/// The inverse of [`ROW_BASIS`](ROW_BASIS).
+/// The inverse of [`ROW_BASIS`].
 pub const INV_ROW_BASIS: Mat2 = Mat2::from_cols(
     Vec2::new(1.0, 0.0),
     Vec2::new(-1.0 * INV_SQRT_3, DOUBLE_INV_SQRT_3),
 );
 
-/// The matrix for mapping from [`AxialPos`](AxialPos), to world position when hexes are arranged
+/// The matrix for mapping from [`AxialPos`], to world position when hexes are arranged
 /// in column format ("flat top" per Red Blob Games). See
 /// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
 /// at Red Blob Games for an interactive visual explanation, but note that:
@@ -199,7 +199,7 @@ pub const INV_ROW_BASIS: Mat2 = Mat2::from_cols(
 ///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
 pub const COL_BASIS: Mat2 = Mat2::from_cols(Vec2::new(HALF_SQRT_3, 0.5), Vec2::new(0.0, 1.0));
 
-/// The inverse of [`COL_BASIS`](COL_BASIS).
+/// The inverse of [`COL_BASIS`].
 pub const INV_COL_BASIS: Mat2 = Mat2::from_cols(
     Vec2::new(DOUBLE_INV_SQRT_3, -1.0 * INV_SQRT_3),
     Vec2::new(0.0, 1.0),
