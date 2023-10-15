@@ -167,7 +167,7 @@ pub struct PackedTileData {
     pub visible: bool,
     pub position: Vec4,
     pub texture: Vec4,
-    pub color: Vec4,
+    pub color: [f32; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -374,8 +374,7 @@ impl RenderChunk2d {
                     .into_iter(),
                 );
 
-                let color: [f32; 4] = tile.color.into();
-                colors.extend([color, color, color, color].into_iter());
+                colors.extend(std::iter::repeat(tile.color).take(4));
 
                 // flipping and rotation packed in bits
                 // bit 0 : flip_x
