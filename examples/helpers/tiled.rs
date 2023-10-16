@@ -12,12 +12,12 @@
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
-use std::io::Cursor;
+use std::io::{Cursor, Error, ErrorKind, Read};
 use std::path::Path;
 use std::sync::Arc;
 
 use bevy::{
-    asset::{AssetLoader, AssetPath, LoadedAsset},
+    asset::{AssetIo, AssetLoader, AssetPath, LoadedAsset},
     log,
     prelude::{
         AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
@@ -67,25 +67,33 @@ pub struct TiledMapBundle {
     pub global_transform: GlobalTransform,
 }
 
-struct BytesResourceReader {
+struct BytesResourceReader<'a> {
     bytes: Arc<[u8]>,
+    asset_io: &'a dyn AssetIo,
 }
-
-impl BytesResourceReader {
-    fn new(bytes: &[u8]) -> Self {
+impl<'a> BytesResourceReader<'a> {
+    pub fn new(bytes: &'a [u8], asset_io: &'a dyn AssetIo) -> Self {
         Self {
             bytes: Arc::from(bytes),
+            asset_io,
         }
     }
 }
 
-impl tiled::ResourceReader for BytesResourceReader {
-    type Resource = Cursor<Arc<[u8]>>;
-    type Error = std::io::Error;
+impl<'a> tiled::ResourceReader for BytesResourceReader<'a> {
+    type Resource = Box<dyn Read + 'a>;
+    type Error = Error;
 
-    fn read_from(&mut self, _path: &Path) -> std::result::Result<Self::Resource, Self::Error> {
-        // In this case, the path is ignored because the byte data is already provided.
-        Ok(Cursor::new(self.bytes.clone()))
+    fn read_from(&mut self, path: &Path) -> std::result::Result<Self::Resource, Self::Error> {
+        if let Some(extension) = path.extension() {
+            if extension == "tsx" {
+                let future = self.asset_io.load_path(path);
+                let data = futures_lite::future::block_on(future)
+                    .map_err(|err| Error::new(ErrorKind::NotFound, err))?;
+                return Ok(Box::new(Cursor::new(data)));
+            }
+        }
+        Ok(Box::new(Cursor::new(self.bytes.clone())))
     }
 }
 
@@ -107,7 +115,7 @@ impl AssetLoader for TiledLoader {
 
             let mut loader = tiled::Loader::with_cache_and_reader(
                 tiled::DefaultResourceCache::new(),
-                BytesResourceReader::new(bytes),
+                BytesResourceReader::new(bytes, load_context.asset_io()),
             );
             let map = loader
                 .load_tmx_map(load_context.path())
