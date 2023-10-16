@@ -5,6 +5,7 @@ version = "0.11.1"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
+license = "MIT"
 license-file = "LICENSE"
 edition = "2021"
 exclude = ["assets/*", "screenshots/*"]
