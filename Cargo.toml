@@ -21,6 +21,7 @@ bevy = { path = "bevy", default-features = false, features = [
     "bevy_render",
     "bevy_asset",
     "bevy_sprite",
+    "multi-threaded"
 ] }
 log = "0.4"
 regex = "1.5.4"
@@ -46,7 +47,8 @@ features = [
     "bevy_text",
     "bevy_sprite",
     "filesystem_watcher",
-    "webgl2"
+    "webgl2",
+    "multi-threaded"
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
@@ -62,6 +64,7 @@ features = [
     "x11",
     "bevy_text",
     "bevy_sprite",
+    "multi-threaded"
 ]
 
 
