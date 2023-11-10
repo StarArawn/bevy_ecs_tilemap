@@ -155,7 +155,7 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
         if let Ok(material_handle) = material_handles.get(id.0) {
             let bind_group = material_bind_groups
                 .into_inner()
-                .get(material_handle)
+                .get(&material_handle.id())
                 .unwrap();
             pass.set_bind_group(I, &bind_group.bind_group, &[]);
         }

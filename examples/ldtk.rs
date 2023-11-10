@@ -8,9 +8,7 @@
 //!
 //! For a more comprehensive LDtk solution, consider [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk), which uses bevy_ecs_tilemap internally.
 
-use bevy::utils::Duration;
-
-use bevy::{asset::ChangeWatcher, prelude::*};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::*;
 
 mod helpers;
@@ -39,10 +37,7 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin {
-                    watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
-                    ..default()
-                }),
+                .set(AssetPlugin::unprocessed()),
         )
         .add_plugins(TilemapPlugin)
         .add_plugins(helpers::ldtk::LdtkPlugin)

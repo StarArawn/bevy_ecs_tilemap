@@ -17,14 +17,14 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bevy::{
-    asset::{AssetLoader, AssetPath, LoadedAsset},
+    asset::{AssetLoader, AssetPath, io::Reader, AsyncReadExt},
     log,
     prelude::{
-        AddAsset, Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
-        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform, Update,
+        Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
+        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform, Update, Asset, AssetApp, AssetId,
     },
     reflect::{TypePath, TypeUuid},
-    utils::HashMap,
+    utils::{BoxedFuture, HashMap},
 };
 use bevy_ecs_tilemap::prelude::*;
 
@@ -35,13 +35,13 @@ pub struct TiledMapPlugin;
 
 impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_asset::<TiledMap>()
-            .add_asset_loader(TiledLoader)
+        app.init_asset::<TiledMap>()
+            .register_asset_loader(TiledLoader)
             .add_systems(Update, process_loaded_maps);
     }
 }
 
-#[derive(TypeUuid, TypePath)]
+#[derive(TypeUuid, TypePath, Asset)]
 #[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
 pub struct TiledMap {
     pub map: tiled::Map,
@@ -92,22 +92,22 @@ impl tiled::ResourceReader for BytesResourceReader {
 pub struct TiledLoader;
 
 impl AssetLoader for TiledLoader {
+    type Asset = TiledMap;
+    type Settings = ();
+
     fn load<'a>(
         &'a self,
-        bytes: &'a [u8],
+        reader: &'a mut Reader,
+        _settings: &'a Self::Settings,
         load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::asset::BoxedFuture<'a, Result<()>> {
+    ) -> BoxedFuture<'a, Result<Self::Asset, anyhow::Error>> {
         Box::pin(async move {
-            // The load context path is the TMX file itself. If the file is at the root of the
-            // assets/ directory structure then the tmx_dir will be empty, which is fine.
-            let tmx_dir = load_context
-                .path()
-                .parent()
-                .expect("The asset load context was empty.");
+            let mut bytes = Vec::new();
+            reader.read_to_end(&mut bytes).await?;
 
             let mut loader = tiled::Loader::with_cache_and_reader(
                 tiled::DefaultResourceCache::new(),
-                BytesResourceReader::new(bytes),
+                BytesResourceReader::new(&bytes),
             );
             let map = loader
                 .load_tmx_map(load_context.path())
@@ -132,11 +132,17 @@ impl AssetLoader for TiledLoader {
                             let mut tile_images: Vec<Handle<Image>> = Vec::new();
                             for (tile_id, tile) in tileset.tiles() {
                                 if let Some(img) = &tile.image {
+                                    // The load context path is the TMX file itself. If the file is at the root of the
+                                    // assets/ directory structure then the tmx_dir will be empty, which is fine.
+                                    let tmx_dir = load_context
+                                        .path()
+                                        .parent()
+                                        .expect("The asset load context was empty.");
                                     let tile_path = tmx_dir.join(&img.source);
                                     let asset_path = AssetPath::new(tile_path, None);
                                     log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
                                     let texture: Handle<Image> =
-                                        load_context.get_handle(asset_path.clone());
+                                        load_context.load(asset_path.clone());
                                     tile_image_offsets
                                         .insert((tileset_index, tile_id), tile_images.len() as u32);
                                     tile_images.push(texture.clone());
@@ -148,9 +154,15 @@ impl AssetLoader for TiledLoader {
                         }
                     }
                     Some(img) => {
+                        // The load context path is the TMX file itself. If the file is at the root of the
+                        // assets/ directory structure then the tmx_dir will be empty, which is fine.
+                        let tmx_dir = load_context
+                            .path()
+                            .parent()
+                            .expect("The asset load context was empty.");
                         let tile_path = tmx_dir.join(&img.source);
                         let asset_path = AssetPath::new(tile_path, None);
-                        let texture: Handle<Image> = load_context.get_handle(asset_path.clone());
+                        let texture: Handle<Image> = load_context.load(asset_path.clone());
                         dependencies.push(asset_path);
 
                         TilemapTexture::Single(texture.clone())
@@ -168,10 +180,7 @@ impl AssetLoader for TiledLoader {
             };
 
             log::info!("Loaded map: {}", load_context.path().display());
-
-            let loaded_asset = LoadedAsset::new(asset_map);
-            load_context.set_default_asset(loaded_asset.with_dependencies(dependencies));
-            Ok(())
+            Ok(asset_map)
         })
     }
 
@@ -189,35 +198,36 @@ pub fn process_loaded_maps(
     mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
 ) {
-    let mut changed_maps = Vec::<Handle<TiledMap>>::default();
-    for event in map_events.iter() {
+    let mut changed_maps = Vec::<AssetId<TiledMap>>::default();
+    for event in map_events.read() {
         match event {
-            AssetEvent::Created { handle } => {
+            AssetEvent::Added { id } => {
                 log::info!("Map added!");
-                changed_maps.push(handle.clone());
+                changed_maps.push(*id);
             }
-            AssetEvent::Modified { handle } => {
+            AssetEvent::Modified { id } => {
                 log::info!("Map changed!");
-                changed_maps.push(handle.clone());
+                changed_maps.push(*id);
             }
-            AssetEvent::Removed { handle } => {
+            AssetEvent::Removed { id } => {
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps.retain(|changed_handle| changed_handle == handle);
+                changed_maps.retain(|changed_handle| changed_handle == id);
             }
+            _ => continue,
         }
     }
 
     // If we have new map entities add them to the changed_maps list.
     for new_map_handle in new_maps.iter() {
-        changed_maps.push(new_map_handle.clone_weak());
+        changed_maps.push(new_map_handle.id());
     }
 
     for changed_map in changed_maps.iter() {
         for (map_handle, mut layer_storage) in map_query.iter_mut() {
             // only deal with currently changed map
-            if map_handle != changed_map {
+            if map_handle.id() != *changed_map {
                 continue;
             }
             if let Some(tiled_map) = maps.get(map_handle) {

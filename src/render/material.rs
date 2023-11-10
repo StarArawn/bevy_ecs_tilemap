@@ -5,7 +5,7 @@ use bevy::{
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
-        render_asset::{RenderAssets, prepare_assets},
+        render_asset::RenderAssets,
         render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupDescriptor, BindGroupEntry,
@@ -39,7 +39,7 @@ use super::{
 pub(crate) use super::TextureArrayCache;
 
 pub trait MaterialTilemap:
-    AsBindGroup + Send + Sync + Clone + TypeUuid + TypePath + Sized + 'static
+    AsBindGroup + Asset + Clone + Sized
 {
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
     /// will be used.
@@ -111,7 +111,7 @@ where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
     fn build(&self, app: &mut App) {
-        app.add_asset::<M>()
+        app.init_asset::<M>()
             .add_plugins(ExtractComponentPlugin::<Handle<M>>::extract_visible());
     }
 
@@ -145,8 +145,8 @@ pub struct PreparedMaterialTilemap<T: MaterialTilemap> {
 
 #[derive(Resource)]
 struct ExtractedMaterialsTilemap<M: MaterialTilemap> {
-    extracted: Vec<(Handle<M>, M)>,
-    removed: Vec<Handle<M>>,
+    extracted: Vec<(AssetId<M>, M)>,
+    removed: Vec<AssetId<M>>,
 }
 
 impl<M: MaterialTilemap> Default for ExtractedMaterialsTilemap<M> {
@@ -233,7 +233,7 @@ impl<M: MaterialTilemap> FromWorld for MaterialTilemapPipeline<M> {
 /// Stores all prepared representations of [`Material2d`] assets for as long as they exist.
 #[derive(Resource, Deref, DerefMut)]
 pub struct RenderMaterialsTilemap<T: MaterialTilemap>(
-    HashMap<Handle<T>, PreparedMaterialTilemap<T>>,
+    HashMap<AssetId<T>, PreparedMaterialTilemap<T>>,
 );
 
 impl<T: MaterialTilemap> Default for RenderMaterialsTilemap<T> {
@@ -251,22 +251,23 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
 ) {
     let mut changed_assets = HashSet::default();
     let mut removed = Vec::new();
-    for event in events.iter() {
+    for event in events.read() {
         match event {
-            AssetEvent::Created { handle } | AssetEvent::Modified { handle } => {
-                changed_assets.insert(handle.clone_weak());
+            AssetEvent::Added { id } | AssetEvent::Modified { id } => {
+                changed_assets.insert(id);
             }
-            AssetEvent::Removed { handle } => {
-                changed_assets.remove(handle);
-                removed.push(handle.clone_weak());
+            AssetEvent::Removed { id } => {
+                changed_assets.remove(id);
+                removed.push(*id);
             }
+            _ => continue
         }
     }
 
     let mut extracted_assets = Vec::new();
-    for handle in changed_assets.drain() {
-        if let Some(asset) = assets.get(&handle) {
-            extracted_assets.push((handle, asset.clone()));
+    for id in changed_assets.drain() {
+        if let Some(asset) = assets.get(*id) {
+            extracted_assets.push((*id, asset.clone()));
         }
     }
 
@@ -278,7 +279,7 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
 
 /// All [`Material2d`] values of a given type that should be prepared next frame.
 pub struct PrepareNextFrameMaterials<M: MaterialTilemap> {
-    assets: Vec<(Handle<M>, M)>,
+    assets: Vec<(AssetId<M>, M)>,
 }
 
 impl<M: MaterialTilemap> Default for PrepareNextFrameMaterials<M> {
@@ -444,7 +445,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 let Ok(material_handle) = materials.get(tilemap_id.0) else {
                     continue;
                 };
-                let Some(material) = render_materials.get(material_handle) else {
+                let Some(material) = render_materials.get(&material_handle.id()) else {
                     continue;
                 };
 
@@ -525,7 +526,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     }
 }
 
-#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default, TypePath)]
+#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default, TypePath, Asset)]
 #[uuid = "d6f8aeb8-510c-499a-9c0b-38551ae0b72a"]
 pub struct StandardTilemapMaterial {}
 

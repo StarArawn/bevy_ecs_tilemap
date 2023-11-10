@@ -4,7 +4,6 @@ use bevy::{
     asset::load_internal_asset,
     core_pipeline::core_2d::Transparent2d,
     prelude::*,
-    reflect::TypeUuid,
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
@@ -99,30 +98,18 @@ pub struct TilemapRenderingPlugin;
 #[derive(Resource, Default, Deref, DerefMut)]
 pub struct SecondsSinceStartup(pub f32);
 
-pub const COLUMN_EVEN_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7704924705970804993);
-pub const COLUMN_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 11710877199891728627);
-pub const COLUMN_ODD_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6706359414982022142);
-pub const COMMON: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 15420881977837458322);
-pub const DIAMOND_ISO: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6710251300621614118);
-pub const MESH_OUTPUT: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 2707251459590872179);
-pub const ROW_EVEN_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7149718726759672633);
-pub const ROW_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5506589682629967569);
-pub const ROW_ODD_HEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13608302855194400936);
-pub const STAGGERED_ISO: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9802843761568314416);
-pub const SQUARE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 7333720254399106799);
-pub const TILEMAP_VERTEX_OUTPUT: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6104533649830094529);
+pub const COLUMN_EVEN_HEX: Handle<Shader> = Handle::weak_from_u128(7704924705970804993);
+pub const COLUMN_HEX: Handle<Shader> = Handle::weak_from_u128(11710877199891728627);
+pub const COLUMN_ODD_HEX: Handle<Shader> = Handle::weak_from_u128(6706359414982022142);
+pub const COMMON: Handle<Shader> = Handle::weak_from_u128(15420881977837458322);
+pub const DIAMOND_ISO: Handle<Shader> = Handle::weak_from_u128(6710251300621614118);
+pub const MESH_OUTPUT: Handle<Shader> = Handle::weak_from_u128(2707251459590872179);
+pub const ROW_EVEN_HEX: Handle<Shader> = Handle::weak_from_u128(7149718726759672633);
+pub const ROW_HEX: Handle<Shader> = Handle::weak_from_u128(5506589682629967569);
+pub const ROW_ODD_HEX: Handle<Shader> = Handle::weak_from_u128(13608302855194400936);
+pub const STAGGERED_ISO: Handle<Shader> = Handle::weak_from_u128(9802843761568314416);
+pub const SQUARE: Handle<Shader> = Handle::weak_from_u128(7333720254399106799);
+pub const TILEMAP_VERTEX_OUTPUT: Handle<Shader> = Handle::weak_from_u128(6104533649830094529);
 
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
@@ -136,7 +123,7 @@ impl Plugin for TilemapRenderingPlugin {
 
         app.world
             .resource_mut::<Assets<StandardTilemapMaterial>>()
-            .set_untracked(
+            .insert(
                 Handle::<StandardTilemapMaterial>::default(),
                 StandardTilemapMaterial::default(),
             );
