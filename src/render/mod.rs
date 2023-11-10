@@ -252,7 +252,7 @@ impl Plugin for TilemapRenderingPlugin {
         #[cfg(not(feature = "atlas"))]
         render_app
             .init_resource::<TextureArrayCache>()
-            .add_systems(Render, prepare_textures.in_set(RenderSet::Prepare));
+            .add_systems(Render, prepare_textures.in_set(RenderSet::PrepareAssets));
 
         render_app
             .insert_resource(DefaultSampler(sampler))
@@ -268,11 +268,11 @@ impl Plugin for TilemapRenderingPlugin {
                 Render,
                 (prepare::prepare_removal, prepare::prepare)
                     .chain()
-                    .in_set(RenderSet::Prepare),
+                    .in_set(RenderSet::PrepareAssets),
             )
             .add_systems(
                 Render,
-                queue::queue_transform_bind_group.in_set(RenderSet::Queue),
+                queue::queue_transform_bind_group.in_set(RenderSet::PrepareBindGroups),
             )
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()

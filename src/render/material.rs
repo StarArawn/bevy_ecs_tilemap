@@ -5,7 +5,7 @@ use bevy::{
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
-        render_asset::{PrepareAssetSet, RenderAssets},
+        render_asset::{RenderAssets, prepare_assets},
         render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupDescriptor, BindGroupEntry,
@@ -127,8 +127,7 @@ where
                 .add_systems(
                     Render,
                     prepare_materials_tilemap::<M>
-                        .in_set(RenderSet::Prepare)
-                        .after(PrepareAssetSet::PreAssetPrepare),
+                        .in_set(RenderSet::PrepareAssets)
                 )
                 .add_systems(
                     Render,
@@ -518,7 +517,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                         draw_function: draw_tilemap,
                         pipeline: pipeline_id,
                         sort_key: FloatOrd(z),
-                        batch_range: None,
+                        batch_size: 1,
                     });
                 }
             }
