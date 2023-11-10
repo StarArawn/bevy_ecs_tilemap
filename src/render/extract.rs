@@ -66,7 +66,7 @@ pub struct ExtractedTilemapBundle {
     map_type: TilemapType,
     texture: TilemapTexture,
     map_size: TilemapSize,
-    visibility: ComputedVisibility,
+    visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
 }
 
@@ -217,7 +217,7 @@ pub fn extract(
             &TilemapType,
             &TilemapTexture,
             &TilemapSize,
-            &ComputedVisibility,
+            &InheritedVisibility,
             &FrustumCulling,
         )>,
     >,
@@ -233,7 +233,7 @@ pub fn extract(
                 Changed<TilemapSpacing>,
                 Changed<TilemapGridSize>,
                 Changed<TilemapSize>,
-                Changed<ComputedVisibility>,
+                Changed<InheritedVisibility>,
                 Changed<FrustumCulling>,
             )>,
         >,
