@@ -308,7 +308,7 @@ pub struct RemovedTileEntity(pub Entity);
 pub struct RemovedMapEntity(pub Entity);
 
 fn removal_helper(mut commands: Commands, mut removed_query: RemovedComponents<TilePos>) {
-    for entity in removed_query.iter() {
+    for entity in removed_query.read() {
         commands.spawn(RemovedTileEntity(entity));
     }
 }
@@ -317,7 +317,7 @@ fn removal_helper_tilemap(
     mut commands: Commands,
     mut removed_query: RemovedComponents<TileStorage>,
 ) {
-    for entity in removed_query.iter() {
+    for entity in removed_query.read() {
         commands.spawn(RemovedMapEntity(entity));
     }
 }
