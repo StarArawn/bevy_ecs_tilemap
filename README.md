@@ -92,6 +92,7 @@ cargo run --target wasm32-unknown-unknown --example animation --release --featur
 |bevy|bevy_ecs_tilemap|
 |---|---|
 |`main`|`bevy-track`|
+|0.12|0.12|
 |0.11|0.11.*|
 |0.10|0.10|
 |0.9|0.9|
