@@ -7,10 +7,9 @@ use bevy::{
     render::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
-        render_resource::{
-            FilterMode, SpecializedRenderPipelines, VertexFormat,
-        },
-        Render, RenderApp, RenderSet, texture::ImageSamplerDescriptor,
+        render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
+        texture::ImageSamplerDescriptor,
+        Render, RenderApp, RenderSet,
     },
 };
 

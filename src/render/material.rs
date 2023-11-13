@@ -8,10 +8,9 @@ use bevy::{
         render_asset::RenderAssets,
         render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
         render_resource::{
-            AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry,
-            BindGroupLayout, BindingResource, OwnedBindingResource, PipelineCache,
-            RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
-            SpecializedRenderPipelines,
+            AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
+            BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
+            ShaderRef, SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
         texture::FallbackImage,
@@ -38,9 +37,7 @@ use super::{
 #[cfg(not(feature = "atlas"))]
 pub(crate) use super::TextureArrayCache;
 
-pub trait MaterialTilemap:
-    AsBindGroup + Asset + Clone + Sized
-{
+pub trait MaterialTilemap: AsBindGroup + Asset + Clone + Sized {
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
     /// will be used.
     fn vertex_shader() -> ShaderRef {
@@ -126,8 +123,7 @@ where
                 .add_systems(ExtractSchedule, extract_materials_tilemap::<M>)
                 .add_systems(
                     Render,
-                    prepare_materials_tilemap::<M>
-                        .in_set(RenderSet::PrepareAssets)
+                    prepare_materials_tilemap::<M>.in_set(RenderSet::PrepareAssets),
                 )
                 .add_systems(
                     Render,
@@ -260,7 +256,7 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
                 changed_assets.remove(id);
                 removed.push(*id);
             }
-            _ => continue
+            _ => continue,
         }
     }
 

@@ -1,7 +1,7 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.11.1"
+version = "0.12.0"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
@@ -16,7 +16,7 @@ atlas = []
 render = []
 
 [dependencies]
-bevy = { path = "bevy", default-features = false, features = [
+bevy = { version = "0.12", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
@@ -35,7 +35,7 @@ tiled = { version = "0.11.0", default-features = false }
 thiserror = { version = "1.0" }
 
 [dev-dependencies.bevy]
-path = "bevy"
+version = "0.12"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -52,7 +52,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-path = "bevy"
+version = "0.12"
 default-features = false
 features = [
     "bevy_core_pipeline",

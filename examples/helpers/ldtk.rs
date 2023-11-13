@@ -4,10 +4,13 @@ use bevy_ecs_tilemap::{
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle,
 };
-use thiserror::Error;
 use std::{collections::HashMap, io::ErrorKind};
+use thiserror::Error;
 
-use bevy::{reflect::{TypePath, TypeUuid}, asset::{io::Reader, AsyncReadExt}};
+use bevy::{
+    asset::{io::Reader, AsyncReadExt},
+    reflect::{TypePath, TypeUuid},
+};
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
@@ -69,9 +72,13 @@ impl AssetLoader for LdtkLoader {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-            
-            let project: ldtk_rust::Project = serde_json::from_slice(&bytes)
-                .map_err(|e| std::io::Error::new(ErrorKind::Other, format!("Could not read contents of Ldtk map: {e}")))?;
+
+            let project: ldtk_rust::Project = serde_json::from_slice(&bytes).map_err(|e| {
+                std::io::Error::new(
+                    ErrorKind::Other,
+                    format!("Could not read contents of Ldtk map: {e}"),
+                )
+            })?;
             let dependencies: Vec<(i64, AssetPath)> = project
                 .defs
                 .tilesets
@@ -127,7 +134,7 @@ pub fn process_loaded_tile_maps(
                 // events are ordered so future modification events are ok
                 changed_maps.retain(|changed_handle| changed_handle == id);
             }
-            _ => continue
+            _ => continue,
         }
     }
 

@@ -1,7 +1,7 @@
 use std::hash::{Hash, Hasher};
 
 use bevy::math::Mat4;
-use bevy::prelude::{Resource, Transform, InheritedVisibility};
+use bevy::prelude::{InheritedVisibility, Resource, Transform};
 use bevy::render::primitives::Aabb;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},

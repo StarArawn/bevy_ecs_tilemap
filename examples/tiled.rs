@@ -26,7 +26,10 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin { mode: AssetMode::Unprocessed, ..default() }),
+                .set(AssetPlugin {
+                    mode: AssetMode::Unprocessed,
+                    ..default()
+                }),
         )
         .add_plugins(TilemapPlugin)
         .add_plugins(helpers::tiled::TiledMapPlugin)

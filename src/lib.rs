@@ -15,8 +15,8 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, Component, Deref, First, GlobalTransform, Plugin, Query,
-    Reflect, ReflectComponent, Transform, Visibility, InheritedVisibility, ViewVisibility,
+    Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, Plugin, Query,
+    Reflect, ReflectComponent, Transform, ViewVisibility, Visibility,
 };
 
 #[cfg(feature = "render")]

@@ -17,11 +17,12 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bevy::{
-    asset::{AssetLoader, AssetPath, io::Reader, AsyncReadExt},
+    asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
     log,
     prelude::{
-        Added, AssetEvent, Assets, Bundle, Commands, Component, DespawnRecursiveExt,
-        Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform, Update, Asset, AssetApp, AssetId,
+        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
+        DespawnRecursiveExt, Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query,
+        Res, Transform, Update,
     },
     reflect::{TypePath, TypeUuid},
     utils::{BoxedFuture, HashMap},
@@ -117,9 +118,9 @@ impl AssetLoader for TiledLoader {
                 tiled::DefaultResourceCache::new(),
                 BytesResourceReader::new(&bytes),
             );
-            let map = loader
-                .load_tmx_map(load_context.path())
-                .map_err(|e| std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}")))?;
+            let map = loader.load_tmx_map(load_context.path()).map_err(|e| {
+                std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}"))
+            })?;
 
             let mut dependencies = Vec::new();
             let mut tilemap_textures = HashMap::default();

@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Component, FromWorld, Resource, Shader, World, Handle},
+    prelude::{Component, FromWorld, Handle, Resource, Shader, World},
     render::{
         globals::GlobalsUniform,
         render_resource::{

@@ -9,12 +9,10 @@ use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
 use bevy::log::trace;
-use bevy::prelude::{Resource, InheritedVisibility};
+use bevy::prelude::{InheritedVisibility, Resource};
 use bevy::{
     math::{Mat4, UVec4},
-    prelude::{
-        Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Vec2,
-    },
+    prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Vec2},
     render::{
         render_resource::{DynamicUniformBuffer, ShaderType},
         renderer::{RenderDevice, RenderQueue},
