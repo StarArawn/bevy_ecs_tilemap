@@ -354,7 +354,7 @@ pub fn extract(
                         texture.clone_weak(),
                         *tile_size,
                         *tile_spacing,
-                        default_image_settings.0.min_filter,
+                        default_image_settings.0.min_filter.into(),
                         &images,
                     ),
                 },

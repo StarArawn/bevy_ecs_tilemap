@@ -8,9 +8,9 @@ use bevy::{
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{
-            FilterMode, SamplerDescriptor, SpecializedRenderPipelines, VertexFormat,
+            FilterMode, SpecializedRenderPipelines, VertexFormat,
         },
-        Render, RenderApp, RenderSet,
+        Render, RenderApp, RenderSet, texture::ImageSamplerDescriptor,
     },
 };
 
@@ -57,7 +57,7 @@ const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 pub(crate) struct ExtractedFilterMode(FilterMode);
 
 #[derive(Resource, Deref)]
-pub struct DefaultSampler(SamplerDescriptor<'static>);
+pub struct DefaultSampler(ImageSamplerDescriptor);
 
 /// Size of the chunks used to render the tilemap.
 ///
