@@ -4,7 +4,8 @@ use bevy_ecs_tilemap::{
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle,
 };
-use std::collections::HashMap;
+use thiserror::Error;
+use std::{collections::HashMap, io::ErrorKind};
 
 use bevy::{reflect::{TypePath, TypeUuid}, asset::{io::Reader, AsyncReadExt}};
 use bevy::{
@@ -47,21 +48,30 @@ pub struct LdtkMapBundle {
 
 pub struct LdtkLoader;
 
+#[derive(Debug, Error)]
+pub enum LdtkAssetLoaderError {
+    /// An [IO](std::io) Error
+    #[error("Could load LDTk file: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl AssetLoader for LdtkLoader {
     type Asset = LdtkMap;
     type Settings = ();
+    type Error = LdtkAssetLoaderError;
 
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
         _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<LdtkMap, anyhow::Error>> {
+    ) -> BoxedFuture<'a, Result<LdtkMap, LdtkAssetLoaderError>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             
-            let project: ldtk_rust::Project = serde_json::from_slice(&bytes)?;
+            let project: ldtk_rust::Project = serde_json::from_slice(&bytes)
+                .map_err(|e| std::io::Error::new(ErrorKind::Other, format!("Could not read contents of Ldtk map: {e}")))?;
             let dependencies: Vec<(i64, AssetPath)> = project
                 .defs
                 .tilesets

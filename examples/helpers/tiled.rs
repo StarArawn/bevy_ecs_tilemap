@@ -12,7 +12,7 @@
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
-use std::io::Cursor;
+use std::io::{Cursor, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -28,7 +28,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 
-use anyhow::Result;
+use thiserror::Error;
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -91,16 +91,24 @@ impl tiled::ResourceReader for BytesResourceReader {
 
 pub struct TiledLoader;
 
+#[derive(Debug, Error)]
+pub enum TiledAssetLoaderError {
+    /// An [IO](std::io) Error
+    #[error("Could load Tiled file: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl AssetLoader for TiledLoader {
     type Asset = TiledMap;
     type Settings = ();
+    type Error = TiledAssetLoaderError;
 
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
         _settings: &'a Self::Settings,
         load_context: &'a mut bevy::asset::LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, anyhow::Error>> {
+    ) -> BoxedFuture<'a, Result<Self::Asset, TiledAssetLoaderError>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
@@ -111,7 +119,7 @@ impl AssetLoader for TiledLoader {
             );
             let map = loader
                 .load_tmx_map(load_context.path())
-                .map_err(|e| anyhow::anyhow!("Could not load TMX map: {e}"))?;
+                .map_err(|e| std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}")))?;
 
             let mut dependencies = Vec::new();
             let mut tilemap_textures = HashMap::default();
