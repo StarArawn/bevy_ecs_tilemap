@@ -8,7 +8,7 @@ use bevy::{
         render_asset::RenderAssets,
         render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
         render_resource::{
-            AsBindGroup, AsBindGroupError, BindGroup, BindGroupDescriptor, BindGroupEntry,
+            AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry,
             BindGroupLayout, BindingResource, OwnedBindingResource, PipelineCache,
             RenderPipelineDescriptor, ShaderRef, SpecializedRenderPipeline,
             SpecializedRenderPipelines,
@@ -409,8 +409,10 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         globals_buffer.buffer.binding(),
     ) {
         for (entity, view, visible_entities, mut transparent_phase) in views.iter_mut() {
-            let view_bind_group = render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[
+            let view_bind_group = render_device.create_bind_group(
+                Some("tilemap_view_bind_group"),
+                &tilemap_pipeline.view_layout,
+                &[
                     BindGroupEntry {
                         binding: 0,
                         resource: view_binding.clone(),
@@ -420,9 +422,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                         resource: globals.clone(),
                     },
                 ],
-                label: Some("tilemap_view_bind_group"),
-                layout: &tilemap_pipeline.view_layout,
-            });
+            );
 
             commands.entity(entity).insert(TilemapViewBindGroup {
                 value: view_bind_group,
@@ -473,8 +473,10 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                             let gpu_image = texture_array_cache.get(&chunk.texture);
                             #[cfg(feature = "atlas")]
                             let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
-                            render_device.create_bind_group(&BindGroupDescriptor {
-                                entries: &[
+                            render_device.create_bind_group(
+                                Some("sprite_material_bind_group"),
+                                &tilemap_pipeline.material_layout,
+                                &[
                                     BindGroupEntry {
                                         binding: 0,
                                         resource: BindingResource::TextureView(
@@ -486,9 +488,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                                         resource: BindingResource::Sampler(&gpu_image.sampler),
                                     },
                                 ],
-                                label: Some("sprite_material_bind_group"),
-                                layout: &tilemap_pipeline.material_layout,
-                            })
+                            )
                         });
 
                     let key = TilemapPipelineKey {
