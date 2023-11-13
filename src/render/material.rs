@@ -138,7 +138,7 @@ where
 }
 
 pub struct PreparedMaterialTilemap<T: MaterialTilemap> {
-    pub bindings: Vec<OwnedBindingResource>,
+    pub bindings: Vec<(u32, OwnedBindingResource)>,
     pub bind_group: BindGroup,
     pub key: T::Data,
 }
