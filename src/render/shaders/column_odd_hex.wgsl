@@ -1,7 +1,7 @@
 #define_import_path bevy_ecs_tilemap::column_odd_hex
 
-#import bevy_ecs_tilemap::mesh_output MeshOutput
-#import bevy_ecs_tilemap::common VertexInput, tilemap_data, mesh
+#import bevy_ecs_tilemap::mesh_output::MeshOutput
+#import bevy_ecs_tilemap::common::{VertexInput, tilemap_data, mesh}
 
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.

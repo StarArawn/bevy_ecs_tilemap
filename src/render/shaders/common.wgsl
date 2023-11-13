@@ -39,7 +39,7 @@ var sprite_texture: texture_2d_array<f32>;
 @group(2) @binding(1)
 var sprite_sampler: sampler;
 
-#import bevy_ecs_tilemap::vertex_output MeshVertexOutput
+#import bevy_ecs_tilemap::vertex_output::MeshVertexOutput
 
 fn process_fragment(in: MeshVertexOutput) -> vec4<f32> {
     #ifdef ATLAS

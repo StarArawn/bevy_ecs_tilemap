@@ -1,6 +1,6 @@
 #define_import_path bevy_ecs_tilemap::square
-#import bevy_ecs_tilemap::common VertexInput, tilemap_data, mesh
-#import bevy_ecs_tilemap::mesh_output MeshOutput
+#import bevy_ecs_tilemap::common::{VertexInput, tilemap_data, mesh}
+#import bevy_ecs_tilemap::mesh_output::MeshOutput
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
     var out: MeshOutput;
