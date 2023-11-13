@@ -95,7 +95,7 @@ pub struct TiledLoader;
 #[derive(Debug, Error)]
 pub enum TiledAssetLoaderError {
     /// An [IO](std::io) Error
-    #[error("Could load Tiled file: {0}")]
+    #[error("Could not load Tiled file: {0}")]
     Io(#[from] std::io::Error),
 }
 

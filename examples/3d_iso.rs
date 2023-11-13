@@ -31,11 +31,7 @@ fn main() {
                     }),
                     ..default()
                 })
-                .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin {
-                    mode: AssetMode::Unprocessed,
-                    ..default()
-                }),
+                .set(ImagePlugin::default_nearest()),
         )
         .add_plugins((TilemapPlugin, helpers::tiled::TiledMapPlugin))
         .add_systems(Startup, startup)

@@ -54,7 +54,7 @@ pub struct LdtkLoader;
 #[derive(Debug, Error)]
 pub enum LdtkAssetLoaderError {
     /// An [IO](std::io) Error
-    #[error("Could load LDTk file: {0}")]
+    #[error("Could not load LDTk file: {0}")]
     Io(#[from] std::io::Error),
 }
 

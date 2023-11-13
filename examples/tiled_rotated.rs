@@ -25,11 +25,7 @@ fn main() {
                     }),
                     ..default()
                 })
-                .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin {
-                    mode: AssetMode::Unprocessed,
-                    ..default()
-                }),
+                .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
         .add_plugins(helpers::tiled::TiledMapPlugin)
