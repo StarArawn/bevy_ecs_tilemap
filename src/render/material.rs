@@ -1,7 +1,7 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     prelude::*,
-    reflect::{TypePath, TypeUuid},
+    reflect::TypePath,
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
@@ -523,8 +523,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     }
 }
 
-#[derive(AsBindGroup, TypeUuid, Debug, Clone, Default, TypePath, Asset)]
-#[uuid = "d6f8aeb8-510c-499a-9c0b-38551ae0b72a"]
+#[derive(AsBindGroup, Debug, Clone, Default, TypePath, Asset)]
 pub struct StandardTilemapMaterial {}
 
 impl MaterialTilemap for StandardTilemapMaterial {}
