@@ -97,7 +97,7 @@ impl ExtractedTilemapTexture {
                     "Expected image to have finished loading if \
                     it is being extracted as a texture!",
                 );
-                let texture_size: TilemapTextureSize = image.size().into();
+                let texture_size: TilemapTextureSize = image.size_f32().into();
                 let tile_count_x = ((texture_size.x) / (tile_size.x + tile_spacing.x)).floor();
                 let tile_count_y = ((texture_size.y) / (tile_size.y + tile_spacing.y)).floor();
                 (
@@ -113,7 +113,7 @@ impl ExtractedTilemapTexture {
                         "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                     );
-                    let this_tile_size: TilemapTileSize = image.size().into();
+                    let this_tile_size: TilemapTileSize = image.size_f32().into();
                     if this_tile_size != tile_size {
                         panic!(
                             "Expected all provided image assets to have size {tile_size:?}, \
@@ -142,7 +142,7 @@ impl ExtractedTilemapTexture {
                     "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                 );
-                let tile_size: TilemapTileSize = image.size().into();
+                let tile_size: TilemapTileSize = image.size_f32().into();
                 (
                     image.texture_descriptor.array_layer_count(),
                     tile_size.into(),
