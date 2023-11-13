@@ -46,7 +46,7 @@ features = [
     "bevy_winit",
     "bevy_text",
     "bevy_sprite",
-    #"filesystem_watcher",
+    "file_watcher",
     "webgl2",
     "multi-threaded"
 ]
