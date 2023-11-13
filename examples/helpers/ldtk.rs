@@ -9,7 +9,7 @@ use thiserror::Error;
 
 use bevy::{
     asset::{io::Reader, AsyncReadExt},
-    reflect::{TypePath, TypeUuid},
+    reflect::TypePath,
 };
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
@@ -29,8 +29,7 @@ impl Plugin for LdtkPlugin {
     }
 }
 
-#[derive(TypeUuid, TypePath, Asset)]
-#[uuid = "abf9eaf2-f21c-4b46-89b0-8aa5c42199af"]
+#[derive(TypePath, Asset)]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,
     pub tilesets: HashMap<i64, Handle<Image>>,
@@ -68,7 +67,7 @@ impl AssetLoader for LdtkLoader {
         reader: &'a mut Reader,
         _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<LdtkMap, LdtkAssetLoaderError>> {
+    ) -> BoxedFuture<'a, Result<LdtkMap, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;

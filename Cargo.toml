@@ -21,7 +21,6 @@ bevy = { version = "0.12", default-features = false, features = [
     "bevy_render",
     "bevy_asset",
     "bevy_sprite",
-    "multi-threaded"
 ] }
 log = "0.4"
 regex = "1.5.4"

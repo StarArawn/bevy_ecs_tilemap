@@ -24,7 +24,7 @@ use bevy::{
         DespawnRecursiveExt, Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query,
         Res, Transform, Update,
     },
-    reflect::{TypePath, TypeUuid},
+    reflect::TypePath,
     utils::{BoxedFuture, HashMap},
 };
 use bevy_ecs_tilemap::prelude::*;
@@ -42,8 +42,7 @@ impl Plugin for TiledMapPlugin {
     }
 }
 
-#[derive(TypeUuid, TypePath, Asset)]
-#[uuid = "e51081d0-6168-4881-a1c6-4249b2000d7f"]
+#[derive(TypePath, Asset)]
 pub struct TiledMap {
     pub map: tiled::Map,
 
@@ -109,7 +108,7 @@ impl AssetLoader for TiledLoader {
         reader: &'a mut Reader,
         _settings: &'a Self::Settings,
         load_context: &'a mut bevy::asset::LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, TiledAssetLoaderError>> {
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
