@@ -32,7 +32,7 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin::unprocessed()),
+                .set(AssetPlugin { mode: AssetMode::Unprocessed, ..default() }),
         )
         .add_plugins((TilemapPlugin, helpers::tiled::TiledMapPlugin))
         .add_systems(Startup, startup)
