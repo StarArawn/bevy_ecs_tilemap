@@ -127,7 +127,7 @@ where
                 )
                 .add_systems(
                     Render,
-                    queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue),
+                    queue_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
                 );
         }
     }
