@@ -127,7 +127,10 @@ where
                 )
                 .add_systems(
                     Render,
-                    queue_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
+                    (
+                        queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue),
+                        bind_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
+                    ),
                 );
         }
     }
@@ -359,13 +362,11 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
-    mut commands: Commands,
     y_sort: Res<RenderYSort>,
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     render_device: Res<RenderDevice>,
-    (tilemap_pipeline, material_tilemap_pipeline, mut material_pipelines): (
-        Res<TilemapPipeline>,
+    (material_tilemap_pipeline, mut material_pipelines): (
         Res<MaterialTilemapPipeline<M>>,
         ResMut<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>,
     ),
@@ -374,13 +375,11 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     gpu_images: Res<RenderAssets<Image>>,
     msaa: Res<Msaa>,
     globals_buffer: Res<GlobalsBuffer>,
-    mut image_bind_groups: ResMut<ImageBindGroups>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
         Query<&Handle<M>>,
     ),
     mut views: Query<(
-        Entity,
         &ExtractedView,
         &VisibleEntities,
         &mut RenderPhase<Transparent2d>,
@@ -400,11 +399,115 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         return;
     }
 
+    if view_uniforms.uniforms.binding().is_none() && globals_buffer.buffer.binding().is_none() {
+        return;
+    }
+
+    for (view, visible_entities, mut transparent_phase) in views.iter_mut() {
+        let draw_tilemap = transparent_2d_draw_functions
+            .read()
+            .get_id::<DrawTilemapMaterial<M>>()
+            .unwrap();
+
+        for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
+            if !visible_entities
+                .entities
+                .iter()
+                .any(|&entity| entity.index() == tilemap_id.0.index())
+            {
+                continue;
+            }
+
+            let Ok(material_handle) = materials.get(tilemap_id.0) else {
+                continue;
+            };
+            let Some(material) = render_materials.get(&material_handle.id()) else {
+                continue;
+            };
+
+            if let Some(chunk) = chunk_storage.get(&UVec4::new(
+                chunk_id.0.x,
+                chunk_id.0.y,
+                chunk_id.0.z,
+                tilemap_id.0.index(),
+            )) {
+                #[cfg(not(feature = "atlas"))]
+                if !texture_array_cache.contains(&chunk.texture) {
+                    continue;
+                }
+
+                #[cfg(feature = "atlas")]
+                if gpu_images.get(chunk.texture.image_handle()).is_none() {
+                    continue;
+                }
+
+                let key = TilemapPipelineKey {
+                    msaa: msaa.samples(),
+                    map_type: chunk.get_map_type(),
+                    hdr: view.hdr,
+                };
+
+                let pipeline_id = material_pipelines.specialize(
+                    &pipeline_cache,
+                    &material_tilemap_pipeline,
+                    MaterialTilemapKey {
+                        tilemap_pipeline_key: key,
+                        bind_group_data: material.key.clone(),
+                    },
+                );
+                let z = if **y_sort {
+                    transform.translation.z
+                        + (1.0
+                            - (transform.translation.y
+                                / (chunk.map_size.y as f32 * chunk.tile_size.y)))
+                } else {
+                    transform.translation.z
+                };
+                transparent_phase.add(Transparent2d {
+                    entity,
+                    draw_function: draw_tilemap,
+                    pipeline: pipeline_id,
+                    sort_key: FloatOrd(z),
+                    batch_range: 0..1,
+                    dynamic_offset: None,
+                });
+            }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
+    mut commands: Commands,
+    chunk_storage: Res<RenderChunk2dStorage>,
+    render_device: Res<RenderDevice>,
+    tilemap_pipeline: Res<TilemapPipeline>,
+    view_uniforms: Res<ViewUniforms>,
+    gpu_images: Res<RenderAssets<Image>>,
+    globals_buffer: Res<GlobalsBuffer>,
+    mut image_bind_groups: ResMut<ImageBindGroups>,
+    (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),
+    mut views: Query<(Entity, &VisibleEntities)>,
+    render_materials: Res<RenderMaterialsTilemap<M>>,
+    #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
+        ResMut<TextureArrayCache>,
+        Res<RenderQueue>,
+    ),
+) where
+    M::Data: PartialEq + Eq + Hash + Clone,
+{
+    #[cfg(not(feature = "atlas"))]
+    texture_array_cache.queue(&render_device, &render_queue, &gpu_images);
+
+    if standard_tilemap_meshes.is_empty() {
+        return;
+    }
+
     if let (Some(view_binding), Some(globals)) = (
         view_uniforms.uniforms.binding(),
         globals_buffer.buffer.binding(),
     ) {
-        for (entity, view, visible_entities, mut transparent_phase) in views.iter_mut() {
+        for (entity, visible_entities) in views.iter_mut() {
             let view_bind_group = render_device.create_bind_group(
                 Some("tilemap_view_bind_group"),
                 &tilemap_pipeline.view_layout,
@@ -424,12 +527,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 value: view_bind_group,
             });
 
-            let draw_tilemap = transparent_2d_draw_functions
-                .read()
-                .get_id::<DrawTilemapMaterial<M>>()
-                .unwrap();
-
-            for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
+            for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
                     .entities
                     .iter()
@@ -441,7 +539,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 let Ok(material_handle) = materials.get(tilemap_id.0) else {
                     continue;
                 };
-                let Some(material) = render_materials.get(&material_handle.id()) else {
+                if render_materials.get(&material_handle.id()).is_none() {
                     continue;
                 };
 
@@ -486,37 +584,6 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                                 ],
                             )
                         });
-
-                    let key = TilemapPipelineKey {
-                        msaa: msaa.samples(),
-                        map_type: chunk.get_map_type(),
-                        hdr: view.hdr,
-                    };
-
-                    let pipeline_id = material_pipelines.specialize(
-                        &pipeline_cache,
-                        &material_tilemap_pipeline,
-                        MaterialTilemapKey {
-                            tilemap_pipeline_key: key,
-                            bind_group_data: material.key.clone(),
-                        },
-                    );
-                    let z = if **y_sort {
-                        transform.translation.z
-                            + (1.0
-                                - (transform.translation.y
-                                    / (chunk.map_size.y as f32 * chunk.tile_size.y)))
-                    } else {
-                        transform.translation.z
-                    };
-                    transparent_phase.add(Transparent2d {
-                        entity,
-                        draw_function: draw_tilemap,
-                        pipeline: pipeline_id,
-                        sort_key: FloatOrd(z),
-                        batch_range: 0..1,
-                        dynamic_offset: None,
-                    });
                 }
             }
         }
