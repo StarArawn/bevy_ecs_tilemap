@@ -13,6 +13,10 @@ pub struct RowOddPos {
 }
 
 impl RowOddPos {
+    pub fn new(q: i32, r: i32) -> Self {
+        Self { q, r }
+    }
+
     /// Returns the position of this tile's center, in world space.
     #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
@@ -99,6 +103,10 @@ pub struct RowEvenPos {
 }
 
 impl RowEvenPos {
+    pub fn new(q: i32, r: i32) -> Self {
+        Self { q, r }
+    }
+
     /// Returns the position of this tile's center, in world space.
     #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
@@ -185,6 +193,10 @@ pub struct ColOddPos {
 }
 
 impl ColOddPos {
+    pub fn new(q: i32, r: i32) -> Self {
+        Self { q, r }
+    }
+
     /// Returns the position of this tile's center, in world space.
     #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
@@ -271,6 +283,10 @@ pub struct ColEvenPos {
 }
 
 impl ColEvenPos {
+    pub fn new(q: i32, r: i32) -> Self {
+        Self { q, r }
+    }
+
     /// Returns the position of this tile's center, in world space.
     #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {

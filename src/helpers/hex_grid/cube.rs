@@ -92,6 +92,10 @@ impl Mul<CubePos> for u32 {
 }
 
 impl CubePos {
+    pub fn new(q: i32, r: i32, s: i32) -> Self {
+        Self { q, r, s }
+    }
+
     /// The magnitude of a cube position is its distance away from `[0, 0, 0]` in the cube grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
@@ -123,6 +127,10 @@ impl From<FractionalAxialPos> for FractionalCubePos {
 }
 
 impl FractionalCubePos {
+    pub fn new(q: f32, r: f32, s: f32) -> Self {
+        Self { q, r, s }
+    }
+
     /// Returns `self` rounded to a [`CubePos`] that contains `self`. This is particularly useful
     /// for determining the hex tile that this fractional position is in.
     #[inline]

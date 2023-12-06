@@ -212,6 +212,10 @@ pub const UNIT_R: AxialPos = AxialPos { q: 0, r: -1 };
 pub const UNIT_S: AxialPos = AxialPos { q: 1, r: -1 };
 
 impl AxialPos {
+    pub fn new(q: i32, r: i32) -> Self {
+        Self { q, r }
+    }
+
     /// The magnitude of an axial position is its distance away from `(0, 0)` in the hex grid.
     ///
     /// See the Red Blob Games article for a [helpful interactive diagram](https://www.redblobgames.com/grids/hexagons/#distances-cube).
@@ -473,6 +477,10 @@ pub struct FractionalAxialPos {
 }
 
 impl FractionalAxialPos {
+    pub fn new(q: f32, r: f32) -> Self {
+        Self { q, r }
+    }
+
     #[inline]
     fn round(&self) -> AxialPos {
         let frac_cube_pos = FractionalCubePos::from(*self);

@@ -100,6 +100,10 @@ impl From<StaggeredPos> for SquarePos {
 }
 
 impl SquarePos {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+
     /// Project a vector representing a fractional tile position (i.e. the components can be `f32`)
     /// into world space.
     ///
