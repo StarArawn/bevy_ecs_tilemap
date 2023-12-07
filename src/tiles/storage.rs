@@ -1,4 +1,10 @@
-use bevy::prelude::*;
+use bevy::{
+    ecs::{
+        entity::{EntityMapper, MapEntities},
+        reflect::ReflectMapEntities,
+    },
+    prelude::*,
+};
 
 use crate::map::TilemapSize;
 
@@ -7,10 +13,18 @@ use super::TilePos;
 /// Used to store tile entities for fast look up.
 /// Tile entities are stored in a grid. The grid is always filled with None.
 #[derive(Component, Reflect, Default, Debug, Clone)]
-#[reflect(Component)]
+#[reflect(Component, MapEntities)]
 pub struct TileStorage {
     tiles: Vec<Option<Entity>>,
     pub size: TilemapSize,
+}
+
+impl MapEntities for TileStorage {
+    fn map_entities(&mut self, entity_mapper: &mut EntityMapper) {
+        for entity in self.tiles.iter_mut().flatten() {
+            *entity = entity_mapper.get_or_reserve(*entity);
+        }
+    }
 }
 
 impl TileStorage {

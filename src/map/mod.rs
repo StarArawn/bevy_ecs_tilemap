@@ -1,4 +1,6 @@
 use bevy::asset::Assets;
+use bevy::ecs::entity::{EntityMapper, MapEntities};
+use bevy::ecs::reflect::ReflectMapEntities;
 use bevy::prelude::{ReflectComponent, Res, ResMut, Resource};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
@@ -41,8 +43,14 @@ pub struct TilemapRenderSettings {
 
 /// A component which stores a reference to the tilemap entity.
 #[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
-#[reflect(Component)]
+#[reflect(Component, MapEntities)]
 pub struct TilemapId(pub Entity);
+
+impl MapEntities for TilemapId {
+    fn map_entities(&mut self, entity_mapper: &mut EntityMapper) {
+        self.0 = entity_mapper.get_or_reserve(self.0);
+    }
+}
 
 impl Default for TilemapId {
     fn default() -> Self {
