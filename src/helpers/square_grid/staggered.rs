@@ -89,6 +89,10 @@ impl Mul<StaggeredPos> for i32 {
 }
 
 impl StaggeredPos {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+
     /// Returns the position of this tile's center, in world space.
     #[inline]
     pub fn center_in_world(&self, grid_size: &TilemapGridSize) -> Vec2 {
