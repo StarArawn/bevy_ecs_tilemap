@@ -129,7 +129,7 @@ impl Plugin for TilemapRenderingPlugin {
                 StandardTilemapMaterial::default(),
             );
 
-        app.init_resource::<ModifiedImageHandles>()
+        app.init_resource::<ModifiedImageIds>()
             .add_systems(Update, collect_modified_image_asset_events);
     }
 
@@ -257,7 +257,7 @@ impl Plugin for TilemapRenderingPlugin {
                 (
                     extract::extract,
                     extract::extract_removal,
-                    extract_resource::<ModifiedImageHandles>,
+                    extract_resource::<ModifiedImageIds>,
                 ),
             )
             .add_systems(
@@ -274,7 +274,7 @@ impl Plugin for TilemapRenderingPlugin {
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
             .init_resource::<MeshUniformResource>()
             .init_resource::<TilemapUniformResource>()
-            .init_resource::<ModifiedImageHandles>();
+            .init_resource::<ModifiedImageIds>();
 
         render_app.add_render_command::<Transparent2d, DrawTilemap>();
     }
@@ -360,17 +360,17 @@ fn prepare_textures(
     texture_array_cache.prepare(&render_device, &render_images);
 }
 
-/// Resource to hold the handles of modified Image assets of a single frame.
+/// Resource to hold the ids of modified Image assets of a single frame.
 #[derive(Resource, ExtractResource, Clone, Default)]
-pub struct ModifiedImageHandles(HashSet<Handle<Image>>);
+pub struct ModifiedImageIds(HashSet<AssetId<Image>>);
 
-impl ModifiedImageHandles {
+impl ModifiedImageIds {
     // Determines whether `texture` contains any handles of modified images.
     pub fn is_texture_modified(&self, texture: &TilemapTexture) -> bool {
         texture
             .image_handles()
             .iter()
-            .any(|&image| self.0.contains(image))
+            .any(|&image| self.0.contains(&image.id()))
     }
 }
 
@@ -379,15 +379,15 @@ impl ModifiedImageHandles {
 /// them up into a convenient resource which can be extracted for rendering.
 pub fn collect_modified_image_asset_events(
     mut asset_events: EventReader<AssetEvent<Image>>,
-    mut modified_image_handles: ResMut<ModifiedImageHandles>,
+    mut modified_image_ids: ResMut<ModifiedImageIds>,
 ) {
-    modified_image_handles.0.clear();
+    modified_image_ids.0.clear();
 
     for asset_event in asset_events.read() {
-        let handle = match asset_event {
-            AssetEvent::Modified { id } => Handle::Weak(*id),
+        let id = match asset_event {
+            AssetEvent::Modified { id } => id,
             _ => continue,
         };
-        modified_image_handles.0.insert(handle.clone_weak());
+        modified_image_ids.0.insert(*id);
     }
 }

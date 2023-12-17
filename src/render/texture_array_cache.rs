@@ -17,7 +17,7 @@ use bevy::{
     utils::{HashMap, HashSet},
 };
 
-use super::ModifiedImageHandles;
+use super::ModifiedImageIds;
 
 #[derive(Resource, Default, Debug, Clone)]
 pub struct TextureArrayCache {
@@ -342,15 +342,15 @@ impl TextureArrayCache {
     }
 }
 
-// A system to remove any modified textures from the TextureArrayCache. Modified images will be
-// added back to the pipeline, and so will be reloaded. This allows the TextureArrayCache to be
-// responsive to hot-reloading, for example.
+/// A system to remove any modified textures from the TextureArrayCache. Modified images will be
+/// added back to the pipeline, and so will be reloaded. This allows the TextureArrayCache to be
+/// responsive to hot-reloading, for example.
 pub fn remove_modified_textures(
-    modified_image_handles: Res<ModifiedImageHandles>,
+    modified_image_ids: Res<ModifiedImageIds>,
     mut texture_cache: ResMut<TextureArrayCache>,
 ) {
     let texture_is_unmodified =
-        |texture: &TilemapTexture| !modified_image_handles.is_texture_modified(texture);
+        |texture: &TilemapTexture| !modified_image_ids.is_texture_modified(texture);
 
     texture_cache
         .textures
