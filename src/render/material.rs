@@ -35,7 +35,7 @@ use super::{
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
-    ModifiedImageHandles,
+    ModifiedImageIds,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -499,7 +499,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),
     mut views: Query<(Entity, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
-    modified_image_handles: Res<ModifiedImageHandles>,
+    modified_image_ids: Res<ModifiedImageIds>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
         Res<RenderQueue>,
@@ -589,7 +589,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                             ],
                         )
                     };
-                    if modified_image_handles.is_texture_modified(&chunk.texture) {
+                    if modified_image_ids.is_texture_modified(&chunk.texture) {
                         image_bind_groups
                             .values
                             .insert(chunk.texture.clone_weak(), create_bind_group());
