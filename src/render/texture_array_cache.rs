@@ -75,7 +75,7 @@ impl TextureArrayCache {
                     "Expected image to have finished loading if \
                     it is being extracted as a texture!",
                 );
-                let texture_size: TilemapTextureSize = image.size().into();
+                let texture_size: TilemapTextureSize = image.size_f32().into();
                 let tile_count_x = ((texture_size.x) / (tile_size.x + tile_spacing.x)).floor();
                 let tile_count_y = ((texture_size.y) / (tile_size.y + tile_spacing.y)).floor();
                 ((tile_count_x * tile_count_y) as u32, texture_size)
@@ -86,7 +86,7 @@ impl TextureArrayCache {
                         "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                     );
-                    let this_tile_size: TilemapTileSize = image.size().try_into().unwrap();
+                    let this_tile_size: TilemapTileSize = image.size_f32().try_into().unwrap();
                     if this_tile_size != tile_size {
                         panic!(
                             "Expected all provided image assets to have size {tile_size:?}, \
@@ -101,7 +101,7 @@ impl TextureArrayCache {
                     "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                 );
-                let tile_size: TilemapTileSize = image.size().into();
+                let tile_size: TilemapTileSize = image.size_f32().into();
                 (
                     image.texture_descriptor.array_layer_count(),
                     tile_size.into(),
@@ -141,6 +141,14 @@ impl TextureArrayCache {
     ) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for texture in prepare_queue.iter() {
+            // Fixes issue where default handle causes a crash. There should be a better
+            // way of fixing this.
+            if let TilemapTexture::Single(t) = texture {
+                if bevy::prelude::Handle::default() == t.clone_weak() {
+                    return;
+                }
+            }
+
             match texture {
                 TilemapTexture::Single(_) | TilemapTexture::Vector(_) => {
                     let (count, tile_size, _, _, filter, format) =

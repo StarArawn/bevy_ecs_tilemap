@@ -4,12 +4,17 @@ use bevy_ecs_tilemap::{
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, io::ErrorKind};
+use thiserror::Error;
 
-use bevy::reflect::{TypePath, TypeUuid};
 use bevy::{
-    asset::{AssetLoader, AssetPath, BoxedFuture, LoadContext, LoadedAsset},
+    asset::{io::Reader, AsyncReadExt},
+    reflect::TypePath,
+};
+use bevy::{
+    asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
+    utils::BoxedFuture,
 };
 use bevy_ecs_tilemap::map::TilemapType;
 
@@ -18,14 +23,13 @@ pub struct LdtkPlugin;
 
 impl Plugin for LdtkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_asset::<LdtkMap>()
-            .add_asset_loader(LdtkLoader)
+        app.init_asset::<LdtkMap>()
+            .register_asset_loader(LdtkLoader)
             .add_systems(Update, process_loaded_tile_maps);
     }
 }
 
-#[derive(TypeUuid, TypePath)]
-#[uuid = "abf9eaf2-f21c-4b46-89b0-8aa5c42199af"]
+#[derive(TypePath, Asset)]
 pub struct LdtkMap {
     pub project: ldtk_rust::Project,
     pub tilesets: HashMap<i64, Handle<Image>>,
@@ -46,14 +50,34 @@ pub struct LdtkMapBundle {
 
 pub struct LdtkLoader;
 
+#[derive(Debug, Error)]
+pub enum LdtkAssetLoaderError {
+    /// An [IO](std::io) Error
+    #[error("Could not load LDTk file: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl AssetLoader for LdtkLoader {
+    type Asset = LdtkMap;
+    type Settings = ();
+    type Error = LdtkAssetLoaderError;
+
     fn load<'a>(
         &'a self,
-        bytes: &'a [u8],
+        reader: &'a mut Reader,
+        _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
+    ) -> BoxedFuture<'a, Result<LdtkMap, Self::Error>> {
         Box::pin(async move {
-            let project: ldtk_rust::Project = serde_json::from_slice(bytes)?;
+            let mut bytes = Vec::new();
+            reader.read_to_end(&mut bytes).await?;
+
+            let project: ldtk_rust::Project = serde_json::from_slice(&bytes).map_err(|e| {
+                std::io::Error::new(
+                    ErrorKind::Other,
+                    format!("Could not read contents of Ldtk map: {e}"),
+                )
+            })?;
             let dependencies: Vec<(i64, AssetPath)> = project
                 .defs
                 .tilesets
@@ -68,17 +92,14 @@ impl AssetLoader for LdtkLoader {
                 })
                 .collect();
 
-            let loaded_asset = LoadedAsset::new(LdtkMap {
+            let ldtk_map = LdtkMap {
                 project,
                 tilesets: dependencies
                     .iter()
-                    .map(|dep| (dep.0, load_context.get_handle(dep.1.clone())))
+                    .map(|dep| (dep.0, load_context.load(dep.1.clone())))
                     .collect(),
-            });
-            load_context.set_default_asset(
-                loaded_asset.with_dependencies(dependencies.iter().map(|x| x.1.clone()).collect()),
-            );
-            Ok(())
+            };
+            Ok(ldtk_map)
         })
     }
 
@@ -95,35 +116,36 @@ pub fn process_loaded_tile_maps(
     mut query: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig)>,
     new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
 ) {
-    let mut changed_maps = Vec::<Handle<LdtkMap>>::default();
-    for event in map_events.iter() {
+    let mut changed_maps = Vec::<AssetId<LdtkMap>>::default();
+    for event in map_events.read() {
         match event {
-            AssetEvent::Created { handle } => {
+            AssetEvent::Added { id } => {
                 log::info!("Map added!");
-                changed_maps.push(handle.clone());
+                changed_maps.push(*id);
             }
-            AssetEvent::Modified { handle } => {
+            AssetEvent::Modified { id } => {
                 log::info!("Map changed!");
-                changed_maps.push(handle.clone());
+                changed_maps.push(*id);
             }
-            AssetEvent::Removed { handle } => {
+            AssetEvent::Removed { id } => {
                 log::info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
-                changed_maps.retain(|changed_handle| changed_handle == handle);
+                changed_maps.retain(|changed_handle| changed_handle == id);
             }
+            _ => continue,
         }
     }
 
     // If we have new map entities, add them to the changed_maps list
     for new_map_handle in new_maps.iter() {
-        changed_maps.push(new_map_handle.clone());
+        changed_maps.push(new_map_handle.id());
     }
 
     for changed_map in changed_maps.iter() {
         for (entity, map_handle, map_config) in query.iter_mut() {
             // only deal with currently changed map
-            if map_handle != changed_map {
+            if map_handle.id() != *changed_map {
                 continue;
             }
             if let Some(ldtk_map) = maps.get(map_handle) {

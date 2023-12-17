@@ -1,7 +1,7 @@
 use bevy::{
     prelude::*,
     render::{
-        render_resource::{BindGroup, BindGroupDescriptor, BindGroupEntry},
+        render_resource::{BindGroup, BindGroupEntry},
         renderer::RenderDevice,
     },
     utils::HashMap,
@@ -29,8 +29,10 @@ pub fn queue_transform_bind_group(
         (transform_uniforms.0.binding(), tilemap_uniforms.0.binding())
     {
         commands.insert_resource(TransformBindGroup {
-            value: render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[
+            value: render_device.create_bind_group(
+                Some("transform_bind_group"),
+                &tilemap_pipeline.mesh_layout,
+                &[
                     BindGroupEntry {
                         binding: 0,
                         resource: binding1,
@@ -40,9 +42,7 @@ pub fn queue_transform_bind_group(
                         resource: binding2,
                     },
                 ],
-                label: Some("transform_bind_group"),
-                layout: &tilemap_pipeline.mesh_layout,
-            }),
+            ),
         });
     }
 }

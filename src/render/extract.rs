@@ -1,3 +1,4 @@
+use bevy::math::Affine3A;
 use bevy::prelude::Res;
 use bevy::prelude::Time;
 use bevy::render::primitives::{Aabb, Frustum};
@@ -65,7 +66,7 @@ pub struct ExtractedTilemapBundle {
     map_type: TilemapType,
     texture: TilemapTexture,
     map_size: TilemapSize,
-    visibility: ComputedVisibility,
+    visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
 }
 
@@ -96,7 +97,7 @@ impl ExtractedTilemapTexture {
                     "Expected image to have finished loading if \
                     it is being extracted as a texture!",
                 );
-                let texture_size: TilemapTextureSize = image.size().into();
+                let texture_size: TilemapTextureSize = image.size_f32().into();
                 let tile_count_x = ((texture_size.x) / (tile_size.x + tile_spacing.x)).floor();
                 let tile_count_y = ((texture_size.y) / (tile_size.y + tile_spacing.y)).floor();
                 (
@@ -112,7 +113,7 @@ impl ExtractedTilemapTexture {
                         "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                     );
-                    let this_tile_size: TilemapTileSize = image.size().into();
+                    let this_tile_size: TilemapTileSize = image.size_f32().into();
                     if this_tile_size != tile_size {
                         panic!(
                             "Expected all provided image assets to have size {tile_size:?}, \
@@ -141,7 +142,7 @@ impl ExtractedTilemapTexture {
                     "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                 );
-                let tile_size: TilemapTileSize = image.size().into();
+                let tile_size: TilemapTileSize = image.size_f32().into();
                 (
                     image.texture_descriptor.array_layer_count(),
                     tile_size.into(),
@@ -176,7 +177,7 @@ pub struct ExtractedFrustum {
 impl ExtractedFrustum {
     pub fn intersects_obb(&self, aabb: &Aabb, transform_matrix: &Mat4) -> bool {
         self.frustum
-            .intersects_obb(aabb, transform_matrix, true, false)
+            .intersects_obb(aabb, &Affine3A::from_mat4(*transform_matrix), true, false)
     }
 }
 
@@ -216,7 +217,7 @@ pub fn extract(
             &TilemapType,
             &TilemapTexture,
             &TilemapSize,
-            &ComputedVisibility,
+            &InheritedVisibility,
             &FrustumCulling,
         )>,
     >,
@@ -232,7 +233,7 @@ pub fn extract(
                 Changed<TilemapSpacing>,
                 Changed<TilemapGridSize>,
                 Changed<TilemapSize>,
-                Changed<ComputedVisibility>,
+                Changed<InheritedVisibility>,
                 Changed<FrustumCulling>,
             )>,
         >,
@@ -296,7 +297,7 @@ pub fn extract(
                     map_type: *data.5,
                     texture: data.6.clone_weak(),
                     map_size: *data.7,
-                    visibility: data.8.clone(),
+                    visibility: *data.8,
                     frustum_culling: *data.9,
                 },
             ),
@@ -331,7 +332,7 @@ pub fn extract(
                         map_type: *data.5,
                         texture: data.6.clone_weak(),
                         map_size: *data.7,
-                        visibility: data.8.clone(),
+                        visibility: *data.8,
                         frustum_culling: *data.9,
                     },
                 ),
@@ -353,7 +354,7 @@ pub fn extract(
                         texture.clone_weak(),
                         *tile_size,
                         *tile_spacing,
-                        default_image_settings.0.min_filter,
+                        default_image_settings.0.min_filter.into(),
                         &images,
                     ),
                 },

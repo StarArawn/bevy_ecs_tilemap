@@ -1,11 +1,11 @@
 use std::hash::{Hash, Hasher};
 
 use bevy::math::Mat4;
-use bevy::prelude::{Resource, Transform};
+use bevy::prelude::{InheritedVisibility, Resource, Transform};
 use bevy::render::primitives::Aabb;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, ComputedVisibility, Entity, GlobalTransform, Mesh, Vec3},
+    prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
     render::{
         mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
@@ -49,7 +49,7 @@ impl RenderChunk2dStorage {
         texture: TilemapTexture,
         map_size: TilemapSize,
         transform: GlobalTransform,
-        visibility: &ComputedVisibility,
+        visibility: &InheritedVisibility,
         frustum_culling: &FrustumCulling,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
@@ -84,7 +84,7 @@ impl RenderChunk2dStorage {
                 texture_size,
                 map_size,
                 transform,
-                visibility.is_visible(),
+                visibility.get(),
                 **frustum_culling,
             );
             self.entity_to_chunk.insert(chunk_entity, pos);

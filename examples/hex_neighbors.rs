@@ -256,7 +256,7 @@ pub fn update_cursor_pos(
     mut cursor_moved_events: EventReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
 ) {
-    for cursor_moved in cursor_moved_events.iter() {
+    for cursor_moved in cursor_moved_events.read() {
         // To get the mouse's world position, we have to transform its window position by
         // any transforms on the camera. This is done by projecting the cursor position into
         // camera space (world space).

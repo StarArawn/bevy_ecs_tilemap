@@ -1,6 +1,6 @@
-#import bevy_ecs_tilemap::common process_fragment
-#import bevy_ecs_tilemap::vertex_output MeshVertexOutput
-#import bevy_sprite::mesh2d_view_bindings globals
+#import bevy_ecs_tilemap::common::process_fragment
+#import bevy_ecs_tilemap::vertex_output::MeshVertexOutput
+#import bevy_sprite::mesh2d_view_bindings::globals
 
 struct MyMaterial {
     brightness: f32,

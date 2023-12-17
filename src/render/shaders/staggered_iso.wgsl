@@ -1,7 +1,7 @@
 #define_import_path bevy_ecs_tilemap::staggered_iso
 
-#import bevy_ecs_tilemap::common VertexInput, tilemap_data, mesh
-#import bevy_ecs_tilemap::mesh_output MeshOutput
+#import bevy_ecs_tilemap::common::{VertexInput, tilemap_data, mesh}
+#import bevy_ecs_tilemap::mesh_output::MeshOutput
 
 const DIAMOND_BASIS_X: vec2<f32> = vec2<f32>(0.5, -0.5);
 const DIAMOND_BASIS_Y: vec2<f32> = vec2<f32>(0.5, 0.5);

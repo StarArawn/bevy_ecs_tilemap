@@ -1,7 +1,7 @@
 #define_import_path bevy_ecs_tilemap::row_even_hex
 
-#import bevy_ecs_tilemap::common VertexInput, tilemap_data, mesh
-#import bevy_ecs_tilemap::mesh_output MeshOutput
+#import bevy_ecs_tilemap::common::{VertexInput, tilemap_data, mesh}
+#import bevy_ecs_tilemap::mesh_output::MeshOutput
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_row_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {

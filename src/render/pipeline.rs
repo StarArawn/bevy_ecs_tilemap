@@ -1,6 +1,5 @@
 use bevy::{
-    prelude::{Component, FromWorld, HandleUntyped, Resource, Shader, World},
-    reflect::TypeUuid,
+    prelude::{Component, FromWorld, Handle, Resource, Shader, World},
     render::{
         globals::GlobalsUniform,
         render_resource::{
@@ -22,10 +21,8 @@ use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
-pub const TILEMAP_SHADER_VERTEX: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8094008129742001941);
-pub const TILEMAP_SHADER_FRAGMENT: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 5716002228110903793);
+pub const TILEMAP_SHADER_VERTEX: Handle<Shader> = Handle::weak_from_u128(8094008129742001941);
+pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> = Handle::weak_from_u128(5716002228110903793);
 
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
@@ -194,13 +191,13 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: TILEMAP_SHADER_VERTEX.typed::<Shader>(),
+                shader: TILEMAP_SHADER_VERTEX,
                 entry_point: "vertex".into(),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader: TILEMAP_SHADER_FRAGMENT.typed::<Shader>(),
+                shader: TILEMAP_SHADER_FRAGMENT,
                 shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {

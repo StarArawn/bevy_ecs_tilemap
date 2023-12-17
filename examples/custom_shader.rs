@@ -1,13 +1,8 @@
-use bevy::{
-    prelude::*,
-    reflect::{TypePath, TypeUuid},
-    render::render_resource::AsBindGroup,
-};
+use bevy::{prelude::*, reflect::TypePath, render::render_resource::AsBindGroup};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
-#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Default)]
-#[uuid = "31575692-a956-4762-98e2-5d457f552d0a"]
+#[derive(AsBindGroup, TypePath, Debug, Clone, Default, Asset)]
 pub struct MyMaterial {
     #[uniform(0)]
     brightness: f32,
