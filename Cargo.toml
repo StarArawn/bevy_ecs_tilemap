@@ -13,6 +13,7 @@ exclude = ["assets/*", "screenshots/*"]
 default = ["render"]
 atlas = []
 render = []
+serde = ["dep:serde"]
 
 [dependencies]
 bevy = { version = "0.12", default-features = false, features = [
@@ -23,6 +24,7 @@ bevy = { version = "0.12", default-features = false, features = [
 ] }
 log = "0.4"
 regex = "1.5.4"
+serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
 ldtk_rust = { version = "0.6" }

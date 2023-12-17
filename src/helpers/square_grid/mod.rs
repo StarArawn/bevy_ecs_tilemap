@@ -19,6 +19,7 @@ use std::ops::{Add, Mul, Sub};
 /// A `SquarePos` can be mapped to world space, and a world space position can be mapped to
 /// the tile with `SquarePos` containing said world space position.
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SquarePos {
     pub x: i32,
     pub y: i32,

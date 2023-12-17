@@ -7,6 +7,7 @@ use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::Vec2;
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RowOddPos {
     pub q: i32,
     pub r: i32,
@@ -97,6 +98,7 @@ impl From<&TilePos> for RowOddPos {
 }
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RowEvenPos {
     pub q: i32,
     pub r: i32,
@@ -187,6 +189,7 @@ impl From<&TilePos> for RowEvenPos {
 }
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColOddPos {
     pub q: i32,
     pub r: i32,
@@ -277,6 +280,7 @@ impl From<&TilePos> for ColOddPos {
 }
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColEvenPos {
     pub q: i32,
     pub r: i32,
