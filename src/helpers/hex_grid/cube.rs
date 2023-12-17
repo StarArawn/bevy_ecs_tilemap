@@ -1,6 +1,9 @@
 //! Code for the cube coordinate system
 
-use crate::helpers::hex_grid::axial::{AxialPos, FractionalAxialPos};
+use crate::{
+    helpers::hex_grid::axial::{AxialPos, FractionalAxialPos},
+    tiles::TilePos,
+};
 use std::ops::{Add, Mul, Sub};
 
 /// Identical to [`AxialPos`], but has an extra component `s`. Together, `q`, `r`, `s`
@@ -28,6 +31,13 @@ impl From<AxialPos> for CubePos {
     fn from(axial_pos: AxialPos) -> Self {
         let AxialPos { q, r } = axial_pos;
         CubePos { q, r, s: -(q + r) }
+    }
+}
+
+impl From<TilePos> for CubePos {
+    #[inline]
+    fn from(tile_pos: TilePos) -> Self {
+        AxialPos::from(tile_pos).into()
     }
 }
 
