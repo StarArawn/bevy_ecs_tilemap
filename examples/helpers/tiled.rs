@@ -121,7 +121,6 @@ impl AssetLoader for TiledLoader {
                 std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}"))
             })?;
 
-            let mut dependencies = Vec::new();
             let mut tilemap_textures = HashMap::default();
             #[cfg(not(feature = "atlas"))]
             let mut tile_image_offsets = HashMap::default();
@@ -154,7 +153,6 @@ impl AssetLoader for TiledLoader {
                                     tile_image_offsets
                                         .insert((tileset_index, tile_id), tile_images.len() as u32);
                                     tile_images.push(texture.clone());
-                                    dependencies.push(asset_path);
                                 }
                             }
 
@@ -171,7 +169,6 @@ impl AssetLoader for TiledLoader {
                         let tile_path = tmx_dir.join(&img.source);
                         let asset_path = AssetPath::from(tile_path);
                         let texture: Handle<Image> = load_context.load(asset_path.clone());
-                        dependencies.push(asset_path);
 
                         TilemapTexture::Single(texture.clone())
                     }
