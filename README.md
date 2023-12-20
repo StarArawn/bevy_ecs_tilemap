@@ -81,11 +81,21 @@ This can be made simple with [wasm-server-runner](https://github.com/jakobheller
 
 After that's installed and configured, run:
 
+#### WebGL2
+
 ```bash
-cargo run --target wasm32-unknown-unknown --example animation --release --features atlas
+cargo run --target wasm32-unknown-unknown --example animation --release --features atlas,bevy/webgl2
 ```
 
-**Note**: You **must** use the `atlas` feature when targeting the web. See [#283](https://github.com/StarArawn/bevy_ecs_tilemap/issues/283).
+**Note**: You **must** use the `atlas` feature when targeting the web with WebGL2. See [#283](https://github.com/StarArawn/bevy_ecs_tilemap/issues/283).
+
+#### WebGPU
+
+WebGPU is not yet well [supported](https://caniuse.com/webgpu) by many browsers.
+
+```
+RUSTFLAGS=--cfg=web_sys_unstable_apis cargo run --example animation --target=wasm32-unknown-unknown
+```
 
 ## Bevy Compatibility
 
