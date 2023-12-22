@@ -54,10 +54,10 @@ fn startup(mut commands: Commands) {
 }
 
 fn camera_pos_to_chunk_pos(camera_pos: &Vec2) -> IVec2 {
-    let camera_pos = camera_pos.as_ivec2();
-    let chunk_size: IVec2 = IVec2::new(CHUNK_SIZE.x as i32, CHUNK_SIZE.y as i32);
-    let tile_size: IVec2 = IVec2::new(TILE_SIZE.x as i32, TILE_SIZE.y as i32);
-    camera_pos / (chunk_size * tile_size)
+    let camera_pos = camera_pos.floor();
+    let chunk_size: Vec2 = Vec2::new(CHUNK_SIZE.x as f32, CHUNK_SIZE.y as f32);
+    let tile_size: Vec2 = TILE_SIZE.into();
+    (camera_pos / (chunk_size * tile_size)).floor().as_ivec2()
 }
 
 fn spawn_chunks_around_camera(
