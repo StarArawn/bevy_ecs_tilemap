@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
+    hierarchy::BuildChildren,
     log,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
@@ -200,7 +201,7 @@ pub fn process_loaded_maps(
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
-    mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
+    mut map_query: Query<(Entity, &Handle<TiledMap>, &mut TiledLayersStorage)>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
 ) {
     let mut changed_maps = Vec::<AssetId<TiledMap>>::default();
@@ -230,7 +231,7 @@ pub fn process_loaded_maps(
     }
 
     for changed_map in changed_maps.iter() {
-        for (map_handle, mut layer_storage) in map_query.iter_mut() {
+        for (map_entity, map_handle, mut layer_storage) in map_query.iter_mut() {
             // only deal with currently changed map
             if map_handle.id() != *changed_map {
                 continue;
@@ -315,6 +316,9 @@ pub fn process_loaded_maps(
                         let mut tile_storage = TileStorage::empty(map_size);
                         let layer_entity = commands.spawn_empty().id();
 
+                        // Make layer entities transform relative to the map transform
+                        commands.entity(map_entity).add_child(layer_entity);
+
                         for x in 0..map_size.x {
                             for y in 0..map_size.y {
                                 // Transform TMX coords into bevy coords.
@@ -365,6 +369,9 @@ pub fn process_loaded_maps(
                                     })
                                     .id();
                                 tile_storage.set(&tile_pos, tile_entity);
+                                // Make tiles transform relative to layer transform, 
+                                // to ensure they have correct world_pos aligned with drawn location
+                                commands.entity(layer_entity).add_child(tile_entity);
                             }
                         }
 
