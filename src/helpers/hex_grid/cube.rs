@@ -103,7 +103,7 @@ impl Mul<CubePos> for u32 {
 }
 
 impl CubePos {
-    pub fn new(q: i32, r: i32, s: i32) -> Self {
+    pub const fn new(q: i32, r: i32, s: i32) -> Self {
         Self { q, r, s }
     }
 
@@ -139,7 +139,7 @@ impl From<FractionalAxialPos> for FractionalCubePos {
 }
 
 impl FractionalCubePos {
-    pub fn new(q: f32, r: f32, s: f32) -> Self {
+    pub const fn new(q: f32, r: f32, s: f32) -> Self {
         Self { q, r, s }
     }
 
