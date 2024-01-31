@@ -98,7 +98,7 @@ fn spawn_tile_labels(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_justify = JustifyText::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -111,7 +111,7 @@ fn spawn_tile_labels(
                         format!("{}, {}", tile_pos.x, tile_pos.y),
                         text_style.clone(),
                     )
-                    .with_alignment(text_alignment),
+                    .with_justify(text_justify),
                     transform,
                     ..default()
                 })
@@ -138,7 +138,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_justify = JustifyText::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -151,7 +151,7 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_alignment(text_alignment),
+                        .with_justify(text_justify),
                     transform,
                     ..default()
                 },
@@ -172,7 +172,7 @@ fn swap_map_type(
         &mut TilemapTexture,
         &mut TilemapTileSize,
     )>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<
         (&TileLabel, &TilePos),
         (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),
@@ -333,7 +333,7 @@ struct NeighborHighlight;
 fn highlight_neighbor_label(
     mut commands: Commands,
     tilemap_query: Query<(&TilemapType, &TilemapSize, &TileStorage)>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     highlighted_tiles_q: Query<Entity, With<NeighborHighlight>>,
     hovered_tiles_q: Query<&TilePos, With<Hovered>>,
     tile_label_q: Query<&TileLabel>,
@@ -379,17 +379,17 @@ fn highlight_neighbor_label(
                 }
             }
 
-            let selected_hex_direction = if keyboard_input.pressed(KeyCode::Key0) {
+            let selected_hex_direction = if keyboard_input.pressed(KeyCode::Digit0) {
                 Some(HexDirection::Zero)
-            } else if keyboard_input.pressed(KeyCode::Key1) {
+            } else if keyboard_input.pressed(KeyCode::Digit1) {
                 Some(HexDirection::One)
-            } else if keyboard_input.pressed(KeyCode::Key2) {
+            } else if keyboard_input.pressed(KeyCode::Digit2) {
                 Some(HexDirection::Two)
-            } else if keyboard_input.pressed(KeyCode::Key3) {
+            } else if keyboard_input.pressed(KeyCode::Digit3) {
                 Some(HexDirection::Three)
-            } else if keyboard_input.pressed(KeyCode::Key4) {
+            } else if keyboard_input.pressed(KeyCode::Digit4) {
                 Some(HexDirection::Four)
-            } else if keyboard_input.pressed(KeyCode::Key5) {
+            } else if keyboard_input.pressed(KeyCode::Digit5) {
                 Some(HexDirection::Five)
             } else {
                 None

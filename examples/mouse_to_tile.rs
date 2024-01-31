@@ -122,7 +122,7 @@ fn spawn_tile_labels(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_justify = JustifyText::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -135,7 +135,7 @@ fn spawn_tile_labels(
                         format!("{}, {}", tile_pos.x, tile_pos.y),
                         text_style.clone(),
                     )
-                    .with_alignment(text_alignment),
+                    .with_justify(text_justify),
                     transform,
                     ..default()
                 })
@@ -162,7 +162,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_alignment = JustifyText::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -175,7 +175,7 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_alignment(text_alignment),
+                        .with_justify(text_alignment),
                     transform,
                     ..default()
                 },
@@ -196,7 +196,7 @@ fn swap_map_type(
         &mut TilemapTexture,
         &mut TilemapTileSize,
     )>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<
         (&TileLabel, &TilePos),
         (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),

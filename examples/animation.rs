@@ -150,8 +150,8 @@ fn main() {
         .run();
 }
 
-fn pause_animation(mut query: Query<&mut AnimatedTile>, keys: Res<Input<KeyCode>>) {
-    if keys.just_pressed(KeyCode::P) {
+fn pause_animation(mut query: Query<&mut AnimatedTile>, keys: Res<ButtonInput<KeyCode>>) {
+    if keys.just_pressed(KeyCode::KeyP) {
         for mut anim in &mut query {
             anim.speed = if anim.speed == 0.0 { 1.0 } else { 0.0 }
         }

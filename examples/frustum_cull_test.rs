@@ -127,7 +127,7 @@ fn spawn_map_type_label(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_justify = JustifyText::Center;
 
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
@@ -140,7 +140,7 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2dBundle {
                     text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_alignment(text_alignment),
+                        .with_justify(text_justify),
                     transform,
                     ..default()
                 },
@@ -159,7 +159,7 @@ fn swap_map_type(
         &mut TilemapTexture,
         &mut TilemapTileSize,
     )>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
     tile_handle_square: Res<TileHandleSquare>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
@@ -240,6 +240,7 @@ fn main() {
                     level: Level::ERROR,
                     // except for bevy_ecs_tilemap
                     filter: "bevy_ecs_tilemap=trace".into(),
+                    ..default()
                 }),
         )
         .add_plugins(TilemapPlugin)
