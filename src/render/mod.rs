@@ -12,6 +12,7 @@ use bevy::{
         Render, RenderApp, RenderSet,
     },
 };
+use bevy::ecs::entity::Entities;
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
@@ -116,7 +117,7 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(Update, set_texture_to_copy_src);
 
         app.add_systems(First, clear_removed);
-        app.add_systems(PostUpdate, removal_helper);
+        app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 
@@ -306,18 +307,22 @@ pub struct RemovedTileEntity(pub Entity);
 #[derive(Component)]
 pub struct RemovedMapEntity(pub Entity);
 
-fn removal_helper(mut commands: Commands, mut set: ParamSet<(&World, RemovedComponents<TilePos>, RemovedComponents<TileStorage>)>) {
-    let tiles: Vec<Entity> = set.p1().read().collect();
-    let maps: Vec<Entity> = set.p2().read().collect();
-
-    let world = set.p0();
-    let entities = world.entities();
-
-    for entity in tiles.into_iter().filter(|entity| entities.contains(*entity)) {
+fn removal_helper(
+    mut commands: Commands,
+    entities: &Entities,
+    mut removed_query: RemovedComponents<TilePos>,
+) {
+    for entity in removed_query.read().filter(|entity| entities.contains(*entity)) {
         commands.spawn(RemovedTileEntity(entity));
     }
+}
 
-    for entity in maps.into_iter().filter(|entity| entities.contains(*entity)) {
+fn removal_helper_tilemap(
+    mut commands: Commands,
+    entities: &Entities,
+    mut removed_query: RemovedComponents<TileStorage>,
+) {
+    for entity in removed_query.read().filter(|entity| entities.contains(*entity)) {
         commands.spawn(RemovedMapEntity(entity));
     }
 }
