@@ -306,21 +306,6 @@ pub struct RemovedTileEntity(pub Entity);
 #[derive(Component)]
 pub struct RemovedMapEntity(pub Entity);
 
-// fn removal_helper(mut commands: Commands, mut removed_query: RemovedComponents<TilePos>) {
-//     for entity in removed_query.read() {
-//         commands.spawn(RemovedTileEntity(entity));
-//     }
-// }
-//
-// fn removal_helper_tilemap(
-//     mut commands: Commands,
-//     mut removed_query: RemovedComponents<TileStorage>,
-// ) {
-//     for entity in removed_query.read() {
-//         commands.spawn(RemovedMapEntity(entity));
-//     }
-// }
-
 fn removal_helper(mut commands: Commands, mut set: ParamSet<(&World, RemovedComponents<TilePos>, RemovedComponents<TileStorage>)>) {
     let tiles: Vec<Entity> = set.p1().read().collect();
     let maps: Vec<Entity> = set.p2().read().collect();
