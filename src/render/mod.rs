@@ -12,7 +12,6 @@ use bevy::{
         Render, RenderApp, RenderSet,
     },
 };
-use bevy::ecs::entity::Entities;
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
@@ -307,10 +306,7 @@ pub struct RemovedTileEntity(pub Entity);
 #[derive(Component)]
 pub struct RemovedMapEntity(pub Entity);
 
-fn removal_helper(
-    mut commands: Commands,
-    mut removed_query: RemovedComponents<TilePos>,
-) {
+fn removal_helper(mut commands: Commands, mut removed_query: RemovedComponents<TilePos>) {
     for entity in removed_query.read() {
         commands.spawn(RemovedTileEntity(entity));
     }
