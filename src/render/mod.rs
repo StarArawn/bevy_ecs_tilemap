@@ -16,13 +16,13 @@ use bevy::{
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
 
-use crate::render::{
-    material::{MaterialTilemapPlugin, StandardTilemapMaterial},
-    prepare::{MeshUniformResource, TilemapUniformResource},
-};
+use crate::tiles::{TilePos, TileStorage};
 use crate::{
-    prelude::{TilemapRenderSettings, TilemapTexture},
-    tiles::{TilePos, TileStorage},
+    prelude::TilemapTexture,
+    render::{
+        material::{MaterialTilemapPlugin, StandardTilemapMaterial},
+        prepare::{MeshUniformResource, TilemapUniformResource},
+    },
 };
 
 use self::{
@@ -62,7 +62,7 @@ pub struct DefaultSampler(ImageSamplerDescriptor);
 ///
 /// Initialized from [`TilemapRenderSettings`](crate::map::TilemapRenderSettings) resource, if
 /// provided. Otherwise, defaults to `64 x 64`.
-#[derive(Resource, Debug, Copy, Clone, Deref)]
+#[derive(Debug, Copy, Clone, Deref)]
 pub(crate) struct RenderChunkSize(UVec2);
 
 impl RenderChunkSize {
@@ -84,13 +84,6 @@ impl RenderChunkSize {
         tile_pos - (*chunk_position * self.0)
     }
 }
-
-/// Sorts chunks using Y sort during render.
-///
-/// Initialized from [`TilemapRenderSettings`](crate::map::TilemapRenderSettings) resource, if
-/// provided. Otherwise, defaults to false.
-#[derive(Resource, Debug, Copy, Clone, Deref)]
-pub struct RenderYSort(bool);
 
 pub struct TilemapRenderingPlugin;
 
@@ -129,15 +122,6 @@ impl Plugin for TilemapRenderingPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        // Extract the chunk size from the TilemapRenderSettings used to initialize the
-        // ChunkCoordinate resource to insert into the render pipeline
-        let (chunk_size, y_sort) = {
-            match app.world.get_resource::<TilemapRenderSettings>() {
-                Some(settings) => (settings.render_chunk_size, settings.y_sort),
-                None => (CHUNK_SIZE_2D, false),
-            }
-        };
-
         let sampler = app.get_added_plugins::<ImagePlugin>().first().map_or_else(
             || ImagePlugin::default_nearest().default_sampler,
             |plugin| plugin.default_sampler.clone(),
@@ -242,8 +226,6 @@ impl Plugin for TilemapRenderingPlugin {
 
         render_app
             .insert_resource(DefaultSampler(sampler))
-            .insert_resource(RenderChunkSize(chunk_size))
-            .insert_resource(RenderYSort(y_sort))
             .insert_resource(RenderChunk2dStorage::default())
             .insert_resource(SecondsSinceStartup(0.0))
             .add_systems(

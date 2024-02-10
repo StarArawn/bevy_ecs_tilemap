@@ -7,6 +7,7 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
+use crate::prelude::TilemapRenderSettings;
 use crate::render::{DefaultSampler, SecondsSinceStartup};
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
@@ -68,6 +69,7 @@ pub struct ExtractedTilemapBundle {
     map_size: TilemapSize,
     visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
+    render_settings: TilemapRenderSettings,
 }
 
 #[derive(Component)]
@@ -220,6 +222,7 @@ pub fn extract(
             &TilemapSize,
             &InheritedVisibility,
             &FrustumCulling,
+            &TilemapRenderSettings,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -236,6 +239,7 @@ pub fn extract(
                 Changed<TilemapSize>,
                 Changed<InheritedVisibility>,
                 Changed<FrustumCulling>,
+                Changed<TilemapRenderSettings>,
             )>,
         >,
     >,
@@ -300,6 +304,7 @@ pub fn extract(
                     map_size: *data.7,
                     visibility: *data.8,
                     frustum_culling: *data.9,
+                    render_settings: *data.10,
                 },
             ),
         );
@@ -335,6 +340,7 @@ pub fn extract(
                         map_size: *data.7,
                         visibility: *data.8,
                         frustum_culling: *data.9,
+                        render_settings: *data.10,
                     },
                 ),
             );
@@ -345,7 +351,7 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _) in tilemap_query.iter() {
+    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in tilemap_query.iter() {
         if texture.verify_ready(&images) {
             extracted_tilemap_textures.push((
                 entity,

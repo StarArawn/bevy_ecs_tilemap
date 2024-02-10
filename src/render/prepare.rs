@@ -4,6 +4,7 @@ use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
 };
+use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
@@ -42,7 +43,6 @@ pub(crate) fn prepare(
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
     mut mesh_uniforms: ResMut<MeshUniformResource>,
     mut tilemap_uniforms: ResMut<TilemapUniformResource>,
-    chunk_size: Res<RenderChunkSize>,
     extracted_tiles: Query<&ExtractedTile>,
     extracted_tilemaps: Query<(
         Entity,
@@ -56,6 +56,7 @@ pub(crate) fn prepare(
         &TilemapSize,
         &InheritedVisibility,
         &FrustumCulling,
+        &TilemapRenderSettings,
     )>,
     extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
     extracted_frustum_query: Query<&ExtractedFrustum>,
@@ -69,7 +70,6 @@ pub(crate) fn prepare(
             chunk_storage.remove_tile_with_entity(tile.entity);
         }
 
-        let chunk_index = chunk_size.map_tile_to_chunk(&tile.position);
         let (
             _entity,
             transform,
@@ -82,7 +82,10 @@ pub(crate) fn prepare(
             map_size,
             visibility,
             frustum_culling,
+            tilemap_render_settings,
         ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
+        let chunk_size = RenderChunkSize(tilemap_render_settings.render_chunk_size);
+        let chunk_index = chunk_size.map_tile_to_chunk(&tile.position);
 
         let chunk_data = UVec4::new(
             chunk_index.x,
@@ -97,7 +100,7 @@ pub(crate) fn prepare(
             in_chunk_tile_index,
             tile.tilemap_id.0,
             &chunk_data,
-            **chunk_size,
+            *chunk_size,
             *mesh_type,
             *tile_size,
             (*texture_size).into(),
@@ -108,6 +111,8 @@ pub(crate) fn prepare(
             *transform,
             visibility,
             frustum_culling,
+            chunk_size,
+            tilemap_render_settings.y_sort,
         );
         chunk.set(
             &in_chunk_tile_index.into(),
@@ -135,6 +140,7 @@ pub(crate) fn prepare(
         map_size,
         visibility,
         frustum_culling,
+        _,
     ) in extracted_tilemaps.iter()
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index()));
