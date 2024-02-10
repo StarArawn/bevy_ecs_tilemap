@@ -43,10 +43,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn display_t_entities(query: Query<Entity, With<Transform>>) {
-    dbg!(query.iter().count());
-}
-
 fn main() {
     App::new()
         .add_plugins(
@@ -64,6 +60,6 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, startup)
-        .add_systems(Update, (helpers::camera::movement, display_t_entities))
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }
