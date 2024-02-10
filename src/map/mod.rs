@@ -8,10 +8,12 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image, Reflect},
 };
 
+use crate::render::CHUNK_SIZE_2D;
+
 /// Custom parameters for the render pipeline.
 ///
 /// It must be added as a component to the tilemap entity.
-#[derive(Component, Debug, Default, Copy, Clone)]
+#[derive(Component, Debug, Copy, Clone)]
 pub struct TilemapRenderSettings {
     /// Dimensions of a "chunk" in tiles. Chunks are grouping of tiles combined and rendered as a
     /// single mesh by the render pipeline.
@@ -27,6 +29,15 @@ pub struct TilemapRenderSettings {
     ///
     /// `render_chunk_size`'s `z` value should be `1` when using this for 3d isometric tilemaps.
     pub y_sort: bool,
+}
+
+impl Default for TilemapRenderSettings {
+    fn default() -> Self {
+        Self {
+            render_chunk_size: CHUNK_SIZE_2D,
+            y_sort: false,
+        }
+    }
 }
 
 /// A component which stores a reference to the tilemap entity.

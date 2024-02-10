@@ -45,6 +45,10 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         texture: TilemapTexture::Single(texture_handle),
         tile_size: TILE_SIZE,
         transform,
+        render_settings: TilemapRenderSettings {
+            render_chunk_size: RENDER_CHUNK_SIZE,
+            ..Default::default()
+        },
         ..Default::default()
     });
 }
@@ -117,11 +121,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        // `TilemapRenderSettings` be added before the `TilemapPlugin`.
-        .insert_resource(TilemapRenderSettings {
-            render_chunk_size: RENDER_CHUNK_SIZE,
-            ..Default::default()
-        })
+        // `TilemapRenderS
         .add_plugins(TilemapPlugin)
         .insert_resource(ChunkManager::default())
         .add_systems(Startup, startup)

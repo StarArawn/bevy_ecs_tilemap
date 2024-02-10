@@ -50,7 +50,7 @@ use self::extract::ExtractedTilemapTexture;
 pub(crate) use self::texture_array_cache::TextureArrayCache;
 
 /// The default chunk_size (in tiles) used per mesh.
-const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
+pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 
 #[derive(Copy, Clone, Debug, Component)]
 pub(crate) struct ExtractedFilterMode(FilterMode);
