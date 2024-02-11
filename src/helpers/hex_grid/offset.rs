@@ -14,7 +14,7 @@ pub struct RowOddPos {
 }
 
 impl RowOddPos {
-    pub fn new(q: i32, r: i32) -> Self {
+    pub const fn new(q: i32, r: i32) -> Self {
         Self { q, r }
     }
 
@@ -105,7 +105,7 @@ pub struct RowEvenPos {
 }
 
 impl RowEvenPos {
-    pub fn new(q: i32, r: i32) -> Self {
+    pub const fn new(q: i32, r: i32) -> Self {
         Self { q, r }
     }
 
@@ -196,7 +196,7 @@ pub struct ColOddPos {
 }
 
 impl ColOddPos {
-    pub fn new(q: i32, r: i32) -> Self {
+    pub const fn new(q: i32, r: i32) -> Self {
         Self { q, r }
     }
 
@@ -287,7 +287,7 @@ pub struct ColEvenPos {
 }
 
 impl ColEvenPos {
-    pub fn new(q: i32, r: i32) -> Self {
+    pub const fn new(q: i32, r: i32) -> Self {
         Self { q, r }
     }
 

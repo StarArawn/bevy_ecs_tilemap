@@ -19,7 +19,7 @@ pub struct TilePos {
 }
 
 impl TilePos {
-    pub fn new(x: u32, y: u32) -> Self {
+    pub const fn new(x: u32, y: u32) -> Self {
         Self { x, y }
     }
 

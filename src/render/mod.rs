@@ -66,7 +66,7 @@ pub struct DefaultSampler(ImageSamplerDescriptor);
 pub(crate) struct RenderChunkSize(UVec2);
 
 impl RenderChunkSize {
-    pub fn new(chunk_size: UVec2) -> RenderChunkSize {
+    pub const fn new(chunk_size: UVec2) -> RenderChunkSize {
         RenderChunkSize(chunk_size)
     }
 
