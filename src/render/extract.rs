@@ -383,15 +383,15 @@ pub fn extract(
 
 pub fn extract_removal(
     mut commands: Commands,
-    removed_tiles_query: Extract<Query<&RemovedTileEntity>>,
-    removed_maps_query: Extract<Query<&RemovedMapEntity>>,
+    removed_tiles_query: Extract<Query<(Entity, &RemovedTileEntity)>>,
+    removed_maps_query: Extract<Query<(Entity, &RemovedMapEntity)>>,
 ) {
     let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
-    for entity in removed_tiles_query.iter() {
+    for (entity, removed) in removed_tiles_query.iter() {
         removed_tiles.push((
-            entity.0,
+            entity,
             ExtractedRemovedTileBundle {
-                tile: ExtractedRemovedTile { entity: entity.0 },
+                tile: ExtractedRemovedTile { entity: removed.0 },
             },
         ));
     }
@@ -399,11 +399,11 @@ pub fn extract_removal(
     commands.insert_or_spawn_batch(removed_tiles);
 
     let mut removed_maps: Vec<(Entity, ExtractedRemovedMapBundle)> = Vec::new();
-    for entity in removed_maps_query.iter() {
+    for (entity, removed) in removed_maps_query.iter() {
         removed_maps.push((
-            entity.0,
+            entity,
             ExtractedRemovedMapBundle {
-                map: ExtractedRemovedMap { entity: entity.0 },
+                map: ExtractedRemovedMap { entity: removed.0 },
             },
         ));
     }

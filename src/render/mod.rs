@@ -63,7 +63,7 @@ pub struct DefaultSampler(ImageSamplerDescriptor);
 pub(crate) struct RenderChunkSize(UVec2);
 
 impl RenderChunkSize {
-    pub fn new(chunk_size: UVec2) -> RenderChunkSize {
+    pub const fn new(chunk_size: UVec2) -> RenderChunkSize {
         RenderChunkSize(chunk_size)
     }
 
@@ -106,7 +106,7 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(Update, set_texture_to_copy_src);
 
         app.add_systems(First, clear_removed);
-        app.add_systems(PostUpdate, (removal_helper_tilemap, removal_helper));
+        app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 

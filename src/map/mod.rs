@@ -67,11 +67,11 @@ pub struct TilemapSize {
 }
 
 impl TilemapSize {
-    pub fn new(x: u32, y: u32) -> Self {
+    pub const fn new(x: u32, y: u32) -> Self {
         Self { x, y }
     }
 
-    pub fn count(&self) -> usize {
+    pub const fn count(&self) -> usize {
         (self.x * self.y) as usize
     }
 }
@@ -214,7 +214,7 @@ pub struct TilemapTileSize {
 }
 
 impl TilemapTileSize {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 }
@@ -259,7 +259,7 @@ pub struct TilemapGridSize {
 }
 
 impl TilemapGridSize {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 }
@@ -304,11 +304,11 @@ impl From<TilemapSpacing> for Vec2 {
 }
 
 impl TilemapSpacing {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
-    pub fn zero() -> Self {
+    pub const fn zero() -> Self {
         Self { x: 0.0, y: 0.0 }
     }
 }
@@ -322,7 +322,7 @@ pub struct TilemapTextureSize {
 }
 
 impl TilemapTextureSize {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 }
