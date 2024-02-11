@@ -65,6 +65,7 @@ pub struct TiledMapBundle {
     pub storage: TiledLayersStorage,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
+    pub render_settings: TilemapRenderSettings,
 }
 
 struct BytesResourceReader {
@@ -200,7 +201,11 @@ pub fn process_loaded_maps(
     mut map_events: EventReader<AssetEvent<TiledMap>>,
     maps: Res<Assets<TiledMap>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
-    mut map_query: Query<(&Handle<TiledMap>, &mut TiledLayersStorage)>,
+    mut map_query: Query<(
+        &Handle<TiledMap>,
+        &mut TiledLayersStorage,
+        &TilemapRenderSettings,
+    )>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
 ) {
     let mut changed_maps = Vec::<AssetId<TiledMap>>::default();
@@ -230,7 +235,7 @@ pub fn process_loaded_maps(
     }
 
     for changed_map in changed_maps.iter() {
-        for (map_handle, mut layer_storage) in map_query.iter_mut() {
+        for (map_handle, mut layer_storage, render_settings) in map_query.iter_mut() {
             // only deal with currently changed map
             if map_handle.id() != *changed_map {
                 continue;
@@ -382,6 +387,7 @@ pub fn process_loaded_maps(
                                 layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
                             map_type,
+                            render_settings: *render_settings,
                             ..Default::default()
                         });
 

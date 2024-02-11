@@ -35,6 +35,10 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        render_settings: TilemapRenderSettings {
+            render_chunk_size: UVec2::new(256, 256),
+            ..Default::default()
+        },
         ..Default::default()
     });
 }
@@ -52,10 +56,6 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .insert_resource(TilemapRenderSettings {
-            render_chunk_size: UVec2::new(256, 256),
-            ..Default::default()
-        })
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(TilemapPlugin)

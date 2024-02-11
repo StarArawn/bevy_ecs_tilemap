@@ -1,29 +1,20 @@
 use bevy::asset::Assets;
 use bevy::ecs::entity::{EntityMapper, MapEntities};
 use bevy::ecs::reflect::ReflectMapEntities;
-use bevy::prelude::{ReflectComponent, Res, ResMut, Resource};
+use bevy::prelude::{ReflectComponent, Res, ResMut};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
     prelude::{Component, Entity, Handle, Image, Reflect},
 };
 
+/// The default chunk_size (in tiles) used per mesh.
+pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
+
 /// Custom parameters for the render pipeline.
 ///
-/// It must be added as a resource before [`TilemapPlugin`](crate::TilemapPlugin). For example:
-/// ```ignore
-/// App::new()
-///     .insert_resource(WindowDescriptor {
-///         width: 1270.0,
-///         height: 720.0,
-///     })
-///     .insert_resource(TilemapRenderSettings {
-///         render_chunk_size: UVec2::new(32, 32),
-///     })
-///     .add_plugin(TilemapPlugin)
-///     .run();
-/// ```
-#[derive(Resource, Debug, Default, Copy, Clone)]
+/// It must be added as a component to the tilemap entity.
+#[derive(Component, Debug, Copy, Clone)]
 pub struct TilemapRenderSettings {
     /// Dimensions of a "chunk" in tiles. Chunks are grouping of tiles combined and rendered as a
     /// single mesh by the render pipeline.
@@ -39,6 +30,15 @@ pub struct TilemapRenderSettings {
     ///
     /// `render_chunk_size`'s `z` value should be `1` when using this for 3d isometric tilemaps.
     pub y_sort: bool,
+}
+
+impl Default for TilemapRenderSettings {
+    fn default() -> Self {
+        Self {
+            render_chunk_size: CHUNK_SIZE_2D,
+            y_sort: false,
+        }
+    }
 }
 
 /// A component which stores a reference to the tilemap entity.

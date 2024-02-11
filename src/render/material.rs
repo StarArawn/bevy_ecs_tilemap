@@ -31,7 +31,6 @@ use super::{
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     queue::{ImageBindGroups, TilemapViewBindGroup},
-    RenderYSort,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -362,7 +361,6 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
-    y_sort: Res<RenderYSort>,
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     render_device: Res<RenderDevice>,
@@ -455,7 +453,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                         bind_group_data: material.key.clone(),
                     },
                 );
-                let z = if **y_sort {
+                let z = if chunk.y_sort {
                     transform.translation.z
                         + (1.0
                             - (transform.translation.y
