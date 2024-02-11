@@ -86,7 +86,7 @@ impl TextureArrayCache {
                         "Expected image to have finished loading if \
                         it is being extracted as a texture!",
                     );
-                    let this_tile_size: TilemapTileSize = image.size_f32().try_into().unwrap();
+                    let this_tile_size: TilemapTileSize = image.size_f32().into();
                     if this_tile_size != tile_size {
                         panic!(
                             "Expected all provided image assets to have size {tile_size:?}, \
