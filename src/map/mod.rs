@@ -8,7 +8,8 @@ use bevy::{
     prelude::{Component, Entity, Handle, Image, Reflect},
 };
 
-use crate::render::CHUNK_SIZE_2D;
+/// The default chunk_size (in tiles) used per mesh.
+pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 
 /// Custom parameters for the render pipeline.
 ///

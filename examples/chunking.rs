@@ -121,7 +121,6 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        // `TilemapRenderS
         .add_plugins(TilemapPlugin)
         .insert_resource(ChunkManager::default())
         .add_systems(Startup, startup)
