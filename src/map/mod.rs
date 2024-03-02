@@ -44,6 +44,7 @@ impl Default for TilemapRenderSettings {
 /// A component which stores a reference to the tilemap entity.
 #[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
 #[reflect(Component, MapEntities)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TilemapId(pub Entity);
 
 impl MapEntities for TilemapId {
