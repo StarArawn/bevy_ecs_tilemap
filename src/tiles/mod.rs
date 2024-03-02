@@ -53,15 +53,6 @@ impl From<UVec2> for TilePos {
     }
 }
 
-impl From<IVec2> for TilePos {
-    fn from(v: IVec2) -> Self {
-        Self {
-            x: v.x as u32,
-            y: v.y as u32,
-        }
-    }
-}
-
 impl From<TilePos> for Vec2 {
     fn from(pos: TilePos) -> Self {
         Vec2::new(pos.x as f32, pos.y as f32)
