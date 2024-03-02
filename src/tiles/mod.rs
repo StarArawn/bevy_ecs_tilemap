@@ -1,7 +1,7 @@
 mod storage;
 
 use bevy::{
-    math::{IVec2, UVec2, Vec2},
+    math::{UVec2, Vec2},
     prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
 };
 pub use storage::*;
