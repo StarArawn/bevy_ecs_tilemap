@@ -1,7 +1,7 @@
 mod storage;
 
 use bevy::{
-    math::{UVec2, Vec2},
+    math::{IVec2, UVec2, Vec2},
     prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
 };
 pub use storage::*;
@@ -53,6 +53,15 @@ impl From<UVec2> for TilePos {
     }
 }
 
+impl From<IVec2> for TilePos {
+    fn from(v: IVec2) -> Self {
+        Self {
+            x: v.x as u32,
+            y: v.y as u32,
+        }
+    }
+}
+
 impl From<TilePos> for Vec2 {
     fn from(pos: TilePos) -> Self {
         Vec2::new(pos.x as f32, pos.y as f32)
@@ -67,12 +76,14 @@ impl From<&TilePos> for Vec2 {
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[reflect(Component)]
 pub struct TileTextureIndex(pub u32);
 
 /// A custom color for the tile.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileColor(pub Color);
 
 impl From<Color> for TileColor {
@@ -84,6 +95,7 @@ impl From<Color> for TileColor {
 /// Hides or shows a tile based on the boolean. Default: True
 #[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
 #[reflect(Component)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileVisible(pub bool);
 
 impl Default for TileVisible {
@@ -95,6 +107,7 @@ impl Default for TileVisible {
 /// Flips the tiles texture along the X, Y or diagonal axes
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
 #[reflect(Component)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileFlip {
     /// Flip tile along the x axis.
     pub x: bool,
@@ -105,6 +118,7 @@ pub struct TileFlip {
 
 /// This an optional tile bundle with default components.
 #[derive(Bundle, Default, Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileBundle {
     pub position: TilePos,
     pub texture_index: TileTextureIndex,
@@ -117,12 +131,14 @@ pub struct TileBundle {
 
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TilePosOld(pub TilePos);
 
 /// A component that is attached to a Tile entity that
 /// tells the GPU how to animate the tile.
 /// Currently all frames must be aligned in your tilemap.
 #[derive(Component, Reflect, Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AnimatedTile {
     /// The start frame index in the tilemap atlas/array (inclusive).
     pub start: u32,

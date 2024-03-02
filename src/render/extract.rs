@@ -1,10 +1,8 @@
 use bevy::math::Affine3A;
-use bevy::prelude::Res;
-use bevy::prelude::Time;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
-use bevy::{math::Vec4, prelude::*, render::Extract, utils::HashMap};
+use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
 use crate::prelude::TilemapRenderSettings;
