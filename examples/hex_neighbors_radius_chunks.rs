@@ -250,7 +250,7 @@ fn swap_map_type(
         &TileStorage,
         &ChunkPos,
     )>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<(Entity, &TileLabel, &TilePos), Without<TilemapType>>,
     mut transform_q: Query<(&mut Transform, &mut Text), Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
@@ -332,7 +332,7 @@ fn spawn_tile_labels(
         font_size: 20.0,
         color: Color::BLACK,
     };
-    let text_alignment = TextAlignment::Center;
+    let text_justify = JustifyText::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -347,7 +347,7 @@ fn spawn_tile_labels(
                         format!("{}, {}", hex_pos.x, hex_pos.y),
                         text_style.clone(),
                     )
-                    .with_alignment(text_alignment),
+                    .with_justify(text_justify),
                     transform,
                     ..default()
                 })
@@ -448,10 +448,10 @@ impl Default for HighlightRadius {
     }
 }
 
-fn update_radius(mut radius: ResMut<HighlightRadius>, keyboard_input: Res<Input<KeyCode>>) {
-    if keyboard_input.just_pressed(KeyCode::Up) {
+fn update_radius(mut radius: ResMut<HighlightRadius>, keyboard_input: Res<ButtonInput<KeyCode>>) {
+    if keyboard_input.just_pressed(KeyCode::ArrowUp) {
         radius.0 = std::cmp::min(MAX_RADIUS, radius.0 + 1);
-    } else if keyboard_input.just_pressed(KeyCode::Down) {
+    } else if keyboard_input.just_pressed(KeyCode::ArrowDown) {
         radius.0 = std::cmp::max(1, radius.0 - 1);
     }
 }

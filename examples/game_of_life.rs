@@ -67,9 +67,8 @@ fn update(
                     .entities(tile_storage)
                     .iter()
                     .filter(|neighbor| {
-                        let tile_component =
-                            tile_query.get_component::<TileVisible>(**neighbor).unwrap();
-                        tile_component.0
+                        let (_, _, tile_visible) = tile_query.get(**neighbor).unwrap();
+                        tile_visible.0
                     })
                     .count();
 

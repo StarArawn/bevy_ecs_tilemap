@@ -93,7 +93,7 @@ fn swap_mesh_type(
         &TilemapGridSize,
         &mut TilemapType,
     )>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (mut transform, map_size, grid_size, mut map_type) in query.iter_mut() {

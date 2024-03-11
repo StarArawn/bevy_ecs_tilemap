@@ -74,7 +74,7 @@ fn startup(
 
 fn swap_texture_or_hide(
     asset_server: Res<AssetServer>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut TilemapTexture, &mut Visibility)>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
@@ -88,7 +88,7 @@ fn swap_texture_or_hide(
             }
         }
     }
-    if keyboard_input.just_pressed(KeyCode::H) {
+    if keyboard_input.just_pressed(KeyCode::KeyH) {
         for (_, mut visibility) in &mut query {
             *visibility = match *visibility {
                 Visibility::Inherited | Visibility::Visible => Visibility::Hidden,

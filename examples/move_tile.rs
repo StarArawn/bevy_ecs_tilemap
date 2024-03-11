@@ -42,7 +42,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn swap_pos(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut TilePos>) {
+fn swap_pos(keyboard_input: Res<ButtonInput<KeyCode>>, mut query: Query<&mut TilePos>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut pos in query.iter_mut() {
             if pos.x == 0 {

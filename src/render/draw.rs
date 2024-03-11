@@ -30,13 +30,13 @@ use super::{
 pub struct SetMeshViewBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetMeshViewBindGroup<I> {
     type Param = ();
-    type ViewWorldQuery = (Read<ViewUniformOffset>, Read<TilemapViewBindGroup>);
-    type ItemWorldQuery = ();
+    type ViewQuery = (Read<ViewUniformOffset>, Read<TilemapViewBindGroup>);
+    type ItemQuery = ();
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
         (view_uniform, pbr_view_bind_group): (&'w ViewUniformOffset, &'w TilemapViewBindGroup),
-        _entity: (),
+        _entity: Option<()>,
         _param: (),
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -49,8 +49,8 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetMeshViewBindGroup<I> {
 pub struct SetTransformBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
     type Param = SRes<TransformBindGroup>;
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = (
+    type ViewQuery = ();
+    type ItemQuery = (
         Read<DynamicUniformIndex<MeshUniform>>,
         Read<DynamicUniformIndex<TilemapUniformData>>,
     );
@@ -58,13 +58,17 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
     fn render<'w>(
         _item: &Transparent2d,
         _view: (),
-        (transform_index, tilemap_index): (
+        uniform_indices: Option<(
             &'w DynamicUniformIndex<MeshUniform>,
             &'w DynamicUniformIndex<TilemapUniformData>,
-        ),
+        )>,
         transform_bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        let Some((transform_index, tilemap_index)) = uniform_indices else {
+            return RenderCommandResult::Failure;
+        };
+
         pass.set_bind_group(
             I,
             &transform_bind_group.into_inner().value,
@@ -78,16 +82,20 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
 pub struct SetTextureBindGroup<const I: usize>;
 impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
     type Param = SRes<ImageBindGroups>;
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = Read<TilemapTexture>;
+    type ViewQuery = ();
+    type ItemQuery = Read<TilemapTexture>;
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
         _view: (),
-        texture: &'w TilemapTexture,
+        texture: Option<&'w TilemapTexture>,
         image_bind_groups: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        let Some(texture) = texture else {
+            return RenderCommandResult::Failure;
+        };
+
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
         pass.set_bind_group(I, bind_group, &[]);
 
@@ -98,13 +106,13 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
 pub struct SetItemPipeline;
 impl RenderCommand<Transparent2d> for SetItemPipeline {
     type Param = SRes<PipelineCache>;
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = ();
+    type ViewQuery = ();
+    type ItemQuery = ();
     #[inline]
     fn render<'w>(
         item: &Transparent2d,
         _view: (),
-        _entity: (),
+        _entity: Option<()>,
         pipeline_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -142,16 +150,20 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
     for SetMaterialBindGroup<M, I>
 {
     type Param = (SRes<RenderMaterialsTilemap<M>>, SQuery<&'static Handle<M>>);
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = Read<TilemapId>;
+    type ViewQuery = ();
+    type ItemQuery = Read<TilemapId>;
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
         _view: (),
-        id: &'w TilemapId,
+        id: Option<&'w TilemapId>,
         (material_bind_groups, material_handles): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        let Some(id) = id else {
+            return RenderCommandResult::Failure;
+        };
+
         if let Ok(material_handle) = material_handles.get(id.0) {
             let bind_group = material_bind_groups
                 .into_inner()
@@ -167,16 +179,20 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
 pub struct DrawMesh;
 impl RenderCommand<Transparent2d> for DrawMesh {
     type Param = SRes<RenderChunk2dStorage>;
-    type ViewWorldQuery = ();
-    type ItemWorldQuery = (Read<ChunkId>, Read<TilemapId>);
+    type ViewQuery = ();
+    type ItemQuery = (Read<ChunkId>, Read<TilemapId>);
     #[inline]
     fn render<'w>(
         _item: &Transparent2d,
         _view: (),
-        (chunk_id, tilemap_id): (&'w ChunkId, &'w TilemapId),
+        ids: Option<(&'w ChunkId, &'w TilemapId)>,
         chunk_storage: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        let Some((chunk_id, tilemap_id)) = ids else {
+            return RenderCommandResult::Failure;
+        };
+
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
             chunk_id.0.x,
             chunk_id.0.y,

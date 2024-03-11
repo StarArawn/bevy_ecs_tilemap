@@ -3,6 +3,7 @@ use std::hash::{Hash, Hasher};
 use bevy::math::Mat4;
 use bevy::prelude::{InheritedVisibility, Resource, Transform};
 use bevy::render::primitives::Aabb;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
@@ -260,7 +261,10 @@ impl RenderChunk2d {
             global_transform,
             transform,
             transform_matrix,
-            mesh: Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList),
+            mesh: Mesh::new(
+                bevy::render::render_resource::PrimitiveTopology::TriangleList,
+                RenderAssetUsages::default(),
+            ),
             spacing,
             texture_size,
             texture,
@@ -416,7 +420,7 @@ impl RenderChunk2d {
                 crate::render::ATTRIBUTE_COLOR,
                 VertexAttributeValues::Float32x4(colors),
             );
-            self.mesh.set_indices(Some(Indices::U32(indices)));
+            self.mesh.insert_indices(Indices::U32(indices));
 
             let vertex_buffer_data = self.mesh.get_vertex_buffer_data();
             let vertex_buffer = device.create_buffer_with_data(&BufferInitDescriptor {
