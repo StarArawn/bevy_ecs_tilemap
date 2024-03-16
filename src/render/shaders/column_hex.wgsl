@@ -5,13 +5,7 @@
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
-    let SQRT_3: f32 = 1.7320508;
-    let HALF_SQRT_3: f32 = 0.8660254;
-    let COL_BASIS_X: vec2<f32> = vec2<f32>(HALF_SQRT_3, 0.5);
-    let COL_BASIS_Y: vec2<f32> = vec2<f32>(0.0, 1.0);
-
-    let unscaled_pos = pos.x * COL_BASIS_X + pos.y * COL_BASIS_Y;
-    return vec2<f32>(COL_BASIS_X.x * grid_width * unscaled_pos.x, grid_height * unscaled_pos.y);
+    return vec2<f32>(grid_width * pos.x * 0.75, grid_height * (pos.y + pos.x / 2.0));
 }
 
 fn get_mesh(v_index: u32, vertex_position: vec3<f32>) -> MeshOutput {
