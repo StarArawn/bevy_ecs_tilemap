@@ -30,6 +30,7 @@ use super::{
     chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
+    prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
 };
 
@@ -127,7 +128,13 @@ where
                 .add_systems(
                     Render,
                     (
-                        queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue),
+                        // Ensure `queue_material_tilemap_meshes` runs after `prepare::prepare` because `prepare` calls `commands.spawn` with `ChunkId`
+                        // and that data is then consumed by `queue_material_tilemap_mesh`. This is important because `prepare` is part of the `PrepareAssets`
+                        // set. Bevy is loose on its expectation of when systems in the `PrepareAssets` set execute (for performance) and only needs them
+                        // to run before the `Prepare` set (which is after Queue). This invites the possibility of an intermittent incorrect ordering dependent
+                        // on the scheduler.
+                        queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue)
+                            .after(prepare::prepare),
                         bind_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
                     ),
                 );
