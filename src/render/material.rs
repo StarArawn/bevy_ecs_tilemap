@@ -133,7 +133,8 @@ where
                         // set. Bevy is loose on its expectation of when systems in the `PrepareAssets` set execute (for performance) and only needs them
                         // to run before the `Prepare` set (which is after Queue). This invites the possibility of an intermittent incorrect ordering dependent
                         // on the scheduler.
-                        queue_material_tilemap_meshes::<M>.in_set(RenderSet::Queue)
+                        queue_material_tilemap_meshes::<M>
+                            .in_set(RenderSet::Queue)
                             .after(prepare::prepare),
                         bind_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
                     ),
