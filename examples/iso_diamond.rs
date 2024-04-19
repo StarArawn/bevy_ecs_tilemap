@@ -106,12 +106,9 @@ fn handle_tile_click(
     mut q_tile_texture: Query<&mut TileTextureIndex>,
     mut q_tilemap: Query<(&mut TileStorage, &mut TilemapSize, &mut TilemapGridSize, &mut TilemapType, &Transform)>) {
 
-    let mut delta = 0;
-    if mouse_buttons.just_pressed(MouseButton::Left) {
-        delta += 1
-    } else if mouse_buttons.just_pressed(MouseButton::Right) {
-        delta -= 1;
-    }
+    let delta = if mouse_buttons.just_pressed(MouseButton::Left) { 1i32 }
+               else if mouse_buttons.just_pressed(MouseButton::Right) { -1i32 }
+               else { 0 };
 
     let (camera, camera_transform) = q_cameras.get_single().expect("Expected a single camera entity");
     let window = q_windows.get_single().expect("Expected a single window");
@@ -141,9 +138,9 @@ fn handle_tile_click(
                 let tile_pos = TilePos::from_world_pos(&map_position.xy(), &map_size, &grid_size, &map_type).unwrap();
                 let tile_entity = tile_storage.get(&tile_pos).unwrap();
                 let tti = q_tile_texture.get_mut(tile_entity).unwrap();
-                let new_index = if tti.0 == 6 { 0 } else { tti.0 + delta };
+                let new_index = (7 + tti.0 as i32 + delta) % 7;
 
-                commands.entity(tile_entity).insert(TileTextureIndex(new_index));
+                commands.entity(tile_entity).insert(TileTextureIndex(new_index as u32));
             }
 
         },
