@@ -18,7 +18,6 @@ use std::sync::Arc;
 
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
-    log,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
         DespawnRecursiveExt, Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query,
@@ -54,15 +53,24 @@ pub struct TiledMap {
 }
 
 // Stores a list of tiled layers.
-#[derive(Component, Default)]
-pub struct TiledLayersStorage {
-    pub storage: HashMap<u32, Entity>,
+#[derive(Component, Default, Debug)]
+pub struct TilesetLayerToStorageEntity {
+    pub storage: HashMap<u32, HashMap<u32, Entity>>,
+}
+
+impl TilesetLayerToStorageEntity {
+    pub fn get_entities(&self) -> Vec<&Entity> {
+        self.storage
+            .values()
+            .flat_map(|layer| layer.values())
+            .collect()
+    }
 }
 
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
     pub tiled_map: Handle<TiledMap>,
-    pub storage: TiledLayersStorage,
+    pub storage: TilesetLayerToStorageEntity,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub render_settings: TilemapRenderSettings,
@@ -203,7 +211,7 @@ pub fn process_loaded_maps(
     tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(
         &Handle<TiledMap>,
-        &mut TiledLayersStorage,
+        &mut TilesetLayerToStorageEntity,
         &TilemapRenderSettings,
     )>,
     new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
@@ -235,21 +243,21 @@ pub fn process_loaded_maps(
     }
 
     for changed_map in changed_maps.iter() {
-        for (map_handle, mut layer_storage, render_settings) in map_query.iter_mut() {
+        for (map_handle, mut tileset_layer_entity, render_settings) in map_query.iter_mut() {
             // only deal with currently changed map
             if map_handle.id() != *changed_map {
                 continue;
             }
             if let Some(tiled_map) = maps.get(map_handle) {
                 // TODO: Create a RemoveMap component..
-                for layer_entity in layer_storage.storage.values() {
-                    if let Ok((_, layer_tile_storage)) = tile_storage_query.get(*layer_entity) {
-                        for tile in layer_tile_storage.iter().flatten() {
+                for entity in tileset_layer_entity.get_entities() {
+                    if let Ok((_, map_tiles)) = tile_storage_query.get(*entity) {
+                        for tile in map_tiles.iter().flatten() {
                             commands.entity(*tile).despawn_recursive()
                         }
                     }
-                    // commands.entity(*layer_entity).despawn_recursive();
                 }
+                // commands.entity(*layer_entity).despawn_recursive();
 
                 // The TilemapBundle requires that all tile images come exclusively from a single
                 // tiled texture or from a Vec of independent per-tile images. Furthermore, all of
@@ -274,6 +282,7 @@ pub fn process_loaded_maps(
                     };
 
                     // Once materials have been created/added we need to then create the layers.
+                    let mut layers_map = HashMap::new();
                     for (layer_index, layer) in tiled_map.map.layers().enumerate() {
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
@@ -391,10 +400,11 @@ pub fn process_loaded_maps(
                             ..Default::default()
                         });
 
-                        layer_storage
-                            .storage
-                            .insert(layer_index as u32, layer_entity);
+                        layers_map.insert(layer_index as u32, layer_entity);
                     }
+                    tileset_layer_entity
+                        .storage
+                        .insert(tileset_index as u32, layers_map);
                 }
             }
         }
