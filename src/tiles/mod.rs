@@ -66,7 +66,7 @@ impl From<&TilePos> for Vec2 {
 }
 
 /// A texture index into the atlas or texture array for a single tile. Indices in an atlas are horizontal based.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[reflect(Component)]
 pub struct TileTextureIndex(pub u32);
@@ -84,7 +84,7 @@ impl From<Color> for TileColor {
 }
 
 /// Hides or shows a tile based on the boolean. Default: True
-#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash, PartialEq, Eq)]
 #[reflect(Component)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileVisible(pub bool);
@@ -96,7 +96,7 @@ impl Default for TileVisible {
 }
 
 /// Flips the tiles texture along the X, Y or diagonal axes
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq)]
 #[reflect(Component)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileFlip {
