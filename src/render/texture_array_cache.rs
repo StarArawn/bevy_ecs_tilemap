@@ -3,7 +3,7 @@ use crate::{TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize}
 use bevy::asset::Assets;
 use bevy::prelude::Resource;
 use bevy::{
-    prelude::{Image, Res},
+    prelude::{Image, Res, UVec2},
     render::{
         render_asset::RenderAssets,
         render_resource::{
@@ -205,7 +205,10 @@ impl TextureArrayCache {
                         texture: gpu_texture,
                         sampler,
                         texture_view,
-                        size: tile_size.into(),
+                        size: UVec2 {
+                            x: tile_size.x as u32,
+                            y: tile_size.y as u32,
+                        },
                         mip_level_count,
                     };
 
