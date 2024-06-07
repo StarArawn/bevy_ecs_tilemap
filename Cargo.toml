@@ -67,6 +67,7 @@ features = [
     "bevy_text",
     "bevy_sprite",
     "multi_threaded",
+    "webgl2",
 ]
 
 
