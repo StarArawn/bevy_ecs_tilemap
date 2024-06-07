@@ -104,6 +104,7 @@ impl AssetLoader for TiledLoader {
     type Settings = ();
     type Error = TiledAssetLoaderError;
 
+    #[allow(refining_impl_trait)]
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,

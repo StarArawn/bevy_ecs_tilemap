@@ -62,6 +62,7 @@ impl AssetLoader for LdtkLoader {
     type Settings = ();
     type Error = LdtkAssetLoaderError;
 
+    #[allow(refining_impl_trait)]
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
