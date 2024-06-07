@@ -9,8 +9,8 @@ use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
-use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource};
+use bevy::{log::trace, render::mesh::MeshVertexBufferLayouts};
 use bevy::{
     math::{Mat4, UVec4},
     prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Vec2},
@@ -63,6 +63,7 @@ pub(crate) fn prepare(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     seconds_since_startup: Res<SecondsSinceStartup>,
+    mut mesh_vertex_buffer_layouts: ResMut<MeshVertexBufferLayouts>,
 ) {
     for tile in extracted_tiles.iter() {
         // First if the tile position has changed remove the tile from the old location.
@@ -188,7 +189,7 @@ pub(crate) fn prepare(
         }
         trace!("Preparing chunk: {:?}", chunk.get_index());
 
-        chunk.prepare(&render_device);
+        chunk.prepare(&render_device, &mut mesh_vertex_buffer_layouts);
 
         let mut chunk_uniform: TilemapUniformData = chunk.into();
         chunk_uniform.time = **seconds_since_startup;
