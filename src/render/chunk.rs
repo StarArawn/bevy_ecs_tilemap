@@ -361,7 +361,7 @@ impl RenderChunk2d {
     pub fn prepare(
         &mut self,
         device: &RenderDevice,
-        mut mesh_vertex_buffer_layouts: &mut MeshVertexBufferLayouts,
+        mesh_vertex_buffer_layouts: &mut MeshVertexBufferLayouts,
     ) {
         if self.dirty_mesh {
             let size = ((self.size_in_tiles.x * self.size_in_tiles.y) * 4) as usize;
@@ -453,7 +453,7 @@ impl RenderChunk2d {
 
             let mesh_vertex_buffer_layout = self
                 .mesh
-                .get_mesh_vertex_buffer_layout(&mut mesh_vertex_buffer_layouts);
+                .get_mesh_vertex_buffer_layout(mesh_vertex_buffer_layouts);
             self.gpu_mesh = Some(GpuMesh {
                 vertex_buffer,
                 vertex_count: self.mesh.count_vertices() as u32,
