@@ -48,6 +48,8 @@ features = [
     "bevy_sprite",
     #"file_watcher",
     "multi_threaded",
+    "zstd",
+    "bevy_pbr",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
