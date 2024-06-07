@@ -9,6 +9,7 @@ use bevy::{
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         texture::ImageSamplerDescriptor,
+        view::{check_visibility, VisibilitySystems},
         Render, RenderApp, RenderSet,
     },
 };
@@ -18,7 +19,10 @@ use bevy::render::renderer::RenderDevice;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::texture::GpuImage;
 
-use crate::tiles::{TilePos, TileStorage};
+use crate::{
+    prelude::TilemapRenderSettings,
+    tiles::{TilePos, TileStorage},
+};
 use crate::{
     prelude::TilemapTexture,
     render::{
@@ -209,6 +213,13 @@ impl Plugin for TilemapRenderingPlugin {
             TILEMAP_SHADER_FRAGMENT,
             "shaders/tilemap_fragment.wgsl",
             Shader::from_wgsl
+        );
+
+        app.add_systems(
+            PostUpdate,
+            (check_visibility::<With<TilemapRenderSettings>>)
+                .in_set(VisibilitySystems::CheckVisibility)
+                .after(VisibilitySystems::CalculateBounds),
         );
 
         let render_app = match app.get_sub_app_mut(RenderApp) {

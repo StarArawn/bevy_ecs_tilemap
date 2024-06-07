@@ -17,7 +17,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::{FallbackImage, GpuImage},
-        view::{ExtractedView, ViewUniforms, VisibleEntities, WithMesh},
+        view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
     utils::{HashMap, HashSet},
@@ -27,7 +27,7 @@ use std::{hash::Hash, marker::PhantomData};
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 
-use crate::prelude::TilemapId;
+use crate::prelude::{TilemapId, TilemapRenderSettings};
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage},
@@ -421,7 +421,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
 
         for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
             if !visible_entities
-                .iter::<WithMesh>()
+                .iter::<With<TilemapRenderSettings>>()
                 .any(|&entity| entity.index() == tilemap_id.0.index())
             {
                 continue;
@@ -538,7 +538,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
 
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
-                    .iter::<WithMesh>()
+                    .iter::<With<TilemapRenderSettings>>()
                     .any(|&entity| entity.index() == tilemap_id.0.index())
                 {
                     continue;
