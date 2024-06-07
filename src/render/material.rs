@@ -7,7 +7,9 @@ use bevy::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
-        render_phase::{AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, RenderPhase},
+        render_phase::{
+            AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, ViewSortedRenderPhases,
+        },
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
             BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
@@ -386,16 +388,13 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
         Query<&Handle<M>>,
     ),
-    mut views: Query<(
-        &ExtractedView,
-        &VisibleEntities,
-        &mut RenderPhase<Transparent2d>,
-    )>,
+    mut views: Query<(Entity, &ExtractedView, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
         Res<RenderQueue>,
     ),
+    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
 ) where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
@@ -410,7 +409,11 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         return;
     }
 
-    for (view, visible_entities, mut transparent_phase) in views.iter_mut() {
+    for (view_entity, view, visible_entities) in views.iter_mut() {
+        let Some(transparent_phase) = transparent_render_phases.get_mut(&view_entity) else {
+            continue;
+        };
+
         let draw_tilemap = transparent_2d_draw_functions
             .read()
             .get_id::<DrawTilemapMaterial<M>>()
