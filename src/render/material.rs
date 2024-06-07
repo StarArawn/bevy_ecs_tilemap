@@ -1,5 +1,6 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
+    math::FloatOrd,
     prelude::*,
     reflect::TypePath,
     render::{
@@ -17,7 +18,7 @@ use bevy::{
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
-    utils::{FloatOrd, HashMap, HashSet},
+    utils::{HashMap, HashSet},
 };
 use std::{hash::Hash, marker::PhantomData};
 
