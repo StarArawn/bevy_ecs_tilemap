@@ -13,7 +13,7 @@ use bevy::{
             ShaderRef, SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
-        texture::FallbackImage,
+        texture::{FallbackImage, GpuImage},
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
@@ -303,7 +303,7 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
-    images: Res<RenderAssets<Image>>,
+    images: Res<RenderAssets<GpuImage>>,
     fallback_image: Res<FallbackImage>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
 ) {
@@ -350,7 +350,7 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
 fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
-    images: &RenderAssets<Image>,
+    images: &RenderAssets<GpuImage>,
     fallback_image: &FallbackImage,
     pipeline: &MaterialTilemapPipeline<M>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
@@ -378,7 +378,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     ),
     pipeline_cache: Res<PipelineCache>,
     view_uniforms: Res<ViewUniforms>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     msaa: Res<Msaa>,
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
@@ -489,7 +489,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     render_device: Res<RenderDevice>,
     tilemap_pipeline: Res<TilemapPipeline>,
     view_uniforms: Res<ViewUniforms>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     globals_buffer: Res<GlobalsBuffer>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),

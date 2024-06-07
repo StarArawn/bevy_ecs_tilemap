@@ -15,6 +15,8 @@ use bevy::{
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
+#[cfg(not(feature = "atlas"))]
+use bevy::render::texture::GpuImage;
 
 use crate::tiles::{TilePos, TileStorage};
 use crate::{
@@ -319,7 +321,7 @@ fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
     extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
-    render_images: Res<bevy::render::render_asset::RenderAssets<Image>>,
+    render_images: Res<bevy::render::render_asset::RenderAssets<GpuImage>>,
 ) {
     for extracted_texture in extracted_tilemap_textures.iter() {
         texture_array_cache.add_extracted_texture(extracted_texture);

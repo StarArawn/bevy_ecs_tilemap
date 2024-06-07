@@ -137,7 +137,7 @@ impl TextureArrayCache {
     pub fn prepare(
         &mut self,
         render_device: &RenderDevice,
-        render_images: &Res<RenderAssets<Image>>,
+        render_images: &Res<RenderAssets<GpuImage>>,
     ) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for texture in prepare_queue.iter() {
@@ -228,7 +228,7 @@ impl TextureArrayCache {
         &mut self,
         render_device: &RenderDevice,
         render_queue: &RenderQueue,
-        render_images: &Res<RenderAssets<Image>>,
+        render_images: &Res<RenderAssets<GpuImage>>,
     ) {
         let queue_queue = self.queue_queue.drain().collect::<Vec<_>>();
 
