@@ -7,7 +7,7 @@ use bevy::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
-        render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
+        render_phase::{AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, RenderPhase},
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
             BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
@@ -476,7 +476,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                     pipeline: pipeline_id,
                     sort_key: FloatOrd(z),
                     batch_range: 0..1,
-                    dynamic_offset: None,
+                    extra_index: PhaseItemExtraIndex::NONE,
                 });
             }
         }
