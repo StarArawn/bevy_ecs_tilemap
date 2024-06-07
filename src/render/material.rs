@@ -17,7 +17,7 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::{FallbackImage, GpuImage},
-        view::{ExtractedView, ViewUniforms, VisibleEntities},
+        view::{ExtractedView, ViewUniforms, VisibleEntities, WithMesh},
         Extract, Render, RenderApp, RenderSet,
     },
     utils::{HashMap, HashSet},
@@ -421,8 +421,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
 
         for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
             if !visible_entities
-                .entities
-                .iter()
+                .iter::<WithMesh>()
                 .any(|&entity| entity.index() == tilemap_id.0.index())
             {
                 continue;
@@ -539,8 +538,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
 
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
-                    .entities
-                    .iter()
+                    .iter::<WithMesh>()
                     .any(|&entity| entity.index() == tilemap_id.0.index())
                 {
                     continue;
