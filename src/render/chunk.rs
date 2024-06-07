@@ -1,9 +1,9 @@
 use std::hash::{Hash, Hasher};
 
-use bevy::math::Mat4;
 use bevy::prelude::{InheritedVisibility, Resource, Transform};
-use bevy::render::primitives::Aabb;
 use bevy::render::render_asset::RenderAssetUsages;
+use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
+use bevy::{math::Mat4, render::mesh::PrimitiveTopology};
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
@@ -451,7 +451,9 @@ impl RenderChunk2d {
                 buffer_info,
                 morph_targets: None,
                 layout: mesh_vertex_buffer_layout,
-                primitive_topology: bevy::render::render_resource::PrimitiveTopology::TriangleList,
+                key_bits: BaseMeshPipelineKey::from_primitive_topology(
+                    PrimitiveTopology::TriangleList,
+                ),
             });
             self.dirty_mesh = false;
         }
