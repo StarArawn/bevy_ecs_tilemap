@@ -212,8 +212,8 @@ impl Plugin for TilemapRenderingPlugin {
         );
 
         let render_app = match app.get_sub_app_mut(RenderApp) {
-            Ok(render_app) => render_app,
-            Err(_) => return,
+            Some(render_app) => render_app,
+            None => return,
         };
 
         render_app.init_resource::<TilemapPipeline>();

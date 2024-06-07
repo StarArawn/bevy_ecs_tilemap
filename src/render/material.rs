@@ -116,7 +116,7 @@ where
     }
 
     fn finish(&self, app: &mut App) {
-        if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
                 .add_render_command::<Transparent2d, DrawTilemapMaterial<M>>()
                 .init_resource::<MaterialTilemapPipeline<M>>()
