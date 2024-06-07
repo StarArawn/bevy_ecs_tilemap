@@ -282,7 +282,7 @@ pub fn extract(
             visible: visible.0,
             position,
             texture,
-            color: color.0.as_linear_rgba_f32(),
+            color: color.0.linear().to_f32_array(),
         };
 
         let data = tilemap_query.get(tilemap_id.0).unwrap();
