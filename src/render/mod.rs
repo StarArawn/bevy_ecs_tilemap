@@ -112,10 +112,10 @@ impl Plugin for TilemapRenderingPlugin {
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 
-        app.world
+        app.world_mut()
             .resource_mut::<Assets<StandardTilemapMaterial>>()
             .insert(
-                Handle::<StandardTilemapMaterial>::default(),
+                Handle::<StandardTilemapMaterial>::default().id(),
                 StandardTilemapMaterial::default(),
             );
     }
