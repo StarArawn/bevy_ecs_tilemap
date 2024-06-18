@@ -3,7 +3,7 @@ use crate::{TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize}
 use bevy::asset::Assets;
 use bevy::prelude::Resource;
 use bevy::{
-    prelude::{Image, Res},
+    prelude::{Image, Res, UVec2},
     render::{
         render_asset::RenderAssets,
         render_resource::{
@@ -137,7 +137,7 @@ impl TextureArrayCache {
     pub fn prepare(
         &mut self,
         render_device: &RenderDevice,
-        render_images: &Res<RenderAssets<Image>>,
+        render_images: &Res<RenderAssets<GpuImage>>,
     ) {
         let prepare_queue = self.prepare_queue.drain().collect::<Vec<_>>();
         for texture in prepare_queue.iter() {
@@ -205,7 +205,10 @@ impl TextureArrayCache {
                         texture: gpu_texture,
                         sampler,
                         texture_view,
-                        size: tile_size.into(),
+                        size: UVec2 {
+                            x: tile_size.x as u32,
+                            y: tile_size.y as u32,
+                        },
                         mip_level_count,
                     };
 
@@ -228,7 +231,7 @@ impl TextureArrayCache {
         &mut self,
         render_device: &RenderDevice,
         render_queue: &RenderQueue,
-        render_images: &Res<RenderAssets<Image>>,
+        render_images: &Res<RenderAssets<GpuImage>>,
     ) {
         let queue_queue = self.queue_queue.drain().collect::<Vec<_>>();
 

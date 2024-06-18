@@ -9,14 +9,20 @@ use bevy::{
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         texture::ImageSamplerDescriptor,
+        view::{check_visibility, VisibilitySystems},
         Render, RenderApp, RenderSet,
     },
 };
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderDevice;
+#[cfg(not(feature = "atlas"))]
+use bevy::render::texture::GpuImage;
 
-use crate::tiles::{TilePos, TileStorage};
+use crate::{
+    prelude::TilemapRenderSettings,
+    tiles::{TilePos, TileStorage},
+};
 use crate::{
     prelude::TilemapTexture,
     render::{
@@ -110,10 +116,10 @@ impl Plugin for TilemapRenderingPlugin {
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 
-        app.world
+        app.world_mut()
             .resource_mut::<Assets<StandardTilemapMaterial>>()
             .insert(
-                Handle::<StandardTilemapMaterial>::default(),
+                Handle::<StandardTilemapMaterial>::default().id(),
                 StandardTilemapMaterial::default(),
             );
     }
@@ -209,9 +215,16 @@ impl Plugin for TilemapRenderingPlugin {
             Shader::from_wgsl
         );
 
+        app.add_systems(
+            PostUpdate,
+            (check_visibility::<With<TilemapRenderSettings>>)
+                .in_set(VisibilitySystems::CheckVisibility)
+                .after(VisibilitySystems::CalculateBounds),
+        );
+
         let render_app = match app.get_sub_app_mut(RenderApp) {
-            Ok(render_app) => render_app,
-            Err(_) => return,
+            Some(render_app) => render_app,
+            None => return,
         };
 
         render_app.init_resource::<TilemapPipeline>();
@@ -319,7 +332,7 @@ fn prepare_textures(
     render_device: Res<RenderDevice>,
     mut texture_array_cache: ResMut<TextureArrayCache>,
     extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
-    render_images: Res<bevy::render::render_asset::RenderAssets<Image>>,
+    render_images: Res<bevy::render::render_asset::RenderAssets<GpuImage>>,
 ) {
     for extracted_texture in extracted_tilemap_textures.iter() {
         texture_array_cache.add_extracted_texture(extracted_texture);

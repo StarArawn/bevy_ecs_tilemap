@@ -1,30 +1,33 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
+    math::FloatOrd,
     prelude::*,
     reflect::TypePath,
     render::{
         extract_component::ExtractComponentPlugin,
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
-        render_phase::{AddRenderCommand, DrawFunctions, RenderPhase},
+        render_phase::{
+            AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, ViewSortedRenderPhases,
+        },
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
             BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
             ShaderRef, SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
-        texture::FallbackImage,
+        texture::{FallbackImage, GpuImage},
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
-    utils::{FloatOrd, HashMap, HashSet},
+    utils::{HashMap, HashSet},
 };
 use std::{hash::Hash, marker::PhantomData};
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 
-use crate::prelude::TilemapId;
+use crate::prelude::{TilemapId, TilemapRenderSettings};
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage},
@@ -113,7 +116,7 @@ where
     }
 
     fn finish(&self, app: &mut App) {
-        if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
                 .add_render_command::<Transparent2d, DrawTilemapMaterial<M>>()
                 .init_resource::<MaterialTilemapPipeline<M>>()
@@ -303,7 +306,7 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
-    images: Res<RenderAssets<Image>>,
+    images: Res<RenderAssets<GpuImage>>,
     fallback_image: Res<FallbackImage>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
 ) {
@@ -350,7 +353,7 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
 fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
-    images: &RenderAssets<Image>,
+    images: &RenderAssets<GpuImage>,
     fallback_image: &FallbackImage,
     pipeline: &MaterialTilemapPipeline<M>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
@@ -378,23 +381,20 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     ),
     pipeline_cache: Res<PipelineCache>,
     view_uniforms: Res<ViewUniforms>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     msaa: Res<Msaa>,
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
         Query<&Handle<M>>,
     ),
-    mut views: Query<(
-        &ExtractedView,
-        &VisibleEntities,
-        &mut RenderPhase<Transparent2d>,
-    )>,
+    mut views: Query<(Entity, &ExtractedView, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
         Res<RenderQueue>,
     ),
+    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
 ) where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
@@ -409,7 +409,11 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         return;
     }
 
-    for (view, visible_entities, mut transparent_phase) in views.iter_mut() {
+    for (view_entity, view, visible_entities) in views.iter_mut() {
+        let Some(transparent_phase) = transparent_render_phases.get_mut(&view_entity) else {
+            continue;
+        };
+
         let draw_tilemap = transparent_2d_draw_functions
             .read()
             .get_id::<DrawTilemapMaterial<M>>()
@@ -417,8 +421,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
 
         for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
             if !visible_entities
-                .entities
-                .iter()
+                .iter::<With<TilemapRenderSettings>>()
                 .any(|&entity| entity.index() == tilemap_id.0.index())
             {
                 continue;
@@ -475,7 +478,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                     pipeline: pipeline_id,
                     sort_key: FloatOrd(z),
                     batch_range: 0..1,
-                    dynamic_offset: None,
+                    extra_index: PhaseItemExtraIndex::NONE,
                 });
             }
         }
@@ -489,7 +492,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     render_device: Res<RenderDevice>,
     tilemap_pipeline: Res<TilemapPipeline>,
     view_uniforms: Res<ViewUniforms>,
-    gpu_images: Res<RenderAssets<Image>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     globals_buffer: Res<GlobalsBuffer>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
     (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),
@@ -535,8 +538,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
 
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
-                    .entities
-                    .iter()
+                    .iter::<With<TilemapRenderSettings>>()
                     .any(|&entity| entity.index() == tilemap_id.0.index())
                 {
                     continue;

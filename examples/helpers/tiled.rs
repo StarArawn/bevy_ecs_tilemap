@@ -25,7 +25,7 @@ use bevy::{
         Res, Transform, Update,
     },
     reflect::TypePath,
-    utils::{BoxedFuture, HashMap},
+    utils::HashMap,
 };
 use bevy_ecs_tilemap::prelude::*;
 
@@ -104,90 +104,87 @@ impl AssetLoader for TiledLoader {
     type Settings = ();
     type Error = TiledAssetLoaderError;
 
-    fn load<'a>(
+    async fn load<'a>(
         &'a self,
-        reader: &'a mut Reader,
+        reader: &'a mut Reader<'_>,
         _settings: &'a Self::Settings,
-        load_context: &'a mut bevy::asset::LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
-            let mut bytes = Vec::new();
-            reader.read_to_end(&mut bytes).await?;
+        load_context: &'a mut bevy::asset::LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
 
-            let mut loader = tiled::Loader::with_cache_and_reader(
-                tiled::DefaultResourceCache::new(),
-                BytesResourceReader::new(&bytes),
-            );
-            let map = loader.load_tmx_map(load_context.path()).map_err(|e| {
-                std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}"))
-            })?;
+        let mut loader = tiled::Loader::with_cache_and_reader(
+            tiled::DefaultResourceCache::new(),
+            BytesResourceReader::new(&bytes),
+        );
+        let map = loader.load_tmx_map(load_context.path()).map_err(|e| {
+            std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}"))
+        })?;
 
-            let mut tilemap_textures = HashMap::default();
-            #[cfg(not(feature = "atlas"))]
-            let mut tile_image_offsets = HashMap::default();
+        let mut tilemap_textures = HashMap::default();
+        #[cfg(not(feature = "atlas"))]
+        let mut tile_image_offsets = HashMap::default();
 
-            for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
-                let tilemap_texture = match &tileset.image {
-                    None => {
-                        #[cfg(feature = "atlas")]
-                        {
-                            log::info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
-                            continue;
-                        }
+        for (tileset_index, tileset) in map.tilesets().iter().enumerate() {
+            let tilemap_texture = match &tileset.image {
+                None => {
+                    #[cfg(feature = "atlas")]
+                    {
+                        log::info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
+                        continue;
+                    }
 
-                        #[cfg(not(feature = "atlas"))]
-                        {
-                            let mut tile_images: Vec<Handle<Image>> = Vec::new();
-                            for (tile_id, tile) in tileset.tiles() {
-                                if let Some(img) = &tile.image {
-                                    // The load context path is the TMX file itself. If the file is at the root of the
-                                    // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                                    let tmx_dir = load_context
-                                        .path()
-                                        .parent()
-                                        .expect("The asset load context was empty.");
-                                    let tile_path = tmx_dir.join(&img.source);
-                                    let asset_path = AssetPath::from(tile_path);
-                                    log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
-                                    let texture: Handle<Image> =
-                                        load_context.load(asset_path.clone());
-                                    tile_image_offsets
-                                        .insert((tileset_index, tile_id), tile_images.len() as u32);
-                                    tile_images.push(texture.clone());
-                                }
+                    #[cfg(not(feature = "atlas"))]
+                    {
+                        let mut tile_images: Vec<Handle<Image>> = Vec::new();
+                        for (tile_id, tile) in tileset.tiles() {
+                            if let Some(img) = &tile.image {
+                                // The load context path is the TMX file itself. If the file is at the root of the
+                                // assets/ directory structure then the tmx_dir will be empty, which is fine.
+                                let tmx_dir = load_context
+                                    .path()
+                                    .parent()
+                                    .expect("The asset load context was empty.");
+                                let tile_path = tmx_dir.join(&img.source);
+                                let asset_path = AssetPath::from(tile_path);
+                                log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                let texture: Handle<Image> = load_context.load(asset_path.clone());
+                                tile_image_offsets
+                                    .insert((tileset_index, tile_id), tile_images.len() as u32);
+                                tile_images.push(texture.clone());
                             }
-
-                            TilemapTexture::Vector(tile_images)
                         }
+
+                        TilemapTexture::Vector(tile_images)
                     }
-                    Some(img) => {
-                        // The load context path is the TMX file itself. If the file is at the root of the
-                        // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                        let tmx_dir = load_context
-                            .path()
-                            .parent()
-                            .expect("The asset load context was empty.");
-                        let tile_path = tmx_dir.join(&img.source);
-                        let asset_path = AssetPath::from(tile_path);
-                        let texture: Handle<Image> = load_context.load(asset_path.clone());
+                }
+                Some(img) => {
+                    // The load context path is the TMX file itself. If the file is at the root of the
+                    // assets/ directory structure then the tmx_dir will be empty, which is fine.
+                    let tmx_dir = load_context
+                        .path()
+                        .parent()
+                        .expect("The asset load context was empty.");
+                    let tile_path = tmx_dir.join(&img.source);
+                    let asset_path = AssetPath::from(tile_path);
+                    let texture: Handle<Image> = load_context.load(asset_path.clone());
 
-                        TilemapTexture::Single(texture.clone())
-                    }
-                };
-
-                tilemap_textures.insert(tileset_index, tilemap_texture);
-            }
-
-            let asset_map = TiledMap {
-                map,
-                tilemap_textures,
-                #[cfg(not(feature = "atlas"))]
-                tile_image_offsets,
+                    TilemapTexture::Single(texture.clone())
+                }
             };
 
-            log::info!("Loaded map: {}", load_context.path().display());
-            Ok(asset_map)
-        })
+            tilemap_textures.insert(tileset_index, tilemap_texture);
+        }
+
+        let asset_map = TiledMap {
+            map,
+            tilemap_textures,
+            #[cfg(not(feature = "atlas"))]
+            tile_image_offsets,
+        };
+
+        log::info!("Loaded map: {}", load_context.path().display());
+        Ok(asset_map)
     }
 
     fn extensions(&self) -> &[&str] {

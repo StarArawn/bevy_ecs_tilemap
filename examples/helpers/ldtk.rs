@@ -14,7 +14,6 @@ use bevy::{
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
-    utils::BoxedFuture,
 };
 use bevy_ecs_tilemap::map::TilemapType;
 
@@ -62,45 +61,43 @@ impl AssetLoader for LdtkLoader {
     type Settings = ();
     type Error = LdtkAssetLoaderError;
 
-    fn load<'a>(
+    async fn load<'a>(
         &'a self,
-        reader: &'a mut Reader,
+        reader: &'a mut Reader<'_>,
         _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<LdtkMap, Self::Error>> {
-        Box::pin(async move {
-            let mut bytes = Vec::new();
-            reader.read_to_end(&mut bytes).await?;
+        load_context: &'a mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
 
-            let project: ldtk_rust::Project = serde_json::from_slice(&bytes).map_err(|e| {
-                std::io::Error::new(
-                    ErrorKind::Other,
-                    format!("Could not read contents of Ldtk map: {e}"),
-                )
-            })?;
-            let dependencies: Vec<(i64, AssetPath)> = project
-                .defs
-                .tilesets
-                .iter()
-                .filter_map(|tileset| {
-                    tileset.rel_path.as_ref().map(|rel_path| {
-                        (
-                            tileset.uid,
-                            load_context.path().parent().unwrap().join(rel_path).into(),
-                        )
-                    })
+        let project: ldtk_rust::Project = serde_json::from_slice(&bytes).map_err(|e| {
+            std::io::Error::new(
+                ErrorKind::Other,
+                format!("Could not read contents of Ldtk map: {e}"),
+            )
+        })?;
+        let dependencies: Vec<(i64, AssetPath)> = project
+            .defs
+            .tilesets
+            .iter()
+            .filter_map(|tileset| {
+                tileset.rel_path.as_ref().map(|rel_path| {
+                    (
+                        tileset.uid,
+                        load_context.path().parent().unwrap().join(rel_path).into(),
+                    )
                 })
-                .collect();
+            })
+            .collect();
 
-            let ldtk_map = LdtkMap {
-                project,
-                tilesets: dependencies
-                    .iter()
-                    .map(|dep| (dep.0, load_context.load(dep.1.clone())))
-                    .collect(),
-            };
-            Ok(ldtk_map)
-        })
+        let ldtk_map = LdtkMap {
+            project,
+            tilesets: dependencies
+                .iter()
+                .map(|dep| (dep.0, load_context.load(dep.1.clone())))
+                .collect(),
+        };
+        Ok(ldtk_map)
     }
 
     fn extensions(&self) -> &[&str] {

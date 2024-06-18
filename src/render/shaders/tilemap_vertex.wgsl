@@ -130,7 +130,7 @@ fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
     out.uv = atlas_uvs[vertex_input.v_index % 4u];
     out.tile_id = i32(texture_index);
     // out.uv = out.uv + 1e-5;
-    out.position = view.view_proj * mesh_data.world_position;
+    out.position = view.clip_from_world * mesh_data.world_position;
     out.color = vertex_input.color;
     out.storage_position = vec2<u32>(vertex_input.position.xy);
     return out;

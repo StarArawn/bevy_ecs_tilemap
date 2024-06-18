@@ -1,4 +1,4 @@
-use bevy::math::Vec4Swizzles;
+use bevy::{color::palettes, math::Vec4Swizzles};
 use bevy::{ecs::system::Resource, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -360,7 +360,7 @@ fn highlight_tile_labels(
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                         for section in tile_text.sections.iter_mut() {
-                            section.style.color = Color::RED;
+                            section.style.color = palettes::tailwind::RED_600.into();
                         }
                         commands.entity(tile_entity).insert(HighlightedLabel);
                     }
