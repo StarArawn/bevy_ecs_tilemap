@@ -49,9 +49,6 @@ features = [
     #"file_watcher",
     "multi_threaded",
     "webgl2",
-    # TODO Remove these before release. See https://github.com/bevyengine/bevy/issues/13728
-    "zstd",
-    "bevy_pbr",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
