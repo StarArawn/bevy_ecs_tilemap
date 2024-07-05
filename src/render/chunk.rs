@@ -1,9 +1,8 @@
 use std::hash::{Hash, Hasher};
 
-use bevy::math::Mat4;
-use bevy::prelude::{InheritedVisibility, Resource, Transform};
-use bevy::render::primitives::Aabb;
 use bevy::render::render_asset::RenderAssetUsages;
+use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
+use bevy::{math::Mat4, render::mesh::PrimitiveTopology};
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
@@ -13,6 +12,10 @@ use bevy::{
         renderer::RenderDevice,
     },
     utils::HashMap,
+};
+use bevy::{
+    prelude::{InheritedVisibility, Resource, Transform},
+    render::mesh::MeshVertexBufferLayouts,
 };
 
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
@@ -355,7 +358,11 @@ impl RenderChunk2d {
         }
     }
 
-    pub fn prepare(&mut self, device: &RenderDevice) {
+    pub fn prepare(
+        &mut self,
+        device: &RenderDevice,
+        mesh_vertex_buffer_layouts: &mut MeshVertexBufferLayouts,
+    ) {
         if self.dirty_mesh {
             let size = ((self.size_in_tiles.x * self.size_in_tiles.y) * 4) as usize;
             let mut positions: Vec<[f32; 4]> = Vec::with_capacity(size);
@@ -444,14 +451,18 @@ impl RenderChunk2d {
                         }
                     });
 
-            let mesh_vertex_buffer_layout = self.mesh.get_mesh_vertex_buffer_layout();
+            let mesh_vertex_buffer_layout = self
+                .mesh
+                .get_mesh_vertex_buffer_layout(mesh_vertex_buffer_layouts);
             self.gpu_mesh = Some(GpuMesh {
                 vertex_buffer,
                 vertex_count: self.mesh.count_vertices() as u32,
                 buffer_info,
                 morph_targets: None,
                 layout: mesh_vertex_buffer_layout,
-                primitive_topology: bevy::render::render_resource::PrimitiveTopology::TriangleList,
+                key_bits: BaseMeshPipelineKey::from_primitive_topology(
+                    PrimitiveTopology::TriangleList,
+                ),
             });
             self.dirty_mesh = false;
         }

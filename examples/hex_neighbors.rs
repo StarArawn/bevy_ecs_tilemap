@@ -1,5 +1,5 @@
-use bevy::math::Vec4Swizzles;
 use bevy::prelude::*;
+use bevy::{color::palettes, math::Vec4Swizzles};
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -315,7 +315,7 @@ fn hover_highlight_tile_label(
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                         for section in tile_text.sections.iter_mut() {
-                            section.style.color = Color::RED;
+                            section.style.color = palettes::tailwind::RED_600.into();
                         }
                         commands.entity(tile_entity).insert(Hovered);
                     }
@@ -371,7 +371,7 @@ fn highlight_neighbor_label(
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                             for section in tile_text.sections.iter_mut() {
-                                section.style.color = Color::BLUE;
+                                section.style.color = palettes::tailwind::BLUE_600.into();
                             }
                             commands.entity(tile_entity).insert(NeighborHighlight);
                         }
@@ -412,7 +412,7 @@ fn highlight_neighbor_label(
                     if let Ok(label) = tile_label_q.get(tile_entity) {
                         if let Ok(mut tile_text) = text_q.get_mut(label.0) {
                             for section in tile_text.sections.iter_mut() {
-                                section.style.color = Color::GREEN;
+                                section.style.color = palettes::tailwind::GREEN_600.into();
                             }
                             commands.entity(tile_entity).insert(NeighborHighlight);
                         }
