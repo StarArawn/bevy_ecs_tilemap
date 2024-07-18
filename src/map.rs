@@ -5,7 +5,7 @@ use bevy::prelude::{ReflectComponent, Res, ResMut};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
     math::{UVec2, Vec2},
-    prelude::{Component, Entity, Handle, Image, Reflect},
+    prelude::{Component, Deref, DerefMut, Entity, Handle, Image, Reflect},
 };
 
 /// The default chunk_size (in tiles) used per mesh.
@@ -42,7 +42,7 @@ impl Default for TilemapRenderSettings {
 }
 
 /// A component which stores a reference to the tilemap entity.
-#[derive(Component, Reflect, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Clone, Copy, Debug, Hash, Deref, DerefMut, PartialEq, Eq)]
 #[reflect(Component, MapEntities)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TilemapId(pub Entity);
