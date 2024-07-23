@@ -103,6 +103,7 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis cargo run --example animation --target=was
 |---|---|
 |`main`|`bevy-track`|
 |0.14|0.14|
+|0.13| - |
 |0.12|0.12|
 |0.11|0.11.*|
 |0.10|0.10|
