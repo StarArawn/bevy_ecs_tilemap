@@ -4,12 +4,79 @@ use bevy::ecs::reflect::ReflectMapEntities;
 use bevy::prelude::{ReflectComponent, Res, ResMut};
 use bevy::render::render_resource::TextureUsages;
 use bevy::{
-    math::{UVec2, Vec2},
+    math::{UVec2, Vec2, Vec3},
     prelude::{Component, Deref, DerefMut, Entity, Handle, Image, Reflect},
 };
 
 /// The default chunk_size (in tiles) used per mesh.
 pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
+
+/// The order in which we want to perform the render
+#[derive(Clone, Debug, Copy, Default)]
+pub enum RenderOrder {
+    #[default]
+    None,
+    XThenY,
+    XReverseThenY,
+    XThenYReverse,
+    XReverseThenYReverse,
+    YThenX,
+    YReverseThenX,
+    YThenXReverse,
+    YReverseThenXReverse,
+}
+
+impl RenderOrder {
+    /// Compute a new Z translation value based upon the selected render order
+    /// Returned Z value will have an offset between 0 and 11
+    pub fn compute_z_translation(
+        &self,
+        translation: &Vec3,
+        tilemap_size: TilemapSize,
+        tile_size: TilemapTileSize,
+    ) -> f32 {
+        let scaling_factor = 10.;
+        let map_size_x = tilemap_size.x as f32 * tile_size.x;
+        let map_size_y = tilemap_size.y as f32 * tile_size.y;
+        let mut z_value = translation.z;
+        match self {
+            Self::XThenY => {
+                z_value += scaling_factor * (translation.x / map_size_x);
+                z_value += translation.y / map_size_y;
+            }
+            Self::XReverseThenY => {
+                z_value += scaling_factor * (1. - (translation.x / map_size_x));
+                z_value += translation.y / map_size_y;
+            }
+            Self::XThenYReverse => {
+                z_value += scaling_factor * (translation.x / map_size_x);
+                z_value += 1. - (translation.y / map_size_y);
+            }
+            Self::XReverseThenYReverse => {
+                z_value += scaling_factor * (1. - (translation.x / map_size_x));
+                z_value += 1. - (translation.y / map_size_y);
+            }
+            Self::YThenX => {
+                z_value += translation.x / map_size_x;
+                z_value += scaling_factor * (translation.y / map_size_y);
+            }
+            Self::YReverseThenX => {
+                z_value += translation.x / map_size_x;
+                z_value += scaling_factor * (1. - (translation.y / map_size_y));
+            }
+            Self::YThenXReverse => {
+                z_value += 1. - (translation.x / map_size_x);
+                z_value += scaling_factor * (translation.y / map_size_y);
+            }
+            Self::YReverseThenXReverse => {
+                z_value += 1. - (translation.x / map_size_x);
+                z_value += scaling_factor * (1. - (translation.y / map_size_y));
+            }
+            _ => {}
+        };
+        z_value
+    }
+}
 
 /// Custom parameters for the render pipeline.
 ///
@@ -30,6 +97,8 @@ pub struct TilemapRenderSettings {
     ///
     /// `render_chunk_size`'s `z` value should be `1` when using this for 3d isometric tilemaps.
     pub y_sort: bool,
+    /// The order in which we will render each chunk relative to each other
+    pub render_chunk_order: RenderOrder,
 }
 
 impl Default for TilemapRenderSettings {
@@ -37,6 +106,7 @@ impl Default for TilemapRenderSettings {
         Self {
             render_chunk_size: CHUNK_SIZE_2D,
             y_sort: false,
+            render_chunk_order: RenderOrder::None,
         }
     }
 }

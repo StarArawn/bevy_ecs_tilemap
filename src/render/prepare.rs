@@ -114,6 +114,7 @@ pub(crate) fn prepare(
             frustum_culling,
             chunk_size,
             tilemap_render_settings.y_sort,
+            tilemap_render_settings.render_chunk_order,
         );
         chunk.set(
             &in_chunk_tile_index.into(),

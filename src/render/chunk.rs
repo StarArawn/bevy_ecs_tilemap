@@ -18,6 +18,7 @@ use bevy::{
     render::mesh::MeshVertexBufferLayouts,
 };
 
+use crate::map::RenderOrder;
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
@@ -59,6 +60,7 @@ impl RenderChunk2dStorage {
         frustum_culling: &FrustumCulling,
         render_size: RenderChunkSize,
         y_sort: bool,
+        render_order: RenderOrder,
     ) -> &mut RenderChunk2d {
         let pos = position.xyz();
 
@@ -96,6 +98,7 @@ impl RenderChunk2dStorage {
                 **frustum_culling,
                 render_size,
                 y_sort,
+                render_order,
             );
             self.entity_to_chunk.insert(chunk_entity, pos);
             chunk_storage.insert(pos, chunk);
@@ -220,6 +223,7 @@ pub struct RenderChunk2d {
     pub frustum_culling: bool,
     pub render_size: RenderChunkSize,
     pub y_sort: bool,
+    pub render_chunk_order: RenderOrder,
 }
 
 impl RenderChunk2d {
@@ -241,6 +245,7 @@ impl RenderChunk2d {
         frustum_culling: bool,
         render_size: RenderChunkSize,
         y_sort: bool,
+        render_chunk_order: RenderOrder,
     ) -> Self {
         let position = chunk_index_to_world_space(index.xy(), size_in_tiles, &grid_size, &map_type);
         let local_transform = Transform::from_translation(position.extend(0.0));
@@ -277,6 +282,7 @@ impl RenderChunk2d {
             frustum_culling,
             render_size,
             y_sort,
+            render_chunk_order,
         }
     }
 

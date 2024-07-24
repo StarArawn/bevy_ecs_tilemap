@@ -470,7 +470,11 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                             - (transform.translation.y
                                 / (chunk.map_size.y as f32 * chunk.tile_size.y)))
                 } else {
-                    transform.translation.z
+                    chunk.render_chunk_order.compute_z_translation(
+                        &transform.translation,
+                        chunk.map_size,
+                        chunk.tile_size,
+                    )
                 };
                 transparent_phase.add(Transparent2d {
                     entity,
