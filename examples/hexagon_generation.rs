@@ -23,12 +23,6 @@ pub struct TileHandleHexRow(Handle<Image>);
 pub struct TileHandleHexCol(Handle<Image>);
 
 #[derive(Deref, Resource)]
-pub struct TileHandleSquare(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleIso(Handle<Image>);
-
-#[derive(Deref, Resource)]
 pub struct FontHandle(Handle<Font>);
 
 impl FromWorld for TileHandleHexCol {
