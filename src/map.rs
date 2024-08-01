@@ -7,6 +7,7 @@ use bevy::{
     math::{UVec2, Vec2},
     prelude::{Component, Deref, DerefMut, Entity, Handle, Image, Reflect},
 };
+use std::ops::Add;
 
 /// The default chunk_size (in tiles) used per mesh.
 pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
@@ -60,7 +61,7 @@ impl Default for TilemapId {
 }
 
 /// Size of the tilemap in tiles.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq)]
 #[reflect(Component)]
 pub struct TilemapSize {
     pub x: u32,
@@ -74,6 +75,17 @@ impl TilemapSize {
 
     pub const fn count(&self) -> usize {
         (self.x * self.y) as usize
+    }
+}
+
+impl Add<TilemapSize> for TilemapSize {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        TilemapSize {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 }
 
@@ -220,6 +232,28 @@ impl TilemapTileSize {
     }
 }
 
+impl Add<TilemapTileSize> for TilemapTileSize {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Add<Vec2> for TilemapTileSize {
+    type Output = Self;
+
+    fn add(self, rhs: Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
 impl From<TilemapTileSize> for TilemapGridSize {
     fn from(tile_size: TilemapTileSize) -> Self {
         TilemapGridSize {
@@ -265,6 +299,28 @@ impl TilemapGridSize {
     }
 }
 
+impl Add<TilemapGridSize> for TilemapGridSize {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        TilemapGridSize {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Add<Vec2> for TilemapGridSize {
+    type Output = Self;
+
+    fn add(self, rhs: Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
 impl From<TilemapGridSize> for Vec2 {
     fn from(grid_size: TilemapGridSize) -> Self {
         Vec2::new(grid_size.x, grid_size.y)
@@ -291,11 +347,33 @@ impl From<&Vec2> for TilemapGridSize {
 
 /// Spacing between tiles in pixels inside of the texture atlas.
 /// Defaults to 0.0
-#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialEq)]
 #[reflect(Component)]
 pub struct TilemapSpacing {
     pub x: f32,
     pub y: f32,
+}
+
+impl Add<TilemapSpacing> for TilemapSpacing {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        TilemapSpacing {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Add<Vec2> for TilemapSpacing {
+    type Output = Self;
+
+    fn add(self, rhs: Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
 }
 
 impl From<TilemapSpacing> for Vec2 {
@@ -315,7 +393,7 @@ impl TilemapSpacing {
 }
 
 /// Size of the atlas texture in pixels.
-#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug, PartialEq)]
 #[reflect(Component)]
 pub struct TilemapTextureSize {
     pub x: f32,
@@ -325,6 +403,28 @@ pub struct TilemapTextureSize {
 impl TilemapTextureSize {
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
+    }
+}
+
+impl Add<TilemapTextureSize> for TilemapTextureSize {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        TilemapTextureSize {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Add<Vec2> for TilemapTextureSize {
+    type Output = Self;
+
+    fn add(self, rhs: Vec2) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 }
 
@@ -387,5 +487,64 @@ pub enum TilemapType {
 impl Default for TilemapType {
     fn default() -> Self {
         Self::Square
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_tilemap_size() {
+        let a = TilemapSize { x: 2, y: 2 };
+        let b = TilemapSize { x: 3, y: 3 };
+        assert_eq!(a + b, TilemapSize { x: 5, y: 5 });
+    }
+    #[test]
+    fn add_tilemap_tile_size() {
+        let a = TilemapTileSize { x: 2., y: 2. };
+        let b = TilemapTileSize { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapTileSize { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_tile_size_vec2() {
+        let a = TilemapTileSize { x: 2., y: 2. };
+        let b = Vec2 { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapTileSize { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_grid_size() {
+        let a = TilemapGridSize { x: 2., y: 2. };
+        let b = TilemapGridSize { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapGridSize { x: 5., y: 5. });
+    }
+    fn add_tilemap_grid_size_vec2() {
+        let a = TilemapGridSize { x: 2., y: 2. };
+        let b = Vec2 { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapGridSize { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_spacing() {
+        let a = TilemapSpacing { x: 2., y: 2. };
+        let b = TilemapSpacing { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapSpacing { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_spacing_vec2() {
+        let a = TilemapSpacing { x: 2., y: 2. };
+        let b = Vec2 { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapSpacing { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_texture_size() {
+        let a = TilemapTextureSize { x: 2., y: 2. };
+        let b = TilemapTextureSize { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapTextureSize { x: 5., y: 5. });
+    }
+    #[test]
+    fn add_tilemap_texture_size_vec2() {
+        let a = TilemapTextureSize { x: 2., y: 2. };
+        let b = Vec2 { x: 3., y: 3. };
+        assert_eq!(a + b, TilemapTextureSize { x: 5., y: 5. });
     }
 }
