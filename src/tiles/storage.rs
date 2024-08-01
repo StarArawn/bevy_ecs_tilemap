@@ -47,7 +47,8 @@ impl TileStorage {
     /// Gets a tile entity for the given tile position, if:
     /// 1) the tile position lies within the underlying tile map's extents *and*
     /// 2) there is an entity associated with that tile position;
-    ///    otherwise it returns `None`.
+    ///
+    /// Otherwise it returns `None`.
     pub fn checked_get(&self, tile_pos: &TilePos) -> Option<Entity> {
         if tile_pos.within_map_bounds(&self.size) {
             self.tiles[tile_pos.to_index(&self.size)]
