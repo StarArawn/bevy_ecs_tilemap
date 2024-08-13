@@ -59,13 +59,13 @@ fn update_damage(
 - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
 - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
 - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
-- [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a [LDTK](https://ldtk.io/) map. We recommend checking out `bevy_ecs_ldtk`(<https://crates.io/crates/bevy_ecs_ldtk>).
+- [`ldtk`](examples/ldtk.rs) - An example of loading and rendering of a [LDTK](https://ldtk.io/) map. We recommend checking out [`bevy_ecs_ldtk`](https://crates.io/crates/bevy_ecs_ldtk).
 - [`mouse_to_tile`](examples/mouse_to_tile.rs) - Shows how to convert a mouse cursor position into a tile position.
 - [`move_tile`](examples/move_tile.rs) - Shows how to move a tile without despawning and respawning it.
 - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
 - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
 - [`spacing`](examples/spacing.rs) - Shows how to load tilemap textures that contain spacing between the tiles.
-- [`tiled`](examples/tiled.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map.
+- [`tiled`](examples/tiled.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map. We recommend checking out [`bevy_ecs_tiled`](https://github.com/adrien-bon/bevy_ecs_tiled).
 - [`tiled_rotated`](examples/tiled_rotated.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map with flipping and rotation.
 - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
 
