@@ -45,14 +45,18 @@ fn update_damage(
 
 ## Examples
 
+- [`3d_iso`](examples/3d_iso.rs) - An example showing y-sorting on a "3d" isometric tile map.
 - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
 - [`animation`](examples/animation.rs) – Basic CPU animation example.
 - [`basic`](examples/basic.rs) - The simplest example of how to create a tile map.
 - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
 - [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
 - [`colors`](examples/colors.rs) - Showcases how each tile can have an individual color.
+- [`custom_shader`](examples/custom_shader.rs) - An example showing how to use a custom shader.
 - [`frustum_cull_test`](examples/frustum_cull_test.rs) - An environment for testing frustum culling.
 - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
+- [`hex_neighbors`](examples/hex_neighbors.rs) - An example showing how to get neighbors on hexagonal maps.
+- [`hex_neighbors_radius_chunks`](examples/hex_neighbors_radius_chunks.rs) - An example showing how to get neighbors within a radius on hexagonal maps.
 - [`hexagon_column`](examples/hexagon_column.rs) - A map that is meshed using “pointy” hexagons.
 - [`hexagon_generation`](examples/hexagon_generation.rs) - Shows how to generate hexagonal maps.
 - [`hexagon_row`](examples/hexagon_row.rs) - A map that is meshed using flat hexagons.
@@ -65,6 +69,8 @@ fn update_damage(
 - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
 - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
 - [`spacing`](examples/spacing.rs) - Shows how to load tilemap textures that contain spacing between the tiles.
+- [`texture_container`](examples/texture_container.rs) - An example showing how to load tiles from array layers inside a KTX2 or DDS container.
+- [`texture_vec`](examples/texture_vec.rs) - An example showing how to load tiles from a list of individual image assets.
 - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map.
 - [`tiled_rotated`](examples/tiled_rotated.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map with flipping and rotation.
 - [`visibility`](examples/visibility.rs) - An example showcasing visibility of tiles and chunks.
