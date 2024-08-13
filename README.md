@@ -84,7 +84,7 @@ After that's installed and configured, run:
 #### WebGL2
 
 ```bash
-cargo run --target wasm32-unknown-unknown --example animation --release --features atlas,bevy/webgl2
+cargo run --target wasm32-unknown-unknown --example animation --features atlas
 ```
 
 **Note**: You **must** use the `atlas` feature when targeting the web with WebGL2. See [#283](https://github.com/StarArawn/bevy_ecs_tilemap/issues/283).
@@ -94,7 +94,7 @@ cargo run --target wasm32-unknown-unknown --example animation --release --featur
 WebGPU is not yet well [supported](https://caniuse.com/webgpu) by many browsers.
 
 ```
-RUSTFLAGS=--cfg=web_sys_unstable_apis cargo run --example animation --target=wasm32-unknown-unknown
+cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/webgpu
 ```
 
 ## Bevy Compatibility
