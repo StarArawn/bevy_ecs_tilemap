@@ -389,7 +389,7 @@ pub fn update_cursor_pos(
     }
 }
 
-// This is where we check whicch tile the cursor is hovered over.
+// This is where we check which tile the cursor is hovered over.
 fn hover_highlight_tile_label(
     mut commands: Commands,
     cursor_pos: Res<CursorPos>,
@@ -533,7 +533,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: String::from(
-                            "Hexagon radius - Hover over a tile to higlight tiles in a radius, use up and down arrow to change radius",
+                            "Hexagon radius - Hover over a tile to highlight tiles in a radius, use up and down arrow to change radius",
                         ),
                         ..Default::default()
                     }),
