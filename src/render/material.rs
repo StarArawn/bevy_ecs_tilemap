@@ -35,6 +35,7 @@ use super::{
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
+    ModifiedImageIds,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -498,6 +499,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),
     mut views: Query<(Entity, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
+    modified_image_ids: Res<ModifiedImageIds>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
         Res<RenderQueue>,
@@ -567,31 +569,36 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                         continue;
                     }
 
-                    image_bind_groups
-                        .values
-                        .entry(chunk.texture.clone_weak())
-                        .or_insert_with(|| {
-                            #[cfg(not(feature = "atlas"))]
-                            let gpu_image = texture_array_cache.get(&chunk.texture);
-                            #[cfg(feature = "atlas")]
-                            let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
-                            render_device.create_bind_group(
-                                Some("sprite_material_bind_group"),
-                                &tilemap_pipeline.material_layout,
-                                &[
-                                    BindGroupEntry {
-                                        binding: 0,
-                                        resource: BindingResource::TextureView(
-                                            &gpu_image.texture_view,
-                                        ),
-                                    },
-                                    BindGroupEntry {
-                                        binding: 1,
-                                        resource: BindingResource::Sampler(&gpu_image.sampler),
-                                    },
-                                ],
-                            )
-                        });
+                    let create_bind_group = || {
+                        #[cfg(not(feature = "atlas"))]
+                        let gpu_image = texture_array_cache.get(&chunk.texture);
+                        #[cfg(feature = "atlas")]
+                        let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
+                        render_device.create_bind_group(
+                            Some("sprite_material_bind_group"),
+                            &tilemap_pipeline.material_layout,
+                            &[
+                                BindGroupEntry {
+                                    binding: 0,
+                                    resource: BindingResource::TextureView(&gpu_image.texture_view),
+                                },
+                                BindGroupEntry {
+                                    binding: 1,
+                                    resource: BindingResource::Sampler(&gpu_image.sampler),
+                                },
+                            ],
+                        )
+                    };
+                    if modified_image_ids.is_texture_modified(&chunk.texture) {
+                        image_bind_groups
+                            .values
+                            .insert(chunk.texture.clone_weak(), create_bind_group());
+                    } else {
+                        image_bind_groups
+                            .values
+                            .entry(chunk.texture.clone_weak())
+                            .or_insert_with(create_bind_group);
+                    }
                 }
             }
         }
