@@ -35,5 +35,8 @@ jobs:
         with:
           components: clippy
 
+      - name: Install Linux dependencies
+        run: sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
+
       - name: Run cargo clippy
         run: cargo clippy --no-deps --examples -- -D warnings

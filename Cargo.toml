@@ -61,6 +61,7 @@ features = [
     "png",
     "ktx2",
     "bevy_winit",
+    "wayland",
     "x11",
     "bevy_text",
     "bevy_sprite",
