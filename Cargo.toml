@@ -23,7 +23,6 @@ bevy = { version = "0.14.0", default-features = false, features = [
     "bevy_sprite",
 ] }
 log = "0.4"
-regex = "1.5.4"
 serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]

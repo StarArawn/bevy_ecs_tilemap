@@ -43,7 +43,6 @@ use self::{
 mod chunk;
 mod draw;
 mod extract;
-mod include_shader;
 pub mod material;
 mod pipeline;
 pub(crate) mod prepare;
