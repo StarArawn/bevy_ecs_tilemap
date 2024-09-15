@@ -15,7 +15,7 @@
 //! - Texture array support.
 
 use bevy::prelude::{
-    Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, Plugin, Query,
+    Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, IntoSystemConfigs, Plugin, Query,
     Reflect, ReflectComponent, Transform, ViewVisibility, Visibility,
 };
 
@@ -36,6 +36,7 @@ use tiles::{
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{ExtractSchedule, RenderApp};
+use bevy::time::TimeSystem;
 
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -58,7 +59,7 @@ impl Plugin for TilemapPlugin {
         #[cfg(feature = "render")]
         app.add_plugins(render::TilemapRenderingPlugin);
 
-        app.add_systems(First, update_changed_tile_positions);
+        app.add_systems(First, update_changed_tile_positions.after(TimeSystem));
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {

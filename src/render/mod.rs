@@ -13,6 +13,7 @@ use bevy::{
         view::{check_visibility, VisibilitySystems},
         Render, RenderApp, RenderSet,
     },
+    time::TimeSystem,
     utils::HashSet,
 };
 
@@ -20,7 +21,6 @@ use bevy::{
 use bevy::render::renderer::RenderDevice;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::texture::GpuImage;
-
 use crate::{
     prelude::TilemapRenderSettings,
     tiles::{TilePos, TileStorage},
@@ -113,7 +113,7 @@ impl Plugin for TilemapRenderingPlugin {
         #[cfg(not(feature = "atlas"))]
         app.add_systems(Update, set_texture_to_copy_src);
 
-        app.add_systems(First, clear_removed);
+        app.add_systems(First, clear_removed.after(TimeSystem));
         app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
