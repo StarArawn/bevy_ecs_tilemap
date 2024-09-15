@@ -24,6 +24,7 @@ use bevy::render::texture::GpuImage;
 use crate::{
     prelude::TilemapRenderSettings,
     tiles::{TilePos, TileStorage},
+    TilemapFirstSet,
 };
 use crate::{
     prelude::TilemapTexture,
@@ -113,7 +114,7 @@ impl Plugin for TilemapRenderingPlugin {
         #[cfg(not(feature = "atlas"))]
         app.add_systems(Update, set_texture_to_copy_src);
 
-        app.add_systems(First, clear_removed);
+        app.add_systems(First, clear_removed.in_set(TilemapFirstSet));
         app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
