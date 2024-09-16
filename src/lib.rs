@@ -14,9 +14,13 @@
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
 
-use bevy::prelude::{
-    Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, Plugin, Query,
-    Reflect, ReflectComponent, Transform, ViewVisibility, Visibility,
+use bevy::{
+    prelude::{
+        Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility,
+        IntoSystemConfigs, IntoSystemSetConfigs, Plugin, Query, Reflect, ReflectComponent,
+        SystemSet, Transform, ViewVisibility, Visibility,
+    },
+    time::TimeSystem,
 };
 
 #[cfg(feature = "render")]
@@ -58,7 +62,7 @@ impl Plugin for TilemapPlugin {
         #[cfg(feature = "render")]
         app.add_plugins(render::TilemapRenderingPlugin);
 
-        app.add_systems(First, update_changed_tile_positions);
+        app.add_systems(First, update_changed_tile_positions.in_set(TilemapFirstSet));
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
@@ -83,9 +87,13 @@ impl Plugin for TilemapPlugin {
             .register_type::<TileFlip>()
             .register_type::<TileStorage>()
             .register_type::<TilePosOld>()
-            .register_type::<AnimatedTile>();
+            .register_type::<AnimatedTile>()
+            .configure_sets(First, TilemapFirstSet.after(TimeSystem));
     }
 }
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TilemapFirstSet;
 
 #[derive(Component, Reflect, Debug, Clone, Copy, Deref)]
 #[reflect(Component)]
