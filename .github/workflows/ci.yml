@@ -19,6 +19,9 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Linux dependencies
+        run: sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
+
       - name: Run cargo check
         run: cargo check --all-targets
 
@@ -53,6 +56,9 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Linux dependencies
+        run: sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
+
       - name: Build examples
         run: cargo build --examples
 
@@ -76,6 +82,10 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
 
       - name: Run cargo test
         run: cargo test
