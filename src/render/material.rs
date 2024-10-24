@@ -99,6 +99,34 @@ where
     }
 }
 
+#[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
+#[reflect(Component, Default)]
+pub struct MaterialTilemapHandle<M: MaterialTilemap>(pub Handle<M>);
+
+impl<M: MaterialTilemap> Default for MaterialTilemapHandle<M> {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
+
+impl<M: MaterialTilemap> From<Handle<M>> for MaterialTilemapHandle<M> {
+    fn from(handle: Handle<M>) -> Self {
+        Self(handle)
+    }
+}
+
+impl<M: MaterialTilemap> From<MaterialTilemapHandle<M>> for AssetId<M> {
+    fn from(tilemap: MaterialTilemapHandle<M>) -> Self {
+        tilemap.id()
+    }
+}
+
+impl<M: MaterialTilemap> From<&MaterialTilemapHandle<M>> for AssetId<M> {
+    fn from(tilemap: &MaterialTilemapHandle<M>) -> Self {
+        tilemap.id()
+    }
+}
+
 pub struct MaterialTilemapPlugin<M: MaterialTilemap>(PhantomData<M>);
 
 impl<M: MaterialTilemap> Default for MaterialTilemapPlugin<M> {
@@ -113,7 +141,7 @@ where
 {
     fn build(&self, app: &mut App) {
         app.init_asset::<M>()
-            .add_plugins(ExtractComponentPlugin::<Handle<M>>::extract_visible());
+            .add_plugins(ExtractComponentPlugin::<MaterialTilemapHandle<M>>::extract_visible());
     }
 
     fn finish(&self, app: &mut App) {
@@ -387,7 +415,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
-        Query<&Handle<M>>,
+        Query<&MaterialTilemapHandle<M>>,
     ),
     mut views: Query<(Entity, &ExtractedView, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
@@ -496,7 +524,10 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     gpu_images: Res<RenderAssets<GpuImage>>,
     globals_buffer: Res<GlobalsBuffer>,
     mut image_bind_groups: ResMut<ImageBindGroups>,
-    (standard_tilemap_meshes, materials): (Query<(&ChunkId, &TilemapId)>, Query<&Handle<M>>),
+    (standard_tilemap_meshes, materials): (
+        Query<(&ChunkId, &TilemapId)>,
+        Query<&MaterialTilemapHandle<M>>,
+    ),
     mut views: Query<(Entity, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     modified_image_ids: Res<ModifiedImageIds>,
