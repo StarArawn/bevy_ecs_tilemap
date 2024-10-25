@@ -58,7 +58,7 @@ fn update(
     mut tile_storage_query: Query<(&TileStorage, &TilemapSize, &mut LastUpdate)>,
     tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     let (tile_storage, map_size, mut last_update) = tile_storage_query.single_mut();
     if current_time - last_update.0 > 0.1 {
         for (entity, position, visibility) in tile_query.iter() {
