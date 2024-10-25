@@ -203,7 +203,7 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((chunk_id, tilemap_id)) = ids else {
-            return RenderCommandResult::Failure("no chunk/tilemap ids available");
+            return RenderCommandResult::Failure("cannot obtain chunk/tilemap ids");
         };
 
         let mesh_allocator = mesh_allocator.into_inner();
@@ -214,15 +214,14 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh {
             chunk_id.0.z,
             tilemap_id.0.index(),
         )) {
-            let Some(mesh_instance) = mesh_instances.render_mesh_queue_data(item.main_entity())
-            else {
+            let Some(mesh_instance) = mesh_instances.get(&item.main_entity()) else {
                 return RenderCommandResult::Skip;
             };
             let Some(render_mesh) = meshes.into_inner().get(mesh_instance.mesh_asset_id) else {
                 return RenderCommandResult::Skip;
             };
             let Some(vertex_buffer_slice) =
-                mesh_allocator.mesh_vertex_slice(mesh_instance.mesh_asset_id)
+                mesh_allocator.mesh_vertex_slice(&mesh_instance.mesh_asset_id)
             else {
                 return RenderCommandResult::Skip;
             };
@@ -235,7 +234,7 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh {
                     count,
                 } => {
                     let Some(index_buffer_slice) =
-                        mesh_allocator.mesh_index_slice(render_mesh.mesh_asset_id)
+                        mesh_allocator.mesh_index_slice(&mesh_instance.mesh_asset_id)
                     else {
                         return RenderCommandResult::Skip;
                     };
