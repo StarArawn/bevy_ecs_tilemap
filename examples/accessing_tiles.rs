@@ -109,7 +109,7 @@ fn update_map(
     )>,
     mut tile_query: Query<&mut TileTextureIndex>,
 ) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     for (mut current_color, mut last_update, tile_storage, map_size) in tilemap_query.iter_mut() {
         if current_time - last_update.0 > 0.1 {
             current_color.0 += 1;

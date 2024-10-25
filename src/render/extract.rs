@@ -379,7 +379,7 @@ pub fn extract(
     commands.insert_or_spawn_batch(extracted_tiles);
     commands.insert_or_spawn_batch(extracted_tilemaps);
     commands.insert_or_spawn_batch(extracted_tilemap_textures);
-    commands.insert_resource(SecondsSinceStartup(time.elapsed_seconds_f64() as f32));
+    commands.insert_resource(SecondsSinceStartup(time.elapsed_secs_f64() as f32));
 }
 
 pub fn extract_removal(
