@@ -7,13 +7,14 @@ use bevy::{
         SystemParamItem,
     },
     math::UVec4,
-    prelude::Handle,
     render::{
-        mesh::GpuBufferInfo,
-        render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
+        mesh::{allocator::MeshAllocator, RenderMesh, RenderMeshBufferInfo},
+        render_asset::RenderAssets,
+        render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::PipelineCache,
         view::ViewUniformOffset,
     },
+    sprite::RenderMesh2dInstances,
 };
 
 use crate::map::TilemapId;
@@ -21,7 +22,7 @@ use crate::TilemapTexture;
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
-    material::{MaterialTilemap, RenderMaterialsTilemap},
+    material::{MaterialTilemap, MaterialTilemapHandle, RenderMaterialsTilemap},
     prepare::MeshUniform,
     queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
     DynamicUniformIndex,
@@ -66,7 +67,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((transform_index, tilemap_index)) = uniform_indices else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Failure("cannot obtain transform/tilemap indices");
         };
 
         pass.set_bind_group(
@@ -93,7 +94,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(texture) = texture else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Failure("cannot obtain texture");
         };
 
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
@@ -123,7 +124,7 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
             pass.set_render_pipeline(pipeline);
             RenderCommandResult::Success
         } else {
-            RenderCommandResult::Failure
+            RenderCommandResult::Failure("cannot obtain pipeline from cache")
         }
     }
 }
@@ -149,7 +150,10 @@ pub struct SetMaterialBindGroup<M: MaterialTilemap, const I: usize>(PhantomData<
 impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
     for SetMaterialBindGroup<M, I>
 {
-    type Param = (SRes<RenderMaterialsTilemap<M>>, SQuery<&'static Handle<M>>);
+    type Param = (
+        SRes<RenderMaterialsTilemap<M>>,
+        SQuery<&'static MaterialTilemapHandle<M>>,
+    );
     type ViewQuery = ();
     type ItemQuery = Read<TilemapId>;
     #[inline]
@@ -161,7 +165,7 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(id) = id else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Failure("cannot obtain tilemap id");
         };
 
         if let Ok(material_handle) = material_handles.get(id.0) {
@@ -177,21 +181,32 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
 }
 
 pub struct DrawMesh;
-impl RenderCommand<Transparent2d> for DrawMesh {
-    type Param = SRes<RenderChunk2dStorage>;
+impl<P: PhaseItem> RenderCommand<P> for DrawMesh {
+    type Param = (
+        SRes<RenderChunk2dStorage>,
+        SRes<RenderAssets<RenderMesh>>,
+        SRes<RenderMesh2dInstances>,
+        SRes<MeshAllocator>,
+    );
     type ViewQuery = ();
     type ItemQuery = (Read<ChunkId>, Read<TilemapId>);
     #[inline]
     fn render<'w>(
-        _item: &Transparent2d,
+        item: &P,
         _view: (),
         ids: Option<(&'w ChunkId, &'w TilemapId)>,
-        chunk_storage: SystemParamItem<'w, '_, Self::Param>,
+        (chunk_storage, meshes, mesh_instances, mesh_allocator): SystemParamItem<
+            'w,
+            '_,
+            Self::Param,
+        >,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((chunk_id, tilemap_id)) = ids else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Failure("no chunk/tilemap ids available");
         };
+
+        let mesh_allocator = mesh_allocator.into_inner();
 
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
             chunk_id.0.x,
@@ -199,20 +214,41 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.z,
             tilemap_id.0.index(),
         )) {
-            if let Some(gpu_mesh) = &chunk.gpu_mesh {
-                pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-                match &gpu_mesh.buffer_info {
-                    GpuBufferInfo::Indexed {
-                        buffer,
-                        index_format,
-                        count,
-                    } => {
-                        pass.set_index_buffer(buffer.slice(..), 0, *index_format);
-                        pass.draw_indexed(0..*count, 0, 0..1);
-                    }
-                    GpuBufferInfo::NonIndexed {} => {
-                        pass.draw(0..gpu_mesh.vertex_count, 0..1);
-                    }
+            let Some(mesh_instance) = mesh_instances.render_mesh_queue_data(item.main_entity())
+            else {
+                return RenderCommandResult::Skip;
+            };
+            let Some(render_mesh) = meshes.into_inner().get(mesh_instance.mesh_asset_id) else {
+                return RenderCommandResult::Skip;
+            };
+            let Some(vertex_buffer_slice) =
+                mesh_allocator.mesh_vertex_slice(mesh_instance.mesh_asset_id)
+            else {
+                return RenderCommandResult::Skip;
+            };
+
+            pass.set_vertex_buffer(0, vertex_buffer_slice.buffer.slice(..));
+
+            match &render_mesh.buffer_info {
+                RenderMeshBufferInfo::Indexed {
+                    index_format,
+                    count,
+                } => {
+                    let Some(index_buffer_slice) =
+                        mesh_allocator.mesh_index_slice(render_mesh.mesh_asset_id)
+                    else {
+                        return RenderCommandResult::Skip;
+                    };
+                    pass.set_index_buffer(index_buffer_slice.buffer.slice(..), 0, *index_format);
+                    pass.draw_indexed(
+                        index_buffer_slice.range.start..(index_buffer_slice.range.start + count),
+                        vertex_buffer_slice.range.start as i32,
+                        0..1,
+                    );
+                }
+                RenderMeshBufferInfo::NonIndexed {} => {
+                    // TODO: do we need to reference InstanceBuffer here for the last parameter?
+                    pass.draw(0..render_mesh.vertex_count, 0..1);
                 }
             }
         }
