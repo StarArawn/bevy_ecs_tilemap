@@ -24,7 +24,7 @@ use bevy::{
 };
 
 #[cfg(feature = "render")]
-use bevy::prelude::Handle;
+use render::material::MaterialTilemapHandle;
 
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -131,7 +131,7 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
-    pub material: Handle<M>,
+    pub material: MaterialTilemapHandle<M>,
 }
 
 #[cfg(not(feature = "render"))]
