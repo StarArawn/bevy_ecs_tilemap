@@ -369,7 +369,7 @@ pub fn extract(
 
     for (entity, frustum) in camera_query.iter() {
         commands
-            .get_or_spawn(entity)
+            .entity(entity)
             .insert(ExtractedFrustum { frustum: *frustum });
     }
 
