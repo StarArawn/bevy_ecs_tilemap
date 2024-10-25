@@ -57,9 +57,9 @@ fn update_damage(
 - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
 - [`hex_neighbors`](examples/hex_neighbors.rs) - An example showing how to get neighbors on hexagonal maps.
 - [`hex_neighbors_radius_chunks`](examples/hex_neighbors_radius_chunks.rs) - An example showing how to get neighbors within a radius on hexagonal maps.
-- [`hexagon_column`](examples/hexagon_column.rs) - A map that is meshed using “pointy” hexagons.
+- [`hexagon_column`](examples/hexagon_column.rs) - A map that is meshed using flat top hexagons.
 - [`hexagon_generation`](examples/hexagon_generation.rs) - Shows how to generate hexagonal maps.
-- [`hexagon_row`](examples/hexagon_row.rs) - A map that is meshed using flat hexagons.
+- [`hexagon_row`](examples/hexagon_row.rs) - A map that is meshed using pointy top hexagons.
 - [`iso_diamond`](examples/iso_diamond.rs) - An isometric meshed map using diamond ordering.
 - [`iso_staggered`](examples/iso_staggered.rs) - An isometric meshed map using staggered ordering.
 - [`layers`](examples/layers.rs) - An example of how you can use multiple map entities/components for “layers”.
