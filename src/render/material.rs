@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
-        extract_component::ExtractComponentPlugin,
+        extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
         render_phase::{
@@ -411,13 +411,12 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     pipeline_cache: Res<PipelineCache>,
     view_uniforms: Res<ViewUniforms>,
     gpu_images: Res<RenderAssets<GpuImage>>,
-    msaa: Res<Msaa>,
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
         Query<&MaterialTilemapHandle<M>>,
     ),
-    mut views: Query<(Entity, &ExtractedView, &VisibleEntities)>,
+    mut views: Query<(Entity, &ExtractedView, &Msaa, &VisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
@@ -438,7 +437,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         return;
     }
 
-    for (view_entity, view, visible_entities) in views.iter_mut() {
+    for (view_entity, view, msaa, visible_entities) in views.iter_mut() {
         let Some(transparent_phase) = transparent_render_phases.get_mut(&view_entity) else {
             continue;
         };
