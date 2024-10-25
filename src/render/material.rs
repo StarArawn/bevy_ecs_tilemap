@@ -1,5 +1,6 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
+    ecs::system::SystemParamItem,
     math::FloatOrd,
     prelude::*,
     reflect::TypePath,
@@ -16,7 +17,7 @@ use bevy::{
             ShaderRef, SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
-        texture::{FallbackImage, GpuImage},
+        texture::GpuImage,
         view::{ExtractedView, ViewUniforms, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
@@ -335,23 +336,19 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
-    images: Res<RenderAssets<GpuImage>>,
-    fallback_image: Res<FallbackImage>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
+    mut param: SystemParamItem<<M as AsBindGroup>::Param>,
 ) {
     let queued_assets = std::mem::take(&mut prepare_next_frame.assets);
     for (handle, material) in queued_assets {
-        match prepare_material_tilemap(
-            &material,
-            &render_device,
-            &images,
-            &fallback_image,
-            &pipeline,
-        ) {
+        match prepare_material_tilemap(&material, &render_device, &pipeline, &mut param) {
             Ok(prepared_asset) => {
                 render_materials.insert(handle, prepared_asset);
             }
             Err(AsBindGroupError::RetryNextUpdate) => {
+                prepare_next_frame.assets.push((handle, material));
+            }
+            Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
                 prepare_next_frame.assets.push((handle, material));
             }
         }
@@ -362,17 +359,14 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     }
 
     for (handle, material) in std::mem::take(&mut extracted_assets.extracted) {
-        match prepare_material_tilemap(
-            &material,
-            &render_device,
-            &images,
-            &fallback_image,
-            &pipeline,
-        ) {
+        match prepare_material_tilemap(&material, &render_device, &pipeline, &mut param) {
             Ok(prepared_asset) => {
                 render_materials.insert(handle, prepared_asset);
             }
             Err(AsBindGroupError::RetryNextUpdate) => {
+                prepare_next_frame.assets.push((handle, material));
+            }
+            Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
                 prepare_next_frame.assets.push((handle, material));
             }
         }
@@ -382,16 +376,11 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
 fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
-    images: &RenderAssets<GpuImage>,
-    fallback_image: &FallbackImage,
     pipeline: &MaterialTilemapPipeline<M>,
+    param: &mut SystemParamItem<<M as AsBindGroup>::Param>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
-    let prepared = material.as_bind_group(
-        &pipeline.material_tilemap_layout,
-        render_device,
-        images,
-        fallback_image,
-    )?;
+    let prepared =
+        material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
     Ok(PreparedMaterialTilemap {
         bindings: prepared.bindings,
         bind_group: prepared.bind_group,
