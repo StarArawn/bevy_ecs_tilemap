@@ -18,16 +18,16 @@ use bevy::{
         },
         renderer::RenderDevice,
         texture::GpuImage,
-        view::{ExtractedView, ViewUniforms, VisibleEntities},
+        view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
         Extract, Render, RenderApp, RenderSet,
     },
     utils::{HashMap, HashSet},
 };
 use std::{hash::Hash, marker::PhantomData};
-
+use bevy::ecs::system::StaticSystemParam;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
-
+use bevy::render::sync_world::MainEntity;
 use crate::prelude::{TilemapId, TilemapRenderSettings};
 
 use super::{
@@ -337,7 +337,7 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
-    mut param: SystemParamItem<<M as AsBindGroup>::Param>,
+    mut param: StaticSystemParam<M::Param>,
 ) {
     let queued_assets = std::mem::take(&mut prepare_next_frame.assets);
     for (handle, material) in queued_assets {
@@ -377,7 +377,7 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
     pipeline: &MaterialTilemapPipeline<M>,
-    param: &mut SystemParamItem<<M as AsBindGroup>::Param>,
+    param: &mut SystemParamItem<M::Param>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
     let prepared =
         material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
@@ -402,10 +402,10 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     gpu_images: Res<RenderAssets<GpuImage>>,
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
-        Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
+        Query<(Entity, &MainEntity, &ChunkId, &Transform, &TilemapId)>,
         Query<&MaterialTilemapHandle<M>>,
     ),
-    mut views: Query<(Entity, &ExtractedView, &Msaa, &VisibleEntities)>,
+    mut views: Query<(Entity, &ExtractedView, &Msaa, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
@@ -436,10 +436,10 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
             .get_id::<DrawTilemapMaterial<M>>()
             .unwrap();
 
-        for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
+        for (entity, main_entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
             if !visible_entities
                 .iter::<With<TilemapRenderSettings>>()
-                .any(|&entity| entity.index() == tilemap_id.0.index())
+                .any(|(entity, main_entity)| main_entity.index() == tilemap_id.0.index())
             {
                 continue;
             }
@@ -490,7 +490,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                     transform.translation.z
                 };
                 transparent_phase.add(Transparent2d {
-                    entity,
+                    entity: (entity, *main_entity),
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
                     sort_key: FloatOrd(z),
@@ -516,7 +516,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
         Query<(&ChunkId, &TilemapId)>,
         Query<&MaterialTilemapHandle<M>>,
     ),
-    mut views: Query<(Entity, &VisibleEntities)>,
+    mut views: Query<(Entity, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     modified_image_ids: Res<ModifiedImageIds>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
@@ -560,7 +560,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
                     .iter::<With<TilemapRenderSettings>>()
-                    .any(|&entity| entity.index() == tilemap_id.0.index())
+                    .any(|(entity, main_entity)| entity.index() == tilemap_id.0.index())
                 {
                     continue;
                 }
