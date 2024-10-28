@@ -22,7 +22,7 @@ use crate::TilemapTexture;
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
-    material::{MaterialTilemap, MaterialTilemapHandle, RenderMaterialsTilemap},
+    material::{RenderMaterialsTilemap, TilemapMaterial, TilemapMaterialHandle},
     prepare::MeshUniform,
     queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
     DynamicUniformIndex,
@@ -146,13 +146,13 @@ pub type DrawTilemapMaterial<M> = (
     DrawMesh,
 );
 
-pub struct SetMaterialBindGroup<M: MaterialTilemap, const I: usize>(PhantomData<M>);
-impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
+pub struct SetMaterialBindGroup<M: TilemapMaterial, const I: usize>(PhantomData<M>);
+impl<M: TilemapMaterial, const I: usize> RenderCommand<Transparent2d>
     for SetMaterialBindGroup<M, I>
 {
     type Param = (
         SRes<RenderMaterialsTilemap<M>>,
-        SQuery<&'static MaterialTilemapHandle<M>>,
+        SQuery<&'static TilemapMaterialHandle<M>>,
     );
     type ViewQuery = ();
     type ItemQuery = Read<TilemapId>;

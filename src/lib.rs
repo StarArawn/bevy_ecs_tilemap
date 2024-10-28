@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![expect(deprecated)]
 
 //! Bevy ECS Tilemap plugin is a ECS driven tilemap rendering library. It's designed to be fast and highly customizable. Each tile is considered a unique entity and all tiles are stored in the game world.
 //!
@@ -24,15 +25,13 @@ use bevy::{
 };
 
 #[cfg(feature = "render")]
-use render::material::MaterialTilemapHandle;
-
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
 use prelude::{TilemapId, TilemapRenderSettings};
-#[cfg(feature = "render")]
-use render::material::{MaterialTilemap, StandardTilemapMaterial};
+use render::material::{StandardTilemapMaterial, TilemapMaterial, TilemapMaterialHandle};
+use std::marker::PhantomData;
 use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
@@ -107,12 +106,45 @@ impl Default for FrustumCulling {
 }
 
 #[cfg(feature = "render")]
+#[deprecated(
+    since = "0.15.0",
+    note = "Use the `MaterialTilemap` component instead. Inserting it will now automatically insert the other components it requires."
+)]
 pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
 
 #[cfg(feature = "render")]
-/// The default tilemap bundle. All of the components within are required.
+pub type Tilemap = MaterialTilemap<StandardTilemapMaterial>;
+
+#[cfg(feature = "render")]
+#[derive(Component, Clone, Debug)]
+#[require(
+    FrustumCulling,
+    GlobalTransform,
+    InheritedVisibility,
+    TilemapMaterialHandle<M>,
+    TileStorage,
+    TilemapGridSize,
+    TilemapRenderSettings,
+    TilemapSize,
+    TilemapSpacing,
+    TilemapTexture,
+    TilemapTileSize,
+    TilemapType,
+    Transform,
+    ViewVisibility,
+    Visibility,
+)]
+/// The default tilemap, with custom Material rendering support.
+pub struct MaterialTilemap<M: TilemapMaterial>(PhantomData<M>);
+
+#[cfg(feature = "render")]
+#[deprecated(
+    since = "0.15.0",
+    note = "Use the `MaterialTilemap` component instead. Inserting it will now automatically insert the other components it requires."
+)]
 #[derive(Bundle, Debug, Default, Clone)]
-pub struct MaterialTilemapBundle<M: MaterialTilemap> {
+/// The default tilemap, with custom Material rendering support.
+pub struct MaterialTilemapBundle<M: TilemapMaterial> {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
     pub size: TilemapSize,
@@ -131,12 +163,37 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
-    pub material: MaterialTilemapHandle<M>,
+    pub material: TilemapMaterialHandle<M>,
 }
 
 #[cfg(not(feature = "render"))]
-/// The default tilemap bundle. All of the components within are required.
+#[derive(Component, Clone, Debug)]
+#[require(
+    FrustumCulling,
+    GlobalTransform,
+    InheritedVisibility,
+    TileStorage,
+    TilemapGridSize,
+    TilemapRenderSettings,
+    TilemapSize,
+    TilemapSpacing,
+    TilemapTexture,
+    TilemapTileSize,
+    TilemapType,
+    Transform,
+    ViewVisibility,
+    Visibility
+)]
+/// The default tilemap.
+pub struct StandardTilemap;
+
+#[cfg(not(feature = "render"))]
+#[deprecated(
+    since = "0.15.0",
+    note = "Use the `StandardTilemap` component instead. Inserting it will now automatically insert the other components it requires."
+)]
 #[derive(Bundle, Debug, Default, Clone)]
+/// The default tilemap.
 pub struct StandardTilemapBundle {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
@@ -168,17 +225,20 @@ pub mod prelude {
     pub use crate::helpers::transform::*;
     pub use crate::map::*;
     #[cfg(feature = "render")]
-    pub use crate::render::material::MaterialTilemap;
-    #[cfg(feature = "render")]
-    pub use crate::render::material::MaterialTilemapKey;
-    #[cfg(feature = "render")]
-    pub use crate::render::material::MaterialTilemapPlugin;
-    #[cfg(feature = "render")]
     pub use crate::render::material::StandardTilemapMaterial;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::TilemapMaterial;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::TilemapMaterialHandle;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::TilemapMaterialKey;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::TilemapMaterialPlugin;
     pub use crate::tiles::*;
     #[cfg(feature = "render")]
     pub use crate::MaterialTilemapBundle;
     #[cfg(feature = "render")]
+    pub use crate::Tilemap;
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }

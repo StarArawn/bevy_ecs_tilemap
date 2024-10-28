@@ -61,7 +61,7 @@ pub struct TiledLayersStorage {
 
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
-    pub tiled_map: Handle<TiledMap>,
+    pub tiled_map: TilemapMaterialHandle<TiledMap>,
     pub storage: TiledLayersStorage,
     pub transform: Transform,
     pub global_transform: GlobalTransform,

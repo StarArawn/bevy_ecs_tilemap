@@ -29,7 +29,7 @@ use crate::{
 use crate::{
     prelude::TilemapTexture,
     render::{
-        material::{MaterialTilemapPlugin, StandardTilemapMaterial},
+        material::{StandardTilemapMaterial, TilemapMaterialPlugin},
         prepare::{MeshUniformResource, TilemapUniformResource},
     },
 };
@@ -116,7 +116,7 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(First, clear_removed.in_set(TilemapFirstSet));
         app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
 
-        app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
+        app.add_plugins(TilemapMaterialPlugin::<StandardTilemapMaterial>::default());
 
         app.world_mut()
             .resource_mut::<Assets<StandardTilemapMaterial>>()

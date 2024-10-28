@@ -1,3 +1,8 @@
+use crate::prelude::{TilemapId, TilemapRenderSettings};
+use bevy::ecs::system::StaticSystemParam;
+#[cfg(not(feature = "atlas"))]
+use bevy::render::renderer::RenderQueue;
+use bevy::render::sync_world::MainEntity;
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::SystemParamItem,
@@ -24,11 +29,6 @@ use bevy::{
     utils::{HashMap, HashSet},
 };
 use std::{hash::Hash, marker::PhantomData};
-use bevy::ecs::system::StaticSystemParam;
-#[cfg(not(feature = "atlas"))]
-use bevy::render::renderer::RenderQueue;
-use bevy::render::sync_world::MainEntity;
-use crate::prelude::{TilemapId, TilemapRenderSettings};
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage},
@@ -42,7 +42,7 @@ use super::{
 #[cfg(not(feature = "atlas"))]
 pub(crate) use super::TextureArrayCache;
 
-pub trait MaterialTilemap: AsBindGroup + Asset + Clone + Sized {
+pub trait TilemapMaterial: AsBindGroup + Asset + Clone + Sized {
     /// Returns this material's vertex shader. If [`ShaderRef::Default`] is returned, the default mesh vertex shader
     /// will be used.
     fn vertex_shader() -> ShaderRef {
@@ -58,17 +58,17 @@ pub trait MaterialTilemap: AsBindGroup + Asset + Clone + Sized {
     /// Customizes the default [`RenderPipelineDescriptor`].
     #[allow(unused_variables)]
     #[inline]
-    fn specialize(descriptor: &mut RenderPipelineDescriptor, key: MaterialTilemapKey<Self>) {}
+    fn specialize(descriptor: &mut RenderPipelineDescriptor, key: TilemapMaterialKey<Self>) {}
 }
 
-pub struct MaterialTilemapKey<M: MaterialTilemap> {
+pub struct TilemapMaterialKey<M: TilemapMaterial> {
     pub tilemap_pipeline_key: TilemapPipelineKey,
     pub bind_group_data: M::Data,
 }
 
-impl<M: MaterialTilemap> Eq for MaterialTilemapKey<M> where M::Data: PartialEq {}
+impl<M: TilemapMaterial> Eq for TilemapMaterialKey<M> where M::Data: PartialEq {}
 
-impl<M: MaterialTilemap> PartialEq for MaterialTilemapKey<M>
+impl<M: TilemapMaterial> PartialEq for TilemapMaterialKey<M>
 where
     M::Data: PartialEq,
 {
@@ -78,7 +78,7 @@ where
     }
 }
 
-impl<M: MaterialTilemap> Clone for MaterialTilemapKey<M>
+impl<M: TilemapMaterial> Clone for TilemapMaterialKey<M>
 where
     M::Data: Clone,
 {
@@ -90,7 +90,7 @@ where
     }
 }
 
-impl<M: MaterialTilemap> Hash for MaterialTilemapKey<M>
+impl<M: TilemapMaterial> Hash for TilemapMaterialKey<M>
 where
     M::Data: Hash,
 {
@@ -102,57 +102,57 @@ where
 
 #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
 #[reflect(Component, Default)]
-pub struct MaterialTilemapHandle<M: MaterialTilemap>(pub Handle<M>);
+pub struct TilemapMaterialHandle<M: TilemapMaterial>(pub Handle<M>);
 
-impl<M: MaterialTilemap> Default for MaterialTilemapHandle<M> {
+impl<M: TilemapMaterial> Default for TilemapMaterialHandle<M> {
     fn default() -> Self {
         Self(Handle::default())
     }
 }
 
-impl<M: MaterialTilemap> From<Handle<M>> for MaterialTilemapHandle<M> {
+impl<M: TilemapMaterial> From<Handle<M>> for TilemapMaterialHandle<M> {
     fn from(handle: Handle<M>) -> Self {
         Self(handle)
     }
 }
 
-impl<M: MaterialTilemap> From<MaterialTilemapHandle<M>> for AssetId<M> {
-    fn from(tilemap: MaterialTilemapHandle<M>) -> Self {
+impl<M: TilemapMaterial> From<TilemapMaterialHandle<M>> for AssetId<M> {
+    fn from(tilemap: TilemapMaterialHandle<M>) -> Self {
         tilemap.id()
     }
 }
 
-impl<M: MaterialTilemap> From<&MaterialTilemapHandle<M>> for AssetId<M> {
-    fn from(tilemap: &MaterialTilemapHandle<M>) -> Self {
+impl<M: TilemapMaterial> From<&TilemapMaterialHandle<M>> for AssetId<M> {
+    fn from(tilemap: &TilemapMaterialHandle<M>) -> Self {
         tilemap.id()
     }
 }
 
-pub struct MaterialTilemapPlugin<M: MaterialTilemap>(PhantomData<M>);
+pub struct TilemapMaterialPlugin<M: TilemapMaterial>(PhantomData<M>);
 
-impl<M: MaterialTilemap> Default for MaterialTilemapPlugin<M> {
+impl<M: TilemapMaterial> Default for TilemapMaterialPlugin<M> {
     fn default() -> Self {
         Self(Default::default())
     }
 }
 
-impl<M: MaterialTilemap> Plugin for MaterialTilemapPlugin<M>
+impl<M: TilemapMaterial> Plugin for TilemapMaterialPlugin<M>
 where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
     fn build(&self, app: &mut App) {
         app.init_asset::<M>()
-            .add_plugins(ExtractComponentPlugin::<MaterialTilemapHandle<M>>::extract_visible());
+            .add_plugins(ExtractComponentPlugin::<TilemapMaterialHandle<M>>::extract_visible());
     }
 
     fn finish(&self, app: &mut App) {
         if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app
                 .add_render_command::<Transparent2d, DrawTilemapMaterial<M>>()
-                .init_resource::<MaterialTilemapPipeline<M>>()
+                .init_resource::<TilemapMaterialPipeline<M>>()
                 .init_resource::<ExtractedMaterialsTilemap<M>>()
                 .init_resource::<RenderMaterialsTilemap<M>>()
-                .init_resource::<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>()
+                .init_resource::<SpecializedRenderPipelines<TilemapMaterialPipeline<M>>>()
                 .add_systems(ExtractSchedule, extract_materials_tilemap::<M>)
                 .add_systems(
                     Render,
@@ -176,19 +176,19 @@ where
     }
 }
 
-pub struct PreparedMaterialTilemap<T: MaterialTilemap> {
+pub struct PreparedTilemapMaterial<T: TilemapMaterial> {
     pub bindings: Vec<(u32, OwnedBindingResource)>,
     pub bind_group: BindGroup,
     pub key: T::Data,
 }
 
 #[derive(Resource)]
-struct ExtractedMaterialsTilemap<M: MaterialTilemap> {
+struct ExtractedMaterialsTilemap<M: TilemapMaterial> {
     extracted: Vec<(AssetId<M>, M)>,
     removed: Vec<AssetId<M>>,
 }
 
-impl<M: MaterialTilemap> Default for ExtractedMaterialsTilemap<M> {
+impl<M: TilemapMaterial> Default for ExtractedMaterialsTilemap<M> {
     fn default() -> Self {
         Self {
             extracted: Default::default(),
@@ -198,7 +198,7 @@ impl<M: MaterialTilemap> Default for ExtractedMaterialsTilemap<M> {
 }
 
 #[derive(Resource)]
-pub struct MaterialTilemapPipeline<M: MaterialTilemap> {
+pub struct TilemapMaterialPipeline<M: TilemapMaterial> {
     pub tilemap_pipeline: TilemapPipeline,
     pub material_tilemap_layout: BindGroupLayout,
     pub vertex_shader: Option<Handle<Shader>>,
@@ -206,7 +206,7 @@ pub struct MaterialTilemapPipeline<M: MaterialTilemap> {
     marker: PhantomData<M>,
 }
 
-impl<M: MaterialTilemap> Clone for MaterialTilemapPipeline<M> {
+impl<M: TilemapMaterial> Clone for TilemapMaterialPipeline<M> {
     fn clone(&self) -> Self {
         Self {
             tilemap_pipeline: self.tilemap_pipeline.clone(),
@@ -218,11 +218,11 @@ impl<M: MaterialTilemap> Clone for MaterialTilemapPipeline<M> {
     }
 }
 
-impl<M: MaterialTilemap> SpecializedRenderPipeline for MaterialTilemapPipeline<M>
+impl<M: TilemapMaterial> SpecializedRenderPipeline for TilemapMaterialPipeline<M>
 where
     M::Data: PartialEq + Eq + Hash + Clone,
 {
-    type Key = MaterialTilemapKey<M>;
+    type Key = TilemapMaterialKey<M>;
 
     fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
         let mut descriptor = self.tilemap_pipeline.specialize(key.tilemap_pipeline_key);
@@ -245,13 +245,13 @@ where
     }
 }
 
-impl<M: MaterialTilemap> FromWorld for MaterialTilemapPipeline<M> {
+impl<M: TilemapMaterial> FromWorld for TilemapMaterialPipeline<M> {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         let render_device = world.resource::<RenderDevice>();
         let material_tilemap_layout = M::bind_group_layout(render_device);
 
-        MaterialTilemapPipeline {
+        TilemapMaterialPipeline {
             tilemap_pipeline: world.resource::<TilemapPipeline>().clone(),
             material_tilemap_layout,
             vertex_shader: match M::vertex_shader() {
@@ -271,11 +271,11 @@ impl<M: MaterialTilemap> FromWorld for MaterialTilemapPipeline<M> {
 
 /// Stores all prepared representations of [`Material2d`] assets for as long as they exist.
 #[derive(Resource, Deref, DerefMut)]
-pub struct RenderMaterialsTilemap<T: MaterialTilemap>(
-    HashMap<AssetId<T>, PreparedMaterialTilemap<T>>,
+pub struct RenderMaterialsTilemap<T: TilemapMaterial>(
+    HashMap<AssetId<T>, PreparedTilemapMaterial<T>>,
 );
 
-impl<T: MaterialTilemap> Default for RenderMaterialsTilemap<T> {
+impl<T: TilemapMaterial> Default for RenderMaterialsTilemap<T> {
     fn default() -> Self {
         Self(Default::default())
     }
@@ -283,7 +283,7 @@ impl<T: MaterialTilemap> Default for RenderMaterialsTilemap<T> {
 
 /// This system extracts all created or modified assets of the corresponding [`Material2d`] type
 /// into the "render world".
-fn extract_materials_tilemap<M: MaterialTilemap>(
+fn extract_materials_tilemap<M: TilemapMaterial>(
     mut commands: Commands,
     mut events: Extract<EventReader<AssetEvent<M>>>,
     assets: Extract<Res<Assets<M>>>,
@@ -317,11 +317,11 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
 }
 
 /// All [`Material2d`] values of a given type that should be prepared next frame.
-pub struct PrepareNextFrameMaterials<M: MaterialTilemap> {
+pub struct PrepareNextFrameMaterials<M: TilemapMaterial> {
     assets: Vec<(AssetId<M>, M)>,
 }
 
-impl<M: MaterialTilemap> Default for PrepareNextFrameMaterials<M> {
+impl<M: TilemapMaterial> Default for PrepareNextFrameMaterials<M> {
     fn default() -> Self {
         Self {
             assets: Default::default(),
@@ -331,12 +331,12 @@ impl<M: MaterialTilemap> Default for PrepareNextFrameMaterials<M> {
 
 /// This system prepares all assets of the corresponding [`Material2d`] type
 /// which where extracted this frame for the GPU.
-fn prepare_materials_tilemap<M: MaterialTilemap>(
+fn prepare_materials_tilemap<M: TilemapMaterial>(
     mut prepare_next_frame: Local<PrepareNextFrameMaterials<M>>,
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
-    pipeline: Res<MaterialTilemapPipeline<M>>,
+    pipeline: Res<TilemapMaterialPipeline<M>>,
     mut param: StaticSystemParam<M::Param>,
 ) {
     let queued_assets = std::mem::take(&mut prepare_next_frame.assets);
@@ -373,15 +373,15 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     }
 }
 
-fn prepare_material_tilemap<M: MaterialTilemap>(
+fn prepare_material_tilemap<M: TilemapMaterial>(
     material: &M,
     render_device: &RenderDevice,
-    pipeline: &MaterialTilemapPipeline<M>,
+    pipeline: &TilemapMaterialPipeline<M>,
     param: &mut SystemParamItem<M::Param>,
-) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
+) -> Result<PreparedTilemapMaterial<M>, AsBindGroupError> {
     let prepared =
         material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
-    Ok(PreparedMaterialTilemap {
+    Ok(PreparedTilemapMaterial {
         bindings: prepared.bindings,
         bind_group: prepared.bind_group,
         key: prepared.data,
@@ -389,13 +389,13 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
+pub fn queue_material_tilemap_meshes<M: TilemapMaterial>(
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     render_device: Res<RenderDevice>,
     (material_tilemap_pipeline, mut material_pipelines): (
-        Res<MaterialTilemapPipeline<M>>,
-        ResMut<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>,
+        Res<TilemapMaterialPipeline<M>>,
+        ResMut<SpecializedRenderPipelines<TilemapMaterialPipeline<M>>>,
     ),
     pipeline_cache: Res<PipelineCache>,
     view_uniforms: Res<ViewUniforms>,
@@ -403,7 +403,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &MainEntity, &ChunkId, &Transform, &TilemapId)>,
-        Query<&MaterialTilemapHandle<M>>,
+        Query<&TilemapMaterialHandle<M>>,
     ),
     mut views: Query<(Entity, &ExtractedView, &Msaa, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
@@ -436,10 +436,11 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
             .get_id::<DrawTilemapMaterial<M>>()
             .unwrap();
 
-        for (entity, main_entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
+        for (entity, main_entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter()
+        {
             if !visible_entities
                 .iter::<With<TilemapRenderSettings>>()
-                .any(|(entity, main_entity)| main_entity.index() == tilemap_id.0.index())
+                .any(|(_entity, main_entity)| main_entity.index() == tilemap_id.0.index())
             {
                 continue;
             }
@@ -476,7 +477,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 let pipeline_id = material_pipelines.specialize(
                     &pipeline_cache,
                     &material_tilemap_pipeline,
-                    MaterialTilemapKey {
+                    TilemapMaterialKey {
                         tilemap_pipeline_key: key,
                         bind_group_data: material.key.clone(),
                     },
@@ -503,7 +504,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
+pub fn bind_material_tilemap_meshes<M: TilemapMaterial>(
     mut commands: Commands,
     chunk_storage: Res<RenderChunk2dStorage>,
     render_device: Res<RenderDevice>,
@@ -514,7 +515,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     mut image_bind_groups: ResMut<ImageBindGroups>,
     (standard_tilemap_meshes, materials): (
         Query<(&ChunkId, &TilemapId)>,
-        Query<&MaterialTilemapHandle<M>>,
+        Query<&TilemapMaterialHandle<M>>,
     ),
     mut views: Query<(Entity, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
@@ -627,4 +628,4 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
 #[derive(AsBindGroup, Debug, Clone, Default, TypePath, Asset)]
 pub struct StandardTilemapMaterial {}
 
-impl MaterialTilemap for StandardTilemapMaterial {}
+impl TilemapMaterial for StandardTilemapMaterial {}
