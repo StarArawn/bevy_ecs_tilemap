@@ -138,8 +138,8 @@ pub type Tilemap = MaterialTilemap<StandardTilemapMaterial>;
 /// The default tilemap, with custom Material rendering support.
 pub struct MaterialTilemap<M: TilemapMaterial>(PhantomData<M>);
 
-impl<M: TilemapMaterial> MaterialTilemap<M> {
-    pub fn new() -> Self {
+impl<M: TilemapMaterial> Default for MaterialTilemap<M> {
+    fn default() -> Self {
         MaterialTilemap(PhantomData)
     }
 }
