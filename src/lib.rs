@@ -108,10 +108,11 @@ impl Default for FrustumCulling {
 #[cfg(feature = "render")]
 #[deprecated(
     since = "0.15.0",
-    note = "Use the `MaterialTilemap` component instead. Inserting it will now automatically insert the other components it requires."
+    note = "Use the `Tilemap` type alias instead. Inserting it will now automatically insert the other components it requires."
 )]
 pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
 
+// TODO: there may not be any point to this, since we cannot construct the type using it.
 #[cfg(feature = "render")]
 pub type Tilemap = MaterialTilemap<StandardTilemapMaterial>;
 
@@ -136,6 +137,12 @@ pub type Tilemap = MaterialTilemap<StandardTilemapMaterial>;
 )]
 /// The default tilemap, with custom Material rendering support.
 pub struct MaterialTilemap<M: TilemapMaterial>(PhantomData<M>);
+
+impl<M: TilemapMaterial> MaterialTilemap<M> {
+    pub fn new() -> Self {
+        MaterialTilemap(PhantomData)
+    }
+}
 
 #[cfg(feature = "render")]
 #[deprecated(

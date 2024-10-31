@@ -16,18 +16,21 @@ use std::io::{Cursor, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 
+use bevy::prelude::*;
+use bevy::reflect::Reflect;
+use bevy::render::extract_component::ExtractComponent;
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
     log,
     prelude::{
-        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
+        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Commands, Component,
         DespawnRecursiveExt, Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query,
         Res, Transform, Update,
     },
     reflect::TypePath,
     utils::HashMap,
 };
-use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::{prelude::*, MaterialTilemap};
 
 use thiserror::Error;
 
@@ -36,14 +39,14 @@ pub struct TiledMapPlugin;
 
 impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.init_asset::<TiledMap>()
+        app.init_asset::<TiledMapAsset>()
             .register_asset_loader(TiledLoader)
             .add_systems(Update, process_loaded_maps);
     }
 }
 
 #[derive(TypePath, Asset)]
-pub struct TiledMap {
+pub struct TiledMapAsset {
     pub map: tiled::Map,
 
     pub tilemap_textures: HashMap<usize, TilemapTexture>,
@@ -59,14 +62,43 @@ pub struct TiledLayersStorage {
     pub storage: HashMap<u32, Entity>,
 }
 
-#[derive(Default, Bundle)]
-pub struct TiledMapBundle {
-    pub tiled_map: TilemapMaterialHandle<TiledMap>,
-    pub storage: TiledLayersStorage,
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
-    pub render_settings: TilemapRenderSettings,
+#[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
+#[reflect(Component, Default)]
+pub struct TiledMapAssetHandle(pub Handle<TiledMapAsset>);
+
+impl Default for TiledMapAssetHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
 }
+
+impl From<Handle<TiledMapAsset>> for TiledMapAssetHandle {
+    fn from(handle: Handle<TiledMapAsset>) -> Self {
+        Self(handle)
+    }
+}
+
+impl From<TiledMapAssetHandle> for AssetId<TiledMapAsset> {
+    fn from(tiled_map: TiledMapAssetHandle) -> Self {
+        tiled_map.id()
+    }
+}
+
+impl From<&TiledMapAssetHandle> for AssetId<TiledMapAsset> {
+    fn from(tiled_map: &TiledMapAssetHandle) -> Self {
+        tiled_map.id()
+    }
+}
+
+#[derive(Component, Clone, Debug)]
+#[require(
+    GlobalTransform,
+    TiledLayersStorage,
+    TiledMapAssetHandle,
+    TilemapRenderSettings,
+    Transform
+)]
+pub struct TiledMap;
 
 struct BytesResourceReader {
     bytes: Arc<[u8]>,
@@ -100,15 +132,15 @@ pub enum TiledAssetLoaderError {
 }
 
 impl AssetLoader for TiledLoader {
-    type Asset = TiledMap;
+    type Asset = TiledMapAsset;
     type Settings = ();
     type Error = TiledAssetLoaderError;
 
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut bevy::asset::LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut bevy::asset::LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -176,7 +208,7 @@ impl AssetLoader for TiledLoader {
             tilemap_textures.insert(tileset_index, tilemap_texture);
         }
 
-        let asset_map = TiledMap {
+        let asset_map = TiledMapAsset {
             map,
             tilemap_textures,
             #[cfg(not(feature = "atlas"))]
@@ -195,17 +227,17 @@ impl AssetLoader for TiledLoader {
 
 pub fn process_loaded_maps(
     mut commands: Commands,
-    mut map_events: EventReader<AssetEvent<TiledMap>>,
-    maps: Res<Assets<TiledMap>>,
+    mut map_events: EventReader<AssetEvent<TiledMapAsset>>,
+    maps: Res<Assets<TiledMapAsset>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(
-        &Handle<TiledMap>,
+        &TiledMapAssetHandle,
         &mut TiledLayersStorage,
         &TilemapRenderSettings,
     )>,
-    new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
+    new_maps: Query<&TiledMapAssetHandle, Added<TiledMapAssetHandle>>,
 ) {
-    let mut changed_maps = Vec::<AssetId<TiledMap>>::default();
+    let mut changed_maps = Vec::<AssetId<TiledMapAsset>>::default();
     for event in map_events.read() {
         match event {
             AssetEvent::Added { id } => {
@@ -370,23 +402,23 @@ pub fn process_loaded_maps(
                             }
                         }
 
-                        commands.entity(layer_entity).insert(TilemapBundle {
+                        commands.entity(layer_entity).insert((
+                            MaterialTilemap::<StandardTilemapMaterial>::new(),
                             grid_size,
-                            size: map_size,
-                            storage: tile_storage,
-                            texture: tilemap_texture.clone(),
+                            map_size,
+                            tile_storage,
+                            tilemap_texture.clone(),
                             tile_size,
-                            spacing: tile_spacing,
-                            transform: get_tilemap_center_transform(
+                            tile_spacing,
+                            get_tilemap_center_transform(
                                 &map_size,
                                 &grid_size,
                                 &map_type,
                                 layer_index as f32,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
                             map_type,
-                            render_settings: *render_settings,
-                            ..Default::default()
-                        });
+                            *render_settings,
+                        ));
 
                         layer_storage
                             .storage
