@@ -20,7 +20,7 @@ use bevy::prelude::*;
 use bevy::reflect::Reflect;
 use bevy::render::extract_component::ExtractComponent;
 use bevy::{
-    asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
+    asset::{io::Reader, AssetLoader, AssetPath},
     log,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Commands, Component,
@@ -30,7 +30,7 @@ use bevy::{
     reflect::TypePath,
     utils::HashMap,
 };
-use bevy_ecs_tilemap::{prelude::*, MaterialTilemap};
+use bevy_ecs_tilemap::prelude::*;
 
 use thiserror::Error;
 
@@ -403,7 +403,7 @@ pub fn process_loaded_maps(
                         }
 
                         commands.entity(layer_entity).insert((
-                            MaterialTilemap::<StandardTilemapMaterial>::new(),
+                            Tilemap::default(),
                             grid_size,
                             map_size,
                             tile_storage,
