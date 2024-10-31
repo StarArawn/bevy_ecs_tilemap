@@ -2,15 +2,12 @@ use bevy_ecs_tilemap::{
     helpers::geometry::get_tilemap_center_transform,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
-    TilemapBundle,
+    Tilemap,
 };
 use std::{collections::HashMap, io::ErrorKind};
 use thiserror::Error;
 
-use bevy::{
-    asset::{io::Reader, AsyncReadExt},
-    reflect::TypePath,
-};
+use bevy::{asset::io::Reader, reflect::TypePath, render::extract_component::ExtractComponent};
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
@@ -22,14 +19,14 @@ pub struct LdtkPlugin;
 
 impl Plugin for LdtkPlugin {
     fn build(&self, app: &mut App) {
-        app.init_asset::<LdtkMap>()
+        app.init_asset::<LdtkMapAsset>()
             .register_asset_loader(LdtkLoader)
             .add_systems(Update, process_loaded_tile_maps);
     }
 }
 
 #[derive(TypePath, Asset)]
-pub struct LdtkMap {
+pub struct LdtkMapAsset {
     pub project: ldtk_rust::Project,
     pub tilesets: HashMap<i64, Handle<Image>>,
 }
@@ -39,9 +36,45 @@ pub struct LdtkMapConfig {
     pub selected_level: usize,
 }
 
-#[derive(Default, Bundle)]
+#[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
+#[reflect(Component, Default)]
+pub struct LdtkMapAssetHandle(pub Handle<LdtkMapAsset>);
+
+impl Default for LdtkMapAssetHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
+
+impl From<Handle<LdtkMapAsset>> for LdtkMapAssetHandle {
+    fn from(handle: Handle<LdtkMapAsset>) -> Self {
+        Self(handle)
+    }
+}
+
+impl From<LdtkMapAssetHandle> for AssetId<LdtkMapAsset> {
+    fn from(tiled_map: LdtkMapAssetHandle) -> Self {
+        tiled_map.id()
+    }
+}
+
+impl From<&LdtkMapAssetHandle> for AssetId<LdtkMapAsset> {
+    fn from(tiled_map: &LdtkMapAssetHandle) -> Self {
+        tiled_map.id()
+    }
+}
+
+#[derive(Component, Clone, Default)]
+#[require(GlobalTransform, LdtkMapAssetHandle, LdtkMapConfig, Transform)]
+pub struct LdtkMap;
+
+#[derive(Default)]
+#[deprecated(
+    since = "0.15.0",
+    note = "Use the `LdtkMap` component instead. Inserting it will now automatically insert the other components it requires."
+)]
 pub struct LdtkMapBundle {
-    pub ldtk_map: Handle<LdtkMap>,
+    pub ldtk_map: LdtkMapAssetHandle,
     pub ldtk_map_config: LdtkMapConfig,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -57,15 +90,15 @@ pub enum LdtkAssetLoaderError {
 }
 
 impl AssetLoader for LdtkLoader {
-    type Asset = LdtkMap;
+    type Asset = LdtkMapAsset;
     type Settings = ();
     type Error = LdtkAssetLoaderError;
 
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -90,7 +123,7 @@ impl AssetLoader for LdtkLoader {
             })
             .collect();
 
-        let ldtk_map = LdtkMap {
+        let ldtk_map = LdtkMapAsset {
             project,
             tilesets: dependencies
                 .iter()
@@ -108,12 +141,12 @@ impl AssetLoader for LdtkLoader {
 
 pub fn process_loaded_tile_maps(
     mut commands: Commands,
-    mut map_events: EventReader<AssetEvent<LdtkMap>>,
-    maps: Res<Assets<LdtkMap>>,
-    mut query: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig)>,
-    new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
+    mut map_events: EventReader<AssetEvent<LdtkMapAsset>>,
+    maps: Res<Assets<LdtkMapAsset>>,
+    mut query: Query<(Entity, &LdtkMapAssetHandle, &LdtkMapConfig)>,
+    new_maps: Query<&LdtkMapAssetHandle, Added<LdtkMapAssetHandle>>,
 ) {
-    let mut changed_maps = Vec::<AssetId<LdtkMap>>::default();
+    let mut changed_maps = Vec::<AssetId<LdtkMapAsset>>::default();
     for event in map_events.read() {
         match event {
             AssetEvent::Added { id } => {
@@ -146,7 +179,7 @@ pub fn process_loaded_tile_maps(
                 continue;
             }
             if let Some(ldtk_map) = maps.get(map_handle) {
-                // Despawn all existing tilemaps for this LdtkMap
+                // Despawn all existing tilemaps for this LdtkMapAsset
                 commands.entity(entity).despawn_descendants();
 
                 // Pull out tilesets and their definitions into a new hashmap
@@ -220,21 +253,21 @@ pub fn process_loaded_tile_maps(
                         let map_type = TilemapType::default();
 
                         // Create the tilemap
-                        commands.entity(map_entity).insert(TilemapBundle {
+                        commands.entity(map_entity).insert((
+                            Tilemap::default(),
                             grid_size,
                             map_type,
                             size,
                             storage,
-                            texture: TilemapTexture::Single(texture),
+                            TilemapTexture::Single(texture),
                             tile_size,
-                            transform: get_tilemap_center_transform(
+                            get_tilemap_center_transform(
                                 &size,
                                 &grid_size,
                                 &map_type,
                                 layer_id as f32,
                             ),
-                            ..default()
-                        });
+                        ));
                     }
                 }
             }
