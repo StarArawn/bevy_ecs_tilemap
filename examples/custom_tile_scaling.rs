@@ -48,21 +48,21 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn main() {
     App::new()
-        .add_plugins(
+        .add_plugins((
             DefaultPlugins
                 .set(WindowPlugin {
-                    window: WindowDescriptor {
+                    primary_window: Option::Some(Window {
                         title: String::from("Benchmark Example"),
                         ..Default::default()
-                    },
+                    }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
-        )
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(TilemapPlugin)
-        .add_startup_system(startup)
-        .add_system(helpers::camera::movement)
+            LogDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin::default(),
+            TilemapPlugin,
+        ))
+        .add_systems(Startup, startup)
+        .add_systems(Update, helpers::camera::movement)
         .run();
 }
