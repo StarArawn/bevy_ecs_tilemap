@@ -146,6 +146,7 @@ pub struct StandardTilemapBundle {
     pub storage: TileStorage,
     pub texture: TilemapTexture,
     pub tile_size: TilemapTileSize,
+    pub in_world_tile_size: TilemapInWorldTileSize,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub render_settings: TilemapRenderSettings,

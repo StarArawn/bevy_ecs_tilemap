@@ -116,6 +116,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         grid_size,
         map_type,
         tile_size,
+        in_world_tile_size: tile_size.into(),
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0),
