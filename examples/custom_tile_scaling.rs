@@ -26,12 +26,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // `tile_size` specifies how large in pixels each tile is in the source atlas texture
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
 
-    // `physical_tile_size` specifies how large to render each tile in the world
-    let physical_tile_size = TilemapPhysicalTileSize { x: 4.0, y: 4.0 };
+    // `in_world_tile_size` specifies how large to render each tile in the world
+    let in_world_tile_size = TilemapInWorldTileSize { x: 4.0, y: 4.0 };
     // The `grid_size` is essentially how far about each tile is placed from eachother
     let grid_size = TilemapGridSize { x: 4.0, y: 4.0 };
 
-    println!("{:#?}", grid_size);
     let map_type = TilemapType::default();
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
@@ -41,7 +40,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        physical_tile_size,
+        in_world_tile_size,
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         ..Default::default()
     });

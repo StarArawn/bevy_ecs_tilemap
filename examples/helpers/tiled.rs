@@ -376,7 +376,7 @@ pub fn process_loaded_maps(
                             storage: tile_storage,
                             texture: tilemap_texture.clone(),
                             tile_size,
-                            physical_tile_size: tile_size.into(),
+                            in_world_tile_size: tile_size.into(),
                             spacing: tile_spacing,
                             transform: get_tilemap_center_transform(
                                 &map_size,

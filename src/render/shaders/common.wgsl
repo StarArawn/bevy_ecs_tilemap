@@ -11,7 +11,7 @@ var<uniform> mesh: Mesh;
 struct TilemapData {
     texture_size: vec2<f32>,
     tile_size: vec2<f32>,
-    physical_tile_size: vec2<f32>,
+    in_world_tile_size: vec2<f32>,
     grid_size: vec2<f32>,
     spacing: vec2<f32>,
     chunk_pos: vec2<f32>,

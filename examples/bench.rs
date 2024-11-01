@@ -26,7 +26,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
 
-    println!("{:#?}", grid_size);
     let map_type = TilemapType::default();
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
@@ -36,7 +35,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        physical_tile_size: tile_size.into(),
+        in_world_tile_size: tile_size.into(),
         transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         render_settings: TilemapRenderSettings {
             render_chunk_size: UVec2::new(256, 256),
