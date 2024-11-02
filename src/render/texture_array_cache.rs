@@ -156,8 +156,12 @@ impl TextureArrayCache {
                     let (count, tile_size, _, _, filter, format) =
                         self.meta_data.get(texture).unwrap();
 
-                    // Fixes weird cubemap bug.
-                    let count = if *count == 6 { count + 1 } else { *count };
+                    // Fixes issue where wgpu's gles texture type inference fails.
+                    let count = if *count == 1 || count % 6 == 0 {
+                        count + 1
+                    } else {
+                        *count
+                    };
 
                     let gpu_texture = render_device.create_texture(&TextureDescriptor {
                         label: Some("texture_array"),

@@ -90,10 +90,8 @@ After that's installed and configured, run:
 #### WebGL2
 
 ```bash
-cargo run --target wasm32-unknown-unknown --example animation --features atlas
+cargo run --target wasm32-unknown-unknown --example animation
 ```
-
-**Note**: You **must** use the `atlas` feature when targeting the web with WebGL2. See [#283](https://github.com/StarArawn/bevy_ecs_tilemap/issues/283).
 
 #### WebGPU
 
