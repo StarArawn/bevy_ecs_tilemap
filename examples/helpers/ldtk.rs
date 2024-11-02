@@ -254,7 +254,7 @@ pub fn process_loaded_tile_maps(
 
                         // Create the tilemap
                         commands.entity(map_entity).insert((
-                            Tilemap::default(),
+                            Tilemap,
                             grid_size,
                             map_type,
                             size,

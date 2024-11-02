@@ -14,15 +14,15 @@ use bevy_ecs_tilemap::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    let handle: Handle<helpers::ldtk::LdtkMap> = asset_server.load("map.ldtk");
+    let handle: helpers::ldtk::LdtkMapAssetHandle = asset_server.load("map.ldtk").into();
 
-    commands.spawn(helpers::ldtk::LdtkMapBundle {
-        ldtk_map: handle,
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        ..Default::default()
-    });
+    commands.spawn((
+        helpers::ldtk::LdtkMap,
+        handle,
+        Transform::from_xyz(0.0, 0.0, 0.0),
+    ));
 }
 
 fn main() {

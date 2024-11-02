@@ -1,5 +1,5 @@
 use bevy::{prelude::*, reflect::TypePath, render::render_resource::AsBindGroup};
-use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::{prelude::*, MaterialTilemap};
 mod helpers;
 
 #[derive(AsBindGroup, TypePath, Debug, Clone, Default, Asset)]
@@ -49,19 +49,18 @@ fn startup(
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert(MaterialTilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle.clone()),
-            tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            material: my_material_handle.clone(),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert((
+        // TODO: is this actually what we want here?
+        MaterialTilemap::<MyMaterial>(std::marker::PhantomData),
+        grid_size,
+        map_type,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle.clone()),
+        tile_size,
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        my_material_handle.clone(),
+    ));
 
     // Layer 2
     let mut tile_storage = TileStorage::empty(map_size);
@@ -75,20 +74,18 @@ fn startup(
         &mut tile_storage,
     );
 
-    commands
-        .entity(tilemap_entity)
-        .insert(MaterialTilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
-                * Transform::from_xyz(32.0, 32.0, 0.0),
-            material: my_material_handle,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert((
+        MaterialTilemap::<MyMaterial>(std::marker::PhantomData),
+        grid_size,
+        map_type,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapTileSize { x: 16.0, y: 16.0 },
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
+            * Transform::from_xyz(32.0, 32.0, 0.0),
+        my_material_handle,
+    ));
 }
 
 fn main() {
@@ -105,7 +102,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
-        .add_plugins(MaterialTilemapPlugin::<MyMaterial>::default())
+        .add_plugins(TilemapMaterialPlugin::<MyMaterial>::default())
         .add_systems(Startup, startup)
         .add_systems(Update, helpers::camera::movement)
         .run();

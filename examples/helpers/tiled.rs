@@ -403,7 +403,7 @@ pub fn process_loaded_maps(
                         }
 
                         commands.entity(layer_entity).insert((
-                            Tilemap::default(),
+                            Tilemap,
                             grid_size,
                             map_size,
                             tile_storage,

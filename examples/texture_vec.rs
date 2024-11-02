@@ -19,7 +19,7 @@ mod no_atlas {
     const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
     fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-        commands.spawn(Camera2dBundle::default());
+        commands.spawn(Camera2d);
 
         let image_handles = vec![
             asset_server.load("hex-tile-0.png"),
@@ -70,16 +70,16 @@ mod no_atlas {
         let grid_size = TILE_SIZE.into();
         let map_type = TilemapType::Hexagon(COORD_SYS);
 
-        commands.entity(tilemap_entity).insert(TilemapBundle {
+        commands.entity(tilemap_entity).insert((
+            Tilemap,
             grid_size,
             map_type,
             tile_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: texture_vec,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+            map_size,
+            tile_storage,
+            texture_vec,
+            get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        ));
     }
 
     pub fn main() {

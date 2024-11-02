@@ -53,16 +53,16 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         size,
         grid_size,
         map_type,
         tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        transform: get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        get_tilemap_center_transform(&size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -110,20 +110,20 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     }
     let map_type = TilemapType::Square;
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        size: map_size,
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        map_size,
         grid_size,
         map_type,
         tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0),
-        ..Default::default()
-    });
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0),
+    ));
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 }
 
 fn main() {

@@ -48,7 +48,7 @@ impl FromWorld for FontHandle {
 
 // Generates the initial tilemap, which is a hex grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH_X,
@@ -71,16 +71,16 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
     let grid_size = GRID_SIZE_HEX_ROW;
     let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(tile_handle_hex_row.clone()),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 #[derive(Component)]
@@ -93,11 +93,12 @@ fn spawn_tile_labels(
     tile_q: Query<&mut TilePos>,
     font_handle: Res<FontHandle>,
 ) {
-    let text_style = TextStyle {
+    let text_font = TextFont {
         font: font_handle.clone(),
         font_size: 20.0,
-        color: Color::BLACK,
+        ..default()
     };
+    let text_color = TextColor(Color::BLACK);
     let text_justify = JustifyText::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
@@ -106,15 +107,13 @@ fn spawn_tile_labels(
             let transform = *map_transform * Transform::from_translation(tile_center);
 
             let label_entity = commands
-                .spawn(Text2dBundle {
-                    text: Text::from_section(
-                        format!("{}, {}", tile_pos.x, tile_pos.y),
-                        text_style.clone(),
-                    )
-                    .with_justify(text_justify),
+                .spawn((
+                    Text2d::new(format!("{}, {}", tile_pos.x, tile_pos.y)),
+                    text_font,
+                    text_color,
+                    text_justify,
                     transform,
-                    ..default()
-                })
+                ))
                 .id();
             commands
                 .entity(*tile_entity)
