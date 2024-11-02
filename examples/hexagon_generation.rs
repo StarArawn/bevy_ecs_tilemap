@@ -46,7 +46,7 @@ impl FromWorld for FontHandle {
 
 // Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH,
@@ -76,16 +76,16 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
     let grid_size = GRID_SIZE_HEX_ROW;
     let map_type = TilemapType::Hexagon(hex_coord_system);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(tile_handle_hex_row.clone()),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 #[derive(Component)]
@@ -98,13 +98,6 @@ fn spawn_map_type_label(
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
-    let text_style = TextStyle {
-        font: font_handle.clone(),
-        font_size: 20.0,
-        color: Color::BLACK,
-    };
-    let text_justify = JustifyText::Center;
-
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
             // Place the map type label somewhere in the top left side of the screen
@@ -114,13 +107,19 @@ fn spawn_map_type_label(
                 ..Default::default()
             };
             commands.spawn((
-                Text2dBundle {
-                    text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_justify(text_justify),
-                    transform,
+                Text2d::new(format!("{map_type:?}")),
+                TextColor(Color::BLACK),
+                TextFont {
+                    font: font_handle.clone(),
+                    font_size: 20.0,
+                    ..default()
+                },
+                TextLayout {
+                    justify: JustifyText::Center,
                     ..default()
                 },
                 MapTypeLabel,
+                transform,
             ));
         }
     }
@@ -141,7 +140,7 @@ fn swap_map_type(
         &mut TileStorage,
     )>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
+    mut map_type_label_q: Query<&mut Text2d, With<MapTypeLabel>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
 ) {
@@ -201,7 +200,7 @@ fn swap_map_type(
             );
 
             for mut label_text in map_type_label_q.iter_mut() {
-                label_text.sections[0].value = format!("{:?}", map_type.as_ref());
+                label_text.0 = format!("{:?}", map_type.as_ref());
             }
         }
     }

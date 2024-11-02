@@ -1,17 +1,15 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use helpers::tiled::TiledMapAssetHandle;
 
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("rotate.tmx");
+    let map_handle: TiledMapAssetHandle = asset_server.load("rotate.tmx").into();
 
-    commands.spawn(helpers::tiled::TiledMapBundle {
-        tiled_map: map_handle,
-        ..Default::default()
-    });
+    commands.spawn((helpers::tiled::TiledMap, map_handle));
 }
 
 fn main() {
