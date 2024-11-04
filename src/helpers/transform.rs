@@ -1,5 +1,6 @@
+use crate::prelude::TilemapInWorldTileSize;
 use crate::tiles::TilePos;
-use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
+use crate::{TilemapGridSize,  TilemapType};
 use bevy::math::{UVec2, Vec2, Vec3};
 use bevy::render::primitives::Aabb;
 
@@ -29,11 +30,11 @@ pub fn chunk_index_to_world_space(
 pub fn chunk_aabb(
     chunk_size: UVec2,
     grid_size: &TilemapGridSize,
-    tile_size: &TilemapTileSize,
+    in_world_tile_size: &TilemapInWorldTileSize,
     map_type: &TilemapType,
 ) -> Aabb {
     // The AABB minimum and maximum have to be modified by -border and +border respectively.
-    let border = Vec2::from(grid_size).max(tile_size.into());
+    let border = Vec2::from(grid_size).max(in_world_tile_size.into());
 
     // For most map types, it would be sufficient to calculate c0 and c3. However, for some map
     // types (right now, isometric diamond), this would not work, and for robustness (especially

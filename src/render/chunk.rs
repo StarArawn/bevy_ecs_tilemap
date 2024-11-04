@@ -18,7 +18,10 @@ use bevy::{
     render::mesh::MeshVertexBufferLayouts,
 };
 
-use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
+use crate::prelude::{
+    helpers::transform::{chunk_aabb, chunk_index_to_world_space},
+    TilemapInWorldTileSize,
+};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
     map::{TilemapSize, TilemapTexture, TilemapType},
@@ -49,6 +52,7 @@ impl RenderChunk2dStorage {
         chunk_size: UVec2,
         mesh_type: TilemapType,
         tile_size: TilemapTileSize,
+        in_world_tile_size: TilemapInWorldTileSize,
         texture_size: Vec2,
         spacing: Vec2,
         grid_size: TilemapGridSize,
@@ -86,6 +90,7 @@ impl RenderChunk2dStorage {
                 chunk_size,
                 mesh_type,
                 tile_size,
+                in_world_tile_size,
                 spacing,
                 grid_size,
                 texture,
@@ -199,6 +204,8 @@ pub struct RenderChunk2d {
     pub grid_size: TilemapGridSize,
     /// The tile size of the map this chunk belongs to.
     pub tile_size: TilemapTileSize,
+    /// The in-world tile size of the map this chunk belongs to.
+    pub in_world_tile_size: TilemapInWorldTileSize,
     /// The [`Aabb`] of this chunk, based on the map type, grid size, and tile size. It is not
     /// transformed by the `global_transform` or [`local_transform`]
     aabb: Aabb,
@@ -231,6 +238,7 @@ impl RenderChunk2d {
         size_in_tiles: UVec2,
         map_type: TilemapType,
         tile_size: TilemapTileSize,
+        in_world_tile_size: TilemapInWorldTileSize,
         spacing: Vec2,
         grid_size: TilemapGridSize,
         texture: TilemapTexture,
@@ -247,7 +255,7 @@ impl RenderChunk2d {
         let global_transform: Transform = global_transform.into();
         let transform = local_transform * global_transform;
         let transform_matrix = transform.compute_matrix();
-        let aabb = chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type);
+        let aabb = chunk_aabb(size_in_tiles, &grid_size, &in_world_tile_size, &map_type);
         Self {
             dirty_mesh: true,
             gpu_mesh: None,
@@ -259,6 +267,7 @@ impl RenderChunk2d {
             map_type,
             grid_size,
             tile_size,
+            in_world_tile_size,
             aabb,
             local_transform,
             global_transform,
@@ -319,14 +328,20 @@ impl RenderChunk2d {
         global_transform: Transform,
         grid_size: TilemapGridSize,
         tile_size: TilemapTileSize,
+        in_world_tile_size: TilemapInWorldTileSize,
         map_type: TilemapType,
     ) {
         let mut dirty_local_transform = false;
 
-        if self.grid_size != grid_size || self.tile_size != tile_size || self.map_type != map_type {
+        if self.grid_size != grid_size
+            || self.tile_size != tile_size
+            || self.in_world_tile_size != in_world_tile_size
+            || self.map_type != map_type
+        {
             self.grid_size = grid_size;
             self.map_type = map_type;
             self.tile_size = tile_size;
+            self.in_world_tile_size = in_world_tile_size;
 
             self.position = chunk_index_to_world_space(
                 self.index.xy(),
@@ -341,7 +356,7 @@ impl RenderChunk2d {
             self.aabb = chunk_aabb(
                 self.size_in_tiles,
                 &self.grid_size,
-                &self.tile_size,
+                &self.in_world_tile_size,
                 &self.map_type,
             );
         }
@@ -474,6 +489,7 @@ impl RenderChunk2d {
 pub struct TilemapUniformData {
     pub texture_size: Vec2,
     pub tile_size: Vec2,
+    pub in_world_tile_size: Vec2,
     pub grid_size: Vec2,
     pub spacing: Vec2,
     pub chunk_pos: Vec2,
@@ -488,9 +504,11 @@ impl From<&RenderChunk2d> for TilemapUniformData {
         let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();
+        let in_world_tile_size: Vec2 = chunk.in_world_tile_size.into();
         Self {
             texture_size: chunk.texture_size,
             tile_size,
+            in_world_tile_size,
             grid_size: chunk.grid_size.into(),
             spacing: chunk.spacing,
             chunk_pos: chunk_ix * chunk_size,
@@ -507,9 +525,11 @@ impl From<&mut RenderChunk2d> for TilemapUniformData {
         let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();
+        let in_world_tile_size: Vec2 = chunk.in_world_tile_size.into();
         Self {
             texture_size: chunk.texture_size,
             tile_size,
+            in_world_tile_size,
             grid_size: chunk.grid_size.into(),
             spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,

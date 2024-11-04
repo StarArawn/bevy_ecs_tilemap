@@ -5,7 +5,7 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
-use crate::prelude::TilemapRenderSettings;
+use crate::prelude::{TilemapInWorldTileSize, TilemapRenderSettings};
 use crate::render::{DefaultSampler, SecondsSinceStartup};
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
@@ -59,6 +59,7 @@ pub struct ExtractedRemovedMapBundle {
 pub struct ExtractedTilemapBundle {
     transform: GlobalTransform,
     tile_size: TilemapTileSize,
+    in_world_tile_size: TilemapInWorldTileSize,
     grid_size: TilemapGridSize,
     texture_size: TilemapTextureSize,
     spacing: TilemapSpacing,
@@ -213,6 +214,7 @@ pub fn extract(
             Entity,
             &GlobalTransform,
             &TilemapTileSize,
+            &TilemapInWorldTileSize,
             &TilemapSpacing,
             &TilemapGridSize,
             &TilemapType,
@@ -230,6 +232,7 @@ pub fn extract(
                 Added<TilemapType>,
                 Changed<TilemapType>,
                 Changed<GlobalTransform>,
+                Changed<TilemapInWorldTileSize>,
                 Changed<TilemapTexture>,
                 Changed<TilemapTileSize>,
                 Changed<TilemapSpacing>,
@@ -294,15 +297,16 @@ pub fn extract(
                 ExtractedTilemapBundle {
                     transform: *data.1,
                     tile_size: *data.2,
+                    in_world_tile_size: *data.3,
                     texture_size: TilemapTextureSize::default(),
-                    spacing: *data.3,
-                    grid_size: *data.4,
-                    map_type: *data.5,
-                    texture: data.6.clone_weak(),
-                    map_size: *data.7,
-                    visibility: *data.8,
-                    frustum_culling: *data.9,
-                    render_settings: *data.10,
+                    spacing: *data.4,
+                    grid_size: *data.5,
+                    map_type: *data.6,
+                    texture: data.7.clone_weak(),
+                    map_size: *data.8,
+                    visibility: *data.9,
+                    frustum_culling: *data.10,
+                    render_settings: *data.11,
                 },
             ),
         );
@@ -330,15 +334,16 @@ pub fn extract(
                     ExtractedTilemapBundle {
                         transform: *data.1,
                         tile_size: *data.2,
+                        in_world_tile_size: *data.3,
                         texture_size: TilemapTextureSize::default(),
-                        spacing: *data.3,
-                        grid_size: *data.4,
-                        map_type: *data.5,
-                        texture: data.6.clone_weak(),
-                        map_size: *data.7,
-                        visibility: *data.8,
-                        frustum_culling: *data.9,
-                        render_settings: *data.10,
+                        spacing: *data.4,
+                        grid_size: *data.5,
+                        map_type: *data.6,
+                        texture: data.7.clone_weak(),
+                        map_size: *data.8,
+                        visibility: *data.9,
+                        frustum_culling: *data.10,
+                        render_settings: *data.11,
                     },
                 ),
             );
@@ -349,7 +354,9 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in tilemap_query.iter() {
+    for (entity, _, tile_size, _in_world_tile_size, tile_spacing, _, _, texture, _, _, _, _) in
+        tilemap_query.iter()
+    {
         if texture.verify_ready(&images) {
             extracted_tilemap_textures.push((
                 entity,
