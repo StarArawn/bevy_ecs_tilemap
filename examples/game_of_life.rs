@@ -5,7 +5,7 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -35,16 +35,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let map_type = TilemapType::Square;
 
     commands.entity(tilemap_entity).insert((
-        TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        },
+        Tilemap,
+        grid_size,
+        map_type,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        tile_size,
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
         LastUpdate(0.0),
     ));
 }
@@ -58,7 +56,7 @@ fn update(
     mut tile_storage_query: Query<(&TileStorage, &TilemapSize, &mut LastUpdate)>,
     tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     let (tile_storage, map_size, mut last_update) = tile_storage_query.single_mut();
     if current_time - last_update.0 > 0.1 {
         for (entity, position, visibility) in tile_query.iter() {

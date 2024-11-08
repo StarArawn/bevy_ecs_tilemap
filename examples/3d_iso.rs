@@ -4,20 +4,20 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("iso_map.tmx");
+    let map_handle: helpers::tiled::TiledMapAssetHandle = asset_server.load("iso_map.tmx").into();
 
-    commands.spawn(helpers::tiled::TiledMapBundle {
-        tiled_map: map_handle,
-        render_settings: TilemapRenderSettings {
+    commands.spawn((
+        helpers::tiled::TiledMap,
+        map_handle,
+        TilemapRenderSettings {
             // Map size is 12x12 so we'll have render chunks that are:
             // 12 tiles wide and 1 tile tall.
             render_chunk_size: UVec2::new(3, 1),
             y_sort: true,
         },
-        ..Default::default()
-    });
+    ));
 }
 
 fn main() {

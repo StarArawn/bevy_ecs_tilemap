@@ -7,8 +7,8 @@ use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
     render::{
-        mesh::{GpuBufferInfo, GpuMesh, Indices, VertexAttributeValues},
-        render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
+        mesh::{Indices, RenderMesh, RenderMeshBufferInfo, VertexAttributeValues},
+        render_resource::ShaderType,
         renderer::RenderDevice,
     },
     utils::HashMap,
@@ -214,7 +214,7 @@ pub struct RenderChunk2d {
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
     pub mesh: Mesh,
-    pub gpu_mesh: Option<GpuMesh>,
+    pub render_mesh: Option<RenderMesh>,
     pub dirty_mesh: bool,
     pub visible: bool,
     pub frustum_culling: bool,
@@ -250,7 +250,7 @@ impl RenderChunk2d {
         let aabb = chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type);
         Self {
             dirty_mesh: true,
-            gpu_mesh: None,
+            render_mesh: None,
             id,
             index: *index,
             position,
@@ -429,33 +429,40 @@ impl RenderChunk2d {
             );
             self.mesh.insert_indices(Indices::U32(indices));
 
-            let vertex_buffer_data = self.mesh.get_vertex_buffer_data();
-            let vertex_buffer = device.create_buffer_with_data(&BufferInitDescriptor {
-                usage: BufferUsages::VERTEX,
-                label: Some("Mesh Vertex Buffer"),
-                contents: &vertex_buffer_data,
-            });
+            // let Some(vertex_buffer_data) =
+            //     mesh_allocator.mesh_vertex_slice(render_mesh.mesh_asset_id)
+            // else {
+            //     return;
+            // };
 
-            let buffer_info =
-                self.mesh
-                    .get_index_buffer_bytes()
-                    .map_or(GpuBufferInfo::NonIndexed {}, |data| {
-                        GpuBufferInfo::Indexed {
-                            buffer: device.create_buffer_with_data(&BufferInitDescriptor {
-                                usage: BufferUsages::INDEX,
-                                contents: data,
-                                label: Some("Mesh Index Buffer"),
-                            }),
-                            count: self.mesh.indices().unwrap().len() as u32,
-                            index_format: self.mesh.indices().unwrap().into(),
-                        }
-                    });
+            // TODO: why is this necessary?
+            // let vertex_buffer = device.create_buffer_with_data(&BufferInitDescriptor {
+            //     usage: BufferUsages::VERTEX,
+            //     label: Some("Mesh Vertex Buffer"),
+            //     contents: &vertex_buffer_data
+            //         .buffer
+            //         .slice(vertex_buffer_data.range.into())
+            //         .into(),
+            // });
+
+            let buffer_info = self.mesh.get_index_buffer_bytes().map_or(
+                RenderMeshBufferInfo::NonIndexed {},
+                |data| RenderMeshBufferInfo::Indexed {
+                    // TODO: what is this replaced with, if anything?
+                    // buffer: device.create_buffer_with_data(&BufferInitDescriptor {
+                    //     usage: BufferUsages::INDEX,
+                    //     contents: data,
+                    //     label: Some("Mesh Index Buffer"),
+                    // }),
+                    count: self.mesh.indices().unwrap().len() as u32,
+                    index_format: self.mesh.indices().unwrap().into(),
+                },
+            );
 
             let mesh_vertex_buffer_layout = self
                 .mesh
                 .get_mesh_vertex_buffer_layout(mesh_vertex_buffer_layouts);
-            self.gpu_mesh = Some(GpuMesh {
-                vertex_buffer,
+            self.render_mesh = Some(RenderMesh {
                 vertex_count: self.mesh.count_vertices() as u32,
                 buffer_info,
                 morph_targets: None,

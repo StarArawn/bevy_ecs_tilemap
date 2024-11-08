@@ -20,7 +20,7 @@ mod no_atlas {
 
     #[cfg(not(feature = "atlas"))]
     fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-        commands.spawn(Camera2dBundle::default());
+        commands.spawn(Camera2d);
 
         // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
         // feature is not turned on, that the image won't properly be interpreted as a texture
@@ -76,16 +76,16 @@ mod no_atlas {
         let grid_size = TILE_SIZE.into();
         let map_type = TilemapType::Hexagon(COORD_SYS);
 
-        commands.entity(tilemap_entity).insert(TilemapBundle {
+        commands.entity(tilemap_entity).insert((
+            Tilemap,
             grid_size,
             map_type,
             tile_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: texture_vec,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        });
+            map_size,
+            tile_storage,
+            texture_vec,
+            get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        ));
     }
 
     pub fn main() {

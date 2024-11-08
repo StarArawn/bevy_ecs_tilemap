@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -37,16 +37,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 #[derive(Default, Component)]
@@ -57,7 +57,7 @@ struct LastUpdate {
 // In this example it's better not to use the default `MapQuery` SystemParam as
 // it's faster to do it this way:
 fn random(time: ResMut<Time>, mut query: Query<(&mut TileTextureIndex, &mut LastUpdate)>) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     let mut random = thread_rng();
     for (mut tile, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.2 {

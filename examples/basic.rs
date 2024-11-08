@@ -10,7 +10,7 @@ fn startup(
         ArrayTextureLoader,
     >,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -49,16 +49,16 @@ fn startup(
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.

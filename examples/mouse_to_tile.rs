@@ -72,7 +72,7 @@ impl FromWorld for FontHandle {
 
 // Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH_X,
@@ -95,16 +95,16 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
     let grid_size = GRID_SIZE_SQUARE;
     let map_type = TilemapType::Square;
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_square.clone()),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(tile_handle_square.clone()),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 #[derive(Component)]
@@ -117,12 +117,6 @@ fn spawn_tile_labels(
     tile_q: Query<&mut TilePos>,
     font_handle: Res<FontHandle>,
 ) {
-    let text_style = TextStyle {
-        font: font_handle.clone(),
-        font_size: 20.0,
-        color: Color::BLACK,
-    };
-    let text_justify = JustifyText::Center;
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -130,16 +124,19 @@ fn spawn_tile_labels(
             let transform = *map_transform * Transform::from_translation(tile_center);
 
             let label_entity = commands
-                .spawn(Text2dBundle {
-                    text: Text::from_section(
-                        format!("{}, {}", tile_pos.x, tile_pos.y),
-                        text_style.clone(),
-                    )
-                    .with_justify(text_justify),
+                .spawn((
+                    Text2d::new(format!("{}, {}", tile_pos.x, tile_pos.y)),
+                    TextFont {
+                        font: font_handle.clone(),
+                        font_size: 20.0,
+                        ..default()
+                    },
+                    TextColor(Color::BLACK),
+                    TextLayout::new_with_justify(JustifyText::Center),
                     transform,
-                    ..default()
-                })
+                ))
                 .id();
+
             commands
                 .entity(*tile_entity)
                 .insert(TileLabel(label_entity));
@@ -157,13 +154,6 @@ fn spawn_map_type_label(
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
-    let text_style = TextStyle {
-        font: font_handle.clone(),
-        font_size: 20.0,
-        color: Color::BLACK,
-    };
-    let text_alignment = JustifyText::Center;
-
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
             // Place the map type label somewhere in the top left side of the screen
@@ -172,13 +162,17 @@ fn spawn_map_type_label(
                     .extend(1.0),
                 ..Default::default()
             };
+
             commands.spawn((
-                Text2dBundle {
-                    text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_justify(text_alignment),
-                    transform,
+                Text2d::new(format!("{map_type:?}")),
+                TextFont {
+                    font: font_handle.clone(),
+                    font_size: 20.0,
                     ..default()
                 },
+                TextColor(Color::BLACK),
+                TextLayout::new_with_justify(JustifyText::Center),
+                transform,
                 MapTypeLabel,
             ));
         }
@@ -201,7 +195,7 @@ fn swap_map_type(
         (&TileLabel, &TilePos),
         (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),
     >,
-    mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
+    mut map_type_label_q: Query<&mut Text2d, With<MapTypeLabel>>,
     mut transform_q: Query<&mut Transform, Without<TilemapType>>,
     tile_handle_square: Res<TileHandleSquare>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
@@ -274,7 +268,7 @@ fn swap_map_type(
             }
 
             for mut label_text in map_type_label_q.iter_mut() {
-                label_text.sections[0].value = format!("{:?}", map_type.as_ref());
+                label_text.0 = format!("{:?}", map_type.as_ref());
             }
         }
     }
@@ -304,7 +298,7 @@ pub fn update_cursor_pos(
         // any transforms on the camera. This is done by projecting the cursor position into
         // camera space (world space).
         for (cam_t, cam) in camera_q.iter() {
-            if let Some(pos) = cam.viewport_to_world_2d(cam_t, cursor_moved.position) {
+            if let Ok(pos) = cam.viewport_to_world_2d(cam_t, cursor_moved.position) {
                 *cursor_pos = CursorPos(pos);
             }
         }
@@ -324,15 +318,14 @@ fn highlight_tile_labels(
     )>,
     highlighted_tiles_q: Query<Entity, With<HighlightedLabel>>,
     tile_label_q: Query<&TileLabel>,
-    mut text_q: Query<&mut Text>,
+    mut tile_text_color_q: Query<&mut TextColor>,
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                for section in tile_text.sections.iter_mut() {
-                    section.style.color = Color::BLACK;
-                }
+            if let Ok(mut tile_text_color) = tile_text_color_q.get_mut(label.0) {
+                tile_text_color.0 = Color::BLACK;
+
                 commands
                     .entity(highlighted_tile_entity)
                     .remove::<HighlightedLabel>();
@@ -358,10 +351,9 @@ fn highlight_tile_labels(
             // Highlight the relevant tile's label
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {
-                    if let Ok(mut tile_text) = text_q.get_mut(label.0) {
-                        for section in tile_text.sections.iter_mut() {
-                            section.style.color = palettes::tailwind::RED_600.into();
-                        }
+                    if let Ok(mut tile_text_color) = tile_text_color_q.get_mut(label.0) {
+                        tile_text_color.0 = palettes::tailwind::RED_600.into();
+
                         commands.entity(tile_entity).insert(HighlightedLabel);
                     }
                 }

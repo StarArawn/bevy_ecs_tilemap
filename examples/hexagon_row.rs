@@ -6,7 +6,7 @@ mod helpers;
 const QUADRANT_SIDE_LENGTH: u32 = 80;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("pointy_hex_tiles.png");
 
@@ -73,16 +73,16 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = TilemapGridSize { x: 15.0, y: 17.0 };
     let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
+        get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+    ));
 }
 
 fn swap_mesh_type(
