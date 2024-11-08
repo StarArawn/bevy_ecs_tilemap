@@ -24,12 +24,12 @@ use bevy::{
     time::TimeSystem,
 };
 
-#[cfg(feature = "render")]
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
 };
 use prelude::{TilemapId, TilemapRenderSettings};
+#[cfg(feature = "render")]
 use render::material::{StandardTilemapMaterial, TilemapMaterial, TilemapMaterialHandle};
 use std::marker::PhantomData;
 use tiles::{
@@ -114,6 +114,8 @@ pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
 
 #[cfg(feature = "render")]
 pub type Tilemap = MaterialTilemap<StandardTilemapMaterial>;
+
+#[cfg(feature = "render")]
 pub const Tilemap: Tilemap = MaterialTilemap::<StandardTilemapMaterial>(PhantomData);
 
 #[cfg(feature = "render")]
@@ -138,6 +140,7 @@ pub const Tilemap: Tilemap = MaterialTilemap::<StandardTilemapMaterial>(PhantomD
 /// The default tilemap, with custom Material rendering support.
 pub struct MaterialTilemap<M: TilemapMaterial>(pub PhantomData<M>);
 
+#[cfg(feature = "render")]
 impl<M: TilemapMaterial> Default for MaterialTilemap<M> {
     fn default() -> Self {
         MaterialTilemap(PhantomData)
@@ -246,6 +249,7 @@ pub mod prelude {
     pub use crate::MaterialTilemapBundle;
     #[cfg(feature = "render")]
     pub use crate::Tilemap;
+    #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
 }
