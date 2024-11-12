@@ -1,5 +1,6 @@
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
+    log::error,
     math::FloatOrd,
     prelude::*,
     reflect::TypePath,
@@ -326,6 +327,9 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             Err(AsBindGroupError::RetryNextUpdate) => {
                 prepare_next_frame.assets.push((handle, material));
             }
+            Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
+                error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
+            }
         }
     }
 
@@ -346,6 +350,9 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             }
             Err(AsBindGroupError::RetryNextUpdate) => {
                 prepare_next_frame.assets.push((handle, material));
+            }
+            Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
+                error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
             }
         }
     }
