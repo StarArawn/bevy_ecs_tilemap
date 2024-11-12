@@ -9,7 +9,7 @@ use bevy::{
     math::UVec4,
     prelude::Handle,
     render::{
-        mesh::GpuBufferInfo,
+        mesh::RenderMeshBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::PipelineCache,
         view::ViewUniformOffset,
@@ -199,19 +199,22 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.z,
             tilemap_id.0.index(),
         )) {
-            if let Some(gpu_mesh) = &chunk.gpu_mesh {
-                pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-                match &gpu_mesh.buffer_info {
-                    GpuBufferInfo::Indexed {
-                        buffer,
+            if let (Some(render_mesh), Some(vertex_buffer), Some(index_buffer)) = (
+                &chunk.render_mesh,
+                &chunk.vertex_buffer,
+                &chunk.index_buffer,
+            ) {
+                pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+                match &render_mesh.buffer_info {
+                    RenderMeshBufferInfo::Indexed {
                         index_format,
                         count,
                     } => {
-                        pass.set_index_buffer(buffer.slice(..), 0, *index_format);
+                        pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
                         pass.draw_indexed(0..*count, 0, 0..1);
                     }
-                    GpuBufferInfo::NonIndexed {} => {
-                        pass.draw(0..gpu_mesh.vertex_count, 0..1);
+                    RenderMeshBufferInfo::NonIndexed {} => {
+                        pass.draw(0..render_mesh.vertex_count, 0..1);
                     }
                 }
             }
