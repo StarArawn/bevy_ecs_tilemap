@@ -5,7 +5,7 @@ use crate::prelude::HexCoordSystem;
 use crate::tiles::{TileBundle, TileColor, TilePos, TileTextureIndex};
 use crate::{TileStorage, TilemapSize};
 use bevy::hierarchy::BuildChildren;
-use bevy::prelude::{Color, Commands};
+use bevy::prelude::{ChildBuild, Color, Commands};
 
 /// Fills an entire tile storage with the given tile.
 pub fn fill_tilemap(

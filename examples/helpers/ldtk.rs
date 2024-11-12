@@ -7,10 +7,7 @@ use bevy_ecs_tilemap::{
 use std::{collections::HashMap, io::ErrorKind};
 use thiserror::Error;
 
-use bevy::{
-    asset::{io::Reader, AsyncReadExt},
-    reflect::TypePath,
-};
+use bevy::{asset::io::Reader, reflect::TypePath};
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
@@ -63,7 +60,7 @@ impl AssetLoader for LdtkLoader {
 
     async fn load<'a>(
         &'a self,
-        reader: &'a mut Reader<'_>,
+        reader: &'a mut dyn Reader,
         _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
