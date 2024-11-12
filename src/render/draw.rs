@@ -66,7 +66,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((transform_index, tilemap_index)) = uniform_indices else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         pass.set_bind_group(
@@ -93,7 +93,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(texture) = texture else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
@@ -123,7 +123,7 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
             pass.set_render_pipeline(pipeline);
             RenderCommandResult::Success
         } else {
-            RenderCommandResult::Failure
+            RenderCommandResult::Skip
         }
     }
 }
@@ -161,7 +161,7 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(id) = id else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         if let Ok(material_handle) = material_handles.get(id.0) {
@@ -190,7 +190,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((chunk_id, tilemap_id)) = ids else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
