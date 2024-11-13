@@ -434,7 +434,7 @@ impl RenderChunk2d {
             );
             self.mesh.insert_indices(Indices::U32(indices));
 
-            let vertex_buffer_data = self.mesh.get_vertex_buffer_data();
+            let vertex_buffer_data = self.mesh.create_packed_vertex_buffer_data();
             let vertex_buffer = device.create_buffer_with_data(&BufferInitDescriptor {
                 usage: BufferUsages::VERTEX,
                 label: Some("Mesh Vertex Buffer"),
