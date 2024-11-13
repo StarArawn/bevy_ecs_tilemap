@@ -2,6 +2,7 @@ use bevy::math::Affine3A;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
+use bevy::render::world_sync::{RenderEntity, TemporaryRenderEntity};
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
@@ -188,7 +189,7 @@ pub fn extract(
     changed_tiles_query: Extract<
         Query<
             (
-                Entity,
+                &RenderEntity,
                 &TilePos,
                 &TilePosOld,
                 &TilemapId,
@@ -210,7 +211,7 @@ pub fn extract(
     >,
     tilemap_query: Extract<
         Query<(
-            Entity,
+            &RenderEntity,
             &GlobalTransform,
             &TilemapTileSize,
             &TilemapSpacing,
@@ -225,7 +226,7 @@ pub fn extract(
     >,
     changed_tilemap_query: Extract<
         Query<
-            Entity,
+            &RenderEntity,
             Or<(
                 Added<TilemapType>,
                 Changed<TilemapType>,
@@ -241,7 +242,7 @@ pub fn extract(
             )>,
         >,
     >,
-    camera_query: Extract<Query<(Entity, &Frustum), With<Camera>>>,
+    camera_query: Extract<Query<(&RenderEntity, &Frustum), With<Camera>>>,
     images: Extract<Res<Assets<Image>>>,
     time: Extract<Res<Time>>,
 ) {
@@ -250,7 +251,7 @@ pub fn extract(
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (
-        entity,
+        render_entity,
         tile_pos,
         tile_pos_old,
         tilemap_id,
@@ -288,9 +289,9 @@ pub fn extract(
         let data = tilemap_query.get(tilemap_id.0).unwrap();
 
         extracted_tilemaps.insert(
-            data.0,
+            data.0.id(),
             (
-                data.0,
+                data.0.id(),
                 ExtractedTilemapBundle {
                     transform: *data.1,
                     tile_size: *data.2,
@@ -308,25 +309,25 @@ pub fn extract(
         );
 
         extracted_tiles.push((
-            entity,
+            render_entity.id(),
             ExtractedTileBundle {
                 tile: ExtractedTile {
-                    entity,
+                    entity: render_entity.id(),
                     position: *tile_pos,
                     old_position: *tile_pos_old,
                     tile,
-                    tilemap_id: *tilemap_id,
+                    tilemap_id: TilemapId(data.0.id()),
                 },
             },
         ));
     }
 
     for tilemap_entity in changed_tilemap_query.iter() {
-        if let Ok(data) = tilemap_query.get(tilemap_entity) {
+        if let Ok(data) = tilemap_query.get(tilemap_entity.id()) {
             extracted_tilemaps.insert(
-                data.0,
+                data.0.id(),
                 (
-                    data.0,
+                    data.0.id(),
                     ExtractedTilemapBundle {
                         transform: *data.1,
                         tile_size: *data.2,
@@ -349,13 +350,15 @@ pub fn extract(
         extracted_tilemaps.drain().map(|kv| kv.1).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in tilemap_query.iter() {
+    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in
+        tilemap_query.iter()
+    {
         if texture.verify_ready(&images) {
             extracted_tilemap_textures.push((
-                entity,
+                render_entity.id(),
                 ExtractedTilemapTextureBundle {
                     data: ExtractedTilemapTexture::new(
-                        entity,
+                        render_entity.id(),
                         texture.clone_weak(),
                         *tile_size,
                         *tile_spacing,
@@ -367,9 +370,9 @@ pub fn extract(
         }
     }
 
-    for (entity, frustum) in camera_query.iter() {
+    for (render_entity, frustum) in camera_query.iter() {
         commands
-            .get_or_spawn(entity)
+            .get_or_spawn(render_entity.id())
             .insert(ExtractedFrustum { frustum: *frustum });
     }
 

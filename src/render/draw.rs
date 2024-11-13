@@ -6,6 +6,7 @@ use bevy::{
         lifetimeless::{Read, SQuery, SRes},
         SystemParamItem,
     },
+    log::info,
     math::UVec4,
     prelude::Handle,
     render::{

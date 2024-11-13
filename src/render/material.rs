@@ -410,12 +410,12 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
             .unwrap();
 
         for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
-            if !visible_entities
-                .iter::<With<TilemapRenderSettings>>()
-                .any(|&entity| entity.index() == tilemap_id.0.index())
-            {
-                continue;
-            }
+            // if !visible_entities
+            //     .iter::<With<TilemapRenderSettings>>()
+            //     .any(|&entity| entity.index() == tilemap_id.0.index())
+            // {
+            //     continue;
+            // }
 
             let Ok(material_handle) = materials.get(tilemap_id.0) else {
                 continue;
@@ -528,12 +528,12 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
             });
 
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
-                if !visible_entities
-                    .iter::<With<TilemapRenderSettings>>()
-                    .any(|&entity| entity.index() == tilemap_id.0.index())
-                {
-                    continue;
-                }
+                // if !visible_entities
+                //     .iter::<With<TilemapRenderSettings>>()
+                //     .any(|&entity| entity.index() == tilemap_id.0.index())
+                // {
+                //     continue;
+                // }
 
                 let Ok(material_handle) = materials.get(tilemap_id.0) else {
                     continue;

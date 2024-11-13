@@ -26,17 +26,17 @@ pub fn movement(
             direction -= Vec3::new(0.0, 1.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::KeyZ) {
-            ortho.scale += 0.1;
-        }
+        // if keyboard_input.pressed(KeyCode::KeyZ) {
+        //     ortho.scale += 0.1;
+        // }
 
-        if keyboard_input.pressed(KeyCode::KeyX) {
-            ortho.scale -= 0.1;
-        }
+        // if keyboard_input.pressed(KeyCode::KeyX) {
+        //     ortho.scale -= 0.1;
+        // }
 
-        if ortho.scale < 0.5 {
-            ortho.scale = 0.5;
-        }
+        // if ortho.scale < 0.5 {
+        //     ortho.scale = 0.5;
+        // }
 
         let z = transform.translation.z;
         transform.translation += time.delta_seconds() * direction * 500.;

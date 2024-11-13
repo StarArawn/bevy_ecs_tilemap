@@ -9,7 +9,9 @@ use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
+use bevy::log::{debug, info};
 use bevy::prelude::{InheritedVisibility, Resource};
+use bevy::render::world_sync::{RenderEntity, TemporaryRenderEntity};
 use bevy::{log::trace, render::mesh::MeshVertexBufferLayouts};
 use bevy::{
     math::{Mat4, UVec4},
@@ -175,7 +177,7 @@ pub(crate) fn prepare(
 
     for chunk in chunk_storage.iter_mut() {
         if !chunk.visible {
-            trace!("Visibility culled chunk: {:?}", chunk.get_index());
+            info!("Visibility culled chunk: {:?}", chunk.get_index());
             continue;
         }
 
@@ -184,10 +186,10 @@ pub(crate) fn prepare(
                 .iter()
                 .any(|frustum| chunk.intersects_frustum(frustum))
         {
-            trace!("Frustum culled chunk: {:?}", chunk.get_index());
+            info!("Frustum culled chunk: {:?}", chunk.get_index());
             continue;
         }
-        trace!("Preparing chunk: {:?}", chunk.get_index());
+        info!("Preparing chunk: {:?}", chunk.get_index());
 
         chunk.prepare(&render_device, &mut mesh_vertex_buffer_layouts);
 
@@ -210,6 +212,7 @@ pub(crate) fn prepare(
                 index: tilemap_uniforms.0.push(&chunk_uniform),
                 marker: PhantomData,
             },
+            TemporaryRenderEntity,
         ));
     }
 
