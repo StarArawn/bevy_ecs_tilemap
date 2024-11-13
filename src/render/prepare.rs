@@ -11,7 +11,7 @@ use crate::{
 };
 use bevy::log::{debug, info};
 use bevy::prelude::{InheritedVisibility, Resource};
-use bevy::render::world_sync::{RenderEntity, TemporaryRenderEntity};
+use bevy::render::sync_world::{RenderEntity, TemporaryRenderEntity};
 use bevy::{log::trace, render::mesh::MeshVertexBufferLayouts};
 use bevy::{
     math::{Mat4, UVec4},

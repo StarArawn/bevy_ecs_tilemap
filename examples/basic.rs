@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::world_sync::SyncToRenderWorld};
+use bevy::{prelude::*, render::sync_world::SyncToRenderWorld};
 use bevy_ecs_tilemap::prelude::*;
 
 //mod helpers;
