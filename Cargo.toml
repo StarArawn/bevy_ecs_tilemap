@@ -16,7 +16,7 @@ render = []
 serde = ["dep:serde"]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "2d1b4939d2b35a7a7ce165c7c188770b8baedb0c", default-features = false, features = [
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "a06802a66eb0af8c2d2c4ec77a654a5ed5913596", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
@@ -35,7 +35,7 @@ thiserror = { version = "1.0" }
 
 [dev-dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
-rev = "2d1b4939d2b35a7a7ce165c7c188770b8baedb0c"
+rev = "a06802a66eb0af8c2d2c4ec77a654a5ed5913596"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -53,7 +53,7 @@ features = [
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
-rev = "2d1b4939d2b35a7a7ce165c7c188770b8baedb0c"
+rev = "a06802a66eb0af8c2d2c4ec77a654a5ed5913596"
 default-features = false
 features = [
     "bevy_core_pipeline",
