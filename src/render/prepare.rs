@@ -177,7 +177,6 @@ pub(crate) fn prepare(
 
     for chunk in chunk_storage.iter_mut() {
         if !chunk.visible {
-            info!("Visibility culled chunk: {:?}", chunk.get_index());
             continue;
         }
 
@@ -186,10 +185,8 @@ pub(crate) fn prepare(
                 .iter()
                 .any(|frustum| chunk.intersects_frustum(frustum))
         {
-            info!("Frustum culled chunk: {:?}", chunk.get_index());
             continue;
         }
-        info!("Preparing chunk: {:?}", chunk.get_index());
 
         chunk.prepare(&render_device, &mut mesh_vertex_buffer_layouts);
 
