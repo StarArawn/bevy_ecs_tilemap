@@ -6,9 +6,7 @@ use bevy::{
         lifetimeless::{Read, SQuery, SRes},
         SystemParamItem,
     },
-    log::info,
     math::UVec4,
-    prelude::Handle,
     render::{
         mesh::RenderMeshBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},

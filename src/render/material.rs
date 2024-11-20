@@ -1,7 +1,6 @@
 use crate::prelude::{TilemapId, TilemapRenderSettings};
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
-use bevy::render::sync_world::MainEntity;
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::{StaticSystemParam, SystemParamItem},

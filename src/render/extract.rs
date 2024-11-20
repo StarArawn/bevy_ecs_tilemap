@@ -2,7 +2,7 @@ use bevy::math::Affine3A;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
-use bevy::render::sync_world::{RenderEntity, TemporaryRenderEntity};
+use bevy::render::sync_world::RenderEntity;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
