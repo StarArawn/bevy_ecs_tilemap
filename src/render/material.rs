@@ -6,7 +6,7 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
-        extract_component::ExtractComponentPlugin,
+        extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
         render_phase::{
