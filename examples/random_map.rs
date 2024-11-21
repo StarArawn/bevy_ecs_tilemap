@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 

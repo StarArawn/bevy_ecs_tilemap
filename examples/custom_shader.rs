@@ -22,7 +22,7 @@ fn startup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<MyMaterial>>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let my_material_handle = MaterialTilemapHandle::from(materials.add(MyMaterial {
         brightness: 0.5,

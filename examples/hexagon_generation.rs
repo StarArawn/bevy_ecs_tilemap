@@ -46,7 +46,7 @@ impl FromWorld for FontHandle {
 
 // Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         x: MAP_SIDE_LENGTH,

@@ -54,7 +54,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 }
 
 fn camera_pos_to_chunk_pos(camera_pos: &Vec2) -> IVec2 {

@@ -188,7 +188,7 @@ fn hex_neighbors_radius_from_tile_pos(
 }
 
 fn spawn_chunks(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         x: CHUNK_MAP_SIDE_LENGTH_X,
