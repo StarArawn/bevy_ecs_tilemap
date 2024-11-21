@@ -170,6 +170,8 @@ pub mod prelude {
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemap;
     #[cfg(feature = "render")]
+    pub use crate::render::material::MaterialTilemapHandle;
+    #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapKey;
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapPlugin;

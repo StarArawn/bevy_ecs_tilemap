@@ -24,10 +24,10 @@ fn startup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let my_material_handle = materials.add(MyMaterial {
+    let my_material_handle = MaterialTilemapHandle::from(materials.add(MyMaterial {
         brightness: 0.5,
         ..default()
-    });
+    }));
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
