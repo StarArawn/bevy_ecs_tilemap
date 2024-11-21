@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::sync_world::SyncToRenderWorld};
 use bevy_ecs_tilemap::prelude::*;
 
-//mod helpers;
+mod helpers;
 
 fn startup(
     mut commands: Commands,
@@ -117,7 +117,7 @@ fn main() {
         }).set(ImagePlugin::default_nearest()))
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, startup)
-        //.add_systems(Update, helpers::camera::movement)
+        .add_systems(Update, helpers::camera::movement)
         .add_systems(Update, swap_texture_or_hide)
         .run();
 }
