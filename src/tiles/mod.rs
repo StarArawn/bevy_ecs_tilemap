@@ -3,6 +3,7 @@ mod storage;
 use bevy::{
     math::{UVec2, Vec2},
     prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
+    render::sync_world::SyncToRenderWorld,
 };
 pub use storage::*;
 
@@ -108,7 +109,7 @@ pub struct TileFlip {
 }
 
 /// This an optional tile bundle with default components.
-#[derive(Bundle, Default, Clone, Copy, Debug)]
+#[derive(Bundle, Default, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileBundle {
     pub position: TilePos,
@@ -118,6 +119,7 @@ pub struct TileBundle {
     pub flip: TileFlip,
     pub color: TileColor,
     pub old_position: TilePosOld,
+    pub sync: SyncToRenderWorld,
 }
 
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]

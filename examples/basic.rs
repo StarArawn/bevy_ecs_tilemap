@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::sync_world::SyncToRenderWorld};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
@@ -35,14 +35,11 @@ fn startup(
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn((
-                    TileBundle {
-                        position: tile_pos,
-                        tilemap_id: TilemapId(tilemap_entity),
-                        ..Default::default()
-                    },
-                    SyncToRenderWorld,
-                ))
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id: TilemapId(tilemap_entity),
+                    ..Default::default()
+                })
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
@@ -52,19 +49,16 @@ fn startup(
     let grid_size = tile_size.into();
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert((
-        TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-            ..Default::default()
-        },
-        SyncToRenderWorld,
-    ));
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: map_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        ..Default::default()
+    });
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.

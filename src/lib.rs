@@ -20,6 +20,7 @@ use bevy::{
         IntoSystemConfigs, IntoSystemSetConfigs, Plugin, Query, Reflect, ReflectComponent,
         SystemSet, Transform, ViewVisibility, Visibility,
     },
+    render::sync_world::SyncToRenderWorld,
     time::TimeSystem,
 };
 
@@ -132,6 +133,7 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
     pub material: MaterialTilemapHandle<M>,
+    pub sync: SyncToRenderWorld,
 }
 
 #[cfg(not(feature = "render"))]
@@ -156,6 +158,7 @@ pub struct StandardTilemapBundle {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
+    pub sync: SyncToRenderWorld,
 }
 
 /// A module which exports commonly used dependencies.
