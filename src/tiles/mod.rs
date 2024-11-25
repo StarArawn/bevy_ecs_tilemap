@@ -119,6 +119,7 @@ pub struct TileBundle {
     pub flip: TileFlip,
     pub color: TileColor,
     pub old_position: TilePosOld,
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub sync: SyncToRenderWorld,
 }
 
