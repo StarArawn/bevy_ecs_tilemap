@@ -391,7 +391,7 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
 pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
-    render_device: Res<RenderDevice>,
+    _render_device: Res<RenderDevice>,
     (material_tilemap_pipeline, mut material_pipelines): (
         Res<MaterialTilemapPipeline<M>>,
         ResMut<SpecializedRenderPipelines<MaterialTilemapPipeline<M>>>,
@@ -415,7 +415,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     M::Data: PartialEq + Eq + Hash + Clone,
 {
     #[cfg(not(feature = "atlas"))]
-    texture_array_cache.queue(&render_device, &render_queue, &gpu_images);
+    texture_array_cache.queue(&_render_device, &render_queue, &gpu_images);
 
     if standard_tilemap_meshes.is_empty() {
         return;
