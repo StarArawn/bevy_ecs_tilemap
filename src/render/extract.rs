@@ -228,7 +228,7 @@ pub fn extract(
     >,
     changed_tilemap_query: Extract<
         Query<
-            &RenderEntity,
+            Entity,
             Or<(
                 Added<TilemapType>,
                 Changed<TilemapType>,
@@ -325,7 +325,7 @@ pub fn extract(
     }
 
     for tilemap_entity in changed_tilemap_query.iter() {
-        if let Ok(data) = tilemap_query.get(tilemap_entity.id()) {
+        if let Ok(data) = tilemap_query.get(tilemap_entity) {
             extracted_tilemaps.insert(
                 data.0.id(),
                 (
