@@ -23,9 +23,10 @@ use bevy::{
 
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
-    extract::{ExtractedRemovedMap, ExtractedRemovedTile, ExtractedTile, ExtractedTilemapTexture},
+    extract::{ExtractedTile, ExtractedTilemapTexture},
     DynamicUniformIndex,
 };
+use super::{RemovedMapEntity, RemovedTileEntity};
 
 #[derive(Resource, Default)]
 pub struct MeshUniformResource(pub DynamicUniformBuffer<MeshUniform>);
@@ -220,14 +221,14 @@ pub(crate) fn prepare(
 
 pub fn prepare_removal(
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
-    removed_tiles: Query<&ExtractedRemovedTile>,
-    removed_maps: Query<&ExtractedRemovedMap>,
+    removed_tiles: Query<&RemovedTileEntity>,
+    removed_maps: Query<&RemovedMapEntity>,
 ) {
     for removed_tile in removed_tiles.iter() {
-        chunk_storage.remove_tile_with_entity(removed_tile.entity)
+        chunk_storage.remove_tile_with_entity(removed_tile.0.id())
     }
 
     for removed_map in removed_maps.iter() {
-        chunk_storage.remove_map(removed_map.entity);
+        chunk_storage.remove_map(removed_map.0.id());
     }
 }

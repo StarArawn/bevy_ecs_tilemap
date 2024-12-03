@@ -6,10 +6,12 @@ use bevy::{
     image::ImageSamplerDescriptor,
     prelude::*,
     render::{
+        extract_component::{ExtractComponent, ExtractComponentPlugin},
         extract_resource::{extract_resource, ExtractResource},
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
+        sync_world::RenderEntity,
         view::{check_visibility, VisibilitySystems},
         Render, RenderApp, RenderSet,
     },
@@ -114,7 +116,12 @@ impl Plugin for TilemapRenderingPlugin {
         app.add_systems(Update, set_texture_to_copy_src);
 
         app.add_systems(First, clear_removed.in_set(TilemapFirstSet));
-        app.add_systems(PostUpdate, (removal_helper, removal_helper_tilemap));
+
+        app.add_observer(on_remove_tile);
+        app.add_observer(on_remove_tilemap);
+
+        app.add_plugins(ExtractComponentPlugin::<RemovedTileEntity>::default());
+        app.add_plugins(ExtractComponentPlugin::<RemovedMapEntity>::default());
 
         app.add_plugins(MaterialTilemapPlugin::<StandardTilemapMaterial>::default());
 
@@ -246,11 +253,7 @@ impl Plugin for TilemapRenderingPlugin {
             .insert_resource(SecondsSinceStartup(0.0))
             .add_systems(
                 ExtractSchedule,
-                (
-                    extract::extract,
-                    extract::extract_removal,
-                    extract_resource::<ModifiedImageIds>,
-                ),
+                (extract::extract, extract_resource::<ModifiedImageIds>),
             )
             .add_systems(
                 Render,
@@ -303,24 +306,30 @@ pub const ATTRIBUTE_TEXTURE: MeshVertexAttribute =
 pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
     MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
 
-#[derive(Component)]
-pub struct RemovedTileEntity(pub Entity);
+#[derive(Component, ExtractComponent, Clone)]
 
-#[derive(Component)]
-pub struct RemovedMapEntity(pub Entity);
+pub struct RemovedTileEntity(pub RenderEntity);
 
-fn removal_helper(mut commands: Commands, mut removed_query: RemovedComponents<TilePos>) {
-    for entity in removed_query.read() {
-        commands.spawn(RemovedTileEntity(entity));
+#[derive(Component, ExtractComponent, Clone)]
+pub struct RemovedMapEntity(pub RenderEntity);
+
+fn on_remove_tile(
+    trigger: Trigger<OnRemove, TilePos>,
+    mut commands: Commands,
+    query: Query<&RenderEntity>,
+) {
+    if let Ok(render_entity) = query.get(trigger.entity()) {
+        commands.spawn(RemovedTileEntity(*render_entity));
     }
 }
 
-fn removal_helper_tilemap(
+fn on_remove_tilemap(
+    trigger: Trigger<OnRemove, TileStorage>,
     mut commands: Commands,
-    mut removed_query: RemovedComponents<TileStorage>,
+    query: Query<&RenderEntity>,
 ) {
-    for entity in removed_query.read() {
-        commands.spawn(RemovedMapEntity(entity));
+    if let Ok(render_entity) = query.get(trigger.entity()) {
+        commands.spawn(RemovedMapEntity(*render_entity));
     }
 }
 

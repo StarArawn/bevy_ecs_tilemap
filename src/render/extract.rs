@@ -2,7 +2,7 @@ use bevy::math::Affine3A;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
-use bevy::render::sync_world::{RenderEntity, TemporaryRenderEntity};
+use bevy::render::sync_world::RenderEntity;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
@@ -19,8 +19,7 @@ use crate::{
     FrustumCulling,
 };
 
-use super::RemovedMapEntity;
-use super::{chunk::PackedTileData, RemovedTileEntity};
+use super::chunk::PackedTileData;
 
 #[derive(Component)]
 pub struct ExtractedTile {
@@ -34,28 +33,6 @@ pub struct ExtractedTile {
 #[derive(Bundle)]
 pub struct ExtractedTileBundle {
     tile: ExtractedTile,
-}
-
-#[derive(Component)]
-pub struct ExtractedRemovedTile {
-    pub entity: Entity,
-}
-
-#[derive(Bundle)]
-pub struct ExtractedRemovedTileBundle {
-    tile: ExtractedRemovedTile,
-    temp: TemporaryRenderEntity,
-}
-
-#[derive(Component)]
-pub struct ExtractedRemovedMap {
-    pub entity: Entity,
-}
-
-#[derive(Bundle)]
-pub struct ExtractedRemovedMapBundle {
-    map: ExtractedRemovedMap,
-    temp: TemporaryRenderEntity,
 }
 
 #[derive(Bundle)]
@@ -382,30 +359,4 @@ pub fn extract(
     commands.insert_or_spawn_batch(extracted_tilemaps);
     commands.insert_or_spawn_batch(extracted_tilemap_textures);
     commands.insert_resource(SecondsSinceStartup(time.elapsed_secs_f64() as f32));
-}
-
-pub fn extract_removal(
-    mut commands: Commands,
-    removed_tiles_query: Extract<Query<&RemovedTileEntity>>,
-    removed_maps_query: Extract<Query<&RemovedMapEntity>>,
-) {
-    let mut removed_tiles: Vec<ExtractedRemovedTileBundle> = Vec::new();
-    for removed in removed_tiles_query.iter() {
-        removed_tiles.push(ExtractedRemovedTileBundle {
-            tile: ExtractedRemovedTile { entity: removed.0 },
-            temp: TemporaryRenderEntity,
-        });
-    }
-
-    commands.spawn_batch(removed_tiles);
-
-    let mut removed_maps: Vec<ExtractedRemovedMapBundle> = Vec::new();
-    for removed in removed_maps_query.iter() {
-        removed_maps.push(ExtractedRemovedMapBundle {
-            map: ExtractedRemovedMap { entity: removed.0 },
-            temp: TemporaryRenderEntity,
-        });
-    }
-
-    commands.spawn_batch(removed_maps);
 }
