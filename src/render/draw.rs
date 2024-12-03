@@ -206,6 +206,10 @@ impl RenderCommand<Transparent2d> for DrawMesh {
                 &chunk.vertex_buffer,
                 &chunk.index_buffer,
             ) {
+                if render_mesh.vertex_count == 0 {
+                    return RenderCommandResult::Skip;
+                }
+
                 pass.set_vertex_buffer(0, vertex_buffer.slice(..));
                 match &render_mesh.buffer_info {
                     RenderMeshBufferInfo::Indexed {
