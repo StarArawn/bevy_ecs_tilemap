@@ -1,5 +1,6 @@
 use bevy::{
     core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
+    image::BevyDefault,
     prelude::{Component, FromWorld, Handle, Resource, Shader, World},
     render::{
         globals::GlobalsUniform,
@@ -14,7 +15,6 @@ use bevy::{
             VertexStepMode,
         },
         renderer::RenderDevice,
-        texture::BevyDefault,
         view::{ViewTarget, ViewUniform},
     },
 };
@@ -259,6 +259,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             },
             label: Some("tilemap_pipeline".into()),
             push_constant_ranges: vec![],
+            zero_initialize_workgroup_memory: false,
         }
     }
 }

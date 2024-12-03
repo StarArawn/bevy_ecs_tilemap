@@ -3,11 +3,9 @@ use crate::{
     prelude::{TilemapSpacing, TilemapTileSize},
     TilemapTexture,
 };
-use bevy::render::{
-    render_resource::{FilterMode, TextureFormat},
-    texture::BevyDefault,
-};
+use bevy::render::render_resource::{FilterMode, TextureFormat};
 use bevy::{
+    image::BevyDefault,
     prelude::{Assets, Image, Res, ResMut, Resource},
     render::Extract,
 };

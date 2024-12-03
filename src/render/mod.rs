@@ -3,13 +3,13 @@ use std::marker::PhantomData;
 use bevy::{
     asset::load_internal_asset,
     core_pipeline::core_2d::Transparent2d,
+    image::ImageSamplerDescriptor,
     prelude::*,
     render::{
         extract_resource::{extract_resource, ExtractResource},
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
-        texture::ImageSamplerDescriptor,
         view::{check_visibility, VisibilitySystems},
         Render, RenderApp, RenderSet,
     },
