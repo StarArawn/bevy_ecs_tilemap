@@ -1,6 +1,7 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
+    window::PresentMode,
 };
 use bevy_ecs_tilemap::prelude::*;
 
@@ -50,6 +51,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: String::from("Benchmark Example"),
+                        present_mode: PresentMode::AutoNoVsync,
                         ..Default::default()
                     }),
                     ..default()
