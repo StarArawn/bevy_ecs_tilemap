@@ -2,7 +2,7 @@ use bevy::math::Affine3A;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
-use bevy::render::sync_world::RenderEntity;
+use bevy::render::sync_world::{RenderEntity, TemporaryRenderEntity};
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
@@ -33,6 +33,7 @@ pub struct ExtractedTile {
 #[derive(Bundle)]
 pub struct ExtractedTileBundle {
     tile: ExtractedTile,
+    temporary: TemporaryRenderEntity,
 }
 
 #[derive(Bundle)]
@@ -48,6 +49,7 @@ pub struct ExtractedTilemapBundle {
     visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
     render_settings: TilemapRenderSettings,
+    temporary: TemporaryRenderEntity,
 }
 
 #[derive(Component)]
@@ -60,6 +62,7 @@ pub(crate) struct ExtractedTilemapTexture {
     pub texture: TilemapTexture,
     pub filtering: FilterMode,
     pub format: TextureFormat,
+    pub temporary: TemporaryRenderEntity,
 }
 
 impl ExtractedTilemapTexture {
@@ -140,6 +143,7 @@ impl ExtractedTilemapTexture {
             tile_count,
             texture_size,
             format,
+            temporary: TemporaryRenderEntity,
         }
     }
 }
@@ -283,6 +287,7 @@ pub fn extract(
                     visibility: *data.8,
                     frustum_culling: *data.9,
                     render_settings: *data.10,
+                    temporary: TemporaryRenderEntity,
                 },
             ),
         );
@@ -297,6 +302,7 @@ pub fn extract(
                     tile,
                     tilemap_id: TilemapId(data.0.id()),
                 },
+                temporary: TemporaryRenderEntity,
             },
         ));
     }
@@ -319,6 +325,7 @@ pub fn extract(
                         visibility: *data.8,
                         frustum_culling: *data.9,
                         render_settings: *data.10,
+                        temporary: TemporaryRenderEntity,
                     },
                 ),
             );
