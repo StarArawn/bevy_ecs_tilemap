@@ -109,7 +109,7 @@ pub struct TileFlip {
 }
 
 /// This an optional tile bundle with default components.
-#[derive(Bundle, Default, Clone, Debug)]
+#[derive(Bundle, Default, Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TileBundle {
     pub position: TilePos,
