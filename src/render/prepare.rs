@@ -9,6 +9,7 @@ use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
+use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
@@ -177,6 +178,7 @@ pub(crate) fn prepare(
 
     for chunk in chunk_storage.iter_mut() {
         if !chunk.visible {
+            trace!("Visibility culled chunk: {:?}", chunk.get_index());
             continue;
         }
 
@@ -185,6 +187,7 @@ pub(crate) fn prepare(
                 .iter()
                 .any(|frustum| chunk.intersects_frustum(frustum))
         {
+            trace!("Frustum culled chunk: {:?}", chunk.get_index());
             continue;
         }
 
