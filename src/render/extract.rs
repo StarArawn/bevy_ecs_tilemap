@@ -334,8 +334,7 @@ pub fn extract(
         }
     }
 
-    let extracted_tilemaps: Vec<(Entity, ExtractedTilemapBundle)> =
-        extracted_tilemaps.drain().map(|kv| kv.1).collect();
+    let extracted_tilemaps: Vec<_> = extracted_tilemaps.drain().map(|(_, val)| val).collect();
 
     // Extracts tilemap textures.
     for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in
