@@ -22,6 +22,7 @@ use bevy::{
 use bevy::render::renderer::RenderDevice;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::texture::GpuImage;
+use extract::remove_changed;
 
 use crate::{
     prelude::TilemapRenderSettings,
@@ -265,6 +266,7 @@ impl Plugin for TilemapRenderingPlugin {
                 Render,
                 queue::queue_transform_bind_group.in_set(RenderSet::PrepareBindGroups),
             )
+            .add_systems(Render, remove_changed.in_set(RenderSet::Cleanup))
             .init_resource::<ImageBindGroups>()
             .init_resource::<SpecializedRenderPipelines<TilemapPipeline>>()
             .init_resource::<MeshUniformResource>()

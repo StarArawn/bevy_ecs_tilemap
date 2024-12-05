@@ -22,6 +22,9 @@ use crate::{
 use super::chunk::PackedTileData;
 
 #[derive(Component)]
+pub struct ChangedInMainWorld;
+
+#[derive(Component)]
 pub struct ExtractedTile {
     pub entity: Entity,
     pub position: TilePos,
@@ -33,6 +36,7 @@ pub struct ExtractedTile {
 #[derive(Bundle)]
 pub struct ExtractedTileBundle {
     tile: ExtractedTile,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Bundle)]
@@ -48,6 +52,7 @@ pub struct ExtractedTilemapBundle {
     visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
     render_settings: TilemapRenderSettings,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Component)]
@@ -147,6 +152,7 @@ impl ExtractedTilemapTexture {
 #[derive(Bundle)]
 pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Component, Debug)]
@@ -283,6 +289,7 @@ pub fn extract(
                     visibility: *data.8,
                     frustum_culling: *data.9,
                     render_settings: *data.10,
+                    changed: ChangedInMainWorld,
                 },
             ),
         );
@@ -297,6 +304,7 @@ pub fn extract(
                     tile,
                     tilemap_id: TilemapId(data.0.id()),
                 },
+                changed: ChangedInMainWorld,
             },
         ));
     }
@@ -319,6 +327,7 @@ pub fn extract(
                         visibility: *data.8,
                         frustum_culling: *data.9,
                         render_settings: *data.10,
+                        changed: ChangedInMainWorld,
                     },
                 ),
             );
@@ -344,6 +353,7 @@ pub fn extract(
                         default_image_settings.0.min_filter.into(),
                         &images,
                     ),
+                    changed: ChangedInMainWorld,
                 },
             ))
         }
@@ -355,8 +365,14 @@ pub fn extract(
             .insert(ExtractedFrustum { frustum: *frustum });
     }
 
-    commands.insert_or_spawn_batch(extracted_tiles);
-    commands.insert_or_spawn_batch(extracted_tilemaps);
-    commands.insert_or_spawn_batch(extracted_tilemap_textures);
+    commands.insert_batch(extracted_tiles);
+    commands.insert_batch(extracted_tilemaps);
+    commands.insert_batch(extracted_tilemap_textures);
     commands.insert_resource(SecondsSinceStartup(time.elapsed_secs_f64() as f32));
+}
+
+pub fn remove_changed(mut commands: Commands, query: Query<Entity, With<ChangedInMainWorld>>) {
+    for entity in &query {
+        commands.entity(entity).remove::<ChangedInMainWorld>();
+    }
 }

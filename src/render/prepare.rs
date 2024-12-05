@@ -10,7 +10,7 @@ use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
 };
 use bevy::log::trace;
-use bevy::prelude::{InheritedVisibility, Resource};
+use bevy::prelude::{InheritedVisibility, Resource, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
 use bevy::{
@@ -22,6 +22,7 @@ use bevy::{
     },
 };
 
+use super::extract::ChangedInMainWorld;
 use super::{
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
     extract::{ExtractedTile, ExtractedTilemapTexture},
@@ -46,22 +47,25 @@ pub(crate) fn prepare(
     mut chunk_storage: ResMut<RenderChunk2dStorage>,
     mut mesh_uniforms: ResMut<MeshUniformResource>,
     mut tilemap_uniforms: ResMut<TilemapUniformResource>,
-    extracted_tiles: Query<&ExtractedTile>,
-    extracted_tilemaps: Query<(
-        Entity,
-        &GlobalTransform,
-        &TilemapTileSize,
-        &TilemapTextureSize,
-        &TilemapSpacing,
-        &TilemapGridSize,
-        &TilemapType,
-        &TilemapTexture,
-        &TilemapSize,
-        &InheritedVisibility,
-        &FrustumCulling,
-        &TilemapRenderSettings,
-    )>,
-    extracted_tilemap_textures: Query<&ExtractedTilemapTexture>,
+    extracted_tiles: Query<&ExtractedTile, With<ChangedInMainWorld>>,
+    extracted_tilemaps: Query<
+        (
+            Entity,
+            &GlobalTransform,
+            &TilemapTileSize,
+            &TilemapTextureSize,
+            &TilemapSpacing,
+            &TilemapGridSize,
+            &TilemapType,
+            &TilemapTexture,
+            &TilemapSize,
+            &InheritedVisibility,
+            &FrustumCulling,
+            &TilemapRenderSettings,
+        ),
+        With<ChangedInMainWorld>,
+    >,
+    extracted_tilemap_textures: Query<&ExtractedTilemapTexture, With<ChangedInMainWorld>>,
     extracted_frustum_query: Query<&ExtractedFrustum>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
