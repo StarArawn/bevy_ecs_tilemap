@@ -4,7 +4,7 @@ use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
 };
-use crate::prelude::TilemapRenderSettings;
+use crate::prelude::{TilemapInWorldTileSize, TilemapRenderSettings};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
     prelude::TilemapGridSize, render::RenderChunkSize, render::SecondsSinceStartup, FrustumCulling,
@@ -48,6 +48,7 @@ pub(crate) fn prepare(
         Entity,
         &GlobalTransform,
         &TilemapTileSize,
+        &TilemapInWorldTileSize,
         &TilemapTextureSize,
         &TilemapSpacing,
         &TilemapGridSize,
@@ -75,6 +76,7 @@ pub(crate) fn prepare(
             _entity,
             transform,
             tile_size,
+            in_world_tile_size,
             texture_size,
             spacing,
             grid_size,
@@ -104,6 +106,7 @@ pub(crate) fn prepare(
             *chunk_size,
             *mesh_type,
             *tile_size,
+            *in_world_tile_size,
             (*texture_size).into(),
             (*spacing).into(),
             *grid_size,
@@ -133,6 +136,7 @@ pub(crate) fn prepare(
         entity,
         global_transform,
         tile_size,
+        in_world_tile_size,
         texture_size,
         spacing,
         grid_size,
@@ -156,6 +160,7 @@ pub(crate) fn prepare(
                 (*global_transform).into(),
                 *grid_size,
                 *tile_size,
+                *in_world_tile_size,
                 *map_type,
             );
         }
