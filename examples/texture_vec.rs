@@ -19,7 +19,7 @@ mod no_atlas {
     const COORD_SYS: HexCoordSystem = HexCoordSystem::Row;
 
     fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-        commands.spawn(Camera2dBundle::default());
+        commands.spawn(Camera2d);
 
         let image_handles = vec![
             asset_server.load("hex-tile-0.png"),

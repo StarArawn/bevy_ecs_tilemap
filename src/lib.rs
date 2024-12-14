@@ -20,11 +20,12 @@ use bevy::{
         IntoSystemConfigs, IntoSystemSetConfigs, Plugin, Query, Reflect, ReflectComponent,
         SystemSet, Transform, ViewVisibility, Visibility,
     },
+    render::sync_world::SyncToRenderWorld,
     time::TimeSystem,
 };
 
 #[cfg(feature = "render")]
-use bevy::prelude::Handle;
+use render::material::MaterialTilemapHandle;
 
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
@@ -131,7 +132,8 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
-    pub material: Handle<M>,
+    pub material: MaterialTilemapHandle<M>,
+    pub sync: SyncToRenderWorld,
 }
 
 #[cfg(not(feature = "render"))]
@@ -156,6 +158,7 @@ pub struct StandardTilemapBundle {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
+    pub sync: SyncToRenderWorld,
 }
 
 /// A module which exports commonly used dependencies.
@@ -169,6 +172,8 @@ pub mod prelude {
     pub use crate::map::*;
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemap;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::MaterialTilemapHandle;
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapKey;
     #[cfg(feature = "render")]

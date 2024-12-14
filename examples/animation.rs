@@ -123,7 +123,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 }
 
 fn main() {

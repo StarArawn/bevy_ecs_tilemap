@@ -1,17 +1,20 @@
 use bevy::{
+    core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
+    image::BevyDefault,
     prelude::{Component, FromWorld, Handle, Resource, Shader, World},
     render::{
         globals::GlobalsUniform,
         render_resource::{
             BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendComponent, BlendFactor,
-            BlendOperation, BlendState, BufferBindingType, ColorTargetState, ColorWrites, Face,
-            FragmentState, FrontFace, MultisampleState, PolygonMode, PrimitiveState,
-            PrimitiveTopology, RenderPipelineDescriptor, SamplerBindingType, ShaderStages,
-            ShaderType, SpecializedRenderPipeline, TextureFormat, TextureSampleType,
-            TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
+            BlendOperation, BlendState, BufferBindingType, ColorTargetState, ColorWrites,
+            CompareFunction, DepthBiasState, DepthStencilState, Face, FragmentState, FrontFace,
+            MultisampleState, PolygonMode, PrimitiveState, PrimitiveTopology,
+            RenderPipelineDescriptor, SamplerBindingType, ShaderStages, ShaderType,
+            SpecializedRenderPipeline, StencilFaceState, StencilState, TextureFormat,
+            TextureSampleType, TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState,
+            VertexStepMode,
         },
         renderer::RenderDevice,
-        texture::BevyDefault,
         view::{ViewTarget, ViewUniform},
     },
 };
@@ -233,7 +236,22 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 topology: PrimitiveTopology::TriangleList,
                 unclipped_depth: false,
             },
-            depth_stencil: None,
+            depth_stencil: Some(DepthStencilState {
+                format: CORE_2D_DEPTH_FORMAT,
+                depth_write_enabled: false,
+                depth_compare: CompareFunction::GreaterEqual,
+                stencil: StencilState {
+                    front: StencilFaceState::IGNORE,
+                    back: StencilFaceState::IGNORE,
+                    read_mask: 0,
+                    write_mask: 0,
+                },
+                bias: DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
             multisample: MultisampleState {
                 count: key.msaa,
                 mask: !0,
@@ -241,6 +259,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             },
             label: Some("tilemap_pipeline".into()),
             push_constant_ranges: vec![],
+            zero_initialize_workgroup_memory: false,
         }
     }
 }

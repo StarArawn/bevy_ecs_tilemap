@@ -3,6 +3,7 @@ mod storage;
 use bevy::{
     math::{UVec2, Vec2},
     prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
+    render::sync_world::SyncToRenderWorld,
 };
 pub use storage::*;
 
@@ -118,6 +119,8 @@ pub struct TileBundle {
     pub flip: TileFlip,
     pub color: TileColor,
     pub old_position: TilePosOld,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub sync: SyncToRenderWorld,
 }
 
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]

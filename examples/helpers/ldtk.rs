@@ -7,10 +7,7 @@ use bevy_ecs_tilemap::{
 use std::{collections::HashMap, io::ErrorKind};
 use thiserror::Error;
 
-use bevy::{
-    asset::{io::Reader, AsyncReadExt},
-    reflect::TypePath,
-};
+use bevy::{asset::io::Reader, reflect::TypePath};
 use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext},
     prelude::*,
@@ -39,9 +36,12 @@ pub struct LdtkMapConfig {
     pub selected_level: usize,
 }
 
+#[derive(Default, Component)]
+pub struct LdtkMapHandle(pub Handle<LdtkMap>);
+
 #[derive(Default, Bundle)]
 pub struct LdtkMapBundle {
-    pub ldtk_map: Handle<LdtkMap>,
+    pub ldtk_map: LdtkMapHandle,
     pub ldtk_map_config: LdtkMapConfig,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -61,11 +61,11 @@ impl AssetLoader for LdtkLoader {
     type Settings = ();
     type Error = LdtkAssetLoaderError;
 
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -110,8 +110,8 @@ pub fn process_loaded_tile_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<LdtkMap>>,
     maps: Res<Assets<LdtkMap>>,
-    mut query: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig)>,
-    new_maps: Query<&Handle<LdtkMap>, Added<Handle<LdtkMap>>>,
+    mut query: Query<(Entity, &LdtkMapHandle, &LdtkMapConfig)>,
+    new_maps: Query<&LdtkMapHandle, Added<LdtkMapHandle>>,
 ) {
     let mut changed_maps = Vec::<AssetId<LdtkMap>>::default();
     for event in map_events.read() {
@@ -136,16 +136,16 @@ pub fn process_loaded_tile_maps(
 
     // If we have new map entities, add them to the changed_maps list
     for new_map_handle in new_maps.iter() {
-        changed_maps.push(new_map_handle.id());
+        changed_maps.push(new_map_handle.0.id());
     }
 
     for changed_map in changed_maps.iter() {
         for (entity, map_handle, map_config) in query.iter_mut() {
             // only deal with currently changed map
-            if map_handle.id() != *changed_map {
+            if map_handle.0.id() != *changed_map {
                 continue;
             }
-            if let Some(ldtk_map) = maps.get(map_handle) {
+            if let Some(ldtk_map) = maps.get(&map_handle.0) {
                 // Despawn all existing tilemaps for this LdtkMap
                 commands.entity(entity).despawn_descendants();
 

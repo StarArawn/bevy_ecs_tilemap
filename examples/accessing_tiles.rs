@@ -11,7 +11,7 @@ struct CurrentColor(u16);
 struct LastUpdate(f64);
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -109,7 +109,7 @@ fn update_map(
     )>,
     mut tile_query: Query<&mut TileTextureIndex>,
 ) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     for (mut current_color, mut last_update, tile_storage, map_size) in tilemap_query.iter_mut() {
         if current_time - last_update.0 > 0.1 {
             current_color.0 += 1;

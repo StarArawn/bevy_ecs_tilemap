@@ -2,6 +2,7 @@ use bevy::math::Affine3A;
 use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
+use bevy::render::sync_world::RenderEntity;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
@@ -18,8 +19,10 @@ use crate::{
     FrustumCulling,
 };
 
-use super::RemovedMapEntity;
-use super::{chunk::PackedTileData, RemovedTileEntity};
+use super::chunk::PackedTileData;
+
+#[derive(Component)]
+pub struct ChangedInMainWorld;
 
 #[derive(Component)]
 pub struct ExtractedTile {
@@ -33,26 +36,7 @@ pub struct ExtractedTile {
 #[derive(Bundle)]
 pub struct ExtractedTileBundle {
     tile: ExtractedTile,
-}
-
-#[derive(Component)]
-pub struct ExtractedRemovedTile {
-    pub entity: Entity,
-}
-
-#[derive(Bundle)]
-pub struct ExtractedRemovedTileBundle {
-    tile: ExtractedRemovedTile,
-}
-
-#[derive(Component)]
-pub struct ExtractedRemovedMap {
-    pub entity: Entity,
-}
-
-#[derive(Bundle)]
-pub struct ExtractedRemovedMapBundle {
-    map: ExtractedRemovedMap,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Bundle)]
@@ -68,6 +52,7 @@ pub struct ExtractedTilemapBundle {
     visibility: InheritedVisibility,
     frustum_culling: FrustumCulling,
     render_settings: TilemapRenderSettings,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Component)]
@@ -167,6 +152,7 @@ impl ExtractedTilemapTexture {
 #[derive(Bundle)]
 pub(crate) struct ExtractedTilemapTextureBundle {
     data: ExtractedTilemapTexture,
+    changed: ChangedInMainWorld,
 }
 
 #[derive(Component, Debug)]
@@ -188,7 +174,7 @@ pub fn extract(
     changed_tiles_query: Extract<
         Query<
             (
-                Entity,
+                &RenderEntity,
                 &TilePos,
                 &TilePosOld,
                 &TilemapId,
@@ -210,7 +196,7 @@ pub fn extract(
     >,
     tilemap_query: Extract<
         Query<(
-            Entity,
+            &RenderEntity,
             &GlobalTransform,
             &TilemapTileSize,
             &TilemapSpacing,
@@ -241,7 +227,7 @@ pub fn extract(
             )>,
         >,
     >,
-    camera_query: Extract<Query<(Entity, &Frustum), With<Camera>>>,
+    camera_query: Extract<Query<(&RenderEntity, &Frustum), With<Camera>>>,
     images: Extract<Res<Assets<Image>>>,
     time: Extract<Res<Time>>,
 ) {
@@ -250,7 +236,7 @@ pub fn extract(
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (
-        entity,
+        render_entity,
         tile_pos,
         tile_pos_old,
         tilemap_id,
@@ -288,9 +274,9 @@ pub fn extract(
         let data = tilemap_query.get(tilemap_id.0).unwrap();
 
         extracted_tilemaps.insert(
-            data.0,
+            data.0.id(),
             (
-                data.0,
+                data.0.id(),
                 ExtractedTilemapBundle {
                     transform: *data.1,
                     tile_size: *data.2,
@@ -303,20 +289,22 @@ pub fn extract(
                     visibility: *data.8,
                     frustum_culling: *data.9,
                     render_settings: *data.10,
+                    changed: ChangedInMainWorld,
                 },
             ),
         );
 
         extracted_tiles.push((
-            entity,
+            render_entity.id(),
             ExtractedTileBundle {
                 tile: ExtractedTile {
-                    entity,
+                    entity: render_entity.id(),
                     position: *tile_pos,
                     old_position: *tile_pos_old,
                     tile,
-                    tilemap_id: *tilemap_id,
+                    tilemap_id: TilemapId(data.0.id()),
                 },
+                changed: ChangedInMainWorld,
             },
         ));
     }
@@ -324,9 +312,9 @@ pub fn extract(
     for tilemap_entity in changed_tilemap_query.iter() {
         if let Ok(data) = tilemap_query.get(tilemap_entity) {
             extracted_tilemaps.insert(
-                data.0,
+                data.0.id(),
                 (
-                    data.0,
+                    data.0.id(),
                     ExtractedTilemapBundle {
                         transform: *data.1,
                         tile_size: *data.2,
@@ -339,72 +327,51 @@ pub fn extract(
                         visibility: *data.8,
                         frustum_culling: *data.9,
                         render_settings: *data.10,
+                        changed: ChangedInMainWorld,
                     },
                 ),
             );
         }
     }
 
-    let extracted_tilemaps: Vec<(Entity, ExtractedTilemapBundle)> =
-        extracted_tilemaps.drain().map(|kv| kv.1).collect();
+    let extracted_tilemaps: Vec<_> = extracted_tilemaps.drain().map(|(_, val)| val).collect();
 
     // Extracts tilemap textures.
-    for (entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in tilemap_query.iter() {
+    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in
+        tilemap_query.iter()
+    {
         if texture.verify_ready(&images) {
             extracted_tilemap_textures.push((
-                entity,
+                render_entity.id(),
                 ExtractedTilemapTextureBundle {
                     data: ExtractedTilemapTexture::new(
-                        entity,
+                        render_entity.id(),
                         texture.clone_weak(),
                         *tile_size,
                         *tile_spacing,
                         default_image_settings.0.min_filter.into(),
                         &images,
                     ),
+                    changed: ChangedInMainWorld,
                 },
             ))
         }
     }
 
-    for (entity, frustum) in camera_query.iter() {
+    for (render_entity, frustum) in camera_query.iter() {
         commands
-            .get_or_spawn(entity)
+            .entity(render_entity.id())
             .insert(ExtractedFrustum { frustum: *frustum });
     }
 
-    commands.insert_or_spawn_batch(extracted_tiles);
-    commands.insert_or_spawn_batch(extracted_tilemaps);
-    commands.insert_or_spawn_batch(extracted_tilemap_textures);
-    commands.insert_resource(SecondsSinceStartup(time.elapsed_seconds_f64() as f32));
+    commands.insert_batch(extracted_tiles);
+    commands.insert_batch(extracted_tilemaps);
+    commands.insert_batch(extracted_tilemap_textures);
+    commands.insert_resource(SecondsSinceStartup(time.elapsed_secs_f64() as f32));
 }
 
-pub fn extract_removal(
-    mut commands: Commands,
-    removed_tiles_query: Extract<Query<(Entity, &RemovedTileEntity)>>,
-    removed_maps_query: Extract<Query<(Entity, &RemovedMapEntity)>>,
-) {
-    let mut removed_tiles: Vec<(Entity, ExtractedRemovedTileBundle)> = Vec::new();
-    for (entity, removed) in removed_tiles_query.iter() {
-        removed_tiles.push((
-            entity,
-            ExtractedRemovedTileBundle {
-                tile: ExtractedRemovedTile { entity: removed.0 },
-            },
-        ));
+pub fn remove_changed(mut commands: Commands, query: Query<Entity, With<ChangedInMainWorld>>) {
+    for entity in &query {
+        commands.entity(entity).remove::<ChangedInMainWorld>();
     }
-
-    commands.insert_or_spawn_batch(removed_tiles);
-
-    let mut removed_maps: Vec<(Entity, ExtractedRemovedMapBundle)> = Vec::new();
-    for (entity, removed) in removed_maps_query.iter() {
-        removed_maps.push((
-            entity,
-            ExtractedRemovedMapBundle {
-                map: ExtractedRemovedMap { entity: removed.0 },
-            },
-        ));
-    }
-
-    commands.insert_or_spawn_batch(removed_maps);
 }

@@ -17,7 +17,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bevy::{
-    asset::{io::Reader, AssetLoader, AssetPath, AsyncReadExt},
+    asset::{io::Reader, AssetLoader, AssetPath},
     log,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
@@ -59,9 +59,12 @@ pub struct TiledLayersStorage {
     pub storage: HashMap<u32, Entity>,
 }
 
+#[derive(Component, Default)]
+pub struct TiledMapHandle(pub Handle<TiledMap>);
+
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
-    pub tiled_map: Handle<TiledMap>,
+    pub tiled_map: TiledMapHandle,
     pub storage: TiledLayersStorage,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -104,11 +107,11 @@ impl AssetLoader for TiledLoader {
     type Settings = ();
     type Error = TiledAssetLoaderError;
 
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut bevy::asset::LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut bevy::asset::LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
@@ -199,11 +202,11 @@ pub fn process_loaded_maps(
     maps: Res<Assets<TiledMap>>,
     tile_storage_query: Query<(Entity, &TileStorage)>,
     mut map_query: Query<(
-        &Handle<TiledMap>,
+        &TiledMapHandle,
         &mut TiledLayersStorage,
         &TilemapRenderSettings,
     )>,
-    new_maps: Query<&Handle<TiledMap>, Added<Handle<TiledMap>>>,
+    new_maps: Query<&TiledMapHandle, Added<TiledMapHandle>>,
 ) {
     let mut changed_maps = Vec::<AssetId<TiledMap>>::default();
     for event in map_events.read() {
@@ -228,16 +231,16 @@ pub fn process_loaded_maps(
 
     // If we have new map entities add them to the changed_maps list.
     for new_map_handle in new_maps.iter() {
-        changed_maps.push(new_map_handle.id());
+        changed_maps.push(new_map_handle.0.id());
     }
 
     for changed_map in changed_maps.iter() {
         for (map_handle, mut layer_storage, render_settings) in map_query.iter_mut() {
             // only deal with currently changed map
-            if map_handle.id() != *changed_map {
+            if map_handle.0.id() != *changed_map {
                 continue;
             }
-            if let Some(tiled_map) = maps.get(map_handle) {
+            if let Some(tiled_map) = maps.get(&map_handle.0) {
                 // TODO: Create a RemoveMap component..
                 for layer_entity in layer_storage.storage.values() {
                     if let Ok((_, layer_tile_storage)) = tile_storage_query.get(*layer_entity) {

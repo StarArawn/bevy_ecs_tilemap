@@ -5,7 +5,7 @@ use rand::{thread_rng, Rng};
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -56,7 +56,7 @@ fn remove_tiles(
     mut last_update_query: Query<(&mut LastUpdate, &TileStorage)>,
     mut tile_query: Query<&mut TileVisible>,
 ) {
-    let current_time = time.elapsed_seconds_f64();
+    let current_time = time.elapsed_secs_f64();
     for (mut last_update, tile_storage) in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {

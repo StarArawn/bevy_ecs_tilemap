@@ -7,9 +7,8 @@ use bevy::{
         SystemParamItem,
     },
     math::UVec4,
-    prelude::Handle,
     render::{
-        mesh::GpuBufferInfo,
+        mesh::RenderMeshBufferInfo,
         render_phase::{RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::PipelineCache,
         view::ViewUniformOffset,
@@ -21,7 +20,7 @@ use crate::TilemapTexture;
 
 use super::{
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
-    material::{MaterialTilemap, RenderMaterialsTilemap},
+    material::{MaterialTilemap, MaterialTilemapHandle, RenderMaterialsTilemap},
     prepare::MeshUniform,
     queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
     DynamicUniformIndex,
@@ -66,7 +65,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTransformBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((transform_index, tilemap_index)) = uniform_indices else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         pass.set_bind_group(
@@ -93,7 +92,7 @@ impl<const I: usize> RenderCommand<Transparent2d> for SetTextureBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(texture) = texture else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         let bind_group = image_bind_groups.into_inner().values.get(texture).unwrap();
@@ -123,7 +122,7 @@ impl RenderCommand<Transparent2d> for SetItemPipeline {
             pass.set_render_pipeline(pipeline);
             RenderCommandResult::Success
         } else {
-            RenderCommandResult::Failure
+            RenderCommandResult::Skip
         }
     }
 }
@@ -149,7 +148,10 @@ pub struct SetMaterialBindGroup<M: MaterialTilemap, const I: usize>(PhantomData<
 impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
     for SetMaterialBindGroup<M, I>
 {
-    type Param = (SRes<RenderMaterialsTilemap<M>>, SQuery<&'static Handle<M>>);
+    type Param = (
+        SRes<RenderMaterialsTilemap<M>>,
+        SQuery<&'static MaterialTilemapHandle<M>>,
+    );
     type ViewQuery = ();
     type ItemQuery = Read<TilemapId>;
     #[inline]
@@ -161,7 +163,7 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(id) = id else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         if let Ok(material_handle) = material_handles.get(id.0) {
@@ -190,7 +192,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some((chunk_id, tilemap_id)) = ids else {
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Skip;
         };
 
         if let Some(chunk) = chunk_storage.into_inner().get(&UVec4::new(
@@ -199,19 +201,26 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.z,
             tilemap_id.0.index(),
         )) {
-            if let Some(gpu_mesh) = &chunk.gpu_mesh {
-                pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-                match &gpu_mesh.buffer_info {
-                    GpuBufferInfo::Indexed {
-                        buffer,
+            if let (Some(render_mesh), Some(vertex_buffer), Some(index_buffer)) = (
+                &chunk.render_mesh,
+                &chunk.vertex_buffer,
+                &chunk.index_buffer,
+            ) {
+                if render_mesh.vertex_count == 0 {
+                    return RenderCommandResult::Skip;
+                }
+
+                pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+                match &render_mesh.buffer_info {
+                    RenderMeshBufferInfo::Indexed {
                         index_format,
                         count,
                     } => {
-                        pass.set_index_buffer(buffer.slice(..), 0, *index_format);
+                        pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
                         pass.draw_indexed(0..*count, 0, 0..1);
                     }
-                    GpuBufferInfo::NonIndexed {} => {
-                        pass.draw(0..gpu_mesh.vertex_count, 0..1);
+                    RenderMeshBufferInfo::NonIndexed {} => {
+                        pass.draw(0..render_mesh.vertex_count, 0..1);
                     }
                 }
             }

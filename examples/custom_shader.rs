@@ -22,12 +22,12 @@ fn startup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<MyMaterial>>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    let my_material_handle = materials.add(MyMaterial {
+    let my_material_handle = MaterialTilemapHandle::from(materials.add(MyMaterial {
         brightness: 0.5,
         ..default()
-    });
+    }));
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 

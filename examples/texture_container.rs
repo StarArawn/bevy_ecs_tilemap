@@ -20,7 +20,7 @@ mod no_atlas {
 
     #[cfg(not(feature = "atlas"))]
     fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-        commands.spawn(Camera2dBundle::default());
+        commands.spawn(Camera2d);
 
         // Most of the work is happening bevy side. In this case, using the `ktx2` feature. If this
         // feature is not turned on, that the image won't properly be interpreted as a texture

@@ -2,7 +2,7 @@ use bevy::{math::Vec3Swizzles, prelude::*, utils::HashSet};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
-/// Press WASD to move the camera around, and watch as chunks spawn/despawn in response.
+// Press WASD to move the camera around, and watch as chunks spawn/despawn in response.
 
 const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
 // For this example, don't choose too large a chunk size.
@@ -54,7 +54,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 }
 
 fn camera_pos_to_chunk_pos(camera_pos: &Vec2) -> IVec2 {

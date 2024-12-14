@@ -10,7 +10,7 @@ fn startup(
         ArrayTextureLoader,
     >,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 

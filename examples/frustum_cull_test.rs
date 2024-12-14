@@ -75,7 +75,7 @@ impl FromWorld for FontHandle {
 
 // Generates the initial tilemap, which is a square grid.
 fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
         // Render chunks are of size 64, so let's create two render chunks
@@ -122,13 +122,6 @@ fn spawn_map_type_label(
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
-    let text_style = TextStyle {
-        font: font_handle.clone(),
-        font_size: 20.0,
-        color: Color::BLACK,
-    };
-    let text_justify = JustifyText::Center;
-
     for window in windows.iter() {
         for map_type in map_type_q.iter() {
             // Place the map type label somewhere in the top left side of the screen
@@ -138,12 +131,15 @@ fn spawn_map_type_label(
                 ..Default::default()
             };
             commands.spawn((
-                Text2dBundle {
-                    text: Text::from_section(format!("{map_type:?}"), text_style.clone())
-                        .with_justify(text_justify),
-                    transform,
+                Text2d::new(format!("{map_type:?}")),
+                TextFont {
+                    font: font_handle.clone(),
+                    font_size: 20.0,
                     ..default()
                 },
+                TextColor(Color::BLACK),
+                TextLayout::new_with_justify(JustifyText::Center),
+                transform,
                 MapTypeLabel,
             ));
         }
@@ -160,7 +156,7 @@ fn swap_map_type(
         &mut TilemapTileSize,
     )>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut map_type_label_q: Query<&mut Text, With<MapTypeLabel>>,
+    mut map_type_label_q: Query<&mut Text2d, With<MapTypeLabel>>,
     tile_handle_square: Res<TileHandleSquare>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
@@ -216,7 +212,7 @@ fn swap_map_type(
             }
 
             for mut label_text in map_type_label_q.iter_mut() {
-                label_text.sections[0].value = format!("{:?}", map_type.as_ref());
+                label_text.0 = format!("{:?}", map_type.as_ref());
             }
         }
     }

@@ -4,9 +4,9 @@ use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("rotate.tmx");
+    let map_handle = helpers::tiled::TiledMapHandle(asset_server.load("rotate.tmx"));
 
     commands.spawn(helpers::tiled::TiledMapBundle {
         tiled_map: map_handle,
