@@ -23,7 +23,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
 
 ### How Does This Work?
 
-Quite simple there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
+Quite simply there is a tile per entity. Behind the scenes the tiles are split into chunks that each have their own mesh which is sent to the GPU in an optimal way.
 
 ### Why Use This Instead of X?
 
@@ -103,19 +103,20 @@ cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/we
 
 ## Bevy Compatibility
 
-|bevy|bevy_ecs_tilemap|
-|---|---|
-|`main`|`bevy-track`|
-|0.14|0.14|
-|0.13| - |
-|0.12|0.12|
-|0.11|0.11.*|
-|0.10|0.10|
-|0.9|0.9|
-|0.8|0.8|
-|0.8|0.7|
-|0.7|0.6|
-|0.6|0.5|
+| bevy   | bevy_ecs_tilemap |
+| ------ | ---------------- |
+| `main` | `bevy-track`     |
+| 0.15   | 0.15             |
+| 0.14   | 0.14             |
+| 0.13   | -                |
+| 0.12   | 0.12             |
+| 0.11   | 0.11             |
+| 0.10   | 0.10             |
+| 0.9    | 0.9              |
+| 0.8    | 0.8              |
+| 0.8    | 0.7              |
+| 0.7    | 0.6              |
+| 0.6    | 0.5              |
 
 ## Asset credits
 
