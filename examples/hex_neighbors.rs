@@ -24,8 +24,6 @@ pub struct TileHandleHexRow(Handle<Image>);
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexCol(Handle<Image>);
-#[derive(Deref, Resource)]
-pub struct FontHandle(Handle<Font>);
 
 impl FromWorld for TileHandleHexCol {
     fn from_world(world: &mut World) -> Self {
@@ -37,12 +35,6 @@ impl FromWorld for TileHandleHexRow {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("bw-tile-hex-row.png"))
-    }
-}
-impl FromWorld for FontHandle {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
     }
 }
 
@@ -91,7 +83,6 @@ fn spawn_tile_labels(
     mut commands: Commands,
     tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
-    font_handle: Res<FontHandle>,
 ) {
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
@@ -103,7 +94,6 @@ fn spawn_tile_labels(
                 .spawn((
                     Text2d::new(format!("{}, {}", tile_pos.x, tile_pos.y)),
                     TextFont {
-                        font: font_handle.clone(),
                         font_size: 20.0,
                         ..default()
                     },
@@ -125,7 +115,6 @@ pub struct MapTypeLabel;
 // Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
 fn spawn_map_type_label(
     mut commands: Commands,
-    font_handle: Res<FontHandle>,
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
@@ -140,7 +129,6 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2d::new(format!("{map_type:?}")),
                 TextFont {
-                    font: font_handle.clone(),
                     font_size: 20.0,
                     ..default()
                 },
@@ -427,7 +415,6 @@ fn main() {
         .init_resource::<CursorPos>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
-        .init_resource::<FontHandle>()
         .add_systems(Startup, (spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
         .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())

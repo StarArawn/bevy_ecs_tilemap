@@ -36,9 +36,6 @@ pub struct TileHandleSquare(Handle<Image>);
 #[derive(Deref, Resource)]
 pub struct TileHandleIso(Handle<Image>);
 
-#[derive(Deref, Resource)]
-pub struct FontHandle(Handle<Font>);
-
 impl FromWorld for TileHandleHexCol {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
@@ -61,12 +58,6 @@ impl FromWorld for TileHandleSquare {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("bw-tile-square.png"))
-    }
-}
-impl FromWorld for FontHandle {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
     }
 }
 
@@ -115,7 +106,6 @@ fn spawn_tile_labels(
     mut commands: Commands,
     tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
     tile_q: Query<&mut TilePos>,
-    font_handle: Res<FontHandle>,
 ) {
     for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
@@ -127,7 +117,6 @@ fn spawn_tile_labels(
                 .spawn((
                     Text2d::new(format!("{}, {}", tile_pos.x, tile_pos.y)),
                     TextFont {
-                        font: font_handle.clone(),
                         font_size: 20.0,
                         ..default()
                     },
@@ -149,7 +138,6 @@ pub struct MapTypeLabel;
 // Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
 fn spawn_map_type_label(
     mut commands: Commands,
-    font_handle: Res<FontHandle>,
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
@@ -164,7 +152,6 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2d::new(format!("{map_type:?}")),
                 TextFont {
-                    font: font_handle.clone(),
                     font_size: 20.0,
                     ..default()
                 },
@@ -379,7 +366,6 @@ fn main() {
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
         .init_resource::<TileHandleSquare>()
-        .init_resource::<FontHandle>()
         .add_plugins(TilemapPlugin)
         .add_systems(
             Startup,
