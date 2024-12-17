@@ -51,6 +51,7 @@ features = [
     #"file_watcher",
     "multi_threaded",
     "webgl2",
+    "default_font",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
@@ -71,6 +72,7 @@ features = [
     "bevy_ui",
     "multi_threaded",
     "webgl2",
+    "default_font",
 ]
 
 
