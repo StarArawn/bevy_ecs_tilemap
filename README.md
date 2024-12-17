@@ -69,6 +69,7 @@ fn update_damage(
 - [`random_map`](examples/random_map.rs) - A bench of editing all of the tiles every 100 ms.
 - [`remove_tiles`](examples/remove_tiles.rs) - An example showing how you can remove tiles by using map_query
 - [`spacing`](examples/spacing.rs) - Shows how to load tilemap textures that contain spacing between the tiles.
+- [`spawn_despawn_tilemap`](examples/spawn_despawn_tilemap.rs) - Shows how spawn and despawn tilemaps.
 - [`texture_container`](examples/texture_container.rs) - An example showing how to load tiles from array layers inside a KTX2 or DDS container.
 - [`texture_vec`](examples/texture_vec.rs) - An example showing how to load tiles from a list of individual image assets.
 - [`tiled`](examples/tiled.rs) - An example of loading and rendering of a [Tiled](https://www.mapeditor.org/) editor map. We recommend checking out [`bevy_ecs_tiled`](https://github.com/adrien-bon/bevy_ecs_tiled).
