@@ -49,6 +49,7 @@ features = [
     "bevy_sprite",
     #"file_watcher",
     "multi_threaded",
+    "default_font",
     "webgl2",
 ]
 
@@ -68,6 +69,7 @@ features = [
     "bevy_text",
     "bevy_sprite",
     "multi_threaded",
+    "default_font",
     "webgl2",
 ]
 

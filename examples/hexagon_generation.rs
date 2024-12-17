@@ -22,9 +22,6 @@ pub struct TileHandleHexRow(Handle<Image>);
 #[derive(Deref, Resource)]
 pub struct TileHandleHexCol(Handle<Image>);
 
-#[derive(Deref, Resource)]
-pub struct FontHandle(Handle<Font>);
-
 impl FromWorld for TileHandleHexCol {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
@@ -35,12 +32,6 @@ impl FromWorld for TileHandleHexRow {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         Self(asset_server.load("bw-tile-hex-row.png"))
-    }
-}
-impl FromWorld for FontHandle {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("fonts/FiraSans-Bold.ttf"))
     }
 }
 
@@ -94,7 +85,6 @@ pub struct MapTypeLabel;
 // Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
 fn spawn_map_type_label(
     mut commands: Commands,
-    font_handle: Res<FontHandle>,
     windows: Query<&Window>,
     map_type_q: Query<&TilemapType>,
 ) {
@@ -109,7 +99,6 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2d::new(format!("{map_type:?}")),
                 TextFont {
-                    font: font_handle.clone(),
                     font_size: 20.0,
                     ..default()
                 },
@@ -219,7 +208,6 @@ fn main() {
         .add_plugins(TilemapPlugin)
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
-        .init_resource::<FontHandle>()
         .add_systems(
             Startup,
             (spawn_tilemap, apply_deferred, spawn_map_type_label).chain(),
