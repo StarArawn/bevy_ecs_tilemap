@@ -7,7 +7,7 @@ use bevy::{prelude::*, render::Extract, utils::HashMap};
 
 use crate::prelude::TilemapGridSize;
 use crate::prelude::TilemapRenderSettings;
-use crate::render::{DefaultSampler, SecondsSinceStartup};
+use crate::render::DefaultSampler;
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
 use crate::{
@@ -229,7 +229,6 @@ pub fn extract(
     >,
     camera_query: Extract<Query<(&RenderEntity, &Frustum), With<Camera>>>,
     images: Extract<Res<Assets<Image>>>,
-    time: Extract<Res<Time>>,
 ) {
     let mut extracted_tiles = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
@@ -367,7 +366,6 @@ pub fn extract(
     commands.insert_batch(extracted_tiles);
     commands.insert_batch(extracted_tilemaps);
     commands.insert_batch(extracted_tilemap_textures);
-    commands.insert_resource(SecondsSinceStartup(time.elapsed_secs_f64() as f32));
 }
 
 pub fn remove_changed(mut commands: Commands, query: Query<Entity, With<ChangedInMainWorld>>) {
