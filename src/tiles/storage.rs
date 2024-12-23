@@ -86,20 +86,41 @@ impl TileStorage {
         self.tiles.iter_mut()
     }
 
-    /// Remove entity at the given tile position, if there was one, leaving `None` in its place.
+    /// Removes any stored `Entity` at the given tile position, leaving `None` in its place and
+    /// returning the `Entity`.
     ///
     /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
-    pub fn remove(&mut self, tile_pos: &TilePos) {
-        self.tiles[tile_pos.to_index(&self.size)].take();
+    pub fn remove(&mut self, tile_pos: &TilePos) -> Option<Entity> {
+        self.tiles[tile_pos.to_index(&self.size)].take()
     }
 
-    /// Remove any stored entity at the given tile position, if the given `tile_pos` does lie within
-    /// the extents of the underlying map.
+    /// Remove any stored `Entity` at the given tile position, leaving `None` in its place and
+    /// returning the `Entity`.
     ///
-    /// Otherwise, nothing is done.
-    pub fn checked_remove(&mut self, tile_pos: &TilePos) {
+    /// Checks that the given `tile_pos` lies within the extents of the underlying map.
+    pub fn checked_remove(&mut self, tile_pos: &TilePos) -> Option<Entity> {
         if tile_pos.within_map_bounds(&self.size) {
-            self.tiles[tile_pos.to_index(&self.size)].take();
+            return self.tiles[tile_pos.to_index(&self.size)].take();
         }
+
+        None
+    }
+
+    /// Removes all stored `Entity`s, leaving `None` in their place and
+    /// returning them in an iterator.
+    ///
+    /// Example:
+    /// ```
+    /// # use bevy::prelude::Commands;
+    /// # use bevy_ecs_tilemap::prelude::{TilemapSize, TileStorage};
+    /// # fn example(mut commands: Commands) {
+    /// # let mut storage = TileStorage::empty(TilemapSize { x: 16, y: 16 });
+    /// for entity in storage.drain() {
+    ///   commands.entity(entity).despawn();
+    /// }
+    /// # }
+    /// ```
+    pub fn drain(&mut self) -> impl Iterator<Item = Entity> + use<'_> {
+        self.tiles.iter_mut().filter_map(|opt| opt.take())
     }
 }
