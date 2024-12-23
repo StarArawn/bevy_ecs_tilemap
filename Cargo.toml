@@ -47,10 +47,12 @@ features = [
     "bevy_window",
     "bevy_text",
     "bevy_sprite",
+    "bevy_ui",
     #"file_watcher",
     "multi_threaded",
     "default_font",
     "webgl2",
+    "default_font",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
@@ -68,9 +70,11 @@ features = [
     "x11",
     "bevy_text",
     "bevy_sprite",
+    "bevy_ui",
     "multi_threaded",
     "default_font",
     "webgl2",
+    "default_font",
 ]
 
 
@@ -169,6 +173,10 @@ required-features = ["render"]
 [[example]]
 name = "spacing"
 path = "examples/spacing.rs"
+required-features = ["render"]
+[[example]]
+name = "spawn_despawn_tilemap"
+path = "examples/spawn_despawn_tilemap.rs"
 required-features = ["render"]
 [[example]]
 name = "texture_container"
