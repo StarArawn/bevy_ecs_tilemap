@@ -95,9 +95,6 @@ impl RenderChunkSize {
 
 pub struct TilemapRenderingPlugin;
 
-#[derive(Resource, Default, Deref, DerefMut)]
-pub struct SecondsSinceStartup(pub f32);
-
 pub const COLUMN_EVEN_HEX: Handle<Shader> = Handle::weak_from_u128(7704924705970804993);
 pub const COLUMN_HEX: Handle<Shader> = Handle::weak_from_u128(11710877199891728627);
 pub const COLUMN_ODD_HEX: Handle<Shader> = Handle::weak_from_u128(6706359414982022142);
@@ -251,7 +248,6 @@ impl Plugin for TilemapRenderingPlugin {
         render_app
             .insert_resource(DefaultSampler(sampler))
             .insert_resource(RenderChunk2dStorage::default())
-            .insert_resource(SecondsSinceStartup(0.0))
             .add_systems(
                 ExtractSchedule,
                 (extract::extract, extract_resource::<ModifiedImageIds>),

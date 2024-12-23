@@ -1,6 +1,6 @@
 #import bevy_ecs_tilemap::common::{VertexInput, tilemap_data}
 #import bevy_ecs_tilemap::mesh_output::MeshOutput
-#import bevy_sprite::mesh2d_view_bindings::view
+#import bevy_sprite::mesh2d_view_bindings::{view, globals}
 #import bevy_ecs_tilemap::vertex_output::MeshVertexOutput
 
 #ifdef SQUARE
@@ -49,7 +49,7 @@ fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
 
     let frames: f32 = f32(vertex_input.uv.w - vertex_input.uv.z);
 
-    var current_animation_frame = fract(tilemap_data.time * animation_speed) * frames;
+    var current_animation_frame = fract(globals.time * animation_speed) * frames;
 
     current_animation_frame = clamp(f32(vertex_input.uv.z) + current_animation_frame, f32(vertex_input.uv.z), f32(vertex_input.uv.w));
 

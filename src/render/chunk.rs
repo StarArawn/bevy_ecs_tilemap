@@ -6,7 +6,7 @@ use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
 use bevy::{math::Mat4, render::mesh::PrimitiveTopology};
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
-    prelude::{Component, Entity, GlobalTransform, Mesh, Vec3},
+    prelude::{Component, Entity, GlobalTransform, Mesh},
     render::{
         mesh::{Indices, RenderMesh, RenderMeshBufferInfo, VertexAttributeValues},
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
@@ -480,8 +480,6 @@ pub struct TilemapUniformData {
     pub spacing: Vec2,
     pub chunk_pos: Vec2,
     pub map_size: Vec2,
-    pub time: f32,
-    pub pad: Vec3,
 }
 
 impl From<&RenderChunk2d> for TilemapUniformData {
@@ -497,8 +495,6 @@ impl From<&RenderChunk2d> for TilemapUniformData {
             spacing: chunk.spacing,
             chunk_pos: chunk_ix * chunk_size,
             map_size: map_size * tile_size,
-            time: 0.0,
-            pad: Vec3::ZERO,
         }
     }
 }
@@ -516,8 +512,6 @@ impl From<&mut RenderChunk2d> for TilemapUniformData {
             spacing: chunk.spacing,
             chunk_pos: chunk_pos * chunk_size,
             map_size: map_size * tile_size,
-            time: 0.0,
-            pad: Vec3::ZERO,
         }
     }
 }
