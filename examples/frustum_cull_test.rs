@@ -1,18 +1,12 @@
-use bevy::log::{Level, LogPlugin};
-use bevy::{ecs::system::Resource, prelude::*};
-use bevy_ecs_tilemap::prelude::*;
-use bevy_ecs_tilemap::FrustumCulling;
-mod helpers;
-use helpers::camera::movement as camera_movement;
+//! Displays a map large enough for frustum culling to take place and configures
+//! `LogPlugin` to display related traces.
 
-// Press SPACE to change map type.
-//
-// The most important code here is the setting that adds the `FrustumCull` component, and the
-// code that enables logging for trace events from bevy_ecs_tilemap.
-//
-// You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
-// but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
-// otherwise things might be too slow.
+use bevy::{
+    ecs::system::Resource, input::common_conditions::input_just_pressed, log::LogPlugin, prelude::*,
+};
+use bevy_ecs_tilemap::{prelude::*, FrustumCulling};
+
+mod helpers;
 
 // We want to trigger render chunking, which has minimum size 64x64.
 const MAP_SIDE_LENGTH_X: u32 = 64;
@@ -27,45 +21,29 @@ const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
 
-#[derive(Deref, Resource)]
-pub struct TileHandleHexRow(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleHexCol(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleSquare(Handle<Image>);
-
-#[derive(Deref, Resource)]
-pub struct TileHandleIso(Handle<Image>);
-
-impl FromWorld for TileHandleHexCol {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("bw-tile-hex-col.png"))
-    }
+#[derive(Resource)]
+pub struct TextureHandles {
+    hex_row: Handle<Image>,
+    hex_col: Handle<Image>,
+    square: Handle<Image>,
+    iso: Handle<Image>,
 }
-impl FromWorld for TileHandleHexRow {
+impl FromWorld for TextureHandles {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("bw-tile-hex-row.png"))
-    }
-}
-impl FromWorld for TileHandleIso {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("bw-tile-iso.png"))
-    }
-}
-impl FromWorld for TileHandleSquare {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("bw-tile-square.png"))
+        Self {
+            hex_row: asset_server.load("bw-tile-hex-row.png"),
+            hex_col: asset_server.load("bw-tile-hex-col.png"),
+            square: asset_server.load("bw-tile-square.png"),
+            iso: asset_server.load("bw-tile-iso.png"),
+        }
     }
 }
 
-// Generates the initial tilemap, which is a square grid.
-fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
+#[derive(Component)]
+pub struct MapTypeLabel;
+
+fn spawn_scene(mut commands: Commands, texture_handles: Res<TextureHandles>) {
     commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
@@ -76,135 +54,134 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquar
 
     let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
-    let tilemap_id = TilemapId(tilemap_entity);
 
     fill_tilemap(
         TileTextureIndex(0),
         map_size,
-        tilemap_id,
+        TilemapId(tilemap_entity),
         &mut commands,
         &mut tile_storage,
     );
 
-    let tile_size = TILE_SIZE_SQUARE;
-    let grid_size = GRID_SIZE_SQUARE;
-
     commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
+        grid_size: GRID_SIZE_SQUARE,
         size: map_size,
         storage: tile_storage,
-        texture: TilemapTexture::Single(tile_handle_square.clone()),
-        tile_size,
+        texture: TilemapTexture::Single(texture_handles.square.clone()),
+        tile_size: TILE_SIZE_SQUARE,
         map_type: TilemapType::Square,
-        // The default behaviour is `FrustumCulling(true)`, but we supply this explicitly here
-        // for the purposes of the example.
+        // This is the default value, but we provide it explicitly for demonstration
+        // purposes.
         frustum_culling: FrustumCulling(true),
-        ..Default::default()
+        ..default()
     });
 }
 
-#[derive(Component)]
-pub struct MapTypeLabel;
-
-// Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
-fn spawn_map_type_label(
-    mut commands: Commands,
-    windows: Query<&Window>,
-    map_type_q: Query<&TilemapType>,
-) {
-    for window in windows.iter() {
-        for map_type in map_type_q.iter() {
-            // Place the map type label somewhere in the top left side of the screen
-            let transform = Transform {
-                translation: Vec2::new(-0.5 * window.width() / 2.0, 0.8 * window.height() / 2.0)
-                    .extend(1.0),
-                ..Default::default()
-            };
-            commands.spawn((
-                Text2d::new(format!("{map_type:?}")),
-                TextFont {
-                    font_size: 20.0,
-                    ..default()
-                },
-                TextColor(Color::BLACK),
-                TextLayout::new_with_justify(JustifyText::Center),
-                transform,
-                MapTypeLabel,
-            ));
-        }
-    }
+fn spawn_ui(mut commands: Commands) {
+    commands
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                padding: UiRect::all(Val::Px(12.0)),
+                ..default()
+            },
+            BackgroundColor(Color::BLACK.with_alpha(0.75)),
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn(Text::new(concat!(
+                    "wasd:  move camera\n",
+                    "zx:    zoom\n",
+                    "space: change map type\n\n",
+                    "map type: "
+                )))
+                .with_children(|parent| {
+                    parent.spawn((TextSpan::default(), MapTypeLabel));
+                });
+        });
 }
 
-// Swaps the map type, when user presses SPACE
-#[allow(clippy::too_many_arguments)]
-fn swap_map_type(
+// Switches the map type when the user presses space.
+fn switch_map_type(
     mut tilemap_query: Query<(
         &mut TilemapType,
         &mut TilemapGridSize,
         &mut TilemapTexture,
         &mut TilemapTileSize,
     )>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut map_type_label_q: Query<&mut Text2d, With<MapTypeLabel>>,
-    tile_handle_square: Res<TileHandleSquare>,
-    tile_handle_hex_row: Res<TileHandleHexRow>,
-    tile_handle_hex_col: Res<TileHandleHexCol>,
-    tile_handle_iso: Res<TileHandleIso>,
+    texture_handles: Res<TextureHandles>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        for (mut map_type, mut grid_size, mut map_texture, mut tile_size) in
-            tilemap_query.iter_mut()
-        {
-            match map_type.as_ref() {
-                TilemapType::Square { .. } => {
-                    *map_type = TilemapType::Isometric(IsoCoordSystem::Diamond);
-                    *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
-                    *tile_size = TILE_SIZE_ISO;
-                    *grid_size = GRID_SIZE_ISO;
-                }
-                TilemapType::Isometric(IsoCoordSystem::Diamond) => {
-                    *map_type = TilemapType::Isometric(IsoCoordSystem::Staggered);
-                    *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
-                    *tile_size = TILE_SIZE_ISO;
-                    *grid_size = GRID_SIZE_ISO;
-                }
-                TilemapType::Isometric(IsoCoordSystem::Staggered) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
-                    *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
-                    *tile_size = TILE_SIZE_HEX_ROW;
-                    *grid_size = GRID_SIZE_HEX_ROW;
-                }
-                TilemapType::Hexagon(HexCoordSystem::Row) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
-                }
-                TilemapType::Hexagon(HexCoordSystem::RowEven) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowOdd);
-                }
-                TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
-                    *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
-                    *tile_size = TILE_SIZE_HEX_COL;
-                    *grid_size = GRID_SIZE_HEX_COL;
-                }
-                TilemapType::Hexagon(HexCoordSystem::Column) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
-                }
-                TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
-                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
-                }
-                TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
-                    *map_type = TilemapType::Square;
-                    *map_texture = TilemapTexture::Single((*tile_handle_square).clone());
-                    *tile_size = TILE_SIZE_SQUARE;
-                    *grid_size = GRID_SIZE_SQUARE;
-                }
-            }
+    let Ok((mut map_type, mut grid_size, mut map_texture, mut tile_size)) =
+        tilemap_query.get_single_mut()
+    else {
+        return;
+    };
 
-            for mut label_text in map_type_label_q.iter_mut() {
-                label_text.0 = format!("{:?}", map_type.as_ref());
-            }
+    let next_type = match *map_type {
+        TilemapType::Square => TilemapType::Isometric(IsoCoordSystem::Diamond),
+        TilemapType::Isometric(IsoCoordSystem::Diamond) => {
+            TilemapType::Isometric(IsoCoordSystem::Staggered)
+        }
+        TilemapType::Isometric(IsoCoordSystem::Staggered) => {
+            TilemapType::Hexagon(HexCoordSystem::Row)
+        }
+        TilemapType::Hexagon(HexCoordSystem::Row) => TilemapType::Hexagon(HexCoordSystem::RowEven),
+        TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+            TilemapType::Hexagon(HexCoordSystem::RowOdd)
+        }
+        TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+            TilemapType::Hexagon(HexCoordSystem::Column)
+        }
+        TilemapType::Hexagon(HexCoordSystem::Column) => {
+            TilemapType::Hexagon(HexCoordSystem::ColumnEven)
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
+            TilemapType::Hexagon(HexCoordSystem::ColumnOdd)
+        }
+        TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => TilemapType::Square,
+    };
+
+    *map_type = next_type;
+
+    match next_type {
+        TilemapType::Square => {
+            *map_texture = TilemapTexture::Single(texture_handles.square.clone());
+            *tile_size = TILE_SIZE_SQUARE;
+            *grid_size = GRID_SIZE_SQUARE;
+        }
+        TilemapType::Isometric(IsoCoordSystem::Diamond)
+        | TilemapType::Isometric(IsoCoordSystem::Staggered) => {
+            *map_texture = TilemapTexture::Single(texture_handles.iso.clone());
+            *tile_size = TILE_SIZE_ISO;
+            *grid_size = GRID_SIZE_ISO;
+        }
+        TilemapType::Hexagon(HexCoordSystem::Row)
+        | TilemapType::Hexagon(HexCoordSystem::RowEven)
+        | TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+            *map_texture = TilemapTexture::Single(texture_handles.hex_row.clone());
+            *tile_size = TILE_SIZE_HEX_ROW;
+            *grid_size = GRID_SIZE_HEX_ROW;
+        }
+        TilemapType::Hexagon(HexCoordSystem::Column)
+        | TilemapType::Hexagon(HexCoordSystem::ColumnEven)
+        | TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
+            *map_texture = TilemapTexture::Single(texture_handles.hex_col.clone());
+            *tile_size = TILE_SIZE_HEX_COL;
+            *grid_size = GRID_SIZE_HEX_COL;
         }
     }
+}
+
+fn update_map_type_label(
+    type_query: Query<&TilemapType, Changed<TilemapType>>,
+    mut label_query: Query<&mut TextSpan, With<MapTypeLabel>>,
+) {
+    let Ok(map_type) = type_query.get_single() else {
+        return;
+    };
+
+    let mut label = label_query.single_mut();
+    label.0 = format!("{:?}", map_type);
 }
 
 fn main() {
@@ -214,30 +191,29 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: String::from("Frustum cull test"),
-                        ..Default::default()
+                        ..default()
                     }),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())
-                // For this example, we want to turn up logging to show trace level events for bevy_ecs_tilemap
                 .set(LogPlugin {
-                    // Everything else should be set to Level::ERROR
-                    level: Level::ERROR,
-                    // except for bevy_ecs_tilemap
-                    filter: "bevy_ecs_tilemap=trace".into(),
+                    // For debugging / demonstrating frustum culling, we'll want to see trace-level
+                    // logs for `bevy_ecs_tilemap`.
+                    filter: "info,bevy_ecs_tilemap=trace".into(),
                     ..default()
                 }),
         )
         .add_plugins(TilemapPlugin)
-        .init_resource::<TileHandleIso>()
-        .init_resource::<TileHandleHexCol>()
-        .init_resource::<TileHandleHexRow>()
-        .init_resource::<TileHandleSquare>()
+        .init_resource::<TextureHandles>()
+        .add_systems(Startup, (spawn_scene, spawn_ui))
         .add_systems(
-            Startup,
-            (spawn_tilemap, apply_deferred, spawn_map_type_label).chain(),
+            Update,
+            (
+                helpers::camera::movement,
+                switch_map_type.run_if(input_just_pressed(KeyCode::Space)),
+                update_map_type_label,
+            )
+                .chain(),
         )
-        .add_systems(First, camera_movement)
-        .add_systems(Update, swap_map_type)
         .run();
 }
