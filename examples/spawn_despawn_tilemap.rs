@@ -84,11 +84,8 @@ fn despawn_map(mut commands: Commands, mut maps: Query<(Entity, &mut TileStorage
     };
 
     commands.entity(tilemap_entity).despawn_recursive();
-
-    for maybe_entity in tile_storage.iter_mut() {
-        if let Some(entity) = maybe_entity.take() {
-            commands.entity(entity).despawn();
-        }
+    for entity in tile_storage.drain() {
+        commands.entity(entity).despawn();
     }
 }
 
