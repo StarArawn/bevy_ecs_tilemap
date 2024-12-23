@@ -99,7 +99,6 @@ impl TileStorage {
     ///
     /// Checks that the given `tile_pos` lies within the extents of the underlying map.
     pub fn checked_remove(&mut self, tile_pos: &TilePos) -> Option<Entity> {
-        if tile_pos.within_map_bounds(&self.size) {
         self.tiles.get_mut(tile_pos.to_index(&self.size))?.take()
     }
 
