@@ -3,7 +3,7 @@ use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize, Transform};
 
 /// Calculates a [`Transform`] for a tilemap that places it so that its center is at
-/// `(0.0, 0.0, 0.0)` in world space.
+/// `(0.0, 0.0, z)` in world space.
 pub fn get_tilemap_center_transform(
     size: &TilemapSize,
     grid_size: &TilemapGridSize,
