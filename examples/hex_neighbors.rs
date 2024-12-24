@@ -92,9 +92,9 @@ fn spawn_tile_labels(
 
             let label_entity = commands
                 .spawn((
-                    Text2d::new(format!("{}, {}", tile_pos.x, tile_pos.y)),
+                    Text2d::new(format!("{},{}", tile_pos.x, tile_pos.y)),
                     TextFont {
-                        font_size: 20.0,
+                        font_size: 14.0,
                         ..default()
                     },
                     TextColor(Color::BLACK),
