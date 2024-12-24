@@ -47,7 +47,7 @@ fn update_damage(
 
 - [`3d_iso`](examples/3d_iso.rs) - An example showing y-sorting on a "3d" isometric tile map.
 - [`accessing_tiles`](examples/accessing_tiles.rs) – An example showing how one can access tiles from the map object by using tile map coordinates.
-- [`animation`](examples/animation.rs) – Basic CPU animation example.
+- [`animation`](examples/animation.rs) – Basic animation example.
 - [`basic`](examples/basic.rs) - The simplest example of how to create a tile map.
 - [`bench`](examples/bench.rs) - A stress test of the map rendering system. Takes a while to load.
 - [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
