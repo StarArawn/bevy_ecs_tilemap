@@ -3,7 +3,7 @@ use bevy::render::primitives::{Aabb, Frustum};
 use bevy::render::render_resource::FilterMode;
 use bevy::render::render_resource::TextureFormat;
 use bevy::render::sync_world::RenderEntity;
-use bevy::{prelude::*, render::Extract, utils::HashMap};
+use bevy::{prelude::*, render::Extract, utils::HashMap, sprite::Anchor};
 
 use crate::prelude::TilemapGridSize;
 use crate::prelude::TilemapRenderSettings;
@@ -207,6 +207,7 @@ pub fn extract(
             &InheritedVisibility,
             &FrustumCulling,
             &TilemapRenderSettings,
+            Option<&Anchor>,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -224,6 +225,7 @@ pub fn extract(
                 Changed<InheritedVisibility>,
                 Changed<FrustumCulling>,
                 Changed<TilemapRenderSettings>,
+                Changed<Anchor>,
             )>,
         >,
     >,
@@ -231,6 +233,7 @@ pub fn extract(
     images: Extract<Res<Assets<Image>>>,
 ) {
     let mut extracted_tiles = Vec::new();
+    let mut extracted_anchors = Vec::new();
     let mut extracted_tilemaps = HashMap::default();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
@@ -292,6 +295,11 @@ pub fn extract(
                 },
             ),
         );
+        if let Some(anchor) = data.11 {
+            extracted_anchors.push((data.0.id(), *anchor));
+        } else {
+            commands.entity(data.0.id()).remove::<Anchor>();
+        }
 
         extracted_tiles.push((
             render_entity.id(),
@@ -326,17 +334,23 @@ pub fn extract(
                         visibility: *data.8,
                         frustum_culling: *data.9,
                         render_settings: *data.10,
+                        // anchor: *data.11.unwrap_or(&Anchor::BottomLeft),
                         changed: ChangedInMainWorld,
                     },
                 ),
             );
+            if let Some(anchor) = data.11 {
+                extracted_anchors.push((data.0.id(), *anchor));
+            } else {
+                commands.entity(data.0.id()).remove::<Anchor>();
+            }
         }
     }
 
     let extracted_tilemaps: Vec<_> = extracted_tilemaps.drain().map(|(_, val)| val).collect();
 
     // Extracts tilemap textures.
-    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in
+    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _, _anchor_maybe) in
         tilemap_query.iter()
     {
         if texture.verify_ready(&images) {
@@ -366,6 +380,7 @@ pub fn extract(
     commands.insert_batch(extracted_tiles);
     commands.insert_batch(extracted_tilemaps);
     commands.insert_batch(extracted_tilemap_textures);
+    commands.insert_batch(extracted_anchors);
 }
 
 pub fn remove_changed(mut commands: Commands, query: Query<Entity, With<ChangedInMainWorld>>) {

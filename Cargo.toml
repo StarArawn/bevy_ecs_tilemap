@@ -53,6 +53,7 @@ features = [
     "default_font",
     "webgl2",
     "default_font",
+    "bevy_gizmos",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
