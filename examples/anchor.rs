@@ -1,8 +1,8 @@
 //! Demonstrate tilemap with an [Anchor] component.
-use bevy::{sprite::Anchor, prelude::*};
+use bevy::{prelude::*, sprite::Anchor};
 use bevy_ecs_tilemap::prelude::*;
-use rand::thread_rng;
 use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 mod helpers;
 
@@ -67,8 +67,8 @@ fn startup(
     let map_type = TilemapType::default();
 
     // The tilemap is placed at the origin, but its anchor can change.
-    commands.entity(tilemap_entity).insert(
-        (TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        TilemapBundle {
             grid_size,
             map_type,
             size: map_size,
@@ -78,8 +78,8 @@ fn startup(
             transform: Transform::IDENTITY,
             ..Default::default()
         },
-         Anchor::TopLeft,
-        ));
+        Anchor::TopLeft,
+    ));
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.
@@ -126,7 +126,7 @@ fn change_anchor(
                         // query filter.
                         *transform = Transform::IDENTITY;
                         return;
-                    },
+                    }
                 };
                 *writer.text(*text, 1) = format!("{:?}", **anchor);
             } else {
@@ -139,16 +139,18 @@ fn change_anchor(
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin{
-            primary_window: Some(Window {
-                title: String::from(
-                    "Anchor Example - Press Space to change anchor.",
-                ),
-                resolution: Vec2::splat(450.0).into(),
-                ..Default::default()
-            }),
-            ..default()
-        }).set(ImagePlugin::default_nearest()))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: String::from("Anchor Example - Press Space to change anchor."),
+                        resolution: Vec2::splat(450.0).into(),
+                        ..Default::default()
+                    }),
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, startup)
         .add_systems(Startup, setup_header)
@@ -160,22 +162,25 @@ fn main() {
 
 fn setup_header(mut commands: Commands) {
     let font_size = 15.0;
-    commands.spawn((
-        Text::new("Anchor: "),
-        TextLayout::new_with_justify(JustifyText::Center),
-        TextFont {
-            font_size,
-            ..default()
-        },
-        Node {
-            top: Val::Px(10.0),
-            left: Val::Px(10.0),
-            ..default()
-        },
-    )).with_child((TextSpan::new("TopLeft"),
-        TextFont {
-            font_size,
-            ..default()
-        }
-    ));
+    commands
+        .spawn((
+            Text::new("Anchor: "),
+            TextLayout::new_with_justify(JustifyText::Center),
+            TextFont {
+                font_size,
+                ..default()
+            },
+            Node {
+                top: Val::Px(10.0),
+                left: Val::Px(10.0),
+                ..default()
+            },
+        ))
+        .with_child((
+            TextSpan::new("TopLeft"),
+            TextFont {
+                font_size,
+                ..default()
+            },
+        ));
 }

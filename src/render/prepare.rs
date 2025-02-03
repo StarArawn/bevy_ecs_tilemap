@@ -1,25 +1,25 @@
 use std::marker::PhantomData;
 
-use crate::tiles::TilePos;
 use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
 };
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
+use crate::tiles::TilePos;
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, FrustumCulling};
 use bevy::log::trace;
-use bevy::prelude::{InheritedVisibility, Resource, With, Transform};
+use bevy::prelude::{InheritedVisibility, Resource, Transform, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
 use bevy::{
-    sprite::Anchor,
     math::{Mat4, UVec4},
     prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Vec2},
     render::{
         render_resource::{DynamicUniformBuffer, ShaderType},
         renderer::{RenderDevice, RenderQueue},
     },
+    sprite::Anchor,
 };
 
 use super::extract::ChangedInMainWorld;
@@ -63,7 +63,6 @@ pub(crate) fn prepare(
             &FrustumCulling,
             &TilemapRenderSettings,
             Option<&Anchor>,
-
         ),
         With<ChangedInMainWorld>,
     >,
@@ -151,7 +150,7 @@ pub(crate) fn prepare(
         visibility,
         frustum_culling,
         _,
-        anchor
+        anchor,
     ) in extracted_tilemaps.iter()
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index()));
@@ -162,62 +161,70 @@ pub(crate) fn prepare(
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.get();
             chunk.frustum_culling = **frustum_culling;
-            let anchor_offset: Transform = anchor.map(|anchor| match anchor {
-                Anchor::TopLeft => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    Transform::from_xyz(grid_size.x / 2.0, -y + grid_size.y / 2.0, 0.0)
-                }
-                Anchor::TopRight => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(-x + grid_size.x / 2.0, -y + grid_size.y / 2.0, 0.0)
-                }
-                Anchor::TopCenter => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(-x / 2.0 + grid_size.x / 2.0, -y + grid_size.y / 2.0, 0.0)
-                }
-                Anchor::CenterRight => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(-x + grid_size.x / 2.0, -y / 2.0 + grid_size.y / 2.0, 0.0)
-                }
-                Anchor::CenterLeft => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    Transform::from_xyz(grid_size.x / 2.0, -y / 2.0 + grid_size.y / 2.0, 0.0)
-                }
-                Anchor::BottomLeft => {
-                    Transform::from_xyz(grid_size.x / 2.0, grid_size.y / 2.0, 0.0)
-                }
-                Anchor::BottomRight => {
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(grid_size.x / 2.0 - x, grid_size.y / 2.0, 0.0)
-                }
-                Anchor::BottomCenter => {
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(grid_size.x / 2.0 - x / 2.0, grid_size.y / 2.0, 0.0)
-                }
-                Anchor::Center => {
-                    let low = TilePos::new(0, 0).center_in_world(grid_size, map_type);
-                    let high = TilePos::new(map_size.x - 1, map_size.y - 1).center_in_world(grid_size, map_type);
-                    let diff = high - low;
-                    Transform::from_xyz(-diff.x / 2., -diff.y / 2., 0.0)
-                }
-                Anchor::Custom(v) => {
-                    let y = map_size.y as f32 * grid_size.y;
-                    let x = map_size.x as f32 * grid_size.x;
-                    Transform::from_xyz(x * (-0.5 - v.x) + grid_size.x / 2.0,
-                                        y * (-0.5 - v.y) + grid_size.y / 2.0,
-                                        0.0)
-                }
-            }).unwrap_or(Transform::IDENTITY);
+            let anchor_offset: Transform = anchor
+                .map(|anchor| match anchor {
+                    Anchor::TopLeft => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        Transform::from_xyz(grid_size.x / 2.0, -y + grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::TopRight => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(-x + grid_size.x / 2.0, -y + grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::TopCenter => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(
+                            -x / 2.0 + grid_size.x / 2.0,
+                            -y + grid_size.y / 2.0,
+                            0.0,
+                        )
+                    }
+                    Anchor::CenterRight => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(
+                            -x + grid_size.x / 2.0,
+                            -y / 2.0 + grid_size.y / 2.0,
+                            0.0,
+                        )
+                    }
+                    Anchor::CenterLeft => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        Transform::from_xyz(grid_size.x / 2.0, -y / 2.0 + grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::BottomLeft => {
+                        Transform::from_xyz(grid_size.x / 2.0, grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::BottomRight => {
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(grid_size.x / 2.0 - x, grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::BottomCenter => {
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(grid_size.x / 2.0 - x / 2.0, grid_size.y / 2.0, 0.0)
+                    }
+                    Anchor::Center => {
+                        let low = TilePos::new(0, 0).center_in_world(grid_size, map_type);
+                        let high = TilePos::new(map_size.x - 1, map_size.y - 1)
+                            .center_in_world(grid_size, map_type);
+                        let diff = high - low;
+                        Transform::from_xyz(-diff.x / 2., -diff.y / 2., 0.0)
+                    }
+                    Anchor::Custom(v) => {
+                        let y = map_size.y as f32 * grid_size.y;
+                        let x = map_size.x as f32 * grid_size.x;
+                        Transform::from_xyz(
+                            x * (-0.5 - v.x) + grid_size.x / 2.0,
+                            y * (-0.5 - v.y) + grid_size.y / 2.0,
+                            0.0,
+                        )
+                    }
+                })
+                .unwrap_or(Transform::IDENTITY);
             let transform = *global_transform * anchor_offset;
-            chunk.update_geometry(
-                transform.into(),
-                *grid_size,
-                *tile_size,
-                *map_type,
-            );
+            chunk.update_geometry(transform.into(), *grid_size, *tile_size, *map_type);
         }
     }
 
