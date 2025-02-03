@@ -199,3 +199,7 @@ required-features = ["render"]
 name = "visibility"
 path = "examples/visibility.rs"
 required-features = ["render"]
+[[example]]
+name = "anchor"
+path = "examples/anchor.rs"
+required-features = ["render"]
