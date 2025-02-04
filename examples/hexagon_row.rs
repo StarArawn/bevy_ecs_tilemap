@@ -85,10 +85,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn swap_mesh_type(
-    mut query: Query<&mut TilemapType>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
+fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<ButtonInput<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut map_type in query.iter_mut() {
             match *map_type {

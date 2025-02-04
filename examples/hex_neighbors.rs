@@ -81,16 +81,27 @@ struct TileLabel(Entity);
 // Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage, &TilemapSize, &TilemapTileSize, &TilemapAnchor)>,
+    tilemap_q: Query<(
+        &Transform,
+        &TilemapType,
+        &TilemapGridSize,
+        &TileStorage,
+        &TilemapSize,
+        &TilemapTileSize,
+        &TilemapAnchor,
+    )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage, map_size, tile_size, anchor) in tilemap_q.iter() {
+    for (map_transform, map_type, grid_size, tilemap_storage, map_size, tile_size, anchor) in
+        tilemap_q.iter()
+    {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
             let anchor_offset = anchor.from_map(map_size, grid_size, tile_size, map_type);
 
-            let transform = *map_transform * anchor_offset * Transform::from_translation(tile_center);
+            let transform =
+                *map_transform * anchor_offset * Transform::from_translation(tile_center);
 
             let label_entity = commands
                 .spawn((
@@ -165,7 +176,7 @@ fn swap_map_type(
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
 ) {
-    if ! keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter]) {
+    if !keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter]) {
         return;
     }
     for (

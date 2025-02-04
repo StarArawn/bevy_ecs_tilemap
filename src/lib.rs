@@ -28,6 +28,7 @@ use bevy::{
 #[cfg(feature = "render")]
 use render::material::MaterialTilemapHandle;
 
+use anchor::TilemapAnchor;
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
@@ -39,11 +40,11 @@ use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
 };
-use anchor::TilemapAnchor;
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{ExtractSchedule, RenderApp};
 
+pub mod anchor;
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 mod array_texture_preload;
@@ -55,7 +56,6 @@ pub mod map;
 pub(crate) mod render;
 /// A module which contains tile components.
 pub mod tiles;
-pub mod anchor;
 
 /// A bevy tilemap plugin. This must be included in order for everything to be rendered.
 /// But is not necessary if you are running without a renderer.
@@ -167,6 +167,7 @@ pub struct StandardTilemapBundle {
 
 /// A module which exports commonly used dependencies.
 pub mod prelude {
+    pub use crate::anchor::TilemapAnchor;
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
     pub use crate::helpers;
@@ -190,7 +191,6 @@ pub mod prelude {
     #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
-    pub use crate::anchor::TilemapAnchor;
 }
 
 /// Updates old tile positions with the new values from the last frame.

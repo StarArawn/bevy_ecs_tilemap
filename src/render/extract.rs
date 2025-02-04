@@ -5,12 +5,12 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::render::sync_world::RenderEntity;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
+use crate::anchor::TilemapAnchor;
 use crate::prelude::TilemapGridSize;
 use crate::prelude::TilemapRenderSettings;
 use crate::render::DefaultSampler;
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
-use crate::anchor::TilemapAnchor;
 use crate::{
     map::{
         TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,

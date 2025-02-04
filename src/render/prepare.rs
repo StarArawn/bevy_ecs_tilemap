@@ -1,12 +1,12 @@
 use std::marker::PhantomData;
 
+use crate::anchor::TilemapAnchor;
 use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
 };
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
-use crate::anchor::TilemapAnchor;
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, FrustumCulling};
 use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource, With};

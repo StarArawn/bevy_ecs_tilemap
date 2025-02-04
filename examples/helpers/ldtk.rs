@@ -1,7 +1,7 @@
 use bevy_ecs_tilemap::{
+    anchor::TilemapAnchor,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
-    anchor::TilemapAnchor,
     TilemapBundle,
 };
 use std::{collections::HashMap, io::ErrorKind};

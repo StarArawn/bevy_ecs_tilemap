@@ -67,18 +67,17 @@ fn startup(
     let map_type = TilemapType::default();
 
     // The tilemap is placed at the origin, but its anchor can change.
-    commands.entity(tilemap_entity).insert(
-        TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            transform: Transform::IDENTITY,
-            anchor: TilemapAnchor::TopLeft,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size,
+        map_type,
+        size: map_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        transform: Transform::IDENTITY,
+        anchor: TilemapAnchor::TopLeft,
+        ..Default::default()
+    });
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.
