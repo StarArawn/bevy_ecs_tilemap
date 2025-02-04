@@ -1,5 +1,5 @@
 //! Demonstrate tilemap with an [Anchor] component.
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -67,7 +67,7 @@ fn startup(
     let map_type = TilemapType::default();
 
     // The tilemap is placed at the origin, but its anchor can change.
-    commands.entity(tilemap_entity).insert((
+    commands.entity(tilemap_entity).insert(
         TilemapBundle {
             grid_size,
             map_type,
@@ -76,10 +76,9 @@ fn startup(
             texture: TilemapTexture::Single(texture_handle),
             tile_size,
             transform: Transform::IDENTITY,
+            anchor: TilemapAnchor::TopLeft,
             ..Default::default()
-        },
-        Anchor::TopLeft,
-    ));
+        });
 
     // Add atlas to array texture loader so it's preprocessed before we need to use it.
     // Only used when the atlas feature is off and we are using array textures.
@@ -99,40 +98,27 @@ fn mark_origin(mut gizmos: Gizmos) {
 
 fn change_anchor(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(Entity, Option<&mut Anchor>, &mut Transform), With<TilemapTexture>>,
+    mut query: Query<&mut TilemapAnchor, With<TilemapTexture>>,
     text: Single<Entity, With<Text>>,
     mut writer: TextUiWriter,
-    mut commands: Commands,
 ) {
-    use Anchor::*;
+    use TilemapAnchor::*;
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for (id, mut anchor, mut transform) in &mut query {
-            if let Some(ref mut anchor) = anchor {
-                **anchor = match **anchor {
-                    TopLeft => TopCenter,
-                    TopCenter => TopRight,
-                    TopRight => CenterRight,
-                    CenterRight => BottomRight,
-                    BottomRight => BottomCenter,
-                    BottomCenter => BottomLeft,
-                    BottomLeft => CenterLeft,
-                    CenterLeft => Center,
-                    Center => Custom(Vec2::splat(0.25)),
-                    Custom(_) => {
-                        commands.entity(id).remove::<Anchor>();
-                        *writer.text(*text, 1) = "None".into();
-                        // We reset the transform because we listen for changes
-                        // to `Anchor` but we can't listen for removal in the
-                        // query filter.
-                        *transform = Transform::IDENTITY;
-                        return;
-                    }
+        for mut anchor in &mut query {
+            *anchor = match *anchor {
+                TopLeft => TopCenter,
+                TopCenter => TopRight,
+                TopRight => CenterRight,
+                CenterRight => BottomRight,
+                BottomRight => BottomCenter,
+                BottomCenter => BottomLeft,
+                BottomLeft => CenterLeft,
+                CenterLeft => Center,
+                Center => Custom(Vec2::splat(0.25)),
+                Custom(_) => None,
+                None => TopLeft,
                 };
-                *writer.text(*text, 1) = format!("{:?}", **anchor);
-            } else {
-                commands.entity(id).insert(Anchor::TopLeft);
-                *writer.text(*text, 1) = "TopLeft".into();
-            }
+            *writer.text(*text, 1) = format!("{:?}", *anchor);
         }
     }
 }

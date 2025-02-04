@@ -39,6 +39,7 @@ use tiles::{
     AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
     TileVisible,
 };
+use anchor::TilemapAnchor;
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{ExtractSchedule, RenderApp};
@@ -54,6 +55,7 @@ pub mod map;
 pub(crate) mod render;
 /// A module which contains tile components.
 pub mod tiles;
+pub mod anchor;
 
 /// A bevy tilemap plugin. This must be included in order for everything to be rendered.
 /// But is not necessary if you are running without a renderer.
@@ -135,6 +137,7 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub frustum_culling: FrustumCulling,
     pub material: MaterialTilemapHandle<M>,
     pub sync: SyncToRenderWorld,
+    pub anchor: TilemapAnchor,
 }
 
 #[cfg(not(feature = "render"))]
@@ -187,6 +190,7 @@ pub mod prelude {
     #[cfg(feature = "render")]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
+    pub use crate::anchor::TilemapAnchor;
 }
 
 /// Updates old tile positions with the new values from the last frame.
