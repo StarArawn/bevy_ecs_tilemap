@@ -55,20 +55,4 @@ impl TilemapAnchor {
         }
     }
 
-    pub fn rotate_right(&self) -> TilemapAnchor {
-        use TilemapAnchor::*;
-        match self {
-            TopLeft => TopCenter,
-            TopCenter => TopRight,
-            TopRight => CenterRight,
-            CenterRight => BottomRight,
-            BottomRight => BottomCenter,
-            BottomCenter => BottomLeft,
-            BottomLeft => CenterLeft,
-            CenterLeft => Center,
-            Center => Custom(Vec2::splat(0.25)),
-            Custom(_) => None,
-            None => TopLeft,
-        }
-    }
 }

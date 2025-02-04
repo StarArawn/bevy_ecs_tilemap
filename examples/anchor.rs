@@ -5,6 +5,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 mod helpers;
+use helpers::anchor::rotate_right;
 
 fn color(s: &str) -> Color {
     Srgba::hex(s).expect("hex color").into()
@@ -103,7 +104,7 @@ fn change_anchor(
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut anchor in &mut query {
-            *anchor = anchor.rotate_right();
+            *anchor = rotate_right(&anchor);
             *writer.text(*text, 1) = format!("{:?}", *anchor);
         }
     }

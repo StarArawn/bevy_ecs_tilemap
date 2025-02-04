@@ -4,6 +4,7 @@ use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors}
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
+use helpers::anchor::rotate_right;
 
 // Press SPACE to change map type. Hover over a tile to highlight its label (red) and those of its
 // neighbors (blue). Press and hold one of keys 0-5 to mark the neighbor in that direction (green).
@@ -219,7 +220,7 @@ fn swap_map_type(
             }
         }
         if keyboard_input.just_pressed(KeyCode::Enter) {
-            *anchor = anchor.rotate_right();
+            *anchor = rotate_right(&anchor);
         }
 
         for (label, tile_pos) in tile_label_q.iter() {
