@@ -102,22 +102,9 @@ fn change_anchor(
     text: Single<Entity, With<Text>>,
     mut writer: TextUiWriter,
 ) {
-    use TilemapAnchor::*;
     if keyboard_input.just_pressed(KeyCode::Space) {
         for mut anchor in &mut query {
-            *anchor = match *anchor {
-                TopLeft => TopCenter,
-                TopCenter => TopRight,
-                TopRight => CenterRight,
-                CenterRight => BottomRight,
-                BottomRight => BottomCenter,
-                BottomCenter => BottomLeft,
-                BottomLeft => CenterLeft,
-                CenterLeft => Center,
-                Center => Custom(Vec2::splat(0.25)),
-                Custom(_) => None,
-                None => TopLeft,
-                };
+            *anchor = anchor.rotate_right();
             *writer.text(*text, 1) = format!("{:?}", *anchor);
         }
     }

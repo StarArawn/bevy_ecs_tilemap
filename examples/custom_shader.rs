@@ -58,7 +58,7 @@ fn startup(
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle.clone()),
             tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+            anchor: TilemapAnchor::Center,
             material: my_material_handle.clone(),
             ..Default::default()
         });
@@ -84,8 +84,8 @@ fn startup(
             storage: tile_storage,
             texture: TilemapTexture::Single(texture_handle),
             tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 1.0)
-                * Transform::from_xyz(32.0, 32.0, 0.0),
+            anchor: TilemapAnchor::Center,
+            transform: Transform::from_xyz(32.0, 32.0, 1.0),
             material: my_material_handle,
             ..Default::default()
         });

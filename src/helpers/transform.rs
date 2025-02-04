@@ -33,7 +33,7 @@ pub fn chunk_aabb(
     map_type: &TilemapType,
 ) -> Aabb {
     // The AABB minimum and maximum have to be modified by -border and +border respectively.
-    let border = Vec2::from(grid_size).max(tile_size.into());
+    let border = Vec2::from(grid_size).max(tile_size.into()) / 2.0;
 
     // For most map types, it would be sufficient to calculate c0 and c3. However, for some map
     // types (right now, isometric diamond), this would not work, and for robustness (especially

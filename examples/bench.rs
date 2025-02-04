@@ -35,7 +35,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        anchor: TilemapAnchor::Center,
         render_settings: TilemapRenderSettings {
             render_chunk_size: UVec2::new(256, 256),
             ..Default::default()

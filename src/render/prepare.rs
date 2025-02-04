@@ -160,7 +160,7 @@ pub(crate) fn prepare(
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.get();
             chunk.frustum_culling = **frustum_culling;
-            let anchor_offset = anchor.from_map(map_size, grid_size, map_type);
+            let anchor_offset = anchor.from_map(map_size, grid_size, tile_size, map_type);
             let transform = *global_transform * anchor_offset;
             chunk.update_geometry(transform.into(), *grid_size, *tile_size, *map_type);
         }

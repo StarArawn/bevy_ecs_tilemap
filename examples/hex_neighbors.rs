@@ -70,7 +70,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
         texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        anchor: TilemapAnchor::Center,
         ..Default::default()
     });
 }
@@ -81,14 +81,16 @@ struct TileLabel(Entity);
 // Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
+    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage, &TilemapSize, &TilemapTileSize, &TilemapAnchor)>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_transform, map_type, grid_size, tilemap_storage, map_size, tile_size, anchor) in tilemap_q.iter() {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
-            let transform = *map_transform * Transform::from_translation(tile_center);
+            let anchor_offset = anchor.from_map(map_size, grid_size, tile_size, map_type);
+
+            let transform = *map_transform * anchor_offset * Transform::from_translation(tile_center);
 
             let label_entity = commands
                 .spawn((
@@ -116,10 +118,10 @@ pub struct MapTypeLabel;
 fn spawn_map_type_label(
     mut commands: Commands,
     windows: Query<&Window>,
-    map_type_q: Query<&TilemapType>,
+    map_type_q: Query<(&TilemapType, &TilemapAnchor)>,
 ) {
     for window in windows.iter() {
-        for map_type in map_type_q.iter() {
+        for (map_type, anchor) in map_type_q.iter() {
             // Place the map type label somewhere in the top left side of the screen
             let transform = Transform {
                 translation: Vec2::new(-0.5 * window.width() / 2.0, 0.8 * window.height() / 2.0)
@@ -127,7 +129,7 @@ fn spawn_map_type_label(
                 ..Default::default()
             };
             commands.spawn((
-                Text2d::new(format!("{map_type:?}")),
+                Text2d::new(format!("{map_type:?} {anchor:?}")),
                 TextFont {
                     font_size: 20.0,
                     ..default()
@@ -151,6 +153,7 @@ fn swap_map_type(
         &mut TilemapGridSize,
         &mut TilemapTexture,
         &mut TilemapTileSize,
+        &mut TilemapAnchor,
     )>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<
@@ -162,16 +165,20 @@ fn swap_map_type(
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        for (
-            mut map_transform,
-            map_size,
-            mut map_type,
-            mut grid_size,
-            mut map_texture,
-            mut tile_size,
-        ) in tilemap_query.iter_mut()
-        {
+    if ! keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter]) {
+        return;
+    }
+    for (
+        map_transform,
+        map_size,
+        mut map_type,
+        mut grid_size,
+        mut map_texture,
+        mut tile_size,
+        mut anchor,
+    ) in tilemap_query.iter_mut()
+    {
+        if keyboard_input.just_pressed(KeyCode::Space) {
             match map_type.as_ref() {
                 TilemapType::Hexagon(HexCoordSystem::Row) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
@@ -199,22 +206,28 @@ fn swap_map_type(
                 }
                 _ => unreachable!(),
             }
+        }
+        if keyboard_input.just_pressed(KeyCode::Enter) {
+            *anchor = anchor.rotate_right();
+        }
 
-            *map_transform = get_tilemap_center_transform(map_size, &grid_size, &map_type, 0.0);
-
-            for (label, tile_pos) in tile_label_q.iter() {
-                if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
-                    let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
-                    *tile_label_transform =
-                        *map_transform * Transform::from_translation(tile_center);
-                }
-            }
-
-            for mut label_text in map_type_label_q.iter_mut() {
-                label_text.0 = format!("{:?}", map_type.as_ref());
+        for (label, tile_pos) in tile_label_q.iter() {
+            if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
+                let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
+                let anchor_offset = anchor.from_map(map_size, &grid_size, &tile_size, &map_type);
+                *tile_label_transform =
+                    *map_transform * anchor_offset * Transform::from_translation(tile_center);
             }
         }
+
+        for mut label_text in map_type_label_q.iter_mut() {
+            label_text.0 = format!("{:?} {:?}", map_type.as_ref(), anchor.as_ref());
+        }
     }
+}
+
+fn mark_origin(mut gizmos: Gizmos) {
+    gizmos.axes_2d(Transform::IDENTITY, 1000.0);
 }
 
 #[derive(Component)]
@@ -419,6 +432,7 @@ fn main() {
         .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
         .add_systems(Update, swap_map_type)
+        .add_systems(Update, mark_origin)
         .add_systems(Update, hover_highlight_tile_label.after(swap_map_type))
         .add_systems(Update, highlight_neighbor_label.after(hover_highlight_tile_label))
         .run();

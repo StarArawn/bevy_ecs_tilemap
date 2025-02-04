@@ -1,7 +1,7 @@
 use bevy_ecs_tilemap::{
-    helpers::geometry::get_tilemap_center_transform,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
+    anchor::TilemapAnchor,
     TilemapBundle,
 };
 use std::{collections::HashMap, io::ErrorKind};
@@ -227,12 +227,8 @@ pub fn process_loaded_tile_maps(
                             storage,
                             texture: TilemapTexture::Single(texture),
                             tile_size,
-                            transform: get_tilemap_center_transform(
-                                &size,
-                                &grid_size,
-                                &map_type,
-                                layer_id as f32,
-                            ),
+                            anchor: TilemapAnchor::Center,
+                            transform: Transform::from_xyz(0.0, 0.0, layer_id as f32),
                             ..default()
                         });
                     }
