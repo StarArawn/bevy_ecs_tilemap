@@ -1,8 +1,12 @@
 use crate::{prelude::chunk_aabb, TilemapGridSize, TilemapSize, TilemapTileSize, TilemapType};
 use bevy::prelude::*;
 
-#[derive(Debug, Clone, Copy, Component, Default)]
+/// How a tilemap is positioned relative to its [`Transform`]. It defaults to
+/// `TilemapAnchor::None` which is the center of the bottom-left tile.
+#[derive(Debug, Clone, Copy, Component, Default, Reflect, PartialEq)]
+#[reflect(Component, Default, Debug, PartialEq)]
 pub enum TilemapAnchor {
+    /// The center of the bottom-left tile.
     #[default]
     None,
     Center,
@@ -14,6 +18,8 @@ pub enum TilemapAnchor {
     TopLeft,
     TopCenter,
     TopRight,
+    /// Custom anchor point. Top left is `(-0.5, 0.5)`, center is `(0.0, 0.0)`. The value will
+    /// be scaled with the tilemap size.
     Custom(Vec2),
     // TileCenter(TilePos),
 }
