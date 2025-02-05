@@ -84,6 +84,7 @@ impl Plugin for TilemapPlugin {
             .register_type::<TilemapSpacing>()
             .register_type::<TilemapTextureSize>()
             .register_type::<TilemapType>()
+            .register_type::<TilemapAnchor>()
             .register_type::<TilePos>()
             .register_type::<TileTextureIndex>()
             .register_type::<TileColor>()
