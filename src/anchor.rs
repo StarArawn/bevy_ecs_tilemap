@@ -60,5 +60,4 @@ impl TilemapAnchor {
             ),
         }
     }
-
 }

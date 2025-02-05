@@ -3,8 +3,8 @@ use bevy::{color::palettes, math::Vec4Swizzles};
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
-use helpers::camera::movement as camera_movement;
 use helpers::anchor::rotate_right;
+use helpers::camera::movement as camera_movement;
 
 // Press SPACE to change map type. Hover over a tile to highlight its label (red) and those of its
 // neighbors (blue). Press and hold one of keys 0-5 to mark the neighbor in that direction (green).
