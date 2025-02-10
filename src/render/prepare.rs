@@ -162,9 +162,19 @@ pub(crate) fn prepare(
             chunk.frustum_culling = **frustum_culling;
             let anchor_offset: Vec2 =
                 anchor.as_offset(map_size, grid_size, Some(tile_size), map_type);
-            let mut transform: Transform = (*global_transform).into();
-            transform.translation += anchor_offset.extend(0.0);
-            chunk.update_geometry(transform, *grid_size, *tile_size, *map_type);
+            // The following code that merely adds a vector would be faster and
+            // work in most usecases.
+            //
+            // ```
+            // let mut transform: Transform = (*global_transform).into();
+            // transform.translation += anchor_offset.extend(0.0);
+            // ```
+            //
+            // But multiplying by the transform is more general and allows the
+            // user to rotate and scale their map transforms.
+            let transform =
+                *global_transform * Transform::from_translation(anchor_offset.extend(0.0));
+            chunk.update_geometry(transform.into(), *grid_size, *tile_size, *map_type);
         }
     }
 
