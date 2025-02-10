@@ -1,5 +1,5 @@
 use crate::tiles::TilePos;
-use crate::{TilemapGridSize, TilemapTileSize, TilemapType, TilemapAnchor};
+use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
 use bevy::math::{UVec2, Vec2, Vec3};
 use bevy::render::primitives::Aabb;
 

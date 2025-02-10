@@ -264,7 +264,7 @@ fn swap_map_type(
         for (
             mut map_transform,
             mut map_type,
-            mut map_size,
+            map_size,
             mut grid_size,
             mut map_texture,
             mut tile_size,
@@ -314,7 +314,7 @@ fn swap_map_type(
                                 &grid_size,
                                 &map_type,
                                 &map_transform,
-                                &anchor,
+                                anchor,
                             );
                             tile_label_text.0 = format!("{},{}", hex_pos.x, hex_pos.y);
                         }

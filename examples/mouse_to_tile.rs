@@ -109,13 +109,12 @@ fn spawn_tile_labels(
         &TilemapType,
         &TilemapGridSize,
         &TileStorage,
-        &TilemapTileSize,
         &TilemapSize,
         &TilemapAnchor,
     )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage, tile_size, map_size, anchor) in
+    for (map_transform, map_type, grid_size, tilemap_storage, map_size, anchor) in
         tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
@@ -257,7 +256,7 @@ fn swap_map_type(
 
             for (label, tile_pos) in tile_label_q.iter() {
                 if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
-                    let tile_center = tile_pos.center_in_world(map_size, &grid_size, &map_type, &anchor).extend(1.0);
+                    let tile_center = tile_pos.center_in_world(map_size, &grid_size, &map_type, anchor).extend(1.0);
                     *tile_label_transform =
                         *map_transform * Transform::from_translation(tile_center);
                 }
@@ -311,7 +310,6 @@ fn highlight_tile_labels(
         &TilemapType,
         &TileStorage,
         &Transform,
-        &TilemapTileSize,
         &TilemapAnchor,
     )>,
     highlighted_tiles_q: Query<Entity, With<HighlightedLabel>>,
@@ -330,7 +328,7 @@ fn highlight_tile_labels(
         }
     }
 
-    for (map_size, grid_size, map_type, tile_storage, map_transform, tile_size, anchor) in
+    for (map_size, grid_size, map_type, tile_storage, map_transform, anchor) in
         tilemap_q.iter()
     {
         // Grab the cursor position from the `Res<CursorPos>`

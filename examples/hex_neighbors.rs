@@ -88,12 +88,11 @@ fn spawn_tile_labels(
         &TilemapGridSize,
         &TileStorage,
         &TilemapSize,
-        &TilemapTileSize,
         &TilemapAnchor,
     )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage, map_size, tile_size, anchor) in
+    for (map_transform, map_type, grid_size, tilemap_storage, map_size, anchor) in
         tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
