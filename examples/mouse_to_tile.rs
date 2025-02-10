@@ -120,10 +120,9 @@ fn spawn_tile_labels(
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
-            let anchor_offset = anchor.from_map(map_size, grid_size, tile_size, map_type);
+            let tile_center = tile_pos.center_in_world(map_size, grid_size, map_type, anchor).extend(1.0);
             let transform =
-                *map_transform * anchor_offset * Transform::from_translation(tile_center);
+                *map_transform * Transform::from_translation(tile_center);
 
             let label_entity = commands
                 .spawn((
@@ -258,12 +257,9 @@ fn swap_map_type(
 
             for (label, tile_pos) in tile_label_q.iter() {
                 if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
-                    let tile_center = tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
-
-                    let anchor_offset =
-                        anchor.from_map(map_size, &grid_size, &tile_size, &map_type);
+                    let tile_center = tile_pos.center_in_world(map_size, &grid_size, &map_type, &anchor).extend(1.0);
                     *tile_label_transform =
-                        *map_transform * anchor_offset * Transform::from_translation(tile_center);
+                        *map_transform * Transform::from_translation(tile_center);
                 }
             }
 
@@ -344,14 +340,13 @@ fn highlight_tile_labels(
         let cursor_in_map_pos: Vec2 = {
             // Extend the cursor_pos vec3 by 0.0 and 1.0
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
-            let anchor_offset = anchor.from_map(map_size, grid_size, tile_size, map_type);
             let cursor_in_map_pos =
-                (*map_transform * anchor_offset).compute_matrix().inverse() * cursor_pos;
+                map_transform.compute_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
         // Once we have a world position we can transform it into a possible tile position.
         if let Some(tile_pos) =
-            TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type)
+            TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type, anchor)
         {
             // Highlight the relevant tile's label
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {

@@ -1,5 +1,5 @@
 use crate::tiles::TilePos;
-use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
+use crate::{TilemapGridSize, TilemapTileSize, TilemapType, TilemapAnchor};
 use bevy::math::{UVec2, Vec2, Vec3};
 use bevy::render::primitives::Aabb;
 
@@ -15,7 +15,7 @@ pub fn chunk_index_to_world_space(
         x: chunk_index.x * chunk_size.x,
         y: chunk_index.y * chunk_size.y,
     };
-    anchor_tile_pos.center_in_world(grid_size, map_type)
+    anchor_tile_pos.center_in_world_unanchored(grid_size, map_type)
 }
 
 /// Calculates the [`Aabb`] of a generic chunk. The AABB depends upon the grid size, tile size, and
