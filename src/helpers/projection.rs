@@ -4,19 +4,29 @@ use crate::helpers::square_grid::diamond::DiamondPos;
 use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
-use crate::{TilemapGridSize, TilemapSize, TilemapType, TilemapAnchor};
+use crate::{TilemapAnchor, TilemapGridSize, TilemapSize, TilemapType};
 use bevy::math::Vec2;
 
 impl TilePos {
     /// Get the center of this tile in world space.
     ///
     /// The center is well defined for all [`TilemapType`]s.
-    pub fn center_in_world(&self, map_size: &TilemapSize, grid_size: &TilemapGridSize, map_type: &TilemapType, anchor: &TilemapAnchor) -> Vec2 {
+    pub fn center_in_world(
+        &self,
+        map_size: &TilemapSize,
+        grid_size: &TilemapGridSize,
+        map_type: &TilemapType,
+        anchor: &TilemapAnchor,
+    ) -> Vec2 {
         let offset = anchor.as_offset(map_size, grid_size, None, map_type);
         offset + self.center_in_world_unanchored(grid_size, map_type)
     }
 
-    pub(crate) fn center_in_world_unanchored(&self, grid_size: &TilemapGridSize, map_type: &TilemapType) -> Vec2 {
+    pub(crate) fn center_in_world_unanchored(
+        &self,
+        grid_size: &TilemapGridSize,
+        map_type: &TilemapType,
+    ) -> Vec2 {
         match map_type {
             TilemapType::Square { .. } => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))
@@ -73,20 +83,22 @@ impl TilePos {
 
                 TilePos::from_i32_pair(x, y, map_size)
             }
-            TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
-                HexCoordSystem::RowEven => RowEvenPos::from_world_pos(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-                HexCoordSystem::RowOdd => RowOddPos::from_world_pos(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-                HexCoordSystem::ColumnEven => ColEvenPos::from_world_pos(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-                HexCoordSystem::ColumnOdd => ColOddPos::from_world_pos(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-                HexCoordSystem::Row => AxialPos::from_world_pos_row(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-                HexCoordSystem::Column => AxialPos::from_world_pos_col(&pos, grid_size)
-                    .as_tile_pos_given_map_size(map_size),
-            },
+            TilemapType::Hexagon(hex_coord_sys) => {
+                match hex_coord_sys {
+                    HexCoordSystem::RowEven => RowEvenPos::from_world_pos(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                    HexCoordSystem::RowOdd => RowOddPos::from_world_pos(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                    HexCoordSystem::ColumnEven => ColEvenPos::from_world_pos(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                    HexCoordSystem::ColumnOdd => ColOddPos::from_world_pos(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                    HexCoordSystem::Row => AxialPos::from_world_pos_row(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                    HexCoordSystem::Column => AxialPos::from_world_pos_col(&pos, grid_size)
+                        .as_tile_pos_given_map_size(map_size),
+                }
+            }
             TilemapType::Isometric(coord_system) => match coord_system {
                 IsoCoordSystem::Diamond => {
                     DiamondPos::from_world_pos(&pos, grid_size).as_tile_pos(map_size)

@@ -92,14 +92,14 @@ fn spawn_tile_labels(
     )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage, map_size, anchor) in
-        tilemap_q.iter()
+    for (map_transform, map_type, grid_size, tilemap_storage, map_size, anchor) in tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            let tile_center = tile_pos.center_in_world(map_size, grid_size, map_type, anchor).extend(1.0);
-            let transform =
-                *map_transform * Transform::from_translation(tile_center);
+            let tile_center = tile_pos
+                .center_in_world(map_size, grid_size, map_type, anchor)
+                .extend(1.0);
+            let transform = *map_transform * Transform::from_translation(tile_center);
 
             let label_entity = commands
                 .spawn((
@@ -222,9 +222,10 @@ fn swap_map_type(
 
         for (label, tile_pos) in tile_label_q.iter() {
             if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
-                let tile_center = tile_pos.center_in_world(map_size, &grid_size, &map_type, &anchor).extend(1.0);
-                *tile_label_transform =
-                    *map_transform * Transform::from_translation(tile_center);
+                let tile_center = tile_pos
+                    .center_in_world(map_size, &grid_size, &map_type, &anchor)
+                    .extend(1.0);
+                *tile_label_transform = *map_transform * Transform::from_translation(tile_center);
             }
         }
 
