@@ -28,7 +28,7 @@ pub enum TilemapAnchor {
 impl TilemapAnchor {
     /// Provides an offset from the center of the bottom-left tile with no
     /// anchor to the center of the bottom-left tile with the given anchor.
-    pub(crate) fn as_offset(
+    pub fn as_offset(
         &self,
         map_size: &TilemapSize,
         grid_size: &TilemapGridSize,
