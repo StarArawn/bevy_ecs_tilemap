@@ -52,7 +52,6 @@ features = [
     "multi_threaded",
     "default_font",
     "webgl2",
-    "default_font",
     "bevy_gizmos",
 ]
 
@@ -75,7 +74,7 @@ features = [
     "multi_threaded",
     "default_font",
     "webgl2",
-    "default_font",
+    "bevy_gizmos",
 ]
 
 
