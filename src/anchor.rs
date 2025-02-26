@@ -3,14 +3,16 @@ use bevy::prelude::*;
 use std::borrow::Cow;
 
 /// How a tilemap is positioned relative to its [`Transform`]. It defaults to
-/// `TilemapAnchor::None` which is the center of the bottom-left tile.
+/// `TilemapAnchor::None` which is the center of the bottom-left tile. Note that
+/// `BottomLeft` refers to the bottom-left of the tilemap--not that tile's center.
 #[derive(Debug, Clone, Copy, Component, Default, Reflect, PartialEq)]
 #[reflect(Component, Default, Debug, PartialEq)]
 pub enum TilemapAnchor {
-    /// The center of the bottom-left tile.
+    /// The center of the bottom-left tile
     #[default]
     None,
     Center,
+    /// The bottom-left of the tilemap
     BottomLeft,
     BottomCenter,
     BottomRight,
@@ -19,15 +21,26 @@ pub enum TilemapAnchor {
     TopLeft,
     TopCenter,
     TopRight,
-    /// Custom anchor point. Top left is `(-0.5, 0.5)`, center is `(0.0, 0.0)`. The value will
-    /// be scaled with the tilemap size.
+    /// Custom anchor point
+    ///
+    /// Top left is `(-0.5, 0.5)`, center is `(0.0, 0.0)`. The value will be
+    /// scaled with the tilemap size.
     Custom(Vec2),
-    // TileCenter(TilePos),
 }
 
 impl TilemapAnchor {
-    /// Provides an offset from the center of the bottom-left tile with no
-    /// anchor to the center of the bottom-left tile with the given anchor.
+    /// Anchor's offset
+    ///
+    /// Background: The tilemap's original anchor is the center of the
+    /// bottom-left tile.
+    ///
+    /// This offset is used to translate the tilemap to the given anchor.
+    ///
+    /// For instance a `TilemapAnchor::None` has an offset of `Vec2::ZERO` since
+    /// it applies no translation, while a `TilemapAnchor::BottomLeft` has an
+    /// offset of `Vec2::new(-grid_size.x, -grid_size.y) / 2.0` to move
+    /// the anchor from the center of the bottom-left tile to the bottom-left of
+    /// the tile and the tilemap.
     pub fn as_offset(
         &self,
         map_size: &TilemapSize,
