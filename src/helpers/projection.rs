@@ -4,7 +4,7 @@ use crate::helpers::square_grid::diamond::DiamondPos;
 use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
-use crate::{TilemapAnchor, TilemapGridSize, TilemapSize, TilemapType};
+use crate::{TilemapAnchor, TilemapGridSize, TilemapTileSize, TilemapSize, TilemapType};
 use bevy::math::Vec2;
 
 impl TilePos {
@@ -15,10 +15,11 @@ impl TilePos {
         &self,
         map_size: &TilemapSize,
         grid_size: &TilemapGridSize,
+        tile_size: &TilemapTileSize,
         map_type: &TilemapType,
         anchor: &TilemapAnchor,
     ) -> Vec2 {
-        let offset = anchor.as_offset(map_size, grid_size, None, map_type);
+        let offset = anchor.as_offset(map_size, grid_size, tile_size, map_type);
         offset + self.center_in_world_unanchored(grid_size, map_type)
     }
 
@@ -71,10 +72,11 @@ impl TilePos {
         world_pos: &Vec2,
         map_size: &TilemapSize,
         grid_size: &TilemapGridSize,
+        tile_size: &TilemapTileSize,
         map_type: &TilemapType,
         anchor: &TilemapAnchor,
     ) -> Option<TilePos> {
-        let offset = anchor.as_offset(map_size, grid_size, None, map_type);
+        let offset = anchor.as_offset(map_size, grid_size, tile_size, map_type);
         let pos = world_pos - offset;
         match map_type {
             TilemapType::Square { .. } => {

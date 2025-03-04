@@ -1,6 +1,5 @@
 use crate::{prelude::chunk_aabb, TilemapGridSize, TilemapSize, TilemapTileSize, TilemapType};
 use bevy::prelude::*;
-use std::borrow::Cow;
 
 /// How a tilemap is positioned relative to its [`Transform`]. It defaults to
 /// `TilemapAnchor::None` which is the center of the bottom-left tile. Note that
@@ -45,16 +44,16 @@ impl TilemapAnchor {
         &self,
         map_size: &TilemapSize,
         grid_size: &TilemapGridSize,
-        tile_size: Option<&TilemapTileSize>,
+        tile_size: &TilemapTileSize,
         map_type: &TilemapType,
     ) -> Vec2 {
-        let tile_size = tile_size
-            .map(Cow::Borrowed)
-            .unwrap_or_else(|| Cow::Owned(TilemapTileSize::new(grid_size.x, grid_size.y)));
+        // let tile_size = tile_size
+        //     .map(Cow::Borrowed)
+        //     .unwrap_or_else(|| Cow::Owned(TilemapTileSize::new(grid_size.x, grid_size.y)));
         let aabb = chunk_aabb(
             UVec2::new(map_size.x - 1, map_size.y - 1),
             grid_size,
-            &tile_size,
+            tile_size,
             map_type,
         );
         let min = aabb.min();

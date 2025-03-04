@@ -70,7 +70,7 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
                 x: 0,
                 y: CHUNK_MAP_SIDE_LENGTH_Y,
             }
-            .center_in_world(&map_size, &grid_size, &map_type, &anchor)
+            .center_in_world(&map_size, &grid_size, &tile_size, &map_type, &anchor)
             .y * pos.y as f32,
             0.0,
         )
@@ -84,7 +84,7 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
                 x: CHUNK_MAP_SIDE_LENGTH_X,
                 y: 0,
             }
-            .center_in_world(&map_size, &grid_size, &map_type, &anchor)
+            .center_in_world(&map_size, &grid_size, &tile_size, &map_type, &anchor)
             .x * pos.x as f32,
             tile_size.y * CHUNK_MAP_SIDE_LENGTH_Y as f32 * pos.y as f32,
             0.0,
@@ -98,13 +98,14 @@ fn hex_pos_from_tile_pos(
     tile_pos: &TilePos,
     map_size: &TilemapSize,
     grid_size: &TilemapGridSize,
+    tile_size: &TilemapTileSize,
     map_type: &TilemapType,
     map_transform: &Transform,
     anchor: &TilemapAnchor,
 ) -> IVec2 {
     let tile_translation = *map_transform
         * tile_pos
-            .center_in_world(map_size, grid_size, map_type, anchor)
+            .center_in_world(map_size, grid_size, tile_size, map_type, anchor)
             .extend(0.0);
     match map_type {
         TilemapType::Hexagon(HexCoordSystem::RowEven) => {
@@ -182,6 +183,7 @@ fn hex_neighbors_radius_from_tile_pos(
     tile_pos: &TilePos,
     map_size: &TilemapSize,
     grid_size: &TilemapGridSize,
+    tile_size: &TilemapTileSize,
     map_type: &TilemapType,
     map_transform: &Transform,
     anchor: &TilemapAnchor,
@@ -191,6 +193,7 @@ fn hex_neighbors_radius_from_tile_pos(
         tile_pos,
         map_size,
         grid_size,
+        tile_size,
         map_type,
         map_transform,
         anchor,
@@ -314,7 +317,7 @@ fn swap_map_type(
                     if let Some(ent) = tile_storage.checked_get(tile_pos) {
                         if ent == tile_entity {
                             let tile_center = tile_pos
-                                .center_in_world(&map_size, &grid_size, &map_type, anchor)
+                                .center_in_world(&map_size, &grid_size, &tile_size, &map_type, anchor)
                                 .extend(1.0);
                             *tile_label_transform =
                                 *map_transform * Transform::from_translation(tile_center);
@@ -322,6 +325,7 @@ fn swap_map_type(
                                 tile_pos,
                                 &map_size,
                                 &grid_size,
+                                &tile_size,
                                 &map_type,
                                 &map_transform,
                                 anchor,
@@ -348,17 +352,18 @@ fn spawn_tile_labels(
         &TilemapType,
         &TilemapSize,
         &TilemapGridSize,
+        &TilemapTileSize,
         &TileStorage,
         &TilemapAnchor,
     )>,
     tile_q: Query<&TilePos>,
 ) {
-    for (map_transform, map_type, map_size, grid_size, tilemap_storage, anchor) in tilemap_q.iter()
+    for (map_transform, map_type, map_size, grid_size, tile_size, tilemap_storage, anchor) in tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
             let tile_center = tile_pos
-                .center_in_world(map_size, grid_size, map_type, anchor)
+                .center_in_world(map_size, grid_size, tile_size, map_type, anchor)
                 .extend(1.0);
             let transform = *map_transform * Transform::from_translation(tile_center);
 
@@ -366,6 +371,7 @@ fn spawn_tile_labels(
                 tile_pos,
                 map_size,
                 grid_size,
+                tile_size,
                 map_type,
                 map_transform,
                 anchor,
@@ -427,6 +433,7 @@ fn hover_highlight_tile_label(
     tilemap_q: Query<(
         &TilemapSize,
         &TilemapGridSize,
+        &TilemapTileSize,
         &TilemapType,
         &TilemapAnchor,
         &TileStorage,
@@ -447,7 +454,7 @@ fn hover_highlight_tile_label(
         }
     }
 
-    for (map_size, grid_size, map_type, anchor, tile_storage, map_transform) in tilemap_q.iter() {
+    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in tilemap_q.iter() {
         let cursor_pos = cursor_pos.0;
         let cursor_pos_in_map_pos = {
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
@@ -458,6 +465,7 @@ fn hover_highlight_tile_label(
             &cursor_pos_in_map_pos,
             map_size,
             grid_size,
+            tile_size,
             map_type,
             anchor,
         ) {
@@ -501,6 +509,7 @@ fn highlight_neighbor_labels(
         &TilemapType,
         &TilemapSize,
         &TilemapGridSize,
+        &TilemapTileSize,
         &TileStorage,
         &Transform,
         &TilemapAnchor,
@@ -526,7 +535,7 @@ fn highlight_neighbor_labels(
 
     let mut neighbors: Option<Vec<IVec2>> = None;
 
-    for (map_type, map_size, grid_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
+    for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
         for (hovered_tile_entity, hovered_tile_pos) in hovered_tiles_q.iter() {
             if let Some(ent) = tile_storage.checked_get(hovered_tile_pos) {
                 if ent == hovered_tile_entity {
@@ -534,6 +543,7 @@ fn highlight_neighbor_labels(
                         hovered_tile_pos,
                         map_size,
                         grid_size,
+                        tile_size,
                         map_type,
                         map_t,
                         anchor,
@@ -545,11 +555,11 @@ fn highlight_neighbor_labels(
     }
 
     if let Some(neighbors) = neighbors {
-        for (map_type, map_size, grid_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
+        for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
             for tile_entity in tile_storage.iter().flatten() {
                 if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
                     let tile_hex_pos = hex_pos_from_tile_pos(
-                        tile_pos, map_size, grid_size, map_type, map_t, anchor,
+                        tile_pos, map_size, grid_size, tile_size, map_type, map_t, anchor,
                     );
                     if neighbors.contains(&tile_hex_pos) {
                         if let Ok(label) = tile_label_q.get(*tile_entity) {
