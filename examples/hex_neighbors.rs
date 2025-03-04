@@ -26,12 +26,16 @@ const MAP_SIDE_LENGTH_Y: u32 = 4;
 
 const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
 const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
-const GRID_SIZE_HEX_ROW: [TilemapGridSize; 3] = [TilemapGridSize { x: 50.0, y: 58.0 },
-                                                 TilemapGridSize { x: 25.0, y: 29.0 },
-                                                 TilemapGridSize { x: 75.0, y: 87.0 }];
-const GRID_SIZE_HEX_COL: [TilemapGridSize; 3] = [TilemapGridSize { x: 58.0, y: 50.0 },
-                                                 TilemapGridSize { x: 29.0, y: 25.0 },
-                                                 TilemapGridSize { x: 87.0, y: 75.0 }];
+const GRID_SIZE_HEX_ROW: [TilemapGridSize; 3] = [
+    TilemapGridSize { x: 50.0, y: 58.0 },
+    TilemapGridSize { x: 25.0, y: 29.0 },
+    TilemapGridSize { x: 75.0, y: 87.0 },
+];
+const GRID_SIZE_HEX_COL: [TilemapGridSize; 3] = [
+    TilemapGridSize { x: 58.0, y: 50.0 },
+    TilemapGridSize { x: 29.0, y: 25.0 },
+    TilemapGridSize { x: 87.0, y: 75.0 },
+];
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexRow(Handle<Image>);
@@ -56,7 +60,11 @@ impl FromWorld for TileHandleHexRow {
 }
 
 // Generates the initial tilemap, which is a hex grid.
-fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>, grid_scale: Res<GridScale>) {
+fn spawn_tilemap(
+    mut commands: Commands,
+    tile_handle_hex_row: Res<TileHandleHexRow>,
+    grid_scale: Res<GridScale>,
+) {
     commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
@@ -109,7 +117,8 @@ fn spawn_tile_labels(
     )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tile_size, tilemap_storage, map_size, anchor) in tilemap_q.iter()
+    for (map_transform, map_type, grid_size, tile_size, tilemap_storage, map_size, anchor) in
+        tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -241,10 +250,14 @@ fn swap_map_type(
                 grid_scale.0 = 0;
             }
             match map_type.as_ref() {
-                TilemapType::Hexagon(HexCoordSystem::Row | HexCoordSystem::RowEven | HexCoordSystem::RowOdd) => {
+                TilemapType::Hexagon(
+                    HexCoordSystem::Row | HexCoordSystem::RowEven | HexCoordSystem::RowOdd,
+                ) => {
                     *grid_size = GRID_SIZE_HEX_COL[**grid_scale];
                 }
-                TilemapType::Hexagon(HexCoordSystem::Column | HexCoordSystem::ColumnEven | HexCoordSystem::ColumnOdd) => {
+                TilemapType::Hexagon(
+                    HexCoordSystem::Column | HexCoordSystem::ColumnEven | HexCoordSystem::ColumnOdd,
+                ) => {
                     *grid_size = GRID_SIZE_HEX_ROW[**grid_scale];
                 }
                 _ => unreachable!(),
@@ -267,7 +280,6 @@ fn swap_map_type(
             label_text.0 = format!("{:?} {:?}", map_type.as_ref(), anchor.as_ref());
         }
     }
-
 }
 
 fn mark_origin(mut gizmos: Gizmos) {
@@ -332,7 +344,9 @@ fn hover_highlight_tile_label(
         }
     }
 
-    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in tilemap_q.iter() {
+    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in
+        tilemap_q.iter()
+    {
         // Grab the cursor position from the `Res<CursorPos>`
         let cursor_pos: Vec2 = cursor_pos.0;
         // We need to make sure that the cursor's world position is correct relative to the map
@@ -344,9 +358,14 @@ fn hover_highlight_tile_label(
             cursor_in_map_pos.xy()
         };
         // Once we have a world position we can transform it into a possible tile position.
-        if let Some(tile_pos) =
-            TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, tile_size, map_type, anchor)
-        {
+        if let Some(tile_pos) = TilePos::from_world_pos(
+            &cursor_in_map_pos,
+            map_size,
+            grid_size,
+            tile_size,
+            map_type,
+            anchor,
+        ) {
             // Highlight the relevant tile's label
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {

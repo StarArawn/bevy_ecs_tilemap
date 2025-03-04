@@ -317,7 +317,9 @@ fn swap_map_type(
                     if let Some(ent) = tile_storage.checked_get(tile_pos) {
                         if ent == tile_entity {
                             let tile_center = tile_pos
-                                .center_in_world(&map_size, &grid_size, &tile_size, &map_type, anchor)
+                                .center_in_world(
+                                    &map_size, &grid_size, &tile_size, &map_type, anchor,
+                                )
                                 .extend(1.0);
                             *tile_label_transform =
                                 *map_transform * Transform::from_translation(tile_center);
@@ -358,7 +360,8 @@ fn spawn_tile_labels(
     )>,
     tile_q: Query<&TilePos>,
 ) {
-    for (map_transform, map_type, map_size, grid_size, tile_size, tilemap_storage, anchor) in tilemap_q.iter()
+    for (map_transform, map_type, map_size, grid_size, tile_size, tilemap_storage, anchor) in
+        tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -454,7 +457,9 @@ fn hover_highlight_tile_label(
         }
     }
 
-    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in tilemap_q.iter() {
+    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in
+        tilemap_q.iter()
+    {
         let cursor_pos = cursor_pos.0;
         let cursor_pos_in_map_pos = {
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
@@ -535,7 +540,9 @@ fn highlight_neighbor_labels(
 
     let mut neighbors: Option<Vec<IVec2>> = None;
 
-    for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
+    for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in
+        tilemap_query.iter()
+    {
         for (hovered_tile_entity, hovered_tile_pos) in hovered_tiles_q.iter() {
             if let Some(ent) = tile_storage.checked_get(hovered_tile_pos) {
                 if ent == hovered_tile_entity {
@@ -555,7 +562,9 @@ fn highlight_neighbor_labels(
     }
 
     if let Some(neighbors) = neighbors {
-        for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in tilemap_query.iter() {
+        for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in
+            tilemap_query.iter()
+        {
             for tile_entity in tile_storage.iter().flatten() {
                 if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
                     let tile_hex_pos = hex_pos_from_tile_pos(

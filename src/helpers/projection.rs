@@ -4,7 +4,7 @@ use crate::helpers::square_grid::diamond::DiamondPos;
 use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::map::{HexCoordSystem, IsoCoordSystem};
 use crate::tiles::TilePos;
-use crate::{TilemapAnchor, TilemapGridSize, TilemapTileSize, TilemapSize, TilemapType};
+use crate::{TilemapAnchor, TilemapGridSize, TilemapSize, TilemapTileSize, TilemapType};
 use bevy::math::Vec2;
 
 impl TilePos {

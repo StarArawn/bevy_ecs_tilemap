@@ -115,7 +115,8 @@ fn spawn_tile_labels(
     )>,
     tile_q: Query<&mut TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tile_size, tilemap_storage, map_size, anchor) in tilemap_q.iter()
+    for (map_transform, map_type, grid_size, tile_size, tilemap_storage, map_size, anchor) in
+        tilemap_q.iter()
     {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
@@ -332,7 +333,9 @@ fn highlight_tile_labels(
         }
     }
 
-    for (map_size, grid_size, tile_size, map_type, tile_storage, map_transform, anchor) in tilemap_q.iter() {
+    for (map_size, grid_size, tile_size, map_type, tile_storage, map_transform, anchor) in
+        tilemap_q.iter()
+    {
         // Grab the cursor position from the `Res<CursorPos>`
         let cursor_pos: Vec2 = cursor_pos.0;
         // We need to make sure that the cursor's world position is correct relative to the map
@@ -344,9 +347,14 @@ fn highlight_tile_labels(
             cursor_in_map_pos.xy()
         };
         // Once we have a world position we can transform it into a possible tile position.
-        if let Some(tile_pos) =
-            TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, tile_size, map_type, anchor)
-        {
+        if let Some(tile_pos) = TilePos::from_world_pos(
+            &cursor_in_map_pos,
+            map_size,
+            grid_size,
+            tile_size,
+            map_type,
+            anchor,
+        ) {
             // Highlight the relevant tile's label
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {

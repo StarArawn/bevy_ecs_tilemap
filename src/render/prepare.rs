@@ -160,8 +160,7 @@ pub(crate) fn prepare(
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.get();
             chunk.frustum_culling = **frustum_culling;
-            let anchor_offset: Vec2 =
-                anchor.as_offset(map_size, grid_size, tile_size, map_type);
+            let anchor_offset: Vec2 = anchor.as_offset(map_size, grid_size, tile_size, map_type);
             // The following code that merely adds a vector would be faster and
             // work in most usecases.
             //
