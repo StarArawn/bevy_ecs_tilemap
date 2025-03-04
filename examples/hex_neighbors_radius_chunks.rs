@@ -179,6 +179,7 @@ fn hex_neighbors_radius(hex_pos: IVec2, radius: u32, map_type: &TilemapType) -> 
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn hex_neighbors_radius_from_tile_pos(
     tile_pos: &TilePos,
     map_size: &TilemapSize,
