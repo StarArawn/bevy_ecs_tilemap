@@ -14,7 +14,7 @@
 //! (`cargo run --release --example mouse_to_tile`) otherwise things might be
 //! too slow.
 use bevy::prelude::*;
-use bevy::{color::palettes, math::Vec4Swizzles};
+use bevy::{color::palettes, math::Vec4Swizzles, sprite::Anchor};
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
@@ -147,10 +147,10 @@ fn spawn_tile_labels(
 }
 
 #[derive(Component)]
-pub struct MapTypeLabel;
+pub struct MapLabel;
 
 // Generates the map type label: e.g. `Square { diagonal_neighbors: false }`
-fn spawn_map_type_label(
+fn spawn_map_label(
     mut commands: Commands,
     windows: Query<&Window>,
     map_type_q: Query<(&TilemapType, &TilemapAnchor)>,
@@ -159,21 +159,61 @@ fn spawn_map_type_label(
         for (map_type, anchor) in map_type_q.iter() {
             // Place the map type label somewhere in the top left side of the screen
             let transform = Transform {
-                translation: Vec2::new(-0.5 * window.width() / 2.0, 0.8 * window.height() / 2.0)
+                translation: Vec2::new(-0.9 * window.width() / 2.0, 0.9 * window.height() / 2.0)
                     .extend(1.0),
                 ..Default::default()
             };
-            commands.spawn((
-                Text2d::new(format!("{map_type:?} {anchor:?}")),
-                TextFont {
-                    font_size: 20.0,
-                    ..default()
-                },
-                TextColor(Color::BLACK),
-                TextLayout::new_with_justify(JustifyText::Center),
-                transform,
-                MapTypeLabel,
-            ));
+            let font_size = 20.0;
+            commands
+                .spawn((
+                    Text2d::new("Type (SPACE): "),
+                    TextFont {
+                        font_size,
+                        ..default()
+                    },
+                    TextLayout::new_with_justify(JustifyText::Left),
+                    Anchor::TopLeft,
+                    transform,
+                    MapLabel,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        TextSpan::new(format!("{:?}", map_type)),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new("\nAnchor (Enter): "),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new(format!("{:?}", anchor)),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+
+                    parent.spawn((
+                        TextSpan::new("\nGrid Scale (TAB): "),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new("1.0"),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                });
         }
     }
 }
@@ -193,13 +233,14 @@ fn swap_map_type(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<
         (&TileLabel, &TilePos),
-        (With<TileLabel>, Without<MapTypeLabel>, Without<TilemapType>),
+        (With<TileLabel>, Without<MapLabel>, Without<TilemapType>),
     >,
-    mut map_type_label_q: Query<&mut Text2d, With<MapTypeLabel>>,
+    map_type_label_q: Query<Entity, With<MapLabel>>,
     mut transform_q: Query<&mut Transform, Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
     mut grid_scale: ResMut<GridScale>,
+    mut writer: TextUiWriter,
 ) {
     if !keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter, KeyCode::Tab]) {
         return;
@@ -276,8 +317,16 @@ fn swap_map_type(
             }
         }
 
-        for mut label_text in map_type_label_q.iter_mut() {
-            label_text.0 = format!("{:?} {:?}", map_type.as_ref(), anchor.as_ref());
+        for label_text in &map_type_label_q {
+            *writer.text(label_text, 1) = format!("{:?}", map_type.as_ref());
+            *writer.text(label_text, 3) = format!("{:?}", anchor.as_ref());
+            *writer.text(label_text, 5) = match **grid_scale {
+                0 => "1.0",
+                1 => "0.5",
+                2 => "1.5",
+                _ => unreachable!(),
+            }
+            .into();
         }
     }
 }
@@ -483,6 +532,7 @@ fn main() {
                         title: String::from(
                             "Hexagon Neighbors - Hover over a tile, and then press 0-5 to mark neighbors",
                         ),
+                        resolution: Vec2::splat(450.0).into(),
                         ..Default::default()
                     }),
                     ..default()
@@ -495,7 +545,7 @@ fn main() {
         .init_resource::<TileHandleHexRow>()
         .init_resource::<GridScale>()
         .add_systems(Startup, (spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
-        .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
+        .add_systems(Startup, (spawn_tile_labels, spawn_map_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
         .add_systems(Update, swap_map_type)
         .add_systems(Update, mark_origin)
