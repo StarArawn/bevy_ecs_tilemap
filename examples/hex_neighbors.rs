@@ -1,3 +1,18 @@
+//! # Hex Neighbors Example
+//!
+//! ## Controls
+//! Press SPACE to change map type.
+//! Press ENTER to change map anchor.
+//! Press TAB to change the grid size.
+//!
+//! Hover over a tile to highlight its label (red) and those of its neighbors
+//! (blue). Press and hold one of keys 0-5 to mark the neighbor in that
+//! direction (green).
+//!
+//! You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking
+//! works for larger maps, but just make sure that you run in release mode
+//! (`cargo run --release --example mouse_to_tile`) otherwise things might be
+//! too slow.
 use bevy::prelude::*;
 use bevy::{color::palettes, math::Vec4Swizzles};
 use bevy_ecs_tilemap::helpers::hex_grid::neighbors::{HexDirection, HexNeighbors};
@@ -6,25 +21,26 @@ mod helpers;
 use helpers::anchor::rotate_right;
 use helpers::camera::movement as camera_movement;
 
-// Press SPACE to change map type. Hover over a tile to highlight its label (red) and those of its
-// neighbors (blue). Press and hold one of keys 0-5 to mark the neighbor in that direction (green).
-
-// You can increase the MAP_SIDE_LENGTH, in order to test that mouse picking works for larger maps,
-// but just make sure that you run in release mode (`cargo run --release --example mouse_to_tile`)
-// otherwise things might be too slow.
 const MAP_SIDE_LENGTH_X: u32 = 4;
 const MAP_SIDE_LENGTH_Y: u32 = 4;
 
 const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
 const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
-const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
-const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
+const GRID_SIZE_HEX_ROW: [TilemapGridSize; 3] = [TilemapGridSize { x: 50.0, y: 58.0 },
+                                                 TilemapGridSize { x: 25.0, y: 29.0 },
+                                                 TilemapGridSize { x: 75.0, y: 87.0 }];
+const GRID_SIZE_HEX_COL: [TilemapGridSize; 3] = [TilemapGridSize { x: 58.0, y: 50.0 },
+                                                 TilemapGridSize { x: 29.0, y: 25.0 },
+                                                 TilemapGridSize { x: 87.0, y: 75.0 }];
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexRow(Handle<Image>);
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexCol(Handle<Image>);
+
+#[derive(Default, Deref, Resource)]
+pub struct GridScale(usize);
 
 impl FromWorld for TileHandleHexCol {
     fn from_world(world: &mut World) -> Self {
@@ -40,7 +56,7 @@ impl FromWorld for TileHandleHexRow {
 }
 
 // Generates the initial tilemap, which is a hex grid.
-fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>) {
+fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRow>, grid_scale: Res<GridScale>) {
     commands.spawn(Camera2d);
 
     let map_size = TilemapSize {
@@ -61,7 +77,7 @@ fn spawn_tilemap(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexR
     );
 
     let tile_size = TILE_SIZE_HEX_ROW;
-    let grid_size = GRID_SIZE_HEX_ROW;
+    let grid_size = GRID_SIZE_HEX_ROW[**grid_scale];
     let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
@@ -174,8 +190,9 @@ fn swap_map_type(
     mut transform_q: Query<&mut Transform, Without<TilemapType>>,
     tile_handle_hex_row: Res<TileHandleHexRow>,
     tile_handle_hex_col: Res<TileHandleHexCol>,
+    mut grid_scale: ResMut<GridScale>,
 ) {
-    if !keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter]) {
+    if !keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter, KeyCode::Tab]) {
         return;
     }
     for (
@@ -200,7 +217,7 @@ fn swap_map_type(
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
                     *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
                     *tile_size = TILE_SIZE_HEX_COL;
-                    *grid_size = GRID_SIZE_HEX_COL;
+                    *grid_size = GRID_SIZE_HEX_COL[**grid_scale];
                 }
                 TilemapType::Hexagon(HexCoordSystem::Column) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
@@ -212,7 +229,23 @@ fn swap_map_type(
                     *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
                     *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
                     *tile_size = TILE_SIZE_HEX_ROW;
-                    *grid_size = GRID_SIZE_HEX_ROW;
+                    *grid_size = GRID_SIZE_HEX_ROW[**grid_scale];
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        if keyboard_input.just_pressed(KeyCode::Tab) {
+            grid_scale.0 += 1;
+            if grid_scale.0 >= 3 {
+                grid_scale.0 = 0;
+            }
+            match map_type.as_ref() {
+                TilemapType::Hexagon(HexCoordSystem::Row | HexCoordSystem::RowEven | HexCoordSystem::RowOdd) => {
+                    *grid_size = GRID_SIZE_HEX_COL[**grid_scale];
+                }
+                TilemapType::Hexagon(HexCoordSystem::Column | HexCoordSystem::ColumnEven | HexCoordSystem::ColumnOdd) => {
+                    *grid_size = GRID_SIZE_HEX_ROW[**grid_scale];
                 }
                 _ => unreachable!(),
             }
@@ -234,6 +267,7 @@ fn swap_map_type(
             label_text.0 = format!("{:?} {:?}", map_type.as_ref(), anchor.as_ref());
         }
     }
+
 }
 
 fn mark_origin(mut gizmos: Gizmos) {
@@ -440,6 +474,7 @@ fn main() {
         .init_resource::<CursorPos>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
+        .init_resource::<GridScale>()
         .add_systems(Startup, (spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
         .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
