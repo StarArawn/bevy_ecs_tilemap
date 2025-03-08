@@ -1,41 +1,116 @@
-//! Demonstrate tilemap with an [Anchor] component.
+//! # Demonstrate `TilemapAnchor` component
+//!
+//! This example demonstrates the various `TilemapAnchor` variants with all of
+//! the map types and a handful of grid scale factors.
+//!
+//! ## Controls
+//! Press SPACE to change map anchor.
+//! Press ENTER to change map type.
+//! Press TAB to change the grid size.
+
 use bevy::prelude::*;
+use bevy::{image::Image, sprite::Anchor};
 use bevy_ecs_tilemap::prelude::*;
+mod helpers;
+use helpers::anchor::rotate_right;
+use helpers::camera::movement as camera_movement;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-mod helpers;
-use helpers::anchor::rotate_right;
+const MAP_SIDE_LENGTH_X: u32 = 4;
+const MAP_SIDE_LENGTH_Y: u32 = 4;
+const TILE_SIZE_SQUARE: TilemapTileSize = TilemapTileSize { x: 50.0, y: 50.0 };
+const TILE_SIZE_ISO: TilemapTileSize = TilemapTileSize { x: 100.0, y: 50.0 };
+const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
+const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
+const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
+const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
+const GRID_SIZE_SQUARE: TilemapGridSize = TilemapGridSize { x: 50.0, y: 50.0 };
+const GRID_SIZE_ISO: TilemapGridSize = TilemapGridSize { x: 100.0, y: 50.0 };
+
+#[derive(Deref, Resource)]
+pub struct TileHandleHexRow(Handle<Image>);
+
+#[derive(Deref, Resource)]
+pub struct TileHandleHexCol(Handle<Image>);
+
+#[derive(Deref, Resource)]
+pub struct TileHandleSquare(Handle<Image>);
+
+#[derive(Deref, Resource)]
+pub struct TileHandleIso(Handle<Image>);
+
+#[derive(Resource)]
+pub struct GridScale {
+    scales: Vec<f32>,
+    index: usize,
+}
+
+impl GridScale {
+    fn new(scales: Vec<f32>) -> Self {
+        GridScale { index: 0, scales }
+    }
+    fn get(&self) -> f32 {
+        self.scales[self.index]
+    }
+    fn next(&mut self) {
+        self.index = (self.index + 1) % self.scales.len();
+    }
+    fn apply(&self, grid_size: TilemapGridSize) -> TilemapGridSize {
+        let scale = self.get();
+        TilemapGridSize::new(grid_size.x * scale, grid_size.y * scale)
+    }
+}
+
+impl FromWorld for TileHandleHexCol {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        Self(asset_server.load("bw-tile-hex-col.png"))
+    }
+}
+impl FromWorld for TileHandleHexRow {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        Self(asset_server.load("bw-tile-hex-row.png"))
+    }
+}
+impl FromWorld for TileHandleSquare {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        Self(asset_server.load("bw-tile-square.png"))
+    }
+}
+impl FromWorld for TileHandleIso {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        Self(asset_server.load("bw-tile-iso.png"))
+    }
+}
 
 fn color(s: &str) -> Color {
     Srgba::hex(s).expect("hex color").into()
 }
 
-fn startup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    #[cfg(all(not(feature = "atlas"), feature = "render"))] array_texture_loader: Res<
-        ArrayTextureLoader,
-    >,
-) {
+// Generates the initial tilemap with random colors from a hardcoded palette.
+fn spawn_tilemap(mut commands: Commands, tile_handle_square: Res<TileHandleSquare>) {
     commands.spawn(Camera2d);
 
-    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
+    let map_size = TilemapSize {
+        x: MAP_SIDE_LENGTH_X,
+        y: MAP_SIDE_LENGTH_Y,
+    };
 
-    let map_size = TilemapSize { x: 12, y: 12 };
-
-    // Create a tilemap entity a little early.
-    // We want this entity early because we need to tell each tile which tilemap entity
-    // it is associated with. This is done with the TilemapId component on each tile.
-    // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
-    // will contain various necessary components, such as `TileStorage`.
-    let tilemap_entity = commands.spawn_empty().id();
-
-    // To begin creating the map we will need a `TileStorage` component.
-    // This component is a grid of tile entities and is used to help keep track of individual
-    // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
-    // per layer, each with their own `TileStorage` component.
     let mut tile_storage = TileStorage::empty(map_size);
+    let tilemap_entity = commands.spawn_empty().id();
+    let tilemap_id = TilemapId(tilemap_entity);
+
+    fill_tilemap(
+        TileTextureIndex(0),
+        map_size,
+        tilemap_id,
+        &mut commands,
+        &mut tile_storage,
+    );
 
     let mut rng = thread_rng();
     let colors: Vec<Color> = vec![
@@ -45,70 +120,276 @@ fn startup(
         color("8338EC"),
         color("3A86FF"),
     ];
-
-    // Spawn the elements of the tilemap.
-    // Alternatively, you can use helpers::filling::fill_tilemap.
-    for x in 0..map_size.x {
-        for y in 0..map_size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    color: TileColor(*colors.choose(&mut rng).unwrap()),
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
-        }
+    for tile_id in tile_storage.iter().flatten() {
+        commands
+            .entity(*tile_id)
+            .insert(TileColor(*colors.choose(&mut rng).unwrap()));
     }
 
-    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
-    let map_type = TilemapType::default();
+    let tile_size = TILE_SIZE_SQUARE;
+    let grid_size = GRID_SIZE_SQUARE;
+    let map_type = TilemapType::Square;
 
-    // The tilemap is placed at the origin, but its anchor can change.
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
-        map_type,
         size: map_size,
         storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        texture: TilemapTexture::Single(tile_handle_square.clone()),
         tile_size,
-        transform: Transform::IDENTITY,
+        map_type,
         anchor: TilemapAnchor::TopLeft,
         ..Default::default()
     });
-
-    // Add atlas to array texture loader so it's preprocessed before we need to use it.
-    // Only used when the atlas feature is off and we are using array textures.
-    #[cfg(all(not(feature = "atlas"), feature = "render"))]
-    {
-        array_texture_loader.add(TilemapArrayTexture {
-            texture: TilemapTexture::Single(asset_server.load("tiles.png")),
-            tile_size,
-            ..Default::default()
-        });
-    }
 }
 
-fn mark_origin(mut gizmos: Gizmos) {
-    gizmos.axes_2d(Transform::IDENTITY, 1000.0);
-}
+#[derive(Component)]
+struct TileLabel(Entity);
 
-fn change_anchor(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut TilemapAnchor, With<TilemapTexture>>,
-    text: Single<Entity, With<Text>>,
-    mut writer: TextUiWriter,
+// Generates tile position labels of the form: `(tile_pos.x, tile_pos.y)`
+fn spawn_tile_labels(
+    mut commands: Commands,
+    tilemap_q: Query<(
+        &Transform,
+        &TilemapType,
+        &TilemapGridSize,
+        &TilemapTileSize,
+        &TileStorage,
+        &TilemapSize,
+        &TilemapAnchor,
+    )>,
+    tile_q: Query<&mut TilePos>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        for mut anchor in &mut query {
-            *anchor = rotate_right(&anchor);
-            *writer.text(*text, 1) = format!("{:?}", *anchor);
+    for (map_transform, map_type, grid_size, tile_size, tilemap_storage, map_size, anchor) in
+        tilemap_q.iter()
+    {
+        for tile_entity in tilemap_storage.iter().flatten() {
+            let tile_pos = tile_q.get(*tile_entity).unwrap();
+            let tile_center = tile_pos
+                .center_in_world(map_size, grid_size, tile_size, map_type, anchor)
+                .extend(1.0);
+            let transform = *map_transform * Transform::from_translation(tile_center);
+
+            let label_entity = commands
+                .spawn((
+                    Text2d::new(format!("{},{}", tile_pos.x, tile_pos.y)),
+                    TextFont {
+                        font_size: 14.0,
+                        ..default()
+                    },
+                    TextColor(Color::BLACK),
+                    TextLayout::new_with_justify(JustifyText::Center),
+                    transform,
+                ))
+                .id();
+            commands
+                .entity(*tile_entity)
+                .insert(TileLabel(label_entity));
         }
     }
 }
+
+#[derive(Component)]
+pub struct MapLabel;
+
+// Generates the labels.
+fn spawn_map_label(
+    mut commands: Commands,
+    windows: Query<&Window>,
+    map_type_q: Query<(&TilemapType, &TilemapAnchor)>,
+) {
+    for window in windows.iter() {
+        for (map_type, anchor) in map_type_q.iter() {
+            // Place the map type label somewhere in the top left side of the screen
+            let transform = Transform {
+                translation: Vec2::new(-0.9 * window.width() / 2.0, 0.9 * window.height() / 2.0)
+                    .extend(1.0),
+                ..Default::default()
+            };
+            let font_size = 20.0;
+            commands
+                .spawn((
+                    Text2d::new("Anchor (SPACE): "),
+                    TextFont {
+                        font_size,
+                        ..default()
+                    },
+                    TextLayout::new_with_justify(JustifyText::Left),
+                    Anchor::TopLeft,
+                    transform,
+                    MapLabel,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        TextSpan::new(format!("{:?}", anchor)),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new("\nType (ENTER): "),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new(format!("{:?}", map_type)),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+
+                    parent.spawn((
+                        TextSpan::new("\nGrid Scale (TAB): "),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        TextSpan::new("1.0"),
+                        TextFont {
+                            font_size,
+                            ..default()
+                        },
+                    ));
+                });
+        }
+    }
+}
+
+/// Changes the anchor when user presses SPACE.
+/// Changes the map type when user presses ENTER.
+/// Changes the grid scale when user presses TAB.
+#[allow(clippy::too_many_arguments)]
+fn swap_map_type(
+    mut tilemap_query: Query<(
+        &mut Transform,
+        &TilemapSize,
+        &mut TilemapType,
+        &mut TilemapGridSize,
+        &mut TilemapTexture,
+        &mut TilemapTileSize,
+        &mut TilemapAnchor,
+    )>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    tile_label_q: Query<
+        (&TileLabel, &TilePos),
+        (With<TileLabel>, Without<MapLabel>, Without<TilemapType>),
+    >,
+    map_type_label_q: Query<Entity, With<MapLabel>>,
+    mut transform_q: Query<&mut Transform, Without<TilemapType>>,
+    tile_handle_hex_row: Res<TileHandleHexRow>,
+    tile_handle_hex_col: Res<TileHandleHexCol>,
+    tile_handle_square: Res<TileHandleSquare>,
+    tile_handle_iso: Res<TileHandleIso>,
+    mut grid_scale: ResMut<GridScale>,
+    mut writer: TextUiWriter,
+) {
+    if !keyboard_input.any_just_pressed([KeyCode::Space, KeyCode::Enter, KeyCode::Tab]) {
+        return;
+    }
+    for (
+        map_transform,
+        map_size,
+        mut map_type,
+        mut grid_size,
+        mut map_texture,
+        mut tile_size,
+        mut anchor,
+    ) in tilemap_query.iter_mut()
+    {
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            *anchor = rotate_right(&anchor);
+        }
+        if keyboard_input.just_pressed(KeyCode::Enter) {
+            match map_type.as_ref() {
+                TilemapType::Hexagon(HexCoordSystem::Row) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
+                }
+                TilemapType::Hexagon(HexCoordSystem::RowEven) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::RowOdd);
+                }
+                TilemapType::Hexagon(HexCoordSystem::RowOdd) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::Column);
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_col).clone());
+                    *tile_size = TILE_SIZE_HEX_COL;
+                    *grid_size = grid_scale.apply(GRID_SIZE_HEX_COL);
+                }
+                TilemapType::Hexagon(HexCoordSystem::Column) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnEven);
+                }
+                TilemapType::Hexagon(HexCoordSystem::ColumnEven) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::ColumnOdd);
+                }
+                TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => {
+                    *map_type = TilemapType::Square;
+                    *map_texture = TilemapTexture::Single((*tile_handle_square).clone());
+                    *tile_size = TILE_SIZE_SQUARE;
+                    *grid_size = grid_scale.apply(GRID_SIZE_SQUARE);
+                }
+                TilemapType::Square => {
+                    *map_type = TilemapType::Isometric(IsoCoordSystem::Diamond);
+                    *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
+                    *tile_size = TILE_SIZE_ISO;
+                    *grid_size = grid_scale.apply(GRID_SIZE_ISO);
+                }
+                TilemapType::Isometric(IsoCoordSystem::Diamond) => {
+                    *map_type = TilemapType::Isometric(IsoCoordSystem::Staggered);
+                }
+                TilemapType::Isometric(IsoCoordSystem::Staggered) => {
+                    *map_type = TilemapType::Hexagon(HexCoordSystem::Row);
+                    *map_texture = TilemapTexture::Single((*tile_handle_hex_row).clone());
+                    *tile_size = TILE_SIZE_HEX_ROW;
+                    *grid_size = grid_scale.apply(GRID_SIZE_HEX_ROW);
+                }
+            }
+        }
+        if keyboard_input.just_pressed(KeyCode::Tab) {
+            grid_scale.next();
+            match map_type.as_ref() {
+                TilemapType::Hexagon(
+                    HexCoordSystem::Row | HexCoordSystem::RowEven | HexCoordSystem::RowOdd,
+                ) => {
+                    *grid_size = grid_scale.apply(GRID_SIZE_HEX_ROW);
+                }
+                TilemapType::Hexagon(
+                    HexCoordSystem::Column | HexCoordSystem::ColumnEven | HexCoordSystem::ColumnOdd,
+                ) => {
+                    *grid_size = grid_scale.apply(GRID_SIZE_HEX_COL);
+                }
+                TilemapType::Square => {
+                    *grid_size = grid_scale.apply(GRID_SIZE_SQUARE);
+                }
+                TilemapType::Isometric(_) => {
+                    *grid_size = grid_scale.apply(GRID_SIZE_ISO);
+                }
+            }
+        }
+        for (label, tile_pos) in tile_label_q.iter() {
+            if let Ok(mut tile_label_transform) = transform_q.get_mut(label.0) {
+                let tile_center = tile_pos
+                    .center_in_world(map_size, &grid_size, &tile_size, &map_type, &anchor)
+                    .extend(1.0);
+                *tile_label_transform = *map_transform * Transform::from_translation(tile_center);
+            }
+        }
+        for label_text in &map_type_label_q {
+            *writer.text(label_text, 1) = format!("{:?}", anchor.as_ref());
+            *writer.text(label_text, 3) = format!("{:?}", map_type.as_ref());
+            *writer.text(label_text, 5) = format!("{:.2}", grid_scale.get());
+        }
+    }
+}
+
+fn origin_axes(mut gizmos: Gizmos) {
+    gizmos.axes_2d(Transform::IDENTITY, 1000.0);
+}
+
+#[derive(SystemSet, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub struct SpawnTilemapSet;
 
 fn main() {
     App::new()
@@ -116,7 +397,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: String::from("Anchor Example - Press Space to change anchor."),
+                        title: String::from("Anchor - Press SPACE to change anchor"),
                         resolution: Vec2::splat(450.0).into(),
                         ..Default::default()
                     }),
@@ -125,35 +406,23 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
-        .add_systems(Startup, startup)
-        .add_systems(Startup, setup_header)
-        .add_systems(Update, helpers::camera::movement)
-        .add_systems(Update, change_anchor)
-        .add_systems(Update, mark_origin)
+        .init_resource::<TileHandleHexCol>()
+        .init_resource::<TileHandleHexRow>()
+        .init_resource::<TileHandleSquare>()
+        .init_resource::<TileHandleIso>()
+        .insert_resource(GridScale::new(vec![1.0, 0.75, 1.5]))
+        .add_systems(
+            Startup,
+            (spawn_tilemap, apply_deferred)
+                .chain()
+                .in_set(SpawnTilemapSet),
+        )
+        .add_systems(
+            Startup,
+            (spawn_tile_labels, spawn_map_label).after(SpawnTilemapSet),
+        )
+        .add_systems(First, camera_movement)
+        .add_systems(Update, swap_map_type)
+        .add_systems(Update, origin_axes)
         .run();
-}
-
-fn setup_header(mut commands: Commands) {
-    let font_size = 15.0;
-    commands
-        .spawn((
-            Text::new("Anchor: "),
-            TextLayout::new_with_justify(JustifyText::Center),
-            TextFont {
-                font_size,
-                ..default()
-            },
-            Node {
-                top: Val::Px(10.0),
-                left: Val::Px(10.0),
-                ..default()
-            },
-        ))
-        .with_child((
-            TextSpan::new("TopLeft"),
-            TextFont {
-                font_size,
-                ..default()
-            },
-        ));
 }
