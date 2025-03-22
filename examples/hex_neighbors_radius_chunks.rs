@@ -346,7 +346,6 @@ fn swap_map_type(
 struct TileLabel(Entity);
 
 const DEFAULT_FONT_SIZE: f32 = 14.0;
-const BIGGER_FONT_SIZE: f32 = 16.0;
 
 fn spawn_tile_labels(
     mut commands: Commands,
@@ -479,7 +478,7 @@ fn hover_highlight_tile_label(
                 if let Ok(label) = tile_label_q.get(tile_entity) {
                     if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                         text_color.0 = palettes::tailwind::RED_600.into();
-                        text_font.font_size = BIGGER_FONT_SIZE;
+                        text_font.font_size = DEFAULT_FONT_SIZE;
                         commands.entity(tile_entity).insert(Hovered);
                     }
                 }
@@ -575,7 +574,7 @@ fn highlight_neighbor_labels(
                         if let Ok(label) = tile_label_q.get(*tile_entity) {
                             if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                                 text_color.0 = palettes::tailwind::BLUE_600.into();
-                                text_font.font_size = BIGGER_FONT_SIZE;
+                                text_font.font_size = DEFAULT_FONT_SIZE;
                                 commands.entity(*tile_entity).insert(NeighborHighlight);
                             }
                         }

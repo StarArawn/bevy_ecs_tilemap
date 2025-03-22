@@ -47,9 +47,6 @@ impl TilemapAnchor {
         tile_size: &TilemapTileSize,
         map_type: &TilemapType,
     ) -> Vec2 {
-        // let tile_size = tile_size
-        //     .map(Cow::Borrowed)
-        //     .unwrap_or_else(|| Cow::Owned(TilemapTileSize::new(grid_size.x, grid_size.y)));
         let aabb = chunk_aabb(
             UVec2::new(map_size.x - 1, map_size.y - 1),
             grid_size,
