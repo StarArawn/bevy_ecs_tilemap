@@ -7,7 +7,6 @@ use crate::map::{
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, FrustumCulling};
-use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
@@ -19,6 +18,7 @@ use bevy::{
         renderer::{RenderDevice, RenderQueue},
     },
 };
+use bevy_log::trace;
 
 use super::extract::ChangedInMainWorld;
 use super::{

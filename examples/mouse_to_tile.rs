@@ -1,5 +1,4 @@
-use bevy::{color::palettes, math::Vec4Swizzles};
-use bevy::{ecs::system::Resource, prelude::*};
+use bevy::{color::palettes, math::Vec4Swizzles, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -369,7 +368,7 @@ fn main() {
         .add_plugins(TilemapPlugin)
         .add_systems(
             Startup,
-            (spawn_tilemap, apply_deferred)
+            (spawn_tilemap, ApplyDeferred)
                 .chain()
                 .in_set(SpawnTilemapSet),
         )

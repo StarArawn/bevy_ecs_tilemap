@@ -67,7 +67,7 @@ fn remove_tiles(
             };
 
             if let Some(tile_entity) = tile_storage.get(&position) {
-                commands.entity(tile_entity).despawn_recursive();
+                commands.entity(tile_entity).despawn();
                 // Don't forget to remove tiles from the tile storage!
                 tile_storage.remove(&position);
             }

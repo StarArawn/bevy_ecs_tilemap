@@ -1,4 +1,4 @@
-use bevy::{ecs::system::Resource, prelude::*};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -147,7 +147,7 @@ fn swap_map_type(
                 // see documentation for take to understand how it works:
                 // https://doc.rust-lang.org/std/option/enum.Option.html#method.take
                 if let Some(entity) = possible_entity.take() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
             }
 
@@ -210,7 +210,7 @@ fn main() {
         .init_resource::<TileHandleHexRow>()
         .add_systems(
             Startup,
-            (spawn_tilemap, apply_deferred, spawn_map_type_label).chain(),
+            (spawn_tilemap, ApplyDeferred, spawn_map_type_label).chain(),
         )
         .add_systems(Update, camera_movement)
         .add_systems(Update, swap_map_type)

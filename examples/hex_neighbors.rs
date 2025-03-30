@@ -415,7 +415,7 @@ fn main() {
         .init_resource::<CursorPos>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
-        .add_systems(Startup, (spawn_tilemap, apply_deferred).chain().in_set(SpawnTilemapSet))
+        .add_systems(Startup, (spawn_tilemap, ApplyDeferred).chain().in_set(SpawnTilemapSet))
         .add_systems(Startup, (spawn_tile_labels, spawn_map_type_label).after(SpawnTilemapSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
         .add_systems(Update, swap_map_type)

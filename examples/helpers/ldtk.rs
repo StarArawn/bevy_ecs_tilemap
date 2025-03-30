@@ -147,7 +147,7 @@ pub fn process_loaded_tile_maps(
             }
             if let Some(ldtk_map) = maps.get(&map_handle.0) {
                 // Despawn all existing tilemaps for this LdtkMap
-                commands.entity(entity).despawn_descendants();
+                commands.entity(entity).despawn_related::<Children>();
 
                 // Pull out tilesets and their definitions into a new hashmap
                 let mut tilesets = HashMap::new();

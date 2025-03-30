@@ -22,7 +22,7 @@ pub struct TileStorage {
 impl MapEntities for TileStorage {
     fn map_entities<M: EntityMapper>(&mut self, entity_mapper: &mut M) {
         for entity in self.tiles.iter_mut().flatten() {
-            *entity = entity_mapper.map_entity(*entity);
+            *entity = entity_mapper.get_mapped(*entity);
         }
     }
 }

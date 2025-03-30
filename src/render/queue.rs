@@ -1,10 +1,10 @@
 use bevy::{
+    platform_support::collections::HashMap,
     prelude::*,
     render::{
         render_resource::{BindGroup, BindGroupEntry},
         renderer::RenderDevice,
     },
-    utils::HashMap,
 };
 
 use super::{

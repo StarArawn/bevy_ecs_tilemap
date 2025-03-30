@@ -2,19 +2,20 @@ use crate::render::extract::ExtractedTilemapTexture;
 use crate::{TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize};
 use bevy::asset::Assets;
 use bevy::prelude::{ResMut, Resource};
+use bevy::render::render_resource::TexelCopyTextureInfo;
 use bevy::{
-    prelude::{Image, Res, UVec2},
+    platform_support::collections::{HashMap, HashSet},
+    prelude::{Image, Res},
     render::{
         render_asset::RenderAssets,
         render_resource::{
-            AddressMode, CommandEncoderDescriptor, Extent3d, FilterMode, ImageCopyTexture,
-            Origin3d, SamplerDescriptor, TextureAspect, TextureDescriptor, TextureDimension,
-            TextureFormat, TextureUsages, TextureViewDescriptor, TextureViewDimension,
+            AddressMode, CommandEncoderDescriptor, Extent3d, FilterMode, Origin3d,
+            SamplerDescriptor, TextureAspect, TextureDescriptor, TextureDimension, TextureFormat,
+            TextureUsages, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::{RenderDevice, RenderQueue},
         texture::GpuImage,
     },
-    utils::{HashMap, HashSet},
 };
 
 use super::ModifiedImageIds;
@@ -202,6 +203,7 @@ impl TextureArrayCache {
                         mip_level_count: None,
                         base_array_layer: 0,
                         array_layer_count: Some(count),
+                        usage: Some(gpu_texture.usage()),
                     });
 
                     let mip_level_count = gpu_texture.mip_level_count();
@@ -211,9 +213,10 @@ impl TextureArrayCache {
                         texture: gpu_texture,
                         sampler,
                         texture_view,
-                        size: UVec2 {
-                            x: tile_size.x as u32,
-                            y: tile_size.y as u32,
+                        size: Extent3d {
+                            width: tile_size.x as u32,
+                            height: tile_size.y as u32,
+                            depth_or_array_layers: 1,
                         },
                         mip_level_count,
                     };
@@ -269,7 +272,7 @@ impl TextureArrayCache {
                             (i as f32 / columns).floor() * (tile_size.y + spacing.y) + spacing.y;
 
                         command_encoder.copy_texture_to_texture(
-                            ImageCopyTexture {
+                            TexelCopyTextureInfo {
                                 texture: &gpu_image.texture,
                                 mip_level: 0,
                                 origin: Origin3d {
@@ -279,7 +282,7 @@ impl TextureArrayCache {
                                 },
                                 aspect: TextureAspect::All,
                             },
-                            ImageCopyTexture {
+                            TexelCopyTextureInfo {
                                 texture: &array_gpu_image.texture,
                                 mip_level: 0,
                                 origin: Origin3d { x: 0, y: 0, z: i },
@@ -318,13 +321,13 @@ impl TextureArrayCache {
 
                     for i in 0..count {
                         command_encoder.copy_texture_to_texture(
-                            ImageCopyTexture {
+                            TexelCopyTextureInfo {
                                 texture: &gpu_images[i as usize].texture,
                                 mip_level: 0,
                                 origin: Origin3d { x: 0, y: 0, z: 0 },
                                 aspect: TextureAspect::All,
                             },
-                            ImageCopyTexture {
+                            TexelCopyTextureInfo {
                                 texture: &array_gpu_image.texture,
                                 mip_level: 0,
                                 origin: Origin3d { x: 0, y: 0, z: i },

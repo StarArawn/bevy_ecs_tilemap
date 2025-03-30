@@ -1,4 +1,5 @@
 use bevy::{
+    asset::weak_handle,
     core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
     image::BevyDefault,
     prelude::{Component, FromWorld, Handle, Resource, Shader, World},
@@ -23,8 +24,10 @@ use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
-pub const TILEMAP_SHADER_VERTEX: Handle<Shader> = Handle::weak_from_u128(8094008129742001941);
-pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> = Handle::weak_from_u128(5716002228110903793);
+pub const TILEMAP_SHADER_VERTEX: Handle<Shader> =
+    weak_handle!("915ef471-58b4-4431-acae-f38b41969a9e");
+pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> =
+    weak_handle!("bf34308e-69df-4da8-b0ff-816042c716c8");
 
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
