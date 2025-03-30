@@ -608,7 +608,7 @@ fn main() {
         .init_resource::<HighlightRadius>()
         .init_resource::<TileHandleHexCol>()
         .init_resource::<TileHandleHexRow>()
-        .add_systems(Startup, (spawn_chunks, apply_deferred).chain().in_set(SpawnChunksSet))
+        .add_systems(Startup, (spawn_chunks, ApplyDeferred).chain().in_set(SpawnChunksSet))
         .add_systems(Startup, spawn_tile_labels.after(SpawnChunksSet))
         .add_systems(First, (camera_movement, update_cursor_pos).chain())
         .add_systems(Update, swap_map_type)

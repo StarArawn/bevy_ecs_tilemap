@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
 
+use bevy::platform_support::collections::HashMap;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::Buffer;
 use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
@@ -12,7 +13,6 @@ use bevy::{
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
         renderer::RenderDevice,
     },
-    utils::HashMap,
 };
 use bevy::{
     prelude::{InheritedVisibility, Resource, Transform},

@@ -16,10 +16,10 @@
 //! - Can `Anchor` tilemap like a sprite.
 
 use bevy::{
+    ecs::schedule::IntoScheduleConfigs,
     prelude::{
-        Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility,
-        IntoSystemConfigs, IntoSystemSetConfigs, Plugin, Query, Reflect, ReflectComponent,
-        SystemSet, Transform, ViewVisibility, Visibility,
+        Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, Plugin,
+        Query, Reflect, ReflectComponent, SystemSet, Transform, ViewVisibility, Visibility,
     },
     render::sync_world::SyncToRenderWorld,
     time::TimeSystem,

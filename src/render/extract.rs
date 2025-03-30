@@ -1,9 +1,12 @@
-use bevy::math::Affine3A;
-use bevy::render::primitives::{Aabb, Frustum};
-use bevy::render::render_resource::FilterMode;
-use bevy::render::render_resource::TextureFormat;
-use bevy::render::sync_world::RenderEntity;
-use bevy::{prelude::*, render::Extract, utils::HashMap};
+use bevy::{
+    math::Affine3A,
+    platform_support::collections::HashMap,
+    prelude::*,
+    render::primitives::{Aabb, Frustum},
+    render::render_resource::{FilterMode, TextureFormat},
+    render::sync_world::RenderEntity,
+    render::Extract,
+};
 
 use crate::anchor::TilemapAnchor;
 use crate::prelude::TilemapGridSize;
@@ -235,7 +238,7 @@ pub fn extract(
     images: Extract<Res<Assets<Image>>>,
 ) {
     let mut extracted_tiles = Vec::new();
-    let mut extracted_tilemaps = HashMap::default();
+    let mut extracted_tilemaps = HashMap::new();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (

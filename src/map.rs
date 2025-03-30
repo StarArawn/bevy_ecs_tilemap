@@ -1,11 +1,17 @@
-use bevy::asset::Assets;
-use bevy::ecs::entity::{EntityMapper, MapEntities};
-use bevy::ecs::reflect::ReflectMapEntities;
-use bevy::prelude::{ReflectComponent, Res, ResMut};
-use bevy::render::render_resource::TextureUsages;
 use bevy::{
+    asset::Assets,
+    ecs::{
+        entity::{EntityMapper, MapEntities},
+        reflect::ReflectMapEntities,
+    },
     math::{UVec2, Vec2},
-    prelude::{Component, Deref, DerefMut, Entity, Handle, Image, Reflect},
+    prelude::{
+        Component, Deref, DerefMut, Entity, Handle, Image, Reflect, ReflectComponent, Res, ResMut,
+    },
+    render::{
+        render_resource::TextureUsages,
+        view::{add_visibility_class, VisibilityClass},
+    },
 };
 use std::ops::Add;
 
@@ -16,6 +22,8 @@ pub const CHUNK_SIZE_2D: UVec2 = UVec2::from_array([64, 64]);
 ///
 /// It must be added as a component to the tilemap entity.
 #[derive(Component, Debug, Copy, Clone)]
+#[require(VisibilityClass)]
+#[component(on_add = add_visibility_class::<TilemapRenderSettings>)]
 pub struct TilemapRenderSettings {
     /// Dimensions of a "chunk" in tiles. Chunks are grouping of tiles combined and rendered as a
     /// single mesh by the render pipeline.
@@ -50,7 +58,7 @@ pub struct TilemapId(pub Entity);
 
 impl MapEntities for TilemapId {
     fn map_entities<M: EntityMapper>(&mut self, entity_mapper: &mut M) {
-        self.0 = entity_mapper.map_entity(self.0);
+        self.0 = entity_mapper.get_mapped(self.0);
     }
 }
 

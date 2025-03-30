@@ -59,7 +59,9 @@ fn update(
     tile_query: Query<(Entity, &TilePos, &TileVisible)>,
 ) {
     let current_time = time.elapsed_secs_f64();
-    let (tile_storage, map_size, mut last_update) = tile_storage_query.single_mut();
+    let Ok((tile_storage, map_size, mut last_update)) = tile_storage_query.single_mut() else {
+        return;
+    };
     if current_time - last_update.0 > 0.1 {
         for (entity, position, visibility) in tile_query.iter() {
             let neighbor_count =

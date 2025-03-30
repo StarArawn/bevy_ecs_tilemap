@@ -18,17 +18,16 @@ use std::sync::Arc;
 
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath},
-    log,
+    platform_support::collections::HashMap,
     prelude::{
-        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component,
-        DespawnRecursiveExt, Entity, EventReader, GlobalTransform, Handle, Image, Plugin, Query,
-        Res, Transform, Update,
+        Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,
+        EventReader, GlobalTransform, Handle, Image, Plugin, Query, Res, Transform, Update,
     },
     reflect::TypePath,
-    utils::HashMap,
 };
 use bevy_ecs_tilemap::prelude::*;
 
+use bevy_log::{info, warn};
 use thiserror::Error;
 
 #[derive(Default)]
@@ -133,7 +132,7 @@ impl AssetLoader for TiledLoader {
                 None => {
                     #[cfg(feature = "atlas")]
                     {
-                        log::info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
+                        info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
                         continue;
                     }
 
@@ -150,7 +149,7 @@ impl AssetLoader for TiledLoader {
                                     .expect("The asset load context was empty.");
                                 let tile_path = tmx_dir.join(&img.source);
                                 let asset_path = AssetPath::from(tile_path);
-                                log::info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
                                 let texture: Handle<Image> = load_context.load(asset_path.clone());
                                 tile_image_offsets
                                     .insert((tileset_index, tile_id), tile_images.len() as u32);
@@ -186,7 +185,7 @@ impl AssetLoader for TiledLoader {
             tile_image_offsets,
         };
 
-        log::info!("Loaded map: {}", load_context.path().display());
+        info!("Loaded map: {}", load_context.path().display());
         Ok(asset_map)
     }
 
@@ -212,15 +211,15 @@ pub fn process_loaded_maps(
     for event in map_events.read() {
         match event {
             AssetEvent::Added { id } => {
-                log::info!("Map added!");
+                info!("Map added!");
                 changed_maps.push(*id);
             }
             AssetEvent::Modified { id } => {
-                log::info!("Map changed!");
+                info!("Map changed!");
                 changed_maps.push(*id);
             }
             AssetEvent::Removed { id } => {
-                log::info!("Map removed!");
+                info!("Map removed!");
                 // if mesh was modified and removed in the same update, ignore the modification
                 // events are ordered so future modification events are ok
                 changed_maps.retain(|changed_handle| changed_handle == id);
@@ -245,7 +244,7 @@ pub fn process_loaded_maps(
                 for layer_entity in layer_storage.storage.values() {
                     if let Ok((_, layer_tile_storage)) = tile_storage_query.get(*layer_entity) {
                         for tile in layer_tile_storage.iter().flatten() {
-                            commands.entity(*tile).despawn_recursive()
+                            commands.entity(*tile).despawn()
                         }
                     }
                     // commands.entity(*layer_entity).despawn_recursive();
@@ -259,7 +258,7 @@ pub fn process_loaded_maps(
                 for (tileset_index, tileset) in tiled_map.map.tilesets().iter().enumerate() {
                     let Some(tilemap_texture) = tiled_map.tilemap_textures.get(&tileset_index)
                     else {
-                        log::warn!("Skipped creating layer with missing tilemap textures.");
+                        warn!("Skipped creating layer with missing tilemap textures.");
                         continue;
                     };
 
@@ -279,7 +278,7 @@ pub fn process_loaded_maps(
                         let offset_y = layer.offset_y;
 
                         let tiled::LayerType::Tiles(tile_layer) = layer.layer_type() else {
-                            log::info!(
+                            info!(
                                 "Skipping layer {} because only tile layers are supported.",
                                 layer.id()
                             );
@@ -287,7 +286,7 @@ pub fn process_loaded_maps(
                         };
 
                         let tiled::TileLayer::Finite(layer_data) = tile_layer else {
-                            log::info!(
+                            info!(
                                 "Skipping layer {} because only finite layers are supported.",
                                 layer.id()
                             );
