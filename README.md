@@ -15,7 +15,7 @@ A tilemap rendering plugin for [`bevy`](https://bevyengine.org/). It is more ECS
 - GPU powered animations.
 - Isometric and Hexagonal tile maps.
 - Examples for integration with [Tiled](https://www.mapeditor.org/) and [LDTK](https://ldtk.io/) editors.
-- Can `Anchor` tilemap like a sprite.
+- Can anchor a tilemap like a sprite.
 
 ## Screenshots
 
