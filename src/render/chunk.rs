@@ -22,9 +22,9 @@ use bevy::{
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
+    FrustumCulling, TilemapGridSize, TilemapTileSize,
     map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
-    FrustumCulling, TilemapGridSize, TilemapTileSize,
 };
 
 use super::RenderChunkSize;

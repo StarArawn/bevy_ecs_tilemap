@@ -1,5 +1,5 @@
 use crate::helpers::hex_grid::axial::AxialPos;
-use crate::helpers::hex_grid::neighbors::{HexDirection, HEX_DIRECTIONS};
+use crate::helpers::hex_grid::neighbors::{HEX_DIRECTIONS, HexDirection};
 use crate::map::TilemapId;
 use crate::prelude::HexCoordSystem;
 use crate::tiles::{TileBundle, TileColor, TilePos, TileTextureIndex};

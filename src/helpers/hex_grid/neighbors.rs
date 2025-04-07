@@ -1,8 +1,8 @@
+use crate::TilePos;
 use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::{HexCoordSystem, TilemapSize};
 use crate::prelude::TileStorage;
-use crate::TilePos;
 use bevy::prelude::Entity;
 use std::ops::{Add, Sub};
 

@@ -10,6 +10,7 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
+        Extract, Render, RenderApp, RenderSet,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
@@ -24,19 +25,18 @@ use bevy::{
         renderer::RenderDevice,
         texture::GpuImage,
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
-        Extract, Render, RenderApp, RenderSet,
     },
 };
 use bevy_log::error;
 use std::{hash::Hash, marker::PhantomData};
 
 use super::{
+    ModifiedImageIds,
     chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
-    ModifiedImageIds,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -352,7 +352,9 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
                 error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
             }
             Err(AsBindGroupError::CreateBindGroupDirectly) => {
-                error!("Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material");
+                error!(
+                    "Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material"
+                );
             }
         }
     }
@@ -373,7 +375,9 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
                 error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
             }
             Err(AsBindGroupError::CreateBindGroupDirectly) => {
-                error!("Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material");
+                error!(
+                    "Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material"
+                );
             }
         }
     }

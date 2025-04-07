@@ -17,7 +17,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bevy::{
-    asset::{io::Reader, AssetLoader, AssetPath},
+    asset::{AssetLoader, AssetPath, io::Reader},
     platform_support::collections::HashMap,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,
@@ -132,7 +132,10 @@ impl AssetLoader for TiledLoader {
                 None => {
                     #[cfg(feature = "atlas")]
                     {
-                        info!("Skipping image collection tileset '{}' which is incompatible with atlas feature", tileset.name);
+                        info!(
+                            "Skipping image collection tileset '{}' which is incompatible with atlas feature",
+                            tileset.name
+                        );
                         continue;
                     }
 
@@ -149,7 +152,9 @@ impl AssetLoader for TiledLoader {
                                     .expect("The asset load context was empty.");
                                 let tile_path = tmx_dir.join(&img.source);
                                 let asset_path = AssetPath::from(tile_path);
-                                info!("Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})");
+                                info!(
+                                    "Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})"
+                                );
                                 let texture: Handle<Image> = load_context.load(asset_path.clone());
                                 tile_image_offsets
                                     .insert((tileset_index, tile_id), tile_images.len() as u32);

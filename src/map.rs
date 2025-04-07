@@ -10,7 +10,7 @@ use bevy::{
     },
     render::{
         render_resource::TextureUsages,
-        view::{add_visibility_class, VisibilityClass},
+        view::{VisibilityClass, add_visibility_class},
     },
 };
 use std::ops::Add;

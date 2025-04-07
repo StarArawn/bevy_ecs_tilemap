@@ -1,8 +1,8 @@
 use bevy_ecs_tilemap::{
+    TilemapBundle,
     anchor::TilemapAnchor,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
-    TilemapBundle,
 };
 use std::{collections::HashMap, io::ErrorKind};
 use thiserror::Error;

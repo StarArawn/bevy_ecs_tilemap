@@ -7,13 +7,13 @@ use bevy::{
     platform_support::collections::HashSet,
     prelude::*,
     render::{
+        Render, RenderApp, RenderSet,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
-        extract_resource::{extract_resource, ExtractResource},
+        extract_resource::{ExtractResource, extract_resource},
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         sync_world::RenderEntity,
-        Render, RenderApp, RenderSet,
     },
 };
 
@@ -24,21 +24,21 @@ use bevy::render::texture::GpuImage;
 use extract::remove_changed;
 
 use crate::{
+    TilemapFirstSet,
+    tiles::{TilePos, TileStorage},
+};
+use crate::{
     prelude::TilemapTexture,
     render::{
         material::{MaterialTilemapPlugin, StandardTilemapMaterial},
         prepare::{MeshUniformResource, TilemapUniformResource},
     },
 };
-use crate::{
-    tiles::{TilePos, TileStorage},
-    TilemapFirstSet,
-};
 
 use self::{
     chunk::RenderChunk2dStorage,
     draw::DrawTilemap,
-    pipeline::{TilemapPipeline, TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX},
+    pipeline::{TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX, TilemapPipeline},
     queue::ImageBindGroups,
 };
 

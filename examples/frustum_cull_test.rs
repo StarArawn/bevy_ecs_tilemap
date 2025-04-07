@@ -2,7 +2,7 @@
 //! `LogPlugin` to display related traces.
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use bevy_ecs_tilemap::{prelude::*, FrustumCulling};
+use bevy_ecs_tilemap::{FrustumCulling, prelude::*};
 use bevy_log::LogPlugin;
 
 mod helpers;
