@@ -53,6 +53,12 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
         | TilemapType::Hexagon(HexCoordSystem::ColumnOdd) => GRID_SIZE_HEX_COL,
         _ => unreachable!(),
     };
+
+    let map_size = TilemapSize {
+        x: CHUNK_MAP_SIDE_LENGTH_X,
+        y: CHUNK_MAP_SIDE_LENGTH_Y,
+    };
+    let anchor = TilemapAnchor::None;
     if matches!(
         map_type,
         TilemapType::Hexagon(HexCoordSystem::RowEven)
@@ -64,7 +70,7 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
                 x: 0,
                 y: CHUNK_MAP_SIDE_LENGTH_Y,
             }
-            .center_in_world(&grid_size, &map_type)
+            .center_in_world(&map_size, &grid_size, &tile_size, &map_type, &anchor)
             .y * pos.y as f32,
             0.0,
         )
@@ -78,7 +84,7 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
                 x: CHUNK_MAP_SIDE_LENGTH_X,
                 y: 0,
             }
-            .center_in_world(&grid_size, &map_type)
+            .center_in_world(&map_size, &grid_size, &tile_size, &map_type, &anchor)
             .x * pos.x as f32,
             tile_size.y * CHUNK_MAP_SIDE_LENGTH_Y as f32 * pos.y as f32,
             0.0,
@@ -90,12 +96,17 @@ fn chunk_in_world_position(pos: IVec2, map_type: TilemapType) -> Vec3 {
 
 fn hex_pos_from_tile_pos(
     tile_pos: &TilePos,
+    map_size: &TilemapSize,
     grid_size: &TilemapGridSize,
+    tile_size: &TilemapTileSize,
     map_type: &TilemapType,
     map_transform: &Transform,
+    anchor: &TilemapAnchor,
 ) -> IVec2 {
-    let tile_translation =
-        *map_transform * tile_pos.center_in_world(grid_size, map_type).extend(0.0);
+    let tile_translation = *map_transform
+        * tile_pos
+            .center_in_world(map_size, grid_size, tile_size, map_type, anchor)
+            .extend(0.0);
     match map_type {
         TilemapType::Hexagon(HexCoordSystem::RowEven) => {
             let pos = RowEvenPos::from_world_pos(&tile_translation.truncate(), grid_size);
@@ -168,14 +179,26 @@ fn hex_neighbors_radius(hex_pos: IVec2, radius: u32, map_type: &TilemapType) -> 
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn hex_neighbors_radius_from_tile_pos(
     tile_pos: &TilePos,
+    map_size: &TilemapSize,
     grid_size: &TilemapGridSize,
+    tile_size: &TilemapTileSize,
     map_type: &TilemapType,
     map_transform: &Transform,
+    anchor: &TilemapAnchor,
     radius: u32,
 ) -> Vec<IVec2> {
-    let hex_pos = hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_transform);
+    let hex_pos = hex_pos_from_tile_pos(
+        tile_pos,
+        map_size,
+        grid_size,
+        tile_size,
+        map_type,
+        map_transform,
+        anchor,
+    );
     hex_neighbors_radius(hex_pos, radius, map_type)
 }
 
@@ -236,11 +259,13 @@ fn swap_map_type(
     mut tilemap_query: Query<(
         &mut Transform,
         &mut TilemapType,
+        &mut TilemapSize,
         &mut TilemapGridSize,
         &mut TilemapTexture,
         &mut TilemapTileSize,
         &TileStorage,
         &ChunkPos,
+        &TilemapAnchor,
     )>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     tile_label_q: Query<(Entity, &TileLabel, &TilePos), Without<TilemapType>>,
@@ -252,11 +277,13 @@ fn swap_map_type(
         for (
             mut map_transform,
             mut map_type,
+            map_size,
             mut grid_size,
             mut map_texture,
             mut tile_size,
             tile_storage,
             chunk_pos,
+            anchor,
         ) in tilemap_query.iter_mut()
         {
             match map_type.as_ref() {
@@ -290,15 +317,21 @@ fn swap_map_type(
                 {
                     if let Some(ent) = tile_storage.checked_get(tile_pos) {
                         if ent == tile_entity {
-                            let tile_center =
-                                tile_pos.center_in_world(&grid_size, &map_type).extend(1.0);
+                            let tile_center = tile_pos
+                                .center_in_world(
+                                    &map_size, &grid_size, &tile_size, &map_type, anchor,
+                                )
+                                .extend(1.0);
                             *tile_label_transform =
                                 *map_transform * Transform::from_translation(tile_center);
                             let hex_pos = hex_pos_from_tile_pos(
                                 tile_pos,
+                                &map_size,
                                 &grid_size,
+                                &tile_size,
                                 &map_type,
                                 &map_transform,
+                                anchor,
                             );
                             tile_label_text.0 = format!("{},{}", hex_pos.x, hex_pos.y);
                         }
@@ -312,24 +345,46 @@ fn swap_map_type(
 #[derive(Component)]
 struct TileLabel(Entity);
 
+const DEFAULT_FONT_SIZE: f32 = 14.0;
+
 fn spawn_tile_labels(
     mut commands: Commands,
-    tilemap_q: Query<(&Transform, &TilemapType, &TilemapGridSize, &TileStorage)>,
+    tilemap_q: Query<(
+        &Transform,
+        &TilemapType,
+        &TilemapSize,
+        &TilemapGridSize,
+        &TilemapTileSize,
+        &TileStorage,
+        &TilemapAnchor,
+    )>,
     tile_q: Query<&TilePos>,
 ) {
-    for (map_transform, map_type, grid_size, tilemap_storage) in tilemap_q.iter() {
+    for (map_transform, map_type, map_size, grid_size, tile_size, tilemap_storage, anchor) in
+        tilemap_q.iter()
+    {
         for tile_entity in tilemap_storage.iter().flatten() {
             let tile_pos = tile_q.get(*tile_entity).unwrap();
-            let tile_center = tile_pos.center_in_world(grid_size, map_type).extend(1.0);
+            let tile_center = tile_pos
+                .center_in_world(map_size, grid_size, tile_size, map_type, anchor)
+                .extend(1.0);
             let transform = *map_transform * Transform::from_translation(tile_center);
 
-            let hex_pos = hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_transform);
+            let hex_pos = hex_pos_from_tile_pos(
+                tile_pos,
+                map_size,
+                grid_size,
+                tile_size,
+                map_type,
+                map_transform,
+                anchor,
+            );
 
             let label_entity = commands
                 .spawn((
                     Text2d(format!("{},{}", hex_pos.x, hex_pos.y)),
                     TextFont {
-                        font_size: 14.0,
+                        font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },
                     TextColor(Color::BLACK),
@@ -381,38 +436,49 @@ fn hover_highlight_tile_label(
     tilemap_q: Query<(
         &TilemapSize,
         &TilemapGridSize,
+        &TilemapTileSize,
         &TilemapType,
+        &TilemapAnchor,
         &TileStorage,
         &Transform,
     )>,
     highlighted_tiles_q: Query<Entity, With<Hovered>>,
     tile_label_q: Query<&TileLabel>,
-    mut text_q: Query<&mut TextColor>,
+    mut text_q: Query<(&mut TextColor, &mut TextFont)>,
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok(mut text_color) = text_q.get_mut(label.0) {
+            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                 text_color.0 = Color::BLACK;
+                text_font.font_size = DEFAULT_FONT_SIZE;
                 commands.entity(highlighted_tile_entity).remove::<Hovered>();
             }
         }
     }
 
-    for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
+    for (map_size, grid_size, tile_size, map_type, anchor, tile_storage, map_transform) in
+        tilemap_q.iter()
+    {
         let cursor_pos = cursor_pos.0;
         let cursor_pos_in_map_pos = {
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
             let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
-        if let Some(tile_pos) =
-            TilePos::from_world_pos(&cursor_pos_in_map_pos, map_size, grid_size, map_type)
-        {
+        if let Some(tile_pos) = TilePos::from_world_pos(
+            &cursor_pos_in_map_pos,
+            map_size,
+            grid_size,
+            tile_size,
+            map_type,
+            anchor,
+        ) {
             if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                 if let Ok(label) = tile_label_q.get(tile_entity) {
-                    if let Ok(mut text_color) = text_q.get_mut(label.0) {
+                    if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                         text_color.0 = palettes::tailwind::RED_600.into();
+                        text_font.font_size = DEFAULT_FONT_SIZE;
                         commands.entity(tile_entity).insert(Hovered);
                     }
                 }
@@ -444,18 +510,27 @@ struct NeighborHighlight;
 // Highlight neighbors of a tile in a radius
 fn highlight_neighbor_labels(
     mut commands: Commands,
-    tilemap_query: Query<(&TilemapType, &TilemapGridSize, &TileStorage, &Transform)>,
+    tilemap_query: Query<(
+        &TilemapType,
+        &TilemapSize,
+        &TilemapGridSize,
+        &TilemapTileSize,
+        &TileStorage,
+        &Transform,
+        &TilemapAnchor,
+    )>,
     highlighted_tiles_q: Query<Entity, With<NeighborHighlight>>,
     hovered_tiles_q: Query<(Entity, &TilePos), With<Hovered>>,
     tiles_q: Query<&TilePos, Without<Hovered>>,
     tile_label_q: Query<&TileLabel>,
-    mut text_q: Query<&mut TextColor>,
+    mut text_q: Query<(&mut TextColor, &mut TextFont)>,
     radius: Res<HighlightRadius>,
 ) {
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
         if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok(mut text_color) = text_q.get_mut(label.0) {
+            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                 text_color.0 = Color::BLACK;
+                text_font.font_size = DEFAULT_FONT_SIZE;
                 commands
                     .entity(highlighted_tile_entity)
                     .remove::<NeighborHighlight>();
@@ -465,15 +540,20 @@ fn highlight_neighbor_labels(
 
     let mut neighbors: Option<Vec<IVec2>> = None;
 
-    for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
+    for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in
+        tilemap_query.iter()
+    {
         for (hovered_tile_entity, hovered_tile_pos) in hovered_tiles_q.iter() {
             if let Some(ent) = tile_storage.checked_get(hovered_tile_pos) {
                 if ent == hovered_tile_entity {
                     neighbors = Some(hex_neighbors_radius_from_tile_pos(
                         hovered_tile_pos,
+                        map_size,
                         grid_size,
+                        tile_size,
                         map_type,
                         map_t,
+                        anchor,
                         **radius,
                     ));
                 }
@@ -482,14 +562,19 @@ fn highlight_neighbor_labels(
     }
 
     if let Some(neighbors) = neighbors {
-        for (map_type, grid_size, tile_storage, map_t) in tilemap_query.iter() {
+        for (map_type, map_size, grid_size, tile_size, tile_storage, map_t, anchor) in
+            tilemap_query.iter()
+        {
             for tile_entity in tile_storage.iter().flatten() {
                 if let Ok(tile_pos) = tiles_q.get(*tile_entity) {
-                    let tile_hex_pos = hex_pos_from_tile_pos(tile_pos, grid_size, map_type, map_t);
+                    let tile_hex_pos = hex_pos_from_tile_pos(
+                        tile_pos, map_size, grid_size, tile_size, map_type, map_t, anchor,
+                    );
                     if neighbors.contains(&tile_hex_pos) {
                         if let Ok(label) = tile_label_q.get(*tile_entity) {
-                            if let Ok(mut text_color) = text_q.get_mut(label.0) {
+                            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
                                 text_color.0 = palettes::tailwind::BLUE_600.into();
+                                text_font.font_size = DEFAULT_FONT_SIZE;
                                 commands.entity(*tile_entity).insert(NeighborHighlight);
                             }
                         }

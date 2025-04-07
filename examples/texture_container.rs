@@ -83,7 +83,7 @@ mod no_atlas {
             size: map_size,
             storage: tile_storage,
             texture: texture_vec,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+            anchor: TilemapAnchor::Center,
             ..Default::default()
         });
     }

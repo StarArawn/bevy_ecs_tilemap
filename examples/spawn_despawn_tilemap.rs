@@ -59,8 +59,6 @@ fn spawn_map(
     let map_type = TilemapType::default();
 
     let offset = Vec3::splat(num_maps as f32 * tile_size.x / 2.);
-    let mut transform = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
-    transform.translation += offset;
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
@@ -69,7 +67,8 @@ fn spawn_map(
         storage: tile_storage,
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
-        transform,
+        anchor: TilemapAnchor::Center,
+        transform: Transform::from_translation(offset),
         ..default()
     });
 }

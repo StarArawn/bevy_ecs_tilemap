@@ -52,7 +52,7 @@ features = [
     "multi_threaded",
     "default_font",
     "webgl2",
-    "default_font",
+    "bevy_gizmos",
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
@@ -74,7 +74,7 @@ features = [
     "multi_threaded",
     "default_font",
     "webgl2",
-    "default_font",
+    "bevy_gizmos",
 ]
 
 
@@ -197,4 +197,8 @@ required-features = ["render"]
 [[example]]
 name = "visibility"
 path = "examples/visibility.rs"
+required-features = ["render"]
+[[example]]
+name = "anchor"
+path = "examples/anchor.rs"
 required-features = ["render"]

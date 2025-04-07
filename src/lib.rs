@@ -13,6 +13,7 @@
 //! - Support for isometric and hexagon rendering.
 //! - Built in animation support  – see [`animation` example](https://github.com/StarArawn/bevy_ecs_tilemap/blob/main/examples/animation.rs).
 //! - Texture array support.
+//! - Can `Anchor` tilemap like a sprite.
 
 use bevy::{
     prelude::{
@@ -27,6 +28,7 @@ use bevy::{
 #[cfg(feature = "render")]
 use render::material::MaterialTilemapHandle;
 
+use anchor::TilemapAnchor;
 use map::{
     TilemapGridSize, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
     TilemapTileSize, TilemapType,
@@ -42,6 +44,7 @@ use tiles::{
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 use bevy::render::{ExtractSchedule, RenderApp};
 
+pub mod anchor;
 /// A module that allows pre-loading of atlases into array textures.
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
 mod array_texture_preload;
@@ -81,6 +84,7 @@ impl Plugin for TilemapPlugin {
             .register_type::<TilemapSpacing>()
             .register_type::<TilemapTextureSize>()
             .register_type::<TilemapType>()
+            .register_type::<TilemapAnchor>()
             .register_type::<TilePos>()
             .register_type::<TileTextureIndex>()
             .register_type::<TileColor>()
@@ -134,6 +138,7 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub frustum_culling: FrustumCulling,
     pub material: MaterialTilemapHandle<M>,
     pub sync: SyncToRenderWorld,
+    pub anchor: TilemapAnchor,
 }
 
 #[cfg(not(feature = "render"))]
@@ -163,6 +168,7 @@ pub struct StandardTilemapBundle {
 
 /// A module which exports commonly used dependencies.
 pub mod prelude {
+    pub use crate::anchor::TilemapAnchor;
     #[cfg(all(not(feature = "atlas"), feature = "render"))]
     pub use crate::array_texture_preload::*;
     pub use crate::helpers;

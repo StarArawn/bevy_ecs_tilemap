@@ -15,7 +15,7 @@ pub fn chunk_index_to_world_space(
         x: chunk_index.x * chunk_size.x,
         y: chunk_index.y * chunk_size.y,
     };
-    anchor_tile_pos.center_in_world(grid_size, map_type)
+    anchor_tile_pos.center_in_world_unanchored(grid_size, map_type)
 }
 
 /// Calculates the [`Aabb`] of a generic chunk. The AABB depends upon the grid size, tile size, and
@@ -33,7 +33,7 @@ pub fn chunk_aabb(
     map_type: &TilemapType,
 ) -> Aabb {
     // The AABB minimum and maximum have to be modified by -border and +border respectively.
-    let border = Vec2::from(grid_size).max(tile_size.into());
+    let border = Vec2::from(grid_size).max(tile_size.into()) / 2.0;
 
     // For most map types, it would be sufficient to calculate c0 and c3. However, for some map
     // types (right now, isometric diamond), this would not work, and for robustness (especially

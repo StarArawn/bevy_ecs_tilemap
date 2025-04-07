@@ -76,7 +76,6 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
     let grid_size = tile_size.into();
-    let map_type = TilemapType::default();
 
     commands.entity(tilemap_entity).insert(TilemapBundle {
         grid_size,
@@ -85,7 +84,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
         map_type: TilemapType::Square,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        anchor: TilemapAnchor::Center,
         ..Default::default()
     });
 }

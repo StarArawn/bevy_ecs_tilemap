@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use crate::anchor::TilemapAnchor;
 use crate::map::{
     TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize, TilemapTileSize,
     TilemapType,
@@ -8,7 +9,7 @@ use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
 use crate::{prelude::TilemapGridSize, render::RenderChunkSize, FrustumCulling};
 use bevy::log::trace;
-use bevy::prelude::{InheritedVisibility, Resource, With};
+use bevy::prelude::{InheritedVisibility, Resource, Transform, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
 use bevy::{
@@ -60,6 +61,7 @@ pub(crate) fn prepare(
             &InheritedVisibility,
             &FrustumCulling,
             &TilemapRenderSettings,
+            &TilemapAnchor,
         ),
         With<ChangedInMainWorld>,
     >,
@@ -88,6 +90,7 @@ pub(crate) fn prepare(
             visibility,
             frustum_culling,
             tilemap_render_settings,
+            _,
         ) = extracted_tilemaps.get(tile.tilemap_id.0).unwrap();
         let chunk_size = RenderChunkSize(tilemap_render_settings.render_chunk_size);
         let chunk_index = chunk_size.map_tile_to_chunk(&tile.position);
@@ -146,6 +149,7 @@ pub(crate) fn prepare(
         visibility,
         frustum_culling,
         _,
+        anchor,
     ) in extracted_tilemaps.iter()
     {
         let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index()));
@@ -156,12 +160,20 @@ pub(crate) fn prepare(
             chunk.spacing = (*spacing).into();
             chunk.visible = visibility.get();
             chunk.frustum_culling = **frustum_culling;
-            chunk.update_geometry(
-                (*global_transform).into(),
-                *grid_size,
-                *tile_size,
-                *map_type,
-            );
+            let anchor_offset: Vec2 = anchor.as_offset(map_size, grid_size, tile_size, map_type);
+            // The following code that merely adds a vector would be faster and
+            // work in most usecases.
+            //
+            // ```
+            // let mut transform: Transform = (*global_transform).into();
+            // transform.translation += anchor_offset.extend(0.0);
+            // ```
+            //
+            // But multiplying by the transform is more general and allows the
+            // user to rotate and scale their map transforms.
+            let transform =
+                *global_transform * Transform::from_translation(anchor_offset.extend(0.0));
+            chunk.update_geometry(transform.into(), *grid_size, *tile_size, *map_type);
         }
     }
 

@@ -380,12 +380,8 @@ pub fn process_loaded_maps(
                             texture: tilemap_texture.clone(),
                             tile_size,
                             spacing: tile_spacing,
-                            transform: get_tilemap_center_transform(
-                                &map_size,
-                                &grid_size,
-                                &map_type,
-                                layer_index as f32,
-                            ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
+                            anchor: TilemapAnchor::Center,
+                            transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32),
                             map_type,
                             render_settings: *render_settings,
                             ..Default::default()

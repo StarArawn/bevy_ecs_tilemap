@@ -5,6 +5,7 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::render::sync_world::RenderEntity;
 use bevy::{prelude::*, render::Extract, utils::HashMap};
 
+use crate::anchor::TilemapAnchor;
 use crate::prelude::TilemapGridSize;
 use crate::prelude::TilemapRenderSettings;
 use crate::render::DefaultSampler;
@@ -53,6 +54,7 @@ pub struct ExtractedTilemapBundle {
     frustum_culling: FrustumCulling,
     render_settings: TilemapRenderSettings,
     changed: ChangedInMainWorld,
+    anchor: TilemapAnchor,
 }
 
 #[derive(Component)]
@@ -207,6 +209,7 @@ pub fn extract(
             &InheritedVisibility,
             &FrustumCulling,
             &TilemapRenderSettings,
+            &TilemapAnchor,
         )>,
     >,
     changed_tilemap_query: Extract<
@@ -224,6 +227,7 @@ pub fn extract(
                 Changed<InheritedVisibility>,
                 Changed<FrustumCulling>,
                 Changed<TilemapRenderSettings>,
+                Changed<TilemapAnchor>,
             )>,
         >,
     >,
@@ -250,7 +254,7 @@ pub fn extract(
         // bit 0 : flip_x
         // bit 1 : flip_y
         // bit 2 : flip_d (anti diagonal)
-        let tile_flip_bits = flip.x as i32 | (flip.y as i32) << 1 | (flip.d as i32) << 2;
+        let tile_flip_bits = flip.x as i32 | ((flip.y as i32) << 1) | ((flip.d as i32) << 2);
 
         let mut position = Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0);
         let mut texture = Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0);
@@ -289,10 +293,10 @@ pub fn extract(
                     frustum_culling: *data.9,
                     render_settings: *data.10,
                     changed: ChangedInMainWorld,
+                    anchor: *data.11,
                 },
             ),
         );
-
         extracted_tiles.push((
             render_entity.id(),
             ExtractedTileBundle {
@@ -327,6 +331,7 @@ pub fn extract(
                         frustum_culling: *data.9,
                         render_settings: *data.10,
                         changed: ChangedInMainWorld,
+                        anchor: *data.11,
                     },
                 ),
             );
@@ -336,7 +341,7 @@ pub fn extract(
     let extracted_tilemaps: Vec<_> = extracted_tilemaps.drain().map(|(_, val)| val).collect();
 
     // Extracts tilemap textures.
-    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _) in
+    for (render_entity, _, tile_size, tile_spacing, _, _, texture, _, _, _, _, _) in
         tilemap_query.iter()
     {
         if texture.verify_ready(&images) {

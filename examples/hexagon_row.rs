@@ -80,22 +80,14 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         texture: TilemapTexture::Single(texture_handle),
         tile_size,
         map_type,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+        anchor: TilemapAnchor::Center,
         ..Default::default()
     });
 }
 
-fn swap_mesh_type(
-    mut query: Query<(
-        &mut Transform,
-        &TilemapSize,
-        &TilemapGridSize,
-        &mut TilemapType,
-    )>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
+fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<ButtonInput<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for (mut transform, map_size, grid_size, mut map_type) in query.iter_mut() {
+        for mut map_type in query.iter_mut() {
             match *map_type {
                 TilemapType::Hexagon(HexCoordSystem::Row) => {
                     *map_type = TilemapType::Hexagon(HexCoordSystem::RowEven);
@@ -108,8 +100,6 @@ fn swap_mesh_type(
                 }
                 _ => {}
             }
-
-            *transform = get_tilemap_center_transform(map_size, grid_size, &map_type, 0.0);
         }
     }
 }
