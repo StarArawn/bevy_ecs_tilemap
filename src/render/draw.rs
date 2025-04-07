@@ -219,7 +219,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
                         pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
                         pass.draw_indexed(0..*count, 0, 0..1);
                     }
-                    RenderMeshBufferInfo::NonIndexed {} => {
+                    RenderMeshBufferInfo::NonIndexed => {
                         pass.draw(0..render_mesh.vertex_count, 0..1);
                     }
                 }

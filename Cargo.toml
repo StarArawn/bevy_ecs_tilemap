@@ -6,7 +6,7 @@ authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license = "MIT"
-edition = "2021"
+edition = "2024"
 exclude = ["assets/*", "screenshots/*"]
 
 [features]

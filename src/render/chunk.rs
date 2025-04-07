@@ -402,7 +402,7 @@ impl RenderChunk2d {
                     .into_iter(),
                 );
 
-                colors.extend(std::iter::repeat(tile.color).take(4));
+                colors.extend(std::iter::repeat_n(tile.color, 4));
 
                 // flipping and rotation packed in bits
                 // bit 0 : flip_x

@@ -211,7 +211,7 @@ fn swap_map_type(
         ) in tilemap_query.iter_mut()
         {
             match map_type.as_ref() {
-                TilemapType::Square { .. } => {
+                TilemapType::Square => {
                     *map_type = TilemapType::Isometric(IsoCoordSystem::Diamond);
                     *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
