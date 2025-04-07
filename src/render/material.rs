@@ -288,7 +288,7 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
     mut events: Extract<EventReader<AssetEvent<M>>>,
     assets: Extract<Res<Assets<M>>>,
 ) {
-    let mut changed_assets = HashSet::new();
+    let mut changed_assets = <HashSet<_>>::default();
     let mut removed = Vec::new();
     for event in events.read() {
         match event {

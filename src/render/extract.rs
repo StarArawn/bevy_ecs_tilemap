@@ -238,7 +238,7 @@ pub fn extract(
     images: Extract<Res<Assets<Image>>>,
 ) {
     let mut extracted_tiles = Vec::new();
-    let mut extracted_tilemaps = HashMap::new();
+    let mut extracted_tilemaps = <HashMap<_, _>>::default();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (
