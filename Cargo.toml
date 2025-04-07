@@ -22,8 +22,6 @@ bevy = { version = "0.16.0-rc.3", default-features = false, features = [
     "bevy_asset",
     "bevy_sprite",
 ] }
-# See Bevy#16563
-bevy_internal = { version = "0.16.0-rc.3", features = ["bevy_image"] }
 bevy_log = "0.16.0-rc.3"
 log = "0.4"
 serde = { version = "1", features = ["derive"], optional = true }
