@@ -1,5 +1,6 @@
 use crate::prelude::{TilemapId, TilemapRenderSettings};
 
+use bevy::log::error;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 use bevy::{
@@ -27,7 +28,6 @@ use bevy::{
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
     },
 };
-use bevy_log::error;
 use std::{hash::Hash, marker::PhantomData};
 
 use super::{

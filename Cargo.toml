@@ -21,8 +21,8 @@ bevy = { version = "0.16.0-rc.3", default-features = false, features = [
     "bevy_render",
     "bevy_asset",
     "bevy_sprite",
+    "bevy_log",
 ] }
-bevy_log = "0.16.0-rc.3"
 log = "0.4"
 serde = { version = "1", features = ["derive"], optional = true }
 

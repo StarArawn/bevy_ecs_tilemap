@@ -16,6 +16,7 @@ use std::io::{Cursor, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 
+use bevy::log::{info, warn};
 use bevy::{
     asset::{AssetLoader, AssetPath, io::Reader},
     platform_support::collections::HashMap,
@@ -26,8 +27,6 @@ use bevy::{
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
-
-use bevy_log::{info, warn};
 use thiserror::Error;
 
 #[derive(Default)]

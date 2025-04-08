@@ -1,9 +1,8 @@
 //! Displays a map large enough for frustum culling to take place and configures
 //! `LogPlugin` to display related traces.
 
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{input::common_conditions::input_just_pressed, log::LogPlugin, prelude::*};
 use bevy_ecs_tilemap::{FrustumCulling, prelude::*};
-use bevy_log::LogPlugin;
 
 mod helpers;
 
@@ -196,14 +195,14 @@ fn main() {
                     }),
                     ..default()
                 })
-                .set(ImagePlugin::default_nearest()),
+                .set(ImagePlugin::default_nearest())
+                .set(LogPlugin {
+                    // For debugging / demonstrating frustum culling, we'll want to see trace-level
+                    // logs for `bevy_ecs_tilemap`.
+                    filter: "info,bevy_ecs_tilemap=trace".into(),
+                    ..default()
+                }),
         )
-        .add_plugins(LogPlugin {
-            // For debugging / demonstrating frustum culling, we'll want to see trace-level
-            // logs for `bevy_ecs_tilemap`.
-            filter: "info,bevy_ecs_tilemap=trace".into(),
-            ..default()
-        })
         .add_plugins(TilemapPlugin)
         .init_resource::<TextureHandles>()
         .add_systems(Startup, (spawn_scene, spawn_ui))
