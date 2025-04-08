@@ -1,10 +1,8 @@
 //! Displays a map large enough for frustum culling to take place and configures
 //! `LogPlugin` to display related traces.
 
-use bevy::{
-    ecs::system::Resource, input::common_conditions::input_just_pressed, log::LogPlugin, prelude::*,
-};
-use bevy_ecs_tilemap::{prelude::*, FrustumCulling};
+use bevy::{input::common_conditions::input_just_pressed, log::LogPlugin, prelude::*};
+use bevy_ecs_tilemap::{FrustumCulling, prelude::*};
 
 mod helpers;
 
@@ -112,7 +110,7 @@ fn switch_map_type(
     texture_handles: Res<TextureHandles>,
 ) {
     let Ok((mut map_type, mut grid_size, mut map_texture, mut tile_size)) =
-        tilemap_query.get_single_mut()
+        tilemap_query.single_mut()
     else {
         return;
     };
@@ -176,11 +174,13 @@ fn update_map_type_label(
     type_query: Query<&TilemapType, Changed<TilemapType>>,
     mut label_query: Query<&mut TextSpan, With<MapTypeLabel>>,
 ) {
-    let Ok(map_type) = type_query.get_single() else {
+    let Ok(map_type) = type_query.single() else {
         return;
     };
 
-    let mut label = label_query.single_mut();
+    let Ok(mut label) = label_query.single_mut() else {
+        return;
+    };
     label.0 = format!("{:?}", map_type);
 }
 

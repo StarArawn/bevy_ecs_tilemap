@@ -1,14 +1,17 @@
 use crate::prelude::{TilemapId, TilemapRenderSettings};
+
+use bevy::log::error;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::{StaticSystemParam, SystemParamItem},
-    log::error,
     math::FloatOrd,
+    platform_support::collections::{HashMap, HashSet},
     prelude::*,
     reflect::TypePath,
     render::{
+        Extract, Render, RenderApp, RenderSet,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
@@ -23,19 +26,17 @@ use bevy::{
         renderer::RenderDevice,
         texture::GpuImage,
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
-        Extract, Render, RenderApp, RenderSet,
     },
-    utils::{HashMap, HashSet},
 };
 use std::{hash::Hash, marker::PhantomData};
 
 use super::{
+    ModifiedImageIds,
     chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
-    ModifiedImageIds,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -287,7 +288,7 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
     mut events: Extract<EventReader<AssetEvent<M>>>,
     assets: Extract<Res<Assets<M>>>,
 ) {
-    let mut changed_assets = HashSet::default();
+    let mut changed_assets = <HashSet<_>>::default();
     let mut removed = Vec::new();
     for event in events.read() {
         match event {
@@ -350,6 +351,11 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
                 error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
             }
+            Err(AsBindGroupError::CreateBindGroupDirectly) => {
+                error!(
+                    "Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material"
+                );
+            }
         }
     }
 
@@ -368,6 +374,11 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             Err(AsBindGroupError::InvalidSamplerType(_, _, _)) => {
                 error!("Encountered AsBindGroupError::InvalidSamplerType while preparing material");
             }
+            Err(AsBindGroupError::CreateBindGroupDirectly) => {
+                error!(
+                    "Encountered AsBindGroupError::CreateBindGroupDirectly while preparing material"
+                );
+            }
         }
     }
 }
@@ -381,7 +392,7 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
     let prepared =
         material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
     Ok(PreparedMaterialTilemap {
-        bindings: prepared.bindings,
+        bindings: prepared.bindings.0,
         bind_group: prepared.bind_group,
         key: prepared.data,
     })
@@ -404,7 +415,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
         Query<&MaterialTilemapHandle<M>>,
     ),
-    mut views: Query<(Entity, &ExtractedView, &Msaa, &RenderVisibleEntities)>,
+    mut views: Query<(&ExtractedView, &Msaa, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
     #[cfg(not(feature = "atlas"))] (mut texture_array_cache, render_queue): (
         ResMut<TextureArrayCache>,
@@ -425,8 +436,9 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
         return;
     }
 
-    for (view_entity, view, msaa, visible_entities) in views.iter_mut() {
-        let Some(transparent_phase) = transparent_render_phases.get_mut(&view_entity) else {
+    for (view, msaa, visible_entities) in views.iter_mut() {
+        let Some(transparent_phase) = transparent_render_phases.get_mut(&view.retained_view_entity)
+        else {
             continue;
         };
 
@@ -437,7 +449,8 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
 
         for (entity, chunk_id, transform, tilemap_id) in standard_tilemap_meshes.iter() {
             if !visible_entities
-                .iter::<With<TilemapRenderSettings>>()
+                .get::<TilemapRenderSettings>()
+                .iter()
                 .any(|(entity, _main_entity)| entity.index() == tilemap_id.0.index())
             {
                 continue;
@@ -488,13 +501,16 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 } else {
                     transform.translation.z
                 };
+
                 transparent_phase.add(Transparent2d {
                     entity: (entity, tilemap_id.0.into()),
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
                     sort_key: FloatOrd(z),
                     batch_range: 0..1,
-                    extra_index: PhaseItemExtraIndex::NONE,
+                    extra_index: PhaseItemExtraIndex::None,
+                    extracted_index: usize::MAX,
+                    indexed: false,
                 });
             }
         }
@@ -558,7 +574,8 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
 
             for (chunk_id, tilemap_id) in standard_tilemap_meshes.iter() {
                 if !visible_entities
-                    .iter::<With<TilemapRenderSettings>>()
+                    .get::<TilemapRenderSettings>()
+                    .iter()
                     .any(|(entity, _main_entity)| entity.index() == tilemap_id.0.index())
                 {
                     continue;

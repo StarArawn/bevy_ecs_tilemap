@@ -1,4 +1,4 @@
-use crate::{prelude::chunk_aabb, TilemapGridSize, TilemapSize, TilemapTileSize, TilemapType};
+use crate::{TilemapGridSize, TilemapSize, TilemapTileSize, TilemapType, prelude::chunk_aabb};
 use bevy::prelude::*;
 
 /// How a tilemap is positioned relative to its [`Transform`]. It defaults to

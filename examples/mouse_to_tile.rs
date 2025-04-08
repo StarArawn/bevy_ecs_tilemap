@@ -1,5 +1,4 @@
-use bevy::{color::palettes, math::Vec4Swizzles};
-use bevy::{ecs::system::Resource, prelude::*};
+use bevy::{color::palettes, math::Vec4Swizzles, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 use helpers::camera::movement as camera_movement;
@@ -212,7 +211,7 @@ fn swap_map_type(
         ) in tilemap_query.iter_mut()
         {
             match map_type.as_ref() {
-                TilemapType::Square { .. } => {
+                TilemapType::Square => {
                     *map_type = TilemapType::Isometric(IsoCoordSystem::Diamond);
                     *map_texture = TilemapTexture::Single((*tile_handle_iso).clone());
                     *tile_size = TILE_SIZE_ISO;
@@ -392,7 +391,7 @@ fn main() {
         .add_plugins(TilemapPlugin)
         .add_systems(
             Startup,
-            (spawn_tilemap, apply_deferred)
+            (spawn_tilemap, ApplyDeferred)
                 .chain()
                 .in_set(SpawnTilemapSet),
         )

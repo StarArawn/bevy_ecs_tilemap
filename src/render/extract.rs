@@ -1,9 +1,12 @@
-use bevy::math::Affine3A;
-use bevy::render::primitives::{Aabb, Frustum};
-use bevy::render::render_resource::FilterMode;
-use bevy::render::render_resource::TextureFormat;
-use bevy::render::sync_world::RenderEntity;
-use bevy::{prelude::*, render::Extract, utils::HashMap};
+use bevy::{
+    math::Affine3A,
+    platform_support::collections::HashMap,
+    prelude::*,
+    render::Extract,
+    render::primitives::{Aabb, Frustum},
+    render::render_resource::{FilterMode, TextureFormat},
+    render::sync_world::RenderEntity,
+};
 
 use crate::anchor::TilemapAnchor;
 use crate::prelude::TilemapGridSize;
@@ -12,12 +15,12 @@ use crate::render::DefaultSampler;
 use crate::tiles::AnimatedTile;
 use crate::tiles::TilePosOld;
 use crate::{
+    FrustumCulling,
     map::{
         TilemapId, TilemapSize, TilemapSpacing, TilemapTexture, TilemapTextureSize,
         TilemapTileSize, TilemapType,
     },
     tiles::{TileColor, TileFlip, TilePos, TileTextureIndex, TileVisible},
-    FrustumCulling,
 };
 
 use super::chunk::PackedTileData;
@@ -117,7 +120,10 @@ impl ExtractedTilemapTexture {
                 for handle in handles {
                     let image = image_assets.get(handle).unwrap();
                     if image.texture_descriptor.format != first_format {
-                        panic!("Expected all provided image assets to have a format of: {:?} but found image with format: {:?}", first_format, image.texture_descriptor.format);
+                        panic!(
+                            "Expected all provided image assets to have a format of: {:?} but found image with format: {:?}",
+                            first_format, image.texture_descriptor.format
+                        );
                     }
                 }
 
@@ -235,7 +241,7 @@ pub fn extract(
     images: Extract<Res<Assets<Image>>>,
 ) {
     let mut extracted_tiles = Vec::new();
-    let mut extracted_tilemaps = HashMap::default();
+    let mut extracted_tilemaps = <HashMap<_, _>>::default();
     let mut extracted_tilemap_textures = Vec::new();
     // Process all tiles
     for (

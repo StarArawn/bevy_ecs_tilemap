@@ -1,8 +1,8 @@
 //! Code for the isometric diamond coordinate system.
 
-use crate::helpers::square_grid::neighbors::{SquareDirection, SQUARE_OFFSETS};
-use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::helpers::square_grid::SquarePos;
+use crate::helpers::square_grid::neighbors::{SQUARE_OFFSETS, SquareDirection};
+use crate::helpers::square_grid::staggered::StaggeredPos;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
 use bevy::math::{Mat2, Vec2};

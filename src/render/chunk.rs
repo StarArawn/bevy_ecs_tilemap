@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
 
+use bevy::platform_support::collections::HashMap;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::Buffer;
 use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
@@ -12,7 +13,6 @@ use bevy::{
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
         renderer::RenderDevice,
     },
-    utils::HashMap,
 };
 use bevy::{
     prelude::{InheritedVisibility, Resource, Transform},
@@ -22,9 +22,9 @@ use bevy::{
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
+    FrustumCulling, TilemapGridSize, TilemapTileSize,
     map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
-    FrustumCulling, TilemapGridSize, TilemapTileSize,
 };
 
 use super::RenderChunkSize;
@@ -402,7 +402,7 @@ impl RenderChunk2d {
                     .into_iter(),
                 );
 
-                colors.extend(std::iter::repeat(tile.color).take(4));
+                colors.extend(std::iter::repeat_n(tile.color, 4));
 
                 // flipping and rotation packed in bits
                 // bit 0 : flip_x

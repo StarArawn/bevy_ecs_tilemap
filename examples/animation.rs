@@ -2,9 +2,9 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
+use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
-use bevy_ecs_tilemap::TilemapPlugin;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
@@ -141,7 +141,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(LogDiagnosticsPlugin::default())
-        .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, startup)
         .add_systems(Startup, create_background)

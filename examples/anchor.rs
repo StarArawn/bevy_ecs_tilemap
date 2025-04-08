@@ -413,7 +413,7 @@ fn main() {
         .insert_resource(GridScale::new(vec![1.0, 0.75, 1.5]))
         .add_systems(
             Startup,
-            (spawn_tilemap, apply_deferred)
+            (spawn_tilemap, ApplyDeferred)
                 .chain()
                 .in_set(SpawnTilemapSet),
         )

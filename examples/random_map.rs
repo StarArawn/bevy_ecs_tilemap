@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 
 mod helpers;
 
@@ -81,7 +81,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(LogDiagnosticsPlugin::default())
-        .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, startup)
         .add_systems(Update, helpers::camera::movement)

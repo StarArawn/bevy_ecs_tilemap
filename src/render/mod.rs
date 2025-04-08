@@ -1,21 +1,20 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    asset::load_internal_asset,
+    asset::{load_internal_asset, weak_handle},
     core_pipeline::core_2d::Transparent2d,
     image::ImageSamplerDescriptor,
+    platform_support::collections::HashSet,
     prelude::*,
     render::{
+        Render, RenderApp, RenderSet,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
-        extract_resource::{extract_resource, ExtractResource},
+        extract_resource::{ExtractResource, extract_resource},
         mesh::MeshVertexAttribute,
         render_phase::AddRenderCommand,
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         sync_world::RenderEntity,
-        view::{check_visibility, VisibilitySystems},
-        Render, RenderApp, RenderSet,
     },
-    utils::HashSet,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -25,9 +24,8 @@ use bevy::render::texture::GpuImage;
 use extract::remove_changed;
 
 use crate::{
-    prelude::TilemapRenderSettings,
-    tiles::{TilePos, TileStorage},
     TilemapFirstSet,
+    tiles::{TilePos, TileStorage},
 };
 use crate::{
     prelude::TilemapTexture,
@@ -40,7 +38,7 @@ use crate::{
 use self::{
     chunk::RenderChunk2dStorage,
     draw::DrawTilemap,
-    pipeline::{TilemapPipeline, TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX},
+    pipeline::{TILEMAP_SHADER_FRAGMENT, TILEMAP_SHADER_VERTEX, TilemapPipeline},
     queue::ImageBindGroups,
 };
 
@@ -95,18 +93,19 @@ impl RenderChunkSize {
 
 pub struct TilemapRenderingPlugin;
 
-pub const COLUMN_EVEN_HEX: Handle<Shader> = Handle::weak_from_u128(7704924705970804993);
-pub const COLUMN_HEX: Handle<Shader> = Handle::weak_from_u128(11710877199891728627);
-pub const COLUMN_ODD_HEX: Handle<Shader> = Handle::weak_from_u128(6706359414982022142);
-pub const COMMON: Handle<Shader> = Handle::weak_from_u128(15420881977837458322);
-pub const DIAMOND_ISO: Handle<Shader> = Handle::weak_from_u128(6710251300621614118);
-pub const MESH_OUTPUT: Handle<Shader> = Handle::weak_from_u128(2707251459590872179);
-pub const ROW_EVEN_HEX: Handle<Shader> = Handle::weak_from_u128(7149718726759672633);
-pub const ROW_HEX: Handle<Shader> = Handle::weak_from_u128(5506589682629967569);
-pub const ROW_ODD_HEX: Handle<Shader> = Handle::weak_from_u128(13608302855194400936);
-pub const STAGGERED_ISO: Handle<Shader> = Handle::weak_from_u128(9802843761568314416);
-pub const SQUARE: Handle<Shader> = Handle::weak_from_u128(7333720254399106799);
-pub const TILEMAP_VERTEX_OUTPUT: Handle<Shader> = Handle::weak_from_u128(6104533649830094529);
+pub const COLUMN_EVEN_HEX: Handle<Shader> = weak_handle!("d11ea18c-32ef-4b16-ba20-c7b092e46ce8");
+pub const COLUMN_HEX: Handle<Shader> = weak_handle!("9161d191-94ff-48f7-8e46-6950bcad1c7a");
+pub const COLUMN_ODD_HEX: Handle<Shader> = weak_handle!("6806e648-498f-4aaf-a4cc-59db167b2e2b");
+pub const COMMON: Handle<Shader> = weak_handle!("0f11250b-3108-4417-9691-502b6daad0c5");
+pub const DIAMOND_ISO: Handle<Shader> = weak_handle!("c21075c7-3455-4db0-9e70-af1d3c5dd535");
+pub const MESH_OUTPUT: Handle<Shader> = weak_handle!("525be111-6731-4c38-be46-573a615a5e83");
+pub const ROW_EVEN_HEX: Handle<Shader> = weak_handle!("b496c0e9-e57c-4a13-88a3-3b7a5033fe89");
+pub const ROW_HEX: Handle<Shader> = weak_handle!("04a9c819-45e0-42d3-9cea-8b9e5440ca00");
+pub const ROW_ODD_HEX: Handle<Shader> = weak_handle!("9962f145-0937-44f4-98f5-0cd5deadd643");
+pub const STAGGERED_ISO: Handle<Shader> = weak_handle!("da349823-a307-44a5-ab78-6276c7cb582a");
+pub const SQUARE: Handle<Shader> = weak_handle!("6db56afb-a562-4e3c-b459-486a6d5c12ae");
+pub const TILEMAP_VERTEX_OUTPUT: Handle<Shader> =
+    weak_handle!("49b568da-6c5a-4936-a3c8-d5dd6b894f92");
 
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
@@ -225,13 +224,6 @@ impl Plugin for TilemapRenderingPlugin {
             Shader::from_wgsl
         );
 
-        app.add_systems(
-            PostUpdate,
-            (check_visibility::<With<TilemapRenderSettings>>)
-                .in_set(VisibilitySystems::CheckVisibility)
-                .after(VisibilitySystems::CalculateBounds),
-        );
-
         let render_app = match app.get_sub_app_mut(RenderApp) {
             Some(render_app) => render_app,
             None => return,
@@ -316,7 +308,7 @@ fn on_remove_tile(
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
-    if let Ok(render_entity) = query.get(trigger.entity()) {
+    if let Ok(render_entity) = query.get(trigger.target()) {
         commands.spawn(RemovedTileEntity(*render_entity));
     }
 }
@@ -326,7 +318,7 @@ fn on_remove_tilemap(
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
-    if let Ok(render_entity) = query.get(trigger.entity()) {
+    if let Ok(render_entity) = query.get(trigger.target()) {
         commands.spawn(RemovedMapEntity(*render_entity));
     }
 }

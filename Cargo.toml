@@ -1,12 +1,12 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.15.0"
+version = "0.16.0-rc.1"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
 license = "MIT"
-edition = "2021"
+edition = "2024"
 exclude = ["assets/*", "screenshots/*"]
 
 [features]
@@ -16,14 +16,13 @@ render = []
 serde = ["dep:serde"]
 
 [dependencies]
-bevy = { version = "0.15", default-features = false, features = [
+bevy = { version = "0.16.0-rc.3", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
     "bevy_sprite",
+    "bevy_log",
 ] }
-# See Bevy#16563
-bevy_internal = { version = "0.15", features = ["bevy_image"] }
 log = "0.4"
 serde = { version = "1", features = ["derive"], optional = true }
 
@@ -31,11 +30,11 @@ serde = { version = "1", features = ["derive"], optional = true }
 ldtk_rust = { version = "0.6" }
 rand = "0.8"
 serde_json = { version = "1.0" }
-tiled = { version = "0.11.0", default-features = false }
-thiserror = { version = "1.0" }
+tiled = { version = "0.14.0", default-features = false }
+thiserror = { version = "2.0" }
 
 [dev-dependencies.bevy]
-version = "0.15"
+version = "0.16.0-rc.3"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -56,7 +55,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.15"
+version = "0.16.0-rc.3"
 default-features = false
 features = [
     "bevy_core_pipeline",

@@ -7,8 +7,8 @@ use bevy::{
 };
 pub use storage::*;
 
-use crate::map::TilemapId;
 use crate::TilemapSize;
+use crate::map::TilemapId;
 
 /// A tile position in the tilemap grid.
 #[derive(Component, Reflect, Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]

@@ -3,7 +3,7 @@
 use crate::helpers::hex_grid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
 use crate::helpers::hex_grid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hex_grid::neighbors::{
-    HexColDirection, HexDirection, HexRowDirection, HEX_OFFSETS,
+    HEX_OFFSETS, HexColDirection, HexDirection, HexRowDirection,
 };
 use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOddPos};
 use crate::map::HexCoordSystem;
@@ -104,11 +104,7 @@ impl Mul<AxialPos> for u32 {
 
 #[inline]
 fn ceiled_division_by_2(x: i32) -> i32 {
-    if x < 0 {
-        (x - 1) / 2
-    } else {
-        (x + 1) / 2
-    }
+    if x < 0 { (x - 1) / 2 } else { (x + 1) / 2 }
 }
 
 impl From<AxialPos> for RowOddPos {

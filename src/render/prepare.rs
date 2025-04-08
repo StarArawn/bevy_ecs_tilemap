@@ -7,7 +7,7 @@ use crate::map::{
 };
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
-use crate::{prelude::TilemapGridSize, render::RenderChunkSize, FrustumCulling};
+use crate::{FrustumCulling, prelude::TilemapGridSize, render::RenderChunkSize};
 use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource, Transform, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
@@ -23,9 +23,9 @@ use bevy::{
 
 use super::extract::ChangedInMainWorld;
 use super::{
+    DynamicUniformIndex,
     chunk::{ChunkId, PackedTileData, RenderChunk2dStorage, TilemapUniformData},
     extract::{ExtractedTile, ExtractedTilemapTexture},
-    DynamicUniformIndex,
 };
 use super::{RemovedMapEntity, RemovedTileEntity};
 

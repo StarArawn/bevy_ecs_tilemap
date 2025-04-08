@@ -29,7 +29,7 @@ impl TilePos {
         map_type: &TilemapType,
     ) -> Vec2 {
         match map_type {
-            TilemapType::Square { .. } => {
+            TilemapType::Square => {
                 Vec2::new(grid_size.x * (self.x as f32), grid_size.y * (self.y as f32))
             }
             TilemapType::Hexagon(hex_coord_sys) => match hex_coord_sys {
@@ -79,7 +79,7 @@ impl TilePos {
         let offset = anchor.as_offset(map_size, grid_size, tile_size, map_type);
         let pos = world_pos - offset;
         match map_type {
-            TilemapType::Square { .. } => {
+            TilemapType::Square => {
                 let x = ((pos.x / grid_size.x) + 0.5).floor() as i32;
                 let y = ((pos.y / grid_size.y) + 0.5).floor() as i32;
 
