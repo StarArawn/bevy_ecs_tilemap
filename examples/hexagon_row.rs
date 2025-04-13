@@ -73,16 +73,17 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid_size = TilemapGridSize { x: 15.0, y: 17.0 };
     let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
         tile_size,
         map_type,
-        anchor: TilemapAnchor::Center,
-        ..Default::default()
-    });
+        TilemapAnchor::Center,
+    ));
 }
 
 fn swap_mesh_type(mut query: Query<&mut TilemapType>, keyboard_input: Res<ButtonInput<KeyCode>>) {

@@ -22,20 +22,21 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle.clone()),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle.clone()),
+        TilemapMaterial::standard(),
         tile_size,
-        spacing: TilemapSpacing { x: 8.0, y: 8.0 },
-        anchor: TilemapAnchor::Center,
-        ..Default::default()
-    });
+        TilemapSpacing { x: 8.0, y: 8.0 },
+        TilemapAnchor::Center,
+    ));
 
     // Layer 2
     let mut tile_storage = TileStorage::empty(map_size);
@@ -49,17 +50,18 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         &mut tile_storage,
     );
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-        anchor: TilemapAnchor::Center,
-        transform: Transform::from_xyz(32.0, 32.0, 1.0),
-        ..Default::default()
-    });
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
+        TilemapTileSize { x: 16.0, y: 16.0 },
+        TilemapAnchor::Center,
+        Transform::from_xyz(32.0, 32.0, 1.0),
+    ));
 }
 
 fn main() {

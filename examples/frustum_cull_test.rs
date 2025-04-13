@@ -61,18 +61,19 @@ fn spawn_scene(mut commands: Commands, texture_handles: Res<TextureHandles>) {
         &mut tile_storage,
     );
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size: GRID_SIZE_SQUARE,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handles.square.clone()),
-        tile_size: TILE_SIZE_SQUARE,
-        map_type: TilemapType::Square,
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        GRID_SIZE_SQUARE,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handles.square.clone()),
+        TilemapMaterial::standard(),
+        TILE_SIZE_SQUARE,
+        TilemapType::Square,
         // This is the default value, but we provide it explicitly for demonstration
         // purposes.
-        frustum_culling: FrustumCulling(true),
-        ..default()
-    });
+        FrustumCulling(true),
+    ));
 }
 
 fn spawn_ui(mut commands: Commands) {

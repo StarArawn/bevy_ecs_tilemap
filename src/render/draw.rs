@@ -21,7 +21,7 @@ use crate::map::TilemapId;
 use super::{
     DynamicUniformIndex,
     chunk::{ChunkId, RenderChunk2dStorage, TilemapUniformData},
-    material::{MaterialTilemap, MaterialTilemapHandle, RenderMaterialsTilemap},
+    material::{MaterialTilemap, TilemapMaterial, RenderMaterialsTilemap},
     prepare::MeshUniform,
     queue::{ImageBindGroups, TilemapViewBindGroup, TransformBindGroup},
 };
@@ -150,7 +150,7 @@ impl<M: MaterialTilemap, const I: usize> RenderCommand<Transparent2d>
 {
     type Param = (
         SRes<RenderMaterialsTilemap<M>>,
-        SQuery<&'static MaterialTilemapHandle<M>>,
+        SQuery<&'static TilemapMaterial<M>>,
     );
     type ViewQuery = ();
     type ItemQuery = Read<TilemapId>;

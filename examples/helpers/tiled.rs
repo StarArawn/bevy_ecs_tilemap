@@ -12,7 +12,7 @@
 //   * When the 'atlas' feature is enabled tilesets using a collection of images will be skipped.
 //   * Only finite tile layers are loaded. Infinite tile layers and object layers will be skipped.
 
-use std::io::{Cursor, ErrorKind};
+use std::io::Cursor;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -118,9 +118,9 @@ impl AssetLoader for TiledLoader {
             tiled::DefaultResourceCache::new(),
             BytesResourceReader::new(&bytes),
         );
-        let map = loader.load_tmx_map(load_context.path()).map_err(|e| {
-            std::io::Error::new(ErrorKind::Other, format!("Could not load TMX map: {e}"))
-        })?;
+        let map = loader
+            .load_tmx_map(load_context.path())
+            .map_err(|e| std::io::Error::other(format!("Could not load TMX map: {e}")))?;
 
         let mut tilemap_textures = HashMap::default();
         #[cfg(not(feature = "atlas"))]
@@ -360,35 +360,36 @@ pub fn process_loaded_maps(
 
                                 let tile_pos = TilePos { x, y };
                                 let tile_entity = commands
-                                    .spawn(TileBundle {
-                                        position: tile_pos,
-                                        tilemap_id: TilemapId(layer_entity),
-                                        texture_index: TileTextureIndex(texture_index),
-                                        flip: TileFlip {
+                                    .spawn((
+                                        Tile,
+                                        tile_pos,
+                                        TilemapId(layer_entity),
+                                        TileTextureIndex(texture_index),
+                                        TileFlip {
                                             x: layer_tile_data.flip_h,
                                             y: layer_tile_data.flip_v,
                                             d: layer_tile_data.flip_d,
                                         },
-                                        ..Default::default()
-                                    })
+                                    ))
                                     .id();
                                 tile_storage.set(&tile_pos, tile_entity);
                             }
                         }
 
-                        commands.entity(layer_entity).insert(TilemapBundle {
+                        commands.entity(layer_entity).insert((
+                            Tilemap,
                             grid_size,
-                            size: map_size,
-                            storage: tile_storage,
-                            texture: tilemap_texture.clone(),
+                            map_size,
+                            tile_storage,
+                            tilemap_texture.clone(),
+                            TilemapMaterial::standard(),
                             tile_size,
-                            spacing: tile_spacing,
-                            anchor: TilemapAnchor::Center,
-                            transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32),
+                            tile_spacing,
+                            TilemapAnchor::Center,
+                            Transform::from_xyz(offset_x, -offset_y, layer_index as f32),
                             map_type,
-                            render_settings: *render_settings,
-                            ..Default::default()
-                        });
+                            *render_settings,
+                        ));
 
                         layer_storage
                             .storage

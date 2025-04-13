@@ -108,9 +108,27 @@ pub struct TileFlip {
     pub d: bool, // anti
 }
 
+#[derive(Component, Default, Clone, Copy, Debug)]
+#[require(
+    TilePos,
+    TileTextureIndex,
+    TilemapId,
+    TileVisible,
+    TileFlip,
+    TileColor,
+    TilePosOld,
+    SyncToRenderWorld
+)]
+pub struct Tile;
+
 /// This an optional tile bundle with default components.
 #[derive(Bundle, Default, Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use the `Tile` component instead.
+        Inserting `Tile` will now also insert all necessary components automatically."
+)]
 pub struct TileBundle {
     pub position: TilePos,
     pub texture_index: TileTextureIndex,

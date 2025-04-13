@@ -1,10 +1,11 @@
 use bevy_ecs_tilemap::{
-    TilemapBundle,
+    Tilemap,
     anchor::TilemapAnchor,
-    map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
-    tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
+    map::{TilemapGridSize, TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
+    prelude::TilemapMaterial,
+    tiles::{Tile, TilePos, TileStorage, TileTextureIndex},
 };
-use std::{collections::HashMap, io::ErrorKind};
+use std::collections::HashMap;
 use thiserror::Error;
 
 use bevy::{asset::io::Reader, reflect::TypePath};
@@ -71,10 +72,7 @@ impl AssetLoader for LdtkLoader {
         reader.read_to_end(&mut bytes).await?;
 
         let project: ldtk_rust::Project = serde_json::from_slice(&bytes).map_err(|e| {
-            std::io::Error::new(
-                ErrorKind::Other,
-                format!("Could not read contents of Ldtk map: {e}"),
-            )
+            std::io::Error::other(format!("Could not read contents of Ldtk map: {e}"))
         })?;
         let dependencies: Vec<(i64, AssetPath)> = project
             .defs
@@ -205,32 +203,33 @@ pub fn process_loaded_tile_maps(
                             position.y = map_tile_count_y - position.y - 1;
 
                             let tile_entity = commands
-                                .spawn(TileBundle {
+                                .spawn((
+                                    Tile,
                                     position,
-                                    tilemap_id: TilemapId(map_entity),
-                                    texture_index: TileTextureIndex(tile.t as u32),
-                                    ..default()
-                                })
+                                    TilemapId(map_entity),
+                                    TileTextureIndex(tile.t as u32),
+                                ))
                                 .id();
 
                             storage.set(&position, tile_entity);
                         }
 
-                        let grid_size = tile_size.into();
+                        let grid_size = TilemapGridSize::from(tile_size);
                         let map_type = TilemapType::default();
 
                         // Create the tilemap
-                        commands.entity(map_entity).insert(TilemapBundle {
+                        commands.entity(map_entity).insert((
+                            Tilemap,
                             grid_size,
                             map_type,
                             size,
                             storage,
-                            texture: TilemapTexture::Single(texture),
+                            TilemapTexture::Single(texture),
+                            TilemapMaterial::standard(),
                             tile_size,
-                            anchor: TilemapAnchor::Center,
-                            transform: Transform::from_xyz(0.0, 0.0, layer_id as f32),
-                            ..default()
-                        });
+                            TilemapAnchor::Center,
+                            Transform::from_xyz(0.0, 0.0, layer_id as f32),
+                        ));
                     }
                 }
             }

@@ -1,4 +1,8 @@
-use crate::prelude::{TilemapId, TilemapRenderSettings};
+use crate::{
+    Tilemap,
+    anchor::TilemapAnchor,
+    prelude::{TilemapId, TilemapRenderSettings},
+};
 
 use bevy::log::error;
 #[cfg(not(feature = "atlas"))]
@@ -102,28 +106,41 @@ where
 
 #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
 #[reflect(Component, Default)]
-pub struct MaterialTilemapHandle<M: MaterialTilemap>(pub Handle<M>);
+#[require(Tilemap, TilemapAnchor)]
+pub struct TilemapMaterial<M: MaterialTilemap>(pub Handle<M>);
 
-impl<M: MaterialTilemap> Default for MaterialTilemapHandle<M> {
+impl TilemapMaterial<StandardTilemapMaterial> {
+    pub fn standard() -> Self {
+        Self(default())
+    }
+}
+
+#[deprecated(
+    since = "0.16.0",
+    note = "Use the `TilemapMaterial` component instead."
+)]
+pub type MaterialTilemapHandle<M> = TilemapMaterial<M>;
+
+impl<M: MaterialTilemap> Default for TilemapMaterial<M> {
     fn default() -> Self {
         Self(Handle::default())
     }
 }
 
-impl<M: MaterialTilemap> From<Handle<M>> for MaterialTilemapHandle<M> {
+impl<M: MaterialTilemap> From<Handle<M>> for TilemapMaterial<M> {
     fn from(handle: Handle<M>) -> Self {
         Self(handle)
     }
 }
 
-impl<M: MaterialTilemap> From<MaterialTilemapHandle<M>> for AssetId<M> {
-    fn from(tilemap: MaterialTilemapHandle<M>) -> Self {
+impl<M: MaterialTilemap> From<TilemapMaterial<M>> for AssetId<M> {
+    fn from(tilemap: TilemapMaterial<M>) -> Self {
         tilemap.id()
     }
 }
 
-impl<M: MaterialTilemap> From<&MaterialTilemapHandle<M>> for AssetId<M> {
-    fn from(tilemap: &MaterialTilemapHandle<M>) -> Self {
+impl<M: MaterialTilemap> From<&TilemapMaterial<M>> for AssetId<M> {
+    fn from(tilemap: &TilemapMaterial<M>) -> Self {
         tilemap.id()
     }
 }
@@ -142,7 +159,7 @@ where
 {
     fn build(&self, app: &mut App) {
         app.init_asset::<M>()
-            .add_plugins(ExtractComponentPlugin::<MaterialTilemapHandle<M>>::extract_visible());
+            .add_plugins(ExtractComponentPlugin::<TilemapMaterial<M>>::extract_visible());
     }
 
     fn finish(&self, app: &mut App) {
@@ -413,7 +430,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     globals_buffer: Res<GlobalsBuffer>,
     (standard_tilemap_meshes, materials): (
         Query<(Entity, &ChunkId, &Transform, &TilemapId)>,
-        Query<&MaterialTilemapHandle<M>>,
+        Query<&TilemapMaterial<M>>,
     ),
     mut views: Query<(&ExtractedView, &Msaa, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,
@@ -529,7 +546,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     mut image_bind_groups: ResMut<ImageBindGroups>,
     (standard_tilemap_meshes, materials): (
         Query<(&ChunkId, &TilemapId)>,
-        Query<&MaterialTilemapHandle<M>>,
+        Query<&TilemapMaterial<M>>,
     ),
     mut views: Query<(Entity, &RenderVisibleEntities)>,
     render_materials: Res<RenderMaterialsTilemap<M>>,

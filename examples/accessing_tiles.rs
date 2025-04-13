@@ -38,11 +38,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    ..Default::default()
-                })
+                .spawn((Tile, tile_pos, TilemapId(tilemap_entity)))
                 .id();
             // Here we let the tile storage component know what tiles we have.
             tile_storage.set(&tile_pos, tile_entity);
@@ -78,21 +74,20 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // This is the size of each individual tiles in pixels.
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
 
     // Spawns a tilemap.
     // Once the tile storage is inserted onto the tilemap entity it can no longer be accessed.
     commands.entity(tilemap_entity).insert((
-        TilemapBundle {
-            grid_size,
-            size: map_size,
-            storage: tile_storage,
-            map_type,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            anchor: TilemapAnchor::Center,
-            ..Default::default()
-        },
+        Tilemap,
+        grid_size,
+        map_size,
+        tile_storage,
+        map_type,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
+        tile_size,
+        TilemapAnchor::Center,
         LastUpdate(0.0),
         CurrentColor(1),
     ));

@@ -2,7 +2,7 @@ use crate::helpers::hex_grid::axial::AxialPos;
 use crate::helpers::hex_grid::neighbors::{HEX_DIRECTIONS, HexDirection};
 use crate::map::TilemapId;
 use crate::prelude::HexCoordSystem;
-use crate::tiles::{TileBundle, TileColor, TilePos, TileTextureIndex};
+use crate::tiles::{Tile, TileColor, TilePos, TileTextureIndex};
 use crate::{TileStorage, TilemapSize};
 
 use bevy::prelude::{Color, Commands};
@@ -20,12 +20,7 @@ pub fn fill_tilemap(
             for y in 0..size.y {
                 let tile_pos = TilePos { x, y };
                 let tile_entity = parent
-                    .spawn(TileBundle {
-                        position: tile_pos,
-                        tilemap_id,
-                        texture_index,
-                        ..Default::default()
-                    })
+                    .spawn((Tile, tile_pos, tilemap_id, texture_index))
                     .id();
                 tile_storage.set(&tile_pos, tile_entity);
             }
@@ -54,12 +49,7 @@ pub fn fill_tilemap_rect(
                 };
 
                 let tile_entity = parent
-                    .spawn(TileBundle {
-                        position: tile_pos,
-                        tilemap_id,
-                        texture_index,
-                        ..Default::default()
-                    })
+                    .spawn((Tile, tile_pos, tilemap_id, texture_index))
                     .id();
                 tile_storage.set(&tile_pos, tile_entity);
             }
@@ -89,13 +79,7 @@ pub fn fill_tilemap_rect_color(
                 };
 
                 let tile_entity = parent
-                    .spawn(TileBundle {
-                        position: tile_pos,
-                        tilemap_id,
-                        texture_index,
-                        color: TileColor(color),
-                        ..Default::default()
-                    })
+                    .spawn((Tile, tile_pos, tilemap_id, texture_index, TileColor(color)))
                     .id();
                 tile_storage.set(&tile_pos, tile_entity);
             }
@@ -167,12 +151,7 @@ pub fn fill_tilemap_hexagon(
     commands.entity(tilemap_id.0).with_children(|parent| {
         for tile_pos in tile_positions {
             let tile_entity = parent
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id,
-                    texture_index,
-                    ..Default::default()
-                })
+                .spawn((Tile, tile_pos, tilemap_id, texture_index))
                 .id();
             tile_storage.checked_set(&tile_pos, tile_entity)
         }

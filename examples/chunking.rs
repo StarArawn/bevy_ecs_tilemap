@@ -21,11 +21,7 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         for y in 0..CHUNK_SIZE.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    ..Default::default()
-                })
+                .spawn((Tile, tile_pos, TilemapId(tilemap_entity)))
                 .id();
             commands.entity(tilemap_entity).add_child(tile_entity);
             tile_storage.set(&tile_pos, tile_entity);
@@ -38,19 +34,20 @@ fn spawn_chunk(commands: &mut Commands, asset_server: &AssetServer, chunk_pos: I
         0.0,
     ));
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size: TILE_SIZE.into(),
-        size: CHUNK_SIZE.into(),
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size: TILE_SIZE,
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        TilemapGridSize::from(TILE_SIZE),
+        TilemapSize::from(CHUNK_SIZE),
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
+        TILE_SIZE,
         transform,
-        render_settings: TilemapRenderSettings {
+        TilemapRenderSettings {
             render_chunk_size: RENDER_CHUNK_SIZE,
             ..Default::default()
         },
-        ..Default::default()
-    });
+    ));
 }
 
 fn startup(mut commands: Commands) {
