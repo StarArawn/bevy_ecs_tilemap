@@ -1,4 +1,4 @@
-use bevy::{math::Vec3Swizzles, platform_support::collections::HashSet, prelude::*};
+use bevy::{math::Vec3Swizzles, platform::collections::HashSet, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 mod helpers;
 

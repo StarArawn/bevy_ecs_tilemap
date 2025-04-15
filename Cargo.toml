@@ -16,7 +16,7 @@ render = []
 serde = ["dep:serde"]
 
 [dependencies]
-bevy = { version = "0.16.0-rc.3", default-features = false, features = [
+bevy = { version = "0.16.0-rc.5", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
@@ -34,7 +34,7 @@ tiled = { version = "0.14.0", default-features = false }
 thiserror = { version = "2.0" }
 
 [dev-dependencies.bevy]
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.5"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -55,7 +55,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.16.0-rc.3"
+version = "0.16.0-rc.5"
 default-features = false
 features = [
     "bevy_core_pipeline",

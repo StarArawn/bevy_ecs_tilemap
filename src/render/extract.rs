@@ -1,6 +1,6 @@
 use bevy::{
     math::Affine3A,
-    platform_support::collections::HashMap,
+    platform::collections::HashMap,
     prelude::*,
     render::Extract,
     render::primitives::{Aabb, Frustum},
