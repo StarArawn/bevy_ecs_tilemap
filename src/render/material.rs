@@ -7,7 +7,7 @@ use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::{StaticSystemParam, SystemParamItem},
     math::FloatOrd,
-    platform_support::collections::{HashMap, HashSet},
+    platform::collections::{HashMap, HashSet},
     prelude::*,
     reflect::TypePath,
     render::{

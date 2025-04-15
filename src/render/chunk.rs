@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 
-use bevy::platform_support::collections::HashMap;
+use bevy::platform::collections::HashMap;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::Buffer;
 use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
