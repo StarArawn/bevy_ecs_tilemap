@@ -4,7 +4,7 @@ use bevy::asset::Assets;
 use bevy::prelude::{ResMut, Resource};
 use bevy::render::render_resource::TexelCopyTextureInfo;
 use bevy::{
-    platform_support::collections::{HashMap, HashSet},
+    platform::collections::{HashMap, HashSet},
     prelude::{Image, Res},
     render::{
         render_asset::RenderAssets,

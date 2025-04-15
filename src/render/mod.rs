@@ -4,7 +4,7 @@ use bevy::{
     asset::{load_internal_asset, weak_handle},
     core_pipeline::core_2d::Transparent2d,
     image::ImageSamplerDescriptor,
-    platform_support::collections::HashSet,
+    platform::collections::HashSet,
     prelude::*,
     render::{
         Render, RenderApp, RenderSet,

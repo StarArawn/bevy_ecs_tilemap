@@ -1,5 +1,5 @@
 use bevy::{
-    platform_support::collections::HashMap,
+    platform::collections::HashMap,
     prelude::*,
     render::{
         render_resource::{BindGroup, BindGroupEntry},
