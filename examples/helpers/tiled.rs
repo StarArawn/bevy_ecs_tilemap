@@ -367,7 +367,7 @@ pub fn process_loaded_maps(
                                         flip: TileFlip {
                                             x: layer_tile_data.flip_h,
                                             y: layer_tile_data.flip_v,
-                                            d: layer_tile_data.flip_d,
+                                            diag: layer_tile_data.flip_d,
                                         },
                                         ..Default::default()
                                     })
