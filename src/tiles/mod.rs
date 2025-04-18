@@ -110,9 +110,21 @@ pub struct TileFlip {
 }
 
 impl TileFlip {
-    pub const X: TileFlip = TileFlip { x: true, y: false, diag: false };
-    pub const Y: TileFlip = TileFlip { x: false, y: true, diag: false };
-    pub const DIAG: TileFlip = TileFlip { x: false, y: false, diag: true };
+    pub const X: TileFlip = TileFlip {
+        x: true,
+        y: false,
+        diag: false,
+    };
+    pub const Y: TileFlip = TileFlip {
+        x: false,
+        y: true,
+        diag: false,
+    };
+    pub const DIAG: TileFlip = TileFlip {
+        x: false,
+        y: false,
+        diag: true,
+    };
 }
 
 /// This an optional tile bundle with default components.
