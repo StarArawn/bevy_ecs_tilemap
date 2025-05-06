@@ -13,7 +13,7 @@ exclude = ["assets/*", "screenshots/*"]
 default = ["render"]
 atlas = []
 render = []
-serde = ["dep:serde"]
+serde = ["dep:serde", "bevy/serialize"]
 
 [dependencies]
 bevy = { version = "0.16.0", default-features = false, features = [
