@@ -260,7 +260,7 @@ pub fn extract(
         // bit 0 : flip_x
         // bit 1 : flip_y
         // bit 2 : flip_d (anti diagonal)
-        let tile_flip_bits = flip.x as i32 | ((flip.y as i32) << 1) | ((flip.d as i32) << 2);
+        let tile_flip_bits = flip.x as i32 | ((flip.y as i32) << 1) | ((flip.diag as i32) << 2);
 
         let mut position = Vec4::new(tile_pos.x as f32, tile_pos.y as f32, 0.0, 0.0);
         let mut texture = Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0);
