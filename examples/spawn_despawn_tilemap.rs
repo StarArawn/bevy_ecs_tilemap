@@ -38,39 +38,40 @@ fn spawn_map(
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    color: TileColor(
+                .spawn((
+                    Tile,
+                    tile_pos,
+                    TilemapId(tilemap_entity),
+                    TileColor(
                         Hsla::hsl(0., 0.9, 0.8)
                             .rotate_hue(num_maps as f32 * 19.)
                             .into(),
                     ),
-                    texture_index: TileTextureIndex(5),
-                    ..default()
-                })
+                    TileTextureIndex(5),
+                ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
     }
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
     let map_type = TilemapType::default();
 
     let offset = Vec3::splat(num_maps as f32 * tile_size.x / 2.);
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
         tile_size,
-        anchor: TilemapAnchor::Center,
-        transform: Transform::from_translation(offset),
-        ..default()
-    });
+        TilemapAnchor::Center,
+        Transform::from_translation(offset),
+    ));
 }
 
 fn despawn_map(mut commands: Commands, mut maps: Query<(Entity, &mut TileStorage, &Transform)>) {

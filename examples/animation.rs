@@ -4,7 +4,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_ecs_tilemap::prelude::*;
-use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
+use bevy_ecs_tilemap::tiles::{AnimatedTile, TilePos, TileStorage, TileTextureIndex};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
@@ -53,16 +53,17 @@ fn create_background(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         size,
         grid_size,
         map_type,
         tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        anchor: TilemapAnchor::Center,
-        ..Default::default()
-    });
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
+        TilemapAnchor::Center,
+    ));
 }
 
 fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -90,12 +91,10 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
             .spawn((
-                TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(0),
-                    ..Default::default()
-                },
+                Tile,
+                tile_pos,
+                TilemapId(tilemap_entity),
+                TileTextureIndex(0),
                 // To enable animation, we must insert the `AnimatedTile` component on
                 // each tile that is to be animated.
                 AnimatedTile {
@@ -110,17 +109,18 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     }
     let map_type = TilemapType::Square;
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        size: map_size,
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        map_size,
         grid_size,
         map_type,
         tile_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        anchor: TilemapAnchor::Center,
-        transform: Transform::from_xyz(0.0, 0.0, 1.0),
-        ..Default::default()
-    });
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
+        TilemapAnchor::Center,
+        Transform::from_xyz(0.0, 0.0, 1.0),
+    ));
 }
 
 fn startup(mut commands: Commands) {

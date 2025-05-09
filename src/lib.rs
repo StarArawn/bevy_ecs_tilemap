@@ -26,7 +26,7 @@ use bevy::{
 };
 
 #[cfg(feature = "render")]
-use render::material::MaterialTilemapHandle;
+use render::material::TilemapMaterial;
 
 use anchor::TilemapAnchor;
 use map::{
@@ -112,11 +112,22 @@ impl Default for FrustumCulling {
 }
 
 #[cfg(feature = "render")]
+#[expect(deprecated)]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use the `Tilemap` and `TilemapMaterial::standard()` components instead. 
+        Inserting `Tilemap` will now also insert all necessary components automatically."
+)]
 pub type TilemapBundle = MaterialTilemapBundle<StandardTilemapMaterial>;
 
 #[cfg(feature = "render")]
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use the `Tilemap` and `TilemapMaterial<M>` components instead. 
+        Inserting `Tilemap` will now also insert all necessary components automatically."
+)]
 pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
@@ -136,14 +147,37 @@ pub struct MaterialTilemapBundle<M: MaterialTilemap> {
     pub view_visibility: ViewVisibility,
     /// User indication of whether tilemap should be frustum culled.
     pub frustum_culling: FrustumCulling,
-    pub material: MaterialTilemapHandle<M>,
+    pub material: TilemapMaterial<M>,
     pub sync: SyncToRenderWorld,
     pub anchor: TilemapAnchor,
 }
 
+#[derive(Component, Debug, Default, Clone)]
+#[require(
+    TilemapGridSize,
+    TilemapType,
+    TilemapSize,
+    TilemapSpacing,
+    TileStorage,
+    TilemapTexture,
+    TilemapTileSize,
+    Transform,
+    TilemapRenderSettings,
+    TilemapAnchor,
+    Visibility,
+    FrustumCulling,
+    SyncToRenderWorld
+)]
+pub struct Tilemap;
+
 #[cfg(not(feature = "render"))]
 /// The default tilemap bundle. All of the components within are required.
 #[derive(Bundle, Debug, Default, Clone)]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use the `Tilemap` component instead. 
+        Inserting `Tilemap` will now also insert all necessary components automatically."
+)]
 pub struct StandardTilemapBundle {
     pub grid_size: TilemapGridSize,
     pub map_type: TilemapType,
@@ -169,8 +203,11 @@ pub struct StandardTilemapBundle {
 /// A module which exports commonly used dependencies.
 pub mod prelude {
     #[cfg(feature = "render")]
+    #[expect(deprecated)]
     pub use crate::MaterialTilemapBundle;
+    pub use crate::Tilemap;
     #[cfg(feature = "render")]
+    #[expect(deprecated)]
     pub use crate::TilemapBundle;
     pub use crate::TilemapPlugin;
     pub use crate::anchor::TilemapAnchor;
@@ -184,13 +221,13 @@ pub mod prelude {
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemap;
     #[cfg(feature = "render")]
-    pub use crate::render::material::MaterialTilemapHandle;
-    #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapKey;
     #[cfg(feature = "render")]
     pub use crate::render::material::MaterialTilemapPlugin;
     #[cfg(feature = "render")]
     pub use crate::render::material::StandardTilemapMaterial;
+    #[cfg(feature = "render")]
+    pub use crate::render::material::TilemapMaterial;
     pub use crate::tiles::*;
 }
 

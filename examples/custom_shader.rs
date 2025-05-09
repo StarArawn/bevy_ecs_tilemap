@@ -24,7 +24,7 @@ fn startup(
 ) {
     commands.spawn(Camera2d);
 
-    let my_material_handle = MaterialTilemapHandle::from(materials.add(MyMaterial {
+    let my_material = TilemapMaterial(materials.add(MyMaterial {
         brightness: 0.5,
         ..default()
     }));
@@ -46,22 +46,20 @@ fn startup(
     );
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
     let map_type = TilemapType::default();
 
-    commands
-        .entity(tilemap_entity)
-        .insert(MaterialTilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle.clone()),
-            tile_size,
-            anchor: TilemapAnchor::Center,
-            material: my_material_handle.clone(),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        grid_size,
+        map_type,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle.clone()),
+        tile_size,
+        TilemapAnchor::Center,
+        my_material.clone(),
+    ));
 
     // Layer 2
     let mut tile_storage = TileStorage::empty(map_size);
@@ -75,20 +73,18 @@ fn startup(
         &mut tile_storage,
     );
 
-    commands
-        .entity(tilemap_entity)
-        .insert(MaterialTilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size: TilemapTileSize { x: 16.0, y: 16.0 },
-            anchor: TilemapAnchor::Center,
-            transform: Transform::from_xyz(32.0, 32.0, 1.0),
-            material: my_material_handle,
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
+        grid_size,
+        map_type,
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapTileSize { x: 16.0, y: 16.0 },
+        TilemapAnchor::Center,
+        Transform::from_xyz(32.0, 32.0, 1.0),
+        my_material,
+    ));
 }
 
 fn main() {

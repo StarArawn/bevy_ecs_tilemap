@@ -25,23 +25,24 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     );
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
         tile_size,
-        anchor: TilemapAnchor::Center,
-        render_settings: TilemapRenderSettings {
+        TilemapAnchor::Center,
+        TilemapRenderSettings {
             render_chunk_size: UVec2::new(256, 256),
             ..Default::default()
         },
-        ..Default::default()
-    });
+    ));
 }
 
 fn main() {

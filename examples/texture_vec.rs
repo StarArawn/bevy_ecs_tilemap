@@ -55,31 +55,25 @@ mod no_atlas {
                 .choose_weighted(&mut rng, |choice| choice.1)
                 .unwrap()
                 .0;
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position,
-                    tilemap_id,
-                    texture_index: texture,
-                    ..Default::default()
-                })
-                .id();
+            let tile_entity = commands.spawn((Tile, position, tilemap_id, texture)).id();
             tile_storage.set(&position, tile_entity);
         }
 
         let tile_size = TILE_SIZE;
-        let grid_size = TILE_SIZE.into();
+        let grid_size = TilemapGridSize::from(TILE_SIZE);
         let map_type = TilemapType::Hexagon(COORD_SYS);
 
-        commands.entity(tilemap_entity).insert(TilemapBundle {
+        commands.entity(tilemap_entity).insert((
+            Tilemap,
             grid_size,
             map_type,
             tile_size,
-            size: map_size,
-            storage: tile_storage,
-            texture: texture_vec,
-            anchor: TilemapAnchor::Center,
-            ..Default::default()
-        });
+            map_size,
+            tile_storage,
+            texture_vec,
+            TilemapMaterial::standard(),
+            TilemapAnchor::Center,
+        ));
     }
 
     pub fn main() {

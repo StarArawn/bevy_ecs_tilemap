@@ -238,18 +238,17 @@ fn spawn_chunks(mut commands: Commands, tile_handle_hex_row: Res<TileHandleHexRo
 
             commands
                 .entity(tilemap_entity)
-                .insert(TilemapBundle {
+                .insert((
+                    Tilemap,
                     grid_size,
-                    size: map_size,
-                    storage: tile_storage,
-                    texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
+                    map_size,
+                    tile_storage,
+                    TilemapTexture::Single(tile_handle_hex_row.clone()),
+                    TilemapMaterial::standard(),
                     tile_size,
                     map_type,
-                    transform: Transform::from_translation(chunk_in_world_position(
-                        *chunk_pos, map_type,
-                    )),
-                    ..Default::default()
-                })
+                    Transform::from_translation(chunk_in_world_position(*chunk_pos, map_type)),
+                ))
                 .insert(chunk_pos);
         }
     }

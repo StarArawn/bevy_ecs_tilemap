@@ -18,28 +18,25 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let tile_pos = TilePos { x: 0, y: 0 };
     let tile_entity = commands
-        .spawn(TileBundle {
-            position: tile_pos,
-            tilemap_id: TilemapId(tilemap_entity),
-            ..Default::default()
-        })
+        .spawn((Tile, tile_pos, TilemapId(tilemap_entity)))
         .id();
     tile_storage.set(&tile_pos, tile_entity);
 
     let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
-    let grid_size = tile_size.into();
+    let grid_size = TilemapGridSize::from(tile_size);
     let map_type = TilemapType::default();
 
-    commands.entity(tilemap_entity).insert(TilemapBundle {
+    commands.entity(tilemap_entity).insert((
+        Tilemap,
         grid_size,
         map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
+        map_size,
+        tile_storage,
+        TilemapTexture::Single(texture_handle),
+        TilemapMaterial::standard(),
         tile_size,
-        anchor: TilemapAnchor::Center,
-        ..Default::default()
-    });
+        TilemapAnchor::Center,
+    ));
 }
 
 fn swap_pos(keyboard_input: Res<ButtonInput<KeyCode>>, mut query: Query<&mut TilePos>) {
