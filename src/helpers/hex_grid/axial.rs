@@ -1,6 +1,5 @@
 //! Code for the axial coordinate system.
 
-use crate::helpers::hex_grid::consts::{DOUBLE_INV_SQRT_3, HALF_SQRT_3, INV_SQRT_3};
 use crate::helpers::hex_grid::cube::{CubePos, FractionalCubePos};
 use crate::helpers::hex_grid::neighbors::{
     HEX_OFFSETS, HexColDirection, HexDirection, HexRowDirection,
@@ -9,7 +8,7 @@ use crate::helpers::hex_grid::offset::{ColEvenPos, ColOddPos, RowEvenPos, RowOdd
 use crate::map::HexCoordSystem;
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapSize};
-use bevy::math::{Mat2, Vec2};
+use bevy::math::Vec2;
 use std::ops::{Add, Mul, Sub};
 
 /// A position in a hex grid labelled according to [`HexCoordSystem::Row`] or
@@ -180,34 +179,6 @@ impl From<ColEvenPos> for AxialPos {
     }
 }
 
-/// The matrix for mapping from [`AxialPos`], to world position when hexes are arranged
-/// in row format ("pointy top" per Red Blob Games). See
-/// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that:
-///     1) we consider increasing-y to be the same as "going up", while RBG considers increasing-y to be "going down",
-///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
-pub const ROW_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 0.0), Vec2::new(0.5, HALF_SQRT_3));
-
-/// The inverse of [`ROW_BASIS`].
-pub const INV_ROW_BASIS: Mat2 = Mat2::from_cols(
-    Vec2::new(1.0, 0.0),
-    Vec2::new(-1.0 * INV_SQRT_3, DOUBLE_INV_SQRT_3),
-);
-
-/// The matrix for mapping from [`AxialPos`], to world position when hexes are arranged
-/// in column format ("flat top" per Red Blob Games). See
-/// [Size and Spacing](https://www.redblobgames.com/grids/hexagons/#size-and-spacing)
-/// at Red Blob Games for an interactive visual explanation, but note that:
-///     1) we consider increasing-y to be the same as "going up", while RBG considers increasing-y to be "going down",
-///     2) our vectors have magnitude 1 (in order to allow for easy scaling based on grid-size)
-pub const COL_BASIS: Mat2 = Mat2::from_cols(Vec2::new(HALF_SQRT_3, 0.5), Vec2::new(0.0, 1.0));
-
-/// The inverse of [`COL_BASIS`].
-pub const INV_COL_BASIS: Mat2 = Mat2::from_cols(
-    Vec2::new(DOUBLE_INV_SQRT_3, -1.0 * INV_SQRT_3),
-    Vec2::new(0.0, 1.0),
-);
-
 pub const UNIT_Q: AxialPos = AxialPos { q: 1, r: 0 };
 
 pub const UNIT_R: AxialPos = AxialPos { q: 0, r: -1 };
@@ -234,14 +205,17 @@ impl AxialPos {
         (*self - *other).magnitude()
     }
 
-    /// Project a vector representing a fractional axial position (i.e. the components can be `f32`)
-    /// into world space.
+    /// Project a vector, representing a fractional axial position (i.e. the components can be `f32`)
+    /// on a row-oriented grid ("pointy top"), into world space.
+    ///
+    /// This is a helper function for [`center_in_world_row`](`Self::center_in_world_row`),
+    /// [`corner_offset_in_world_row`](`Self::corner_offset_in_world_row`) and
+    /// [`corner_in_world_row`](`Self::corner_in_world_row`).
     #[inline]
     pub fn project_row(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
-        let unscaled_pos = ROW_BASIS * axial_pos;
         Vec2::new(
-            grid_size.x * unscaled_pos.x,
-            ROW_BASIS.y_axis.y * grid_size.y * unscaled_pos.y,
+            grid_size.x * (axial_pos.x + axial_pos.y / 2.0),
+            grid_size.y * axial_pos.y * 0.75,
         )
     }
 
@@ -293,10 +267,9 @@ impl AxialPos {
     /// [`corner_in_world_col`](`Self::corner_in_world_col`).
     #[inline]
     pub fn project_col(axial_pos: Vec2, grid_size: &TilemapGridSize) -> Vec2 {
-        let unscaled_pos = COL_BASIS * axial_pos;
         Vec2::new(
-            COL_BASIS.x_axis.x * grid_size.x * unscaled_pos.x,
-            grid_size.y * unscaled_pos.y,
+            grid_size.x * axial_pos.x * 0.75,
+            grid_size.y * (axial_pos.y + axial_pos.x / 2.0),
         )
     }
 
@@ -346,12 +319,9 @@ impl AxialPos {
     /// * The world position corresponding to `[0.0, 0.0]` lies on the hex grid at index `(0, 0)`.
     #[inline]
     pub fn from_world_pos_row(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
-        let normalized_world_pos = Vec2::new(
-            world_pos.x / grid_size.x,
-            world_pos.y / (ROW_BASIS.y_axis.y * grid_size.y),
-        );
-        let frac_pos = FractionalAxialPos::from(INV_ROW_BASIS * normalized_world_pos);
-        frac_pos.round()
+        let r = world_pos.y * 4.0 / grid_size.y / 3.0;
+        let q = world_pos.x / grid_size.x - r / 2.0;
+        FractionalAxialPos { q, r }.round()
     }
 
     /// Returns the axial position of the hex grid containing the given world position, assuming that:
@@ -360,12 +330,9 @@ impl AxialPos {
     /// * The world position corresponding to `[0.0, 0.0]` lies on the hex grid at index `(0, 0)`.
     #[inline]
     pub fn from_world_pos_col(world_pos: &Vec2, grid_size: &TilemapGridSize) -> AxialPos {
-        let normalized_world_pos = Vec2::new(
-            world_pos.x / (COL_BASIS.x_axis.x * grid_size.x),
-            world_pos.y / grid_size.y,
-        );
-        let frac_pos = FractionalAxialPos::from(INV_COL_BASIS * normalized_world_pos);
-        frac_pos.round()
+        let q = world_pos.x * 4.0 / grid_size.x / 3.0;
+        let r = world_pos.y / grid_size.y - q / 2.0;
+        FractionalAxialPos { q, r }.round()
     }
 
     /// Try converting into a [`TilePos`].
