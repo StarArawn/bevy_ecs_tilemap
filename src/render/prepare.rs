@@ -7,8 +7,10 @@ use crate::map::{
 };
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
+use crate::tiles::TilePos;
 use crate::{FrustumCulling, prelude::TilemapGridSize, render::RenderChunkSize};
 use bevy::log::trace;
+use bevy::platform::collections::HashSet;
 use bevy::prelude::{InheritedVisibility, Resource, Transform, With};
 use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
@@ -71,9 +73,15 @@ pub(crate) fn prepare(
     render_queue: Res<RenderQueue>,
     mut mesh_vertex_buffer_layouts: ResMut<MeshVertexBufferLayouts>,
 ) {
+    // We use this to keep track of which tile positions have been set this frame.
+    let mut recently_updated: HashSet<TilePos> =
+        HashSet::with_capacity(extracted_tiles.iter().len());
+
     for tile in extracted_tiles.iter() {
-        // First if the tile position has changed remove the tile from the old location.
-        if tile.position != tile.old_position.0 {
+        // First if the tile position has changed remove the tile from the old location,
+        // but not if the old location has already been replaced with another tile.
+        if tile.position != tile.old_position.0 && !recently_updated.contains(&tile.old_position.0)
+        {
             chunk_storage.remove_tile_with_entity(tile.entity);
         }
 
@@ -133,6 +141,7 @@ pub(crate) fn prepare(
                 ..tile.tile
             }),
         );
+        recently_updated.insert(tile.position);
     }
 
     // Copies transform changes from tilemap to chunks.
