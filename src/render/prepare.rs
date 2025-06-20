@@ -74,8 +74,7 @@ pub(crate) fn prepare(
     mut mesh_vertex_buffer_layouts: ResMut<MeshVertexBufferLayouts>,
 ) {
     // We use this to keep track of which tile positions have been set this frame.
-    let mut recently_updated: HashSet<TilePos> =
-        HashSet::with_capacity(extracted_tiles.iter().len());
+    let mut recently_updated: HashSet<TilePos> = HashSet::new();
 
     for tile in extracted_tiles.iter() {
         // First if the tile position has changed remove the tile from the old location,
