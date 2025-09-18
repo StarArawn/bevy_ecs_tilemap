@@ -43,17 +43,21 @@
 @vertex
 fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
     var out: MeshVertexOutput;
-    let animation_speed = vertex_input.position.z;
-
     let mesh_data: MeshOutput = get_mesh(vertex_input.v_index, vec3(vertex_input.position.xy, 0.0));
 
-    let frames: f32 = f32(vertex_input.uv.w - vertex_input.uv.z);
+    let animation_speed = vertex_input.position.z;
+    let gap = vertex_input.position.w;
+    let start = vertex_input.uv.z;
+    let end = vertex_input.uv.w;
 
-    var current_animation_frame = fract(globals.time * animation_speed) * frames;
+    // Calculate the number of frames between start and end, taking the gap into account.
+    let frames: f32 = f32(u32(end - start) / u32(gap) + 1);
 
-    current_animation_frame = clamp(f32(vertex_input.uv.z) + current_animation_frame, f32(vertex_input.uv.z), f32(vertex_input.uv.w));
+    // Set tile_num to some value between 0 and frames-1 based on the current time.
+    let tile_num = floor(fract(globals.time * animation_speed) * frames);
 
-    let texture_index: u32 = u32(current_animation_frame);
+    // Convert tile_num back into the actual index based on the start value and gap.
+    let texture_index: u32 = u32(start + tile_num * gap);
 
     #ifdef ATLAS
     // Get the top-left corner of the current frame in the texture, accounting for padding around the whole texture
