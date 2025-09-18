@@ -266,6 +266,7 @@ pub fn extract(
         let mut texture = Vec4::new(tile_texture.0 as f32, tile_flip_bits as f32, 0.0, 0.0);
         if let Some(animation_data) = animated {
             position.z = animation_data.speed;
+            position.w = animation_data.gap as f32;
             texture.z = animation_data.start as f32;
             texture.w = animation_data.end as f32;
         } else {
