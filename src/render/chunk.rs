@@ -378,10 +378,22 @@ impl RenderChunk2d {
             let mut indices: Vec<u32> =
                 Vec::with_capacity(((self.size_in_tiles.x * self.size_in_tiles.y) * 6) as usize);
 
+            fn get_tiles_iter(
+                chunk: &RenderChunk2d,
+            ) -> Box<dyn Iterator<Item = &PackedTileData> + '_> {
+                match chunk.y_sort {
+                    true => Box::new((0..chunk.size_in_tiles.y).rev().flat_map(move |y| {
+                        (0..chunk.size_in_tiles.x)
+                            .filter_map(move |x| chunk.get(&TilePos::new(x, y)).as_ref())
+                    })),
+                    false => Box::new(chunk.tiles.iter().filter_map(|x| x.as_ref())),
+                }
+            }
+
             let mut i = 0;
 
             // Convert tile into mesh data.
-            for tile in self.tiles.iter().filter_map(|x| x.as_ref()) {
+            for tile in get_tiles_iter(&self) {
                 if !tile.visible {
                     continue;
                 }
