@@ -5,8 +5,7 @@ use bevy::{
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
-use rand::seq::IteratorRandom;
-use rand::thread_rng;
+use rand::{rng, seq::IteratorRandom};
 
 mod helpers;
 
@@ -79,7 +78,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
     let tilemap_entity = commands.spawn_empty().id();
 
     // Choose 10 random tiles to contain flowers.
-    let mut rng = thread_rng();
+    let mut rng = rng();
     let mut indices: Vec<(u32, u32)> = Vec::with_capacity((map_size.x * map_size.y) as usize);
     for x in 0..map_size.x {
         for y in 0..map_size.y {

@@ -1,23 +1,25 @@
 use std::hash::{Hash, Hasher};
 
-use bevy::platform::collections::HashMap;
-use bevy::render::render_asset::RenderAssetUsages;
-use bevy::render::render_resource::Buffer;
-use bevy::render::{mesh::BaseMeshPipelineKey, primitives::Aabb};
-use bevy::{math::Mat4, render::mesh::PrimitiveTopology};
+use bevy::{
+    asset::RenderAssetUsages,
+    mesh::{BaseMeshPipelineKey, Indices, PrimitiveTopology},
+    platform::collections::HashMap,
+};
+use bevy::{camera::primitives::Aabb, math::Mat4};
 use bevy::{
     math::{UVec2, UVec3, UVec4, Vec2, Vec3Swizzles, Vec4, Vec4Swizzles},
     prelude::{Component, Entity, GlobalTransform, Mesh},
     render::{
-        mesh::{Indices, RenderMesh, RenderMeshBufferInfo, VertexAttributeValues},
+        mesh::{RenderMesh, RenderMeshBufferInfo},
         render_resource::{BufferInitDescriptor, BufferUsages, ShaderType},
         renderer::RenderDevice,
     },
 };
 use bevy::{
+    mesh::MeshVertexBufferLayouts,
     prelude::{InheritedVisibility, Resource, Transform},
-    render::mesh::MeshVertexBufferLayouts,
 };
+use bevy::{mesh::VertexAttributeValues, render::render_resource::Buffer};
 
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
@@ -249,7 +251,7 @@ impl RenderChunk2d {
         let local_transform = Transform::from_translation(position.extend(0.0));
         let global_transform: Transform = global_transform.into();
         let transform = local_transform * global_transform;
-        let transform_matrix = transform.compute_matrix();
+        let transform_matrix = transform.to_matrix();
         let aabb = chunk_aabb(size_in_tiles, &grid_size, &tile_size, &map_type);
         Self {
             dirty_mesh: true,
@@ -359,7 +361,7 @@ impl RenderChunk2d {
 
         if dirty_local_transform || dirty_global_transform {
             self.transform = global_transform * self.local_transform;
-            self.transform_matrix = self.transform.compute_matrix();
+            self.transform_matrix = self.transform.to_matrix();
         }
     }
 

@@ -110,7 +110,7 @@ fn spawn_tile_labels(
                         ..default()
                     },
                     TextColor(Color::BLACK),
-                    TextLayout::new_with_justify(JustifyText::Center),
+                    TextLayout::new_with_justify(Justify::Center),
                     transform,
                 ))
                 .id();
@@ -145,7 +145,7 @@ fn spawn_map_type_label(
                     ..default()
                 },
                 TextColor(Color::BLACK),
-                TextLayout::new_with_justify(JustifyText::Center),
+                TextLayout::new_with_justify(Justify::Center),
                 transform,
                 MapTypeLabel,
             ));
@@ -247,7 +247,7 @@ impl Default for CursorPos {
 // We need to keep the cursor position updated based on any `CursorMoved` events.
 pub fn update_cursor_pos(
     camera_q: Query<(&GlobalTransform, &Camera)>,
-    mut cursor_moved_events: EventReader<CursorMoved>,
+    mut cursor_moved_events: MessageReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
 ) {
     for cursor_moved in cursor_moved_events.read() {
@@ -281,11 +281,11 @@ fn hover_highlight_tile_label(
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok(mut text_color) = text_q.get_mut(label.0) {
-                text_color.0 = Color::BLACK;
-                commands.entity(highlighted_tile_entity).remove::<Hovered>();
-            }
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity)
+            && let Ok(mut text_color) = text_q.get_mut(label.0)
+        {
+            text_color.0 = Color::BLACK;
+            commands.entity(highlighted_tile_entity).remove::<Hovered>();
         }
     }
 
@@ -299,7 +299,7 @@ fn hover_highlight_tile_label(
         let cursor_in_map_pos: Vec2 = {
             // Extend the cursor_pos vec2 by 0.0 and 1.0
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
-            let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
+            let cursor_in_map_pos = map_transform.to_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
         // Once we have a world position we can transform it into a possible tile position.
@@ -312,13 +312,12 @@ fn hover_highlight_tile_label(
             anchor,
         ) {
             // Highlight the relevant tile's label
-            if let Some(tile_entity) = tile_storage.get(&tile_pos) {
-                if let Ok(label) = tile_label_q.get(tile_entity) {
-                    if let Ok(mut text_color) = text_q.get_mut(label.0) {
-                        text_color.0 = palettes::tailwind::RED_600.into();
-                        commands.entity(tile_entity).insert(Hovered);
-                    }
-                }
+            if let Some(tile_entity) = tile_storage.get(&tile_pos)
+                && let Ok(label) = tile_label_q.get(tile_entity)
+                && let Ok(mut text_color) = text_q.get_mut(label.0)
+            {
+                text_color.0 = palettes::tailwind::RED_600.into();
+                commands.entity(tile_entity).insert(Hovered);
             }
         }
     }
@@ -340,13 +339,13 @@ fn highlight_neighbor_label(
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok(mut text_color) = text_q.get_mut(label.0) {
-                text_color.0 = Color::BLACK;
-                commands
-                    .entity(highlighted_tile_entity)
-                    .remove::<NeighborHighlight>();
-            }
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity)
+            && let Ok(mut text_color) = text_q.get_mut(label.0)
+        {
+            text_color.0 = Color::BLACK;
+            commands
+                .entity(highlighted_tile_entity)
+                .remove::<NeighborHighlight>();
         }
     }
 
@@ -364,13 +363,12 @@ fn highlight_neighbor_label(
             for neighbor_pos in neighboring_positions.iter() {
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
-                if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos) {
-                    if let Ok(label) = tile_label_q.get(tile_entity) {
-                        if let Ok(mut text_color) = text_q.get_mut(label.0) {
-                            text_color.0 = palettes::tailwind::BLUE_600.into();
-                            commands.entity(tile_entity).insert(NeighborHighlight);
-                        }
-                    }
+                if let Some(tile_entity) = tile_storage.checked_get(neighbor_pos)
+                    && let Ok(label) = tile_label_q.get(tile_entity)
+                    && let Ok(mut text_color) = text_q.get_mut(label.0)
+                {
+                    text_color.0 = palettes::tailwind::BLUE_600.into();
+                    commands.entity(tile_entity).insert(NeighborHighlight);
                 }
             }
 
@@ -403,13 +401,12 @@ fn highlight_neighbor_label(
 
                 // We want to ensure that the tile position lies within the tile map, so we do a
                 // `checked_get`.
-                if let Some(tile_entity) = tile_storage.checked_get(&tile_pos) {
-                    if let Ok(label) = tile_label_q.get(tile_entity) {
-                        if let Ok(mut text_color) = text_q.get_mut(label.0) {
-                            text_color.0 = palettes::tailwind::GREEN_600.into();
-                            commands.entity(tile_entity).insert(NeighborHighlight);
-                        }
-                    }
+                if let Some(tile_entity) = tile_storage.checked_get(&tile_pos)
+                    && let Ok(label) = tile_label_q.get(tile_entity)
+                    && let Ok(mut text_color) = text_q.get_mut(label.0)
+                {
+                    text_color.0 = palettes::tailwind::GREEN_600.into();
+                    commands.entity(tile_entity).insert(NeighborHighlight);
                 }
             }
         }

@@ -22,7 +22,7 @@ use bevy::{
         Query, Reflect, ReflectComponent, SystemSet, Transform, ViewVisibility, Visibility,
     },
     render::sync_world::SyncToRenderWorld,
-    time::TimeSystem,
+    time::TimeSystems,
 };
 
 #[cfg(feature = "render")]
@@ -93,7 +93,7 @@ impl Plugin for TilemapPlugin {
             .register_type::<TileStorage>()
             .register_type::<TilePosOld>()
             .register_type::<AnimatedTile>()
-            .configure_sets(First, TilemapFirstSet.after(TimeSystem));
+            .configure_sets(First, TilemapFirstSet.after(TimeSystems));
     }
 }
 

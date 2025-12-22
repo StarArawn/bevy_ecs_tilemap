@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 
 mod helpers;
 
@@ -60,10 +60,10 @@ fn remove_tiles(
     for (mut last_update, tile_storage) in last_update_query.iter_mut() {
         // Remove a tile every half second.
         if (current_time - last_update.value) > 0.1 {
-            let mut random = thread_rng();
+            let mut random = rng();
             let position = TilePos {
-                x: random.gen_range(0..32),
-                y: random.gen_range(0..32),
+                x: random.random_range(0..32),
+                y: random.random_range(0..32),
             };
 
             // Instead of removing the tile entity we want to hide the tile by removing the Visible component.

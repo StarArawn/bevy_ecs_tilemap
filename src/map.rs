@@ -1,5 +1,6 @@
 use bevy::{
     asset::Assets,
+    camera::visibility::{VisibilityClass, add_visibility_class},
     ecs::{
         entity::{EntityMapper, MapEntities},
         reflect::ReflectMapEntities,
@@ -8,10 +9,7 @@ use bevy::{
     prelude::{
         Component, Deref, DerefMut, Entity, Handle, Image, Reflect, ReflectComponent, Res, ResMut,
     },
-    render::{
-        render_resource::TextureUsages,
-        view::{VisibilityClass, add_visibility_class},
-    },
+    render::render_resource::TextureUsages,
 };
 use std::ops::Add;
 
@@ -64,7 +62,7 @@ impl MapEntities for TilemapId {
 
 impl Default for TilemapId {
     fn default() -> Self {
-        Self(Entity::from_raw(0))
+        Self(Entity::from_raw_u32(0).unwrap())
     }
 }
 
@@ -195,33 +193,17 @@ impl TilemapTexture {
         for handle in self.image_handles() {
             // NOTE: We retrieve it non-mutably first to avoid triggering an `AssetEvent::Modified`
             // if we didn't actually need to modify it
-            if let Some(image) = images.get(handle) {
-                if !image
+            if let Some(image) = images.get(handle)
+                && !image
                     .texture_descriptor
                     .usage
                     .contains(TextureUsages::COPY_SRC)
-                {
-                    if let Some(image) = images.get_mut(handle) {
-                        image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
-                            | TextureUsages::COPY_SRC
-                            | TextureUsages::COPY_DST;
-                    };
-                }
-            }
-        }
-    }
-
-    pub fn clone_weak(&self) -> Self {
-        match self {
-            TilemapTexture::Single(handle) => TilemapTexture::Single(handle.clone_weak()),
-            #[cfg(not(feature = "atlas"))]
-            TilemapTexture::Vector(handles) => {
-                TilemapTexture::Vector(handles.iter().map(|h| h.clone_weak()).collect())
-            }
-            #[cfg(not(feature = "atlas"))]
-            TilemapTexture::TextureContainer(handle) => {
-                TilemapTexture::TextureContainer(handle.clone_weak())
-            }
+                && let Some(image) = images.get_mut(handle)
+            {
+                image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+                    | TextureUsages::COPY_SRC
+                    | TextureUsages::COPY_DST;
+            };
         }
     }
 }

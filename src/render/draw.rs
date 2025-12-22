@@ -200,28 +200,26 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.y,
             chunk_id.0.z,
             tilemap_id.0.index(),
-        )) {
-            if let (Some(render_mesh), Some(vertex_buffer), Some(index_buffer)) = (
-                &chunk.render_mesh,
-                &chunk.vertex_buffer,
-                &chunk.index_buffer,
-            ) {
-                if render_mesh.vertex_count == 0 {
-                    return RenderCommandResult::Skip;
-                }
+        )) && let (Some(render_mesh), Some(vertex_buffer), Some(index_buffer)) = (
+            &chunk.render_mesh,
+            &chunk.vertex_buffer,
+            &chunk.index_buffer,
+        ) {
+            if render_mesh.vertex_count == 0 {
+                return RenderCommandResult::Skip;
+            }
 
-                pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-                match &render_mesh.buffer_info {
-                    RenderMeshBufferInfo::Indexed {
-                        index_format,
-                        count,
-                    } => {
-                        pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
-                        pass.draw_indexed(0..*count, 0, 0..1);
-                    }
-                    RenderMeshBufferInfo::NonIndexed => {
-                        pass.draw(0..render_mesh.vertex_count, 0..1);
-                    }
+            pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+            match &render_mesh.buffer_info {
+                RenderMeshBufferInfo::Indexed {
+                    index_format,
+                    count,
+                } => {
+                    pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
+                    pass.draw_indexed(0..*count, 0, 0..1);
+                }
+                RenderMeshBufferInfo::NonIndexed => {
+                    pass.draw(0..render_mesh.vertex_count, 0..1);
                 }
             }
         }

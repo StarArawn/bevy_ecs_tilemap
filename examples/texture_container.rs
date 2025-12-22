@@ -6,8 +6,9 @@ mod no_atlas {
     use bevy::prelude::*;
     use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
     use bevy_ecs_tilemap::prelude::*;
-    use rand::prelude::SliceRandom;
-    use rand::thread_rng;
+    use rand::prelude::IndexedRandom;
+    use rand::rng;
+
     const MAP_RADIUS: u32 = 10;
     const MAP_DIAMETER: u32 = 2 * MAP_RADIUS + 1;
     const MAP_CENTER: TilePos = TilePos {
@@ -50,7 +51,7 @@ mod no_atlas {
         .into_iter()
         .map(|axial_pos| axial_pos.as_tile_pos_given_coord_system(COORD_SYS));
 
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let weighted_tile_choices = [
             (TileTextureIndex(0), 0.8),
             (TileTextureIndex(1), 0.1),

@@ -103,7 +103,7 @@ fn spawn_map_type_label(
                     ..default()
                 },
                 TextColor(Color::BLACK),
-                TextLayout::new_with_justify(JustifyText::Center),
+                TextLayout::new_with_justify(Justify::Center),
                 transform,
                 MapTypeLabel,
             ));

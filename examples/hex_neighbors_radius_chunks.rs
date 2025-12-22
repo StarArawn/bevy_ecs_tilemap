@@ -314,28 +314,24 @@ fn swap_map_type(
             for (tile_entity, label, tile_pos) in tile_label_q.iter() {
                 if let Ok((mut tile_label_transform, mut tile_label_text)) =
                     transform_q.get_mut(label.0)
+                    && let Some(ent) = tile_storage.checked_get(tile_pos)
+                    && ent == tile_entity
                 {
-                    if let Some(ent) = tile_storage.checked_get(tile_pos) {
-                        if ent == tile_entity {
-                            let tile_center = tile_pos
-                                .center_in_world(
-                                    &map_size, &grid_size, &tile_size, &map_type, anchor,
-                                )
-                                .extend(1.0);
-                            *tile_label_transform =
-                                *map_transform * Transform::from_translation(tile_center);
-                            let hex_pos = hex_pos_from_tile_pos(
-                                tile_pos,
-                                &map_size,
-                                &grid_size,
-                                &tile_size,
-                                &map_type,
-                                &map_transform,
-                                anchor,
-                            );
-                            tile_label_text.0 = format!("{},{}", hex_pos.x, hex_pos.y);
-                        }
-                    }
+                    let tile_center = tile_pos
+                        .center_in_world(&map_size, &grid_size, &tile_size, &map_type, anchor)
+                        .extend(1.0);
+                    *tile_label_transform =
+                        *map_transform * Transform::from_translation(tile_center);
+                    let hex_pos = hex_pos_from_tile_pos(
+                        tile_pos,
+                        &map_size,
+                        &grid_size,
+                        &tile_size,
+                        &map_type,
+                        &map_transform,
+                        anchor,
+                    );
+                    tile_label_text.0 = format!("{},{}", hex_pos.x, hex_pos.y);
                 }
             }
         }
@@ -388,7 +384,7 @@ fn spawn_tile_labels(
                         ..default()
                     },
                     TextColor(Color::BLACK),
-                    TextLayout::new_with_justify(JustifyText::Center),
+                    TextLayout::new_with_justify(Justify::Center),
                     transform,
                 ))
                 .id();
@@ -414,7 +410,7 @@ impl Default for CursorPos {
 
 pub fn update_cursor_pos(
     camera_q: Query<(&GlobalTransform, &Camera)>,
-    mut cursor_moved_events: EventReader<CursorMoved>,
+    mut cursor_moved_events: MessageReader<CursorMoved>,
     mut cursor_pos: ResMut<CursorPos>,
 ) {
     for cursor_moved in cursor_moved_events.read() {
@@ -448,12 +444,12 @@ fn hover_highlight_tile_label(
 ) {
     // Un-highlight any previously highlighted tile labels.
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
-                text_color.0 = Color::BLACK;
-                text_font.font_size = DEFAULT_FONT_SIZE;
-                commands.entity(highlighted_tile_entity).remove::<Hovered>();
-            }
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity)
+            && let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0)
+        {
+            text_color.0 = Color::BLACK;
+            text_font.font_size = DEFAULT_FONT_SIZE;
+            commands.entity(highlighted_tile_entity).remove::<Hovered>();
         }
     }
 
@@ -463,7 +459,7 @@ fn hover_highlight_tile_label(
         let cursor_pos = cursor_pos.0;
         let cursor_pos_in_map_pos = {
             let cursor_pos = Vec4::from((cursor_pos, 0.0, 1.0));
-            let cursor_in_map_pos = map_transform.compute_matrix().inverse() * cursor_pos;
+            let cursor_in_map_pos = map_transform.to_matrix().inverse() * cursor_pos;
             cursor_in_map_pos.xy()
         };
         if let Some(tile_pos) = TilePos::from_world_pos(
@@ -473,16 +469,13 @@ fn hover_highlight_tile_label(
             tile_size,
             map_type,
             anchor,
-        ) {
-            if let Some(tile_entity) = tile_storage.get(&tile_pos) {
-                if let Ok(label) = tile_label_q.get(tile_entity) {
-                    if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
-                        text_color.0 = palettes::tailwind::RED_600.into();
-                        text_font.font_size = DEFAULT_FONT_SIZE;
-                        commands.entity(tile_entity).insert(Hovered);
-                    }
-                }
-            }
+        ) && let Some(tile_entity) = tile_storage.get(&tile_pos)
+            && let Ok(label) = tile_label_q.get(tile_entity)
+            && let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0)
+        {
+            text_color.0 = palettes::tailwind::RED_600.into();
+            text_font.font_size = DEFAULT_FONT_SIZE;
+            commands.entity(tile_entity).insert(Hovered);
         }
     }
 }
@@ -527,14 +520,14 @@ fn highlight_neighbor_labels(
     radius: Res<HighlightRadius>,
 ) {
     for highlighted_tile_entity in highlighted_tiles_q.iter() {
-        if let Ok(label) = tile_label_q.get(highlighted_tile_entity) {
-            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
-                text_color.0 = Color::BLACK;
-                text_font.font_size = DEFAULT_FONT_SIZE;
-                commands
-                    .entity(highlighted_tile_entity)
-                    .remove::<NeighborHighlight>();
-            }
+        if let Ok(label) = tile_label_q.get(highlighted_tile_entity)
+            && let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0)
+        {
+            text_color.0 = Color::BLACK;
+            text_font.font_size = DEFAULT_FONT_SIZE;
+            commands
+                .entity(highlighted_tile_entity)
+                .remove::<NeighborHighlight>();
         }
     }
 
@@ -544,19 +537,19 @@ fn highlight_neighbor_labels(
         tilemap_query.iter()
     {
         for (hovered_tile_entity, hovered_tile_pos) in hovered_tiles_q.iter() {
-            if let Some(ent) = tile_storage.checked_get(hovered_tile_pos) {
-                if ent == hovered_tile_entity {
-                    neighbors = Some(hex_neighbors_radius_from_tile_pos(
-                        hovered_tile_pos,
-                        map_size,
-                        grid_size,
-                        tile_size,
-                        map_type,
-                        map_t,
-                        anchor,
-                        **radius,
-                    ));
-                }
+            if let Some(ent) = tile_storage.checked_get(hovered_tile_pos)
+                && ent == hovered_tile_entity
+            {
+                neighbors = Some(hex_neighbors_radius_from_tile_pos(
+                    hovered_tile_pos,
+                    map_size,
+                    grid_size,
+                    tile_size,
+                    map_type,
+                    map_t,
+                    anchor,
+                    **radius,
+                ));
             }
         }
     }
@@ -570,14 +563,13 @@ fn highlight_neighbor_labels(
                     let tile_hex_pos = hex_pos_from_tile_pos(
                         tile_pos, map_size, grid_size, tile_size, map_type, map_t, anchor,
                     );
-                    if neighbors.contains(&tile_hex_pos) {
-                        if let Ok(label) = tile_label_q.get(*tile_entity) {
-                            if let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0) {
-                                text_color.0 = palettes::tailwind::BLUE_600.into();
-                                text_font.font_size = DEFAULT_FONT_SIZE;
-                                commands.entity(*tile_entity).insert(NeighborHighlight);
-                            }
-                        }
+                    if neighbors.contains(&tile_hex_pos)
+                        && let Ok(label) = tile_label_q.get(*tile_entity)
+                        && let Ok((mut text_color, mut text_font)) = text_q.get_mut(label.0)
+                    {
+                        text_color.0 = palettes::tailwind::BLUE_600.into();
+                        text_font.font_size = DEFAULT_FONT_SIZE;
+                        commands.entity(*tile_entity).insert(NeighborHighlight);
                     }
                 }
             }

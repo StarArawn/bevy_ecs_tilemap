@@ -1,7 +1,7 @@
 use crate::tiles::TilePos;
 use crate::{TilemapGridSize, TilemapTileSize, TilemapType};
+use bevy::camera::primitives::Aabb;
 use bevy::math::{UVec2, Vec2, Vec3};
-use bevy::render::primitives::Aabb;
 
 /// Calculates the world-space position of the bottom-left of the specified chunk.
 pub fn chunk_index_to_world_space(

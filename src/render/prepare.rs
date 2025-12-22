@@ -8,10 +8,9 @@ use crate::map::{
 use crate::prelude::TilemapRenderSettings;
 use crate::render::extract::ExtractedFrustum;
 use crate::{FrustumCulling, prelude::TilemapGridSize, render::RenderChunkSize};
-use bevy::log::trace;
 use bevy::prelude::{InheritedVisibility, Resource, Transform, With};
-use bevy::render::mesh::MeshVertexBufferLayouts;
 use bevy::render::sync_world::TemporaryRenderEntity;
+use bevy::{log::trace, mesh::MeshVertexBufferLayouts};
 use bevy::{
     math::{Mat4, UVec4},
     prelude::{Commands, Component, Entity, GlobalTransform, Query, Res, ResMut, Vec2},
@@ -209,7 +208,7 @@ pub(crate) fn prepare(
         let chunk_uniform: TilemapUniformData = chunk.into();
 
         commands.spawn((
-            chunk.texture.clone_weak(),
+            chunk.texture.clone(),
             chunk.get_transform(),
             ChunkId(chunk.get_index()),
             chunk.get_map_type(),

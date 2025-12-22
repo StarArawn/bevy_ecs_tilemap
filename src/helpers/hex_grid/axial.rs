@@ -191,7 +191,7 @@ pub const ROW_BASIS: Mat2 = Mat2::from_cols(Vec2::new(1.0, 0.0), Vec2::new(0.5, 
 /// The inverse of [`ROW_BASIS`].
 pub const INV_ROW_BASIS: Mat2 = Mat2::from_cols(
     Vec2::new(1.0, 0.0),
-    Vec2::new(-1.0 * INV_SQRT_3, DOUBLE_INV_SQRT_3),
+    Vec2::new(-INV_SQRT_3, DOUBLE_INV_SQRT_3),
 );
 
 /// The matrix for mapping from [`AxialPos`], to world position when hexes are arranged
@@ -204,7 +204,7 @@ pub const COL_BASIS: Mat2 = Mat2::from_cols(Vec2::new(HALF_SQRT_3, 0.5), Vec2::n
 
 /// The inverse of [`COL_BASIS`].
 pub const INV_COL_BASIS: Mat2 = Mat2::from_cols(
-    Vec2::new(DOUBLE_INV_SQRT_3, -1.0 * INV_SQRT_3),
+    Vec2::new(DOUBLE_INV_SQRT_3, -INV_SQRT_3),
     Vec2::new(0.0, 1.0),
 );
 

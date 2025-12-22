@@ -1,6 +1,5 @@
 use crate::prelude::{TilemapId, TilemapRenderSettings};
 
-use bevy::log::error;
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
 use bevy::{
@@ -11,7 +10,7 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
-        Extract, Render, RenderApp, RenderSet,
+        Extract, Render, RenderApp, RenderSystems,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
@@ -21,13 +20,14 @@ use bevy::{
         render_resource::{
             AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
             BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
-            ShaderRef, SpecializedRenderPipeline, SpecializedRenderPipelines,
+            SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
         texture::GpuImage,
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
     },
 };
+use bevy::{log::error, shader::ShaderRef};
 use std::{hash::Hash, marker::PhantomData};
 
 use super::{
@@ -156,7 +156,7 @@ where
                 .add_systems(ExtractSchedule, extract_materials_tilemap::<M>)
                 .add_systems(
                     Render,
-                    prepare_materials_tilemap::<M>.in_set(RenderSet::PrepareAssets),
+                    prepare_materials_tilemap::<M>.in_set(RenderSystems::PrepareAssets),
                 )
                 .add_systems(
                     Render,
@@ -167,9 +167,9 @@ where
                         // to run before the `Prepare` set (which is after Queue). This invites the possibility of an intermittent incorrect ordering dependent
                         // on the scheduler.
                         queue_material_tilemap_meshes::<M>
-                            .in_set(RenderSet::Queue)
+                            .in_set(RenderSystems::Queue)
                             .after(prepare::prepare),
-                        bind_material_tilemap_meshes::<M>.in_set(RenderSet::PrepareBindGroups),
+                        bind_material_tilemap_meshes::<M>.in_set(RenderSystems::PrepareBindGroups),
                     ),
                 );
         }
@@ -285,7 +285,7 @@ impl<T: MaterialTilemap> Default for RenderMaterialsTilemap<T> {
 /// into the "render world".
 fn extract_materials_tilemap<M: MaterialTilemap>(
     mut commands: Commands,
-    mut events: Extract<EventReader<AssetEvent<M>>>,
+    mut events: Extract<MessageReader<AssetEvent<M>>>,
     assets: Extract<Res<Assets<M>>>,
 ) {
     let mut changed_assets = <HashSet<_>>::default();
@@ -391,10 +391,11 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
     let prepared =
         material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
+    let bind_group_data = material.bind_group_data();
     Ok(PreparedMaterialTilemap {
         bindings: prepared.bindings.0,
         bind_group: prepared.bind_group,
-        key: prepared.data,
+        key: bind_group_data,
     })
 }
 
@@ -627,11 +628,11 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                     if modified_image_ids.is_texture_modified(&chunk.texture) {
                         image_bind_groups
                             .values
-                            .insert(chunk.texture.clone_weak(), create_bind_group());
+                            .insert(chunk.texture.clone(), create_bind_group());
                     } else {
                         image_bind_groups
                             .values
-                            .entry(chunk.texture.clone_weak())
+                            .entry(chunk.texture.clone())
                             .or_insert_with(create_bind_group);
                     }
                 }

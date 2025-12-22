@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_ecs_tilemap::prelude::*;
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 
 mod helpers;
 
@@ -58,10 +58,10 @@ struct LastUpdate {
 // it's faster to do it this way:
 fn random(time: ResMut<Time>, mut query: Query<(&mut TileTextureIndex, &mut LastUpdate)>) {
     let current_time = time.elapsed_secs_f64();
-    let mut random = thread_rng();
+    let mut random = rng();
     for (mut tile, mut last_update) in query.iter_mut() {
         if (current_time - last_update.value) > 0.2 {
-            tile.0 = random.gen_range(0..6);
+            tile.0 = random.random_range(0..6);
             last_update.value = current_time;
         }
     }

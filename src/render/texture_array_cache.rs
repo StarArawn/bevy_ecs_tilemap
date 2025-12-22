@@ -47,7 +47,7 @@ impl TextureArrayCache {
     pub(crate) fn add_extracted_texture(&mut self, extracted_texture: &ExtractedTilemapTexture) {
         if !self.meta_data.contains_key(&extracted_texture.texture) {
             self.meta_data.insert(
-                extracted_texture.texture.clone_weak(),
+                extracted_texture.texture.clone(),
                 (
                     extracted_texture.tile_count,
                     extracted_texture.tile_size,
@@ -57,8 +57,7 @@ impl TextureArrayCache {
                     extracted_texture.format,
                 ),
             );
-            self.prepare_queue
-                .insert(extracted_texture.texture.clone_weak());
+            self.prepare_queue.insert(extracted_texture.texture.clone());
         }
     }
 
@@ -114,7 +113,7 @@ impl TextureArrayCache {
 
         if !self.meta_data.contains_key(&texture) {
             self.meta_data.insert(
-                texture.clone_weak(),
+                texture.clone(),
                 (
                     tile_count,
                     tile_size,
@@ -124,7 +123,7 @@ impl TextureArrayCache {
                     format,
                 ),
             );
-            self.prepare_queue.insert(texture.clone_weak());
+            self.prepare_queue.insert(texture.clone());
         }
     }
 
@@ -146,10 +145,10 @@ impl TextureArrayCache {
         for texture in prepare_queue.iter() {
             // Fixes issue where default handle causes a crash. There should be a better
             // way of fixing this.
-            if let TilemapTexture::Single(t) = texture {
-                if bevy::prelude::Handle::default() == t.clone_weak() {
-                    return;
-                }
+            if let TilemapTexture::Single(t) = texture
+                && bevy::prelude::Handle::default() == t.clone()
+            {
+                return;
             }
 
             match texture {
@@ -221,15 +220,14 @@ impl TextureArrayCache {
                         mip_level_count,
                     };
 
-                    self.textures.insert(texture.clone_weak(), gpu_image);
-                    self.queue_queue.insert(texture.clone_weak());
+                    self.textures.insert(texture.clone(), gpu_image);
+                    self.queue_queue.insert(texture.clone());
                 }
                 TilemapTexture::TextureContainer(handle) => {
                     if let Some(gpu_image) = render_images.get(handle) {
-                        self.textures
-                            .insert(texture.clone_weak(), gpu_image.clone());
+                        self.textures.insert(texture.clone(), gpu_image.clone());
                     } else {
-                        self.prepare_queue.insert(texture.clone_weak());
+                        self.prepare_queue.insert(texture.clone());
                     }
                 }
             }
@@ -250,7 +248,7 @@ impl TextureArrayCache {
                     let gpu_image = if let Some(gpu_image) = render_images.get(handle) {
                         gpu_image
                     } else {
-                        self.prepare_queue.insert(texture.clone_weak());
+                        self.prepare_queue.insert(texture.clone());
                         continue;
                     };
 
@@ -305,7 +303,7 @@ impl TextureArrayCache {
                         if let Some(gpu_image) = render_images.get(handle) {
                             gpu_images.push(gpu_image)
                         } else {
-                            self.prepare_queue.insert(texture.clone_weak());
+                            self.prepare_queue.insert(texture.clone());
                             continue;
                         }
                     }
