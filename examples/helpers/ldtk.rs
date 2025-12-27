@@ -1,8 +1,8 @@
 use bevy_ecs_tilemap::{
-    TilemapBundle,
     anchor::TilemapAnchor,
     map::{TilemapId, TilemapSize, TilemapTexture, TilemapTileSize},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
+    TilemapBundle,
 };
 use std::collections::HashMap;
 use thiserror::Error;
@@ -52,6 +52,7 @@ pub struct LdtkMapBundle {
     pub global_transform: GlobalTransform,
 }
 
+#[derive(TypePath)]
 pub struct LdtkLoader;
 
 #[allow(dead_code)]
@@ -87,7 +88,7 @@ impl AssetLoader for LdtkLoader {
                 tileset.rel_path.as_ref().map(|rel_path| {
                     (
                         tileset.uid,
-                        load_context.path().parent().unwrap().join(rel_path).into(),
+                        load_context.path().resolve_embed(rel_path).unwrap(),
                     )
                 })
             })

@@ -10,7 +10,6 @@ use bevy::{
     prelude::*,
     reflect::TypePath,
     render::{
-        Extract, Render, RenderApp, RenderSystems,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
         render_asset::RenderAssets,
@@ -18,25 +17,26 @@ use bevy::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, ViewSortedRenderPhases,
         },
         render_resource::{
-            AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayout,
+            AsBindGroup, AsBindGroupError, BindGroup, BindGroupEntry, BindGroupLayoutDescriptor,
             BindingResource, OwnedBindingResource, PipelineCache, RenderPipelineDescriptor,
             SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
         texture::GpuImage,
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
+        Extract, Render, RenderApp, RenderSystems,
     },
 };
 use bevy::{log::error, shader::ShaderRef};
 use std::{hash::Hash, marker::PhantomData};
 
 use super::{
-    ModifiedImageIds,
     chunk::{ChunkId, RenderChunk2dStorage},
     draw::DrawTilemapMaterial,
     pipeline::{TilemapPipeline, TilemapPipelineKey},
     prepare,
     queue::{ImageBindGroups, TilemapViewBindGroup},
+    ModifiedImageIds,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -200,7 +200,7 @@ impl<M: MaterialTilemap> Default for ExtractedMaterialsTilemap<M> {
 #[derive(Resource)]
 pub struct MaterialTilemapPipeline<M: MaterialTilemap> {
     pub tilemap_pipeline: TilemapPipeline,
-    pub material_tilemap_layout: BindGroupLayout,
+    pub material_tilemap_layout: BindGroupLayoutDescriptor,
     pub vertex_shader: Option<Handle<Shader>>,
     pub fragment_shader: Option<Handle<Shader>>,
     marker: PhantomData<M>,
@@ -249,7 +249,7 @@ impl<M: MaterialTilemap> FromWorld for MaterialTilemapPipeline<M> {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         let render_device = world.resource::<RenderDevice>();
-        let material_tilemap_layout = M::bind_group_layout(render_device);
+        let material_tilemap_layout = M::bind_group_layout_descriptor(render_device);
 
         MaterialTilemapPipeline {
             tilemap_pipeline: world.resource::<TilemapPipeline>().clone(),
@@ -338,10 +338,17 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     render_device: Res<RenderDevice>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
     mut param: StaticSystemParam<M::Param>,
+    pipeline_cache: Res<PipelineCache>,
 ) {
     let queued_assets = std::mem::take(&mut prepare_next_frame.assets);
     for (handle, material) in queued_assets {
-        match prepare_material_tilemap(&material, &render_device, &pipeline, &mut param) {
+        match prepare_material_tilemap(
+            &material,
+            &render_device,
+            &pipeline,
+            &pipeline_cache,
+            &mut param,
+        ) {
             Ok(prepared_asset) => {
                 render_materials.insert(handle, prepared_asset);
             }
@@ -364,7 +371,13 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     }
 
     for (handle, material) in std::mem::take(&mut extracted_assets.extracted) {
-        match prepare_material_tilemap(&material, &render_device, &pipeline, &mut param) {
+        match prepare_material_tilemap(
+            &material,
+            &render_device,
+            &pipeline,
+            &pipeline_cache,
+            &mut param,
+        ) {
             Ok(prepared_asset) => {
                 render_materials.insert(handle, prepared_asset);
             }
@@ -387,10 +400,15 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
     pipeline: &MaterialTilemapPipeline<M>,
+    pipeline_cache: &PipelineCache,
     param: &mut SystemParamItem<M::Param>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
-    let prepared =
-        material.as_bind_group(&pipeline.material_tilemap_layout, render_device, param)?;
+    let prepared = material.as_bind_group(
+        &pipeline.material_tilemap_layout,
+        render_device,
+        pipeline_cache,
+        param,
+    )?;
     let bind_group_data = material.bind_group_data();
     Ok(PreparedMaterialTilemap {
         bindings: prepared.bindings.0,
@@ -468,7 +486,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 chunk_id.0.x,
                 chunk_id.0.y,
                 chunk_id.0.z,
-                tilemap_id.0.index(),
+                tilemap_id.0.index_u32(),
             )) {
                 #[cfg(not(feature = "atlas"))]
                 if !texture_array_cache.contains(&chunk.texture) {
@@ -523,6 +541,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     mut commands: Commands,
     chunk_storage: Res<RenderChunk2dStorage>,
     render_device: Res<RenderDevice>,
+    pipeline_cache: Res<PipelineCache>,
     tilemap_pipeline: Res<TilemapPipeline>,
     view_uniforms: Res<ViewUniforms>,
     gpu_images: Res<RenderAssets<GpuImage>>,
@@ -556,7 +575,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
         for (entity, visible_entities) in views.iter_mut() {
             let view_bind_group = render_device.create_bind_group(
                 Some("tilemap_view_bind_group"),
-                &tilemap_pipeline.view_layout,
+                &pipeline_cache.get_bind_group_layout(&tilemap_pipeline.view_layout),
                 &[
                     BindGroupEntry {
                         binding: 0,
@@ -593,7 +612,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                     chunk_id.0.x,
                     chunk_id.0.y,
                     chunk_id.0.z,
-                    tilemap_id.0.index(),
+                    tilemap_id.0.index_u32(),
                 )) {
                     #[cfg(not(feature = "atlas"))]
                     if !texture_array_cache.contains(&chunk.texture) {
@@ -612,7 +631,8 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                         let gpu_image = gpu_images.get(chunk.texture.image_handle()).unwrap();
                         render_device.create_bind_group(
                             Some("sprite_material_bind_group"),
-                            &tilemap_pipeline.material_layout,
+                            &pipeline_cache
+                                .get_bind_group_layout(&tilemap_pipeline.material_layout),
                             &[
                                 BindGroupEntry {
                                     binding: 0,

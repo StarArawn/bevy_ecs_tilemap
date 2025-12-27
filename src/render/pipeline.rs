@@ -7,15 +7,14 @@ use bevy::{
     render::{
         globals::GlobalsUniform,
         render_resource::{
-            BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendComponent, BlendFactor,
-            BlendOperation, BlendState, BufferBindingType, ColorTargetState, ColorWrites,
-            CompareFunction, DepthBiasState, DepthStencilState, Face, FragmentState, FrontFace,
-            MultisampleState, PolygonMode, PrimitiveState, PrimitiveTopology,
+            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, BlendComponent,
+            BlendFactor, BlendOperation, BlendState, BufferBindingType, ColorTargetState,
+            ColorWrites, CompareFunction, DepthBiasState, DepthStencilState, Face, FragmentState,
+            FrontFace, MultisampleState, PolygonMode, PrimitiveState, PrimitiveTopology,
             RenderPipelineDescriptor, SamplerBindingType, ShaderStages, ShaderType,
             SpecializedRenderPipeline, StencilFaceState, StencilState, TextureFormat,
             TextureSampleType, TextureViewDimension, VertexFormat, VertexState, VertexStepMode,
         },
-        renderer::RenderDevice,
         view::{ViewTarget, ViewUniform},
     },
 };
@@ -31,16 +30,14 @@ pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> =
 
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
-    pub view_layout: BindGroupLayout,
-    pub material_layout: BindGroupLayout,
-    pub mesh_layout: BindGroupLayout,
+    pub view_layout: BindGroupLayoutDescriptor,
+    pub material_layout: BindGroupLayoutDescriptor,
+    pub mesh_layout: BindGroupLayoutDescriptor,
 }
 
 impl FromWorld for TilemapPipeline {
-    fn from_world(world: &mut World) -> Self {
-        let render_device = world.get_resource::<RenderDevice>().unwrap();
-
-        let view_layout = render_device.create_bind_group_layout(
+    fn from_world(_world: &mut World) -> Self {
+        let view_layout = BindGroupLayoutDescriptor::new(
             "tilemap_view_layout",
             &[
                 // View
@@ -67,7 +64,7 @@ impl FromWorld for TilemapPipeline {
             ],
         );
 
-        let mesh_layout = render_device.create_bind_group_layout(
+        let mesh_layout = BindGroupLayoutDescriptor::new(
             "tilemap_mesh_layout",
             &[
                 BindGroupLayoutEntry {
@@ -96,7 +93,7 @@ impl FromWorld for TilemapPipeline {
         );
 
         #[cfg(not(feature = "atlas"))]
-        let material_layout = render_device.create_bind_group_layout(
+        let material_layout = BindGroupLayoutDescriptor::new(
             "tilemap_material_layout",
             &[
                 BindGroupLayoutEntry {
@@ -119,7 +116,7 @@ impl FromWorld for TilemapPipeline {
         );
 
         #[cfg(feature = "atlas")]
-        let material_layout = render_device.create_bind_group_layout(
+        let material_layout = BindGroupLayoutDescriptor::new(
             "tilemap_material_layout",
             &[
                 BindGroupLayoutEntry {

@@ -24,9 +24,9 @@ use bevy::{mesh::VertexAttributeValues, render::render_resource::Buffer};
 use crate::prelude::helpers::transform::{chunk_aabb, chunk_index_to_world_space};
 use crate::render::extract::ExtractedFrustum;
 use crate::{
-    FrustumCulling, TilemapGridSize, TilemapTileSize,
     map::{TilemapSize, TilemapTexture, TilemapType},
     tiles::TilePos,
+    FrustumCulling, TilemapGridSize, TilemapTileSize,
 };
 
 use super::RenderChunkSize;
@@ -171,7 +171,7 @@ impl RenderChunk2dStorage {
     }
 
     pub fn remove_map(&mut self, entity: Entity) {
-        self.chunks.remove(&entity.index());
+        self.chunks.remove(&entity.index_u32());
     }
 }
 
@@ -460,7 +460,6 @@ impl RenderChunk2d {
             self.render_mesh = Some(RenderMesh {
                 vertex_count: self.mesh.count_vertices() as u32,
                 buffer_info,
-                morph_targets: None,
                 layout: mesh_vertex_buffer_layout,
                 key_bits: BaseMeshPipelineKey::from_primitive_topology(
                     PrimitiveTopology::TriangleList,
