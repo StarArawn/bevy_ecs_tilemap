@@ -1,6 +1,6 @@
 use bevy::{
     asset::Assets,
-    camera::visibility::{VisibilityClass, add_visibility_class},
+    camera::visibility::{add_visibility_class, VisibilityClass},
     ecs::{
         entity::{EntityMapper, MapEntities},
         reflect::ReflectMapEntities,
@@ -459,10 +459,11 @@ pub enum IsoCoordSystem {
 }
 
 /// The type of tile to be rendered, currently we support: Square, Hex, and Isometric.
-#[derive(Component, Reflect, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Reflect, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[reflect(Component)]
 pub enum TilemapType {
     /// A tilemap with rectangular tiles.
+    #[default]
     Square,
     /// Used to specify rendering of tilemaps on hexagons.
     ///
@@ -472,12 +473,6 @@ pub enum TilemapType {
     ///
     /// The `IsoCoordSystem` determines the coordinate system.
     Isometric(IsoCoordSystem),
-}
-
-impl Default for TilemapType {
-    fn default() -> Self {
-        Self::Square
-    }
 }
 
 #[cfg(test)]
