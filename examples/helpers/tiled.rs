@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use bevy::log::{info, warn};
 use bevy::{
-    asset::{AssetLoader, AssetPath, io::Reader},
+    asset::{AssetLoader, io::Reader},
     platform::collections::HashMap,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,
@@ -157,7 +157,7 @@ impl AssetLoader for TiledLoader {
                                 // assets/ directory structure then the tmx_dir will be empty, which is fine.
                                 let asset_path = load_context
                                     .path()
-                                    .resolve(&img.source.to_string_lossy())
+                                    .resolve_embed(&img.source.to_string_lossy())
                                     .expect("The asset load context was empty.");
                                 info!(
                                     "Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})"
@@ -175,12 +175,12 @@ impl AssetLoader for TiledLoader {
                 Some(img) => {
                     // The load context path is the TMX file itself. If the file is at the root of the
                     // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                    let tmx_dir = load_context
+                    let asset_path = load_context
                         .path()
-                        .parent()
+                        .resolve_embed(&img.source.to_string_lossy())
                         .expect("The asset load context was empty.");
-                    let tile_path = tmx_dir.path().join(&img.source);
-                    let asset_path = AssetPath::from(tile_path);
+
+                    info!(?asset_path);
                     let texture: Handle<Image> = load_context.load(asset_path.clone());
 
                     TilemapTexture::Single(texture.clone())
