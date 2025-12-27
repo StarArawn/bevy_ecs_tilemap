@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use bevy::log::{info, warn};
 use bevy::{
-    asset::{io::Reader, AssetLoader, AssetPath},
+    asset::{AssetLoader, AssetPath, io::Reader},
     platform::collections::HashMap,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,

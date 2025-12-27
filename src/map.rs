@@ -1,6 +1,6 @@
 use bevy::{
     asset::Assets,
-    camera::visibility::{add_visibility_class, VisibilityClass},
+    camera::visibility::{VisibilityClass, add_visibility_class},
     ecs::{
         entity::{EntityMapper, MapEntities},
         reflect::ReflectMapEntities,
