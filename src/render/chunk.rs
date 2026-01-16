@@ -171,7 +171,7 @@ impl RenderChunk2dStorage {
     }
 
     pub fn remove_map(&mut self, entity: Entity) {
-        self.chunks.remove(&entity.index());
+        self.chunks.remove(&entity.index_u32());
     }
 }
 
@@ -460,11 +460,11 @@ impl RenderChunk2d {
             self.render_mesh = Some(RenderMesh {
                 vertex_count: self.mesh.count_vertices() as u32,
                 buffer_info,
-                morph_targets: None,
                 layout: mesh_vertex_buffer_layout,
                 key_bits: BaseMeshPipelineKey::from_primitive_topology(
                     PrimitiveTopology::TriangleList,
                 ),
+                morph_targets: None,
             });
             self.vertex_buffer = Some(vertex_buffer);
             self.index_buffer = Some(index_buffer);

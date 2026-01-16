@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use bevy::log::{info, warn};
 use bevy::{
-    asset::{AssetLoader, AssetPath, io::Reader},
+    asset::{AssetLoader, io::Reader},
     platform::collections::HashMap,
     prelude::{
         Added, Asset, AssetApp, AssetEvent, AssetId, Assets, Bundle, Commands, Component, Entity,
@@ -99,6 +99,7 @@ impl tiled::ResourceReader for BytesResourceReader {
 }
 
 #[allow(dead_code)]
+#[derive(TypePath)]
 pub struct TiledLoader;
 
 #[allow(dead_code)]
@@ -128,7 +129,7 @@ impl AssetLoader for TiledLoader {
             BytesResourceReader::new(&bytes),
         );
         let map = loader
-            .load_tmx_map(load_context.path())
+            .load_tmx_map(load_context.path().path())
             .map_err(|e| std::io::Error::other(format!("Could not load TMX map: {e}")))?;
 
         let mut tilemap_textures = HashMap::default();
@@ -154,12 +155,10 @@ impl AssetLoader for TiledLoader {
                             if let Some(img) = &tile.image {
                                 // The load context path is the TMX file itself. If the file is at the root of the
                                 // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                                let tmx_dir = load_context
+                                let asset_path = load_context
                                     .path()
-                                    .parent()
+                                    .resolve_embed(&img.source.to_string_lossy())
                                     .expect("The asset load context was empty.");
-                                let tile_path = tmx_dir.join(&img.source);
-                                let asset_path = AssetPath::from(tile_path);
                                 info!(
                                     "Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})"
                                 );
@@ -176,12 +175,12 @@ impl AssetLoader for TiledLoader {
                 Some(img) => {
                     // The load context path is the TMX file itself. If the file is at the root of the
                     // assets/ directory structure then the tmx_dir will be empty, which is fine.
-                    let tmx_dir = load_context
+                    let asset_path = load_context
                         .path()
-                        .parent()
+                        .resolve_embed(&img.source.to_string_lossy())
                         .expect("The asset load context was empty.");
-                    let tile_path = tmx_dir.join(&img.source);
-                    let asset_path = AssetPath::from(tile_path);
+
+                    info!(?asset_path);
                     let texture: Handle<Image> = load_context.load(asset_path.clone());
 
                     TilemapTexture::Single(texture.clone())
@@ -198,7 +197,7 @@ impl AssetLoader for TiledLoader {
             tile_image_offsets,
         };
 
-        info!("Loaded map: {}", load_context.path().display());
+        info!("Loaded map: {}", load_context.path());
         Ok(asset_map)
     }
 

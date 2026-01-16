@@ -2,7 +2,7 @@ use bevy::{
     platform::collections::HashMap,
     prelude::*,
     render::{
-        render_resource::{BindGroup, BindGroupEntry},
+        render_resource::{BindGroup, BindGroupEntry, PipelineCache},
         renderer::RenderDevice,
     },
 };
@@ -24,6 +24,7 @@ pub fn queue_transform_bind_group(
     render_device: Res<RenderDevice>,
     transform_uniforms: Res<MeshUniformResource>,
     tilemap_uniforms: Res<TilemapUniformResource>,
+    pipeline_cache: Res<PipelineCache>,
 ) {
     if let (Some(binding1), Some(binding2)) =
         (transform_uniforms.0.binding(), tilemap_uniforms.0.binding())
@@ -31,7 +32,7 @@ pub fn queue_transform_bind_group(
         commands.insert_resource(TransformBindGroup {
             value: render_device.create_bind_group(
                 Some("transform_bind_group"),
-                &tilemap_pipeline.mesh_layout,
+                &pipeline_cache.get_bind_group_layout(&tilemap_pipeline.mesh_layout),
                 &[
                     BindGroupEntry {
                         binding: 0,
