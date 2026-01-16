@@ -464,6 +464,7 @@ impl RenderChunk2d {
                 key_bits: BaseMeshPipelineKey::from_primitive_topology(
                     PrimitiveTopology::TriangleList,
                 ),
+                morph_targets: None,
             });
             self.vertex_buffer = Some(vertex_buffer);
             self.index_buffer = Some(index_buffer);
