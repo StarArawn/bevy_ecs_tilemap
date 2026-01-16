@@ -1,7 +1,7 @@
 [package]
 name = "bevy_ecs_tilemap"
 description = "A tilemap rendering plugin for bevy which is more ECS friendly by having an entity per tile."
-version = "0.18.0"
+version = "0.18.1"
 authors = ["John Mitchell"]
 homepage = "https://github.com/StarArawn/bevy_ecs_tilemap"
 repository = "https://github.com/StarArawn/bevy_ecs_tilemap"
@@ -22,6 +22,9 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "bevy_asset",
     "bevy_sprite_render",
     "bevy_log",
+    # we don't actually use morph, but it it a bevy_mesh feature
+    # that removes fields if it is not included.
+    "morph"
 ] }
 log = "0.4"
 serde = { version = "1", features = ["derive"], optional = true }
