@@ -98,7 +98,7 @@ pub(crate) fn prepare(
             chunk_index.x,
             chunk_index.y,
             transform.translation().z as u32,
-            tile.tilemap_id.0.index(),
+            tile.tilemap_id.0.index_u32(),
         );
 
         let in_chunk_tile_index = chunk_size.map_tile_to_chunk_tile(&tile.position, &chunk_index);
@@ -152,7 +152,7 @@ pub(crate) fn prepare(
         anchor,
     ) in extracted_tilemaps.iter()
     {
-        let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index()));
+        let chunks = chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, entity.index_u32()));
         for chunk in chunks.values_mut() {
             chunk.texture = texture.clone();
             chunk.map_size = *map_size;
@@ -180,7 +180,7 @@ pub(crate) fn prepare(
     for tilemap in extracted_tilemap_textures.iter() {
         let texture_size: Vec2 = tilemap.texture_size.into();
         let chunks =
-            chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, tilemap.tilemap_id.0.index()));
+            chunk_storage.get_chunk_storage(&UVec4::new(0, 0, 0, tilemap.tilemap_id.0.index_u32()));
         for chunk in chunks.values_mut() {
             chunk.texture_size = texture_size;
         }
