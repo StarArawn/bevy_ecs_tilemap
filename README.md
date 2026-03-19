@@ -98,8 +98,6 @@ cargo run --target wasm32-unknown-unknown --example animation
 
 #### WebGPU
 
-WebGPU is not yet well [supported](https://caniuse.com/webgpu) by many browsers.
-
 ```
 cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/webgpu
 ```
@@ -109,6 +107,7 @@ cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/we
 | bevy   | bevy_ecs_tilemap |
 | ------ | ---------------- |
 | `main` | `bevy-track`     |
+| 0.18   | 0.18             |
 | 0.17   | 0.17             |
 | 0.16   | 0.16             |
 | 0.15   | 0.15             |

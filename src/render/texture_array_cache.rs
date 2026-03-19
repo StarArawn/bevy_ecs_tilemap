@@ -218,6 +218,8 @@ impl TextureArrayCache {
                             depth_or_array_layers: 1,
                         },
                         mip_level_count,
+                        texture_view_format: Some(*format),
+                        had_data: false,
                     };
 
                     self.textures.insert(texture.clone(), gpu_image);

@@ -199,7 +199,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
             chunk_id.0.x,
             chunk_id.0.y,
             chunk_id.0.z,
-            tilemap_id.0.index(),
+            tilemap_id.0.index_u32(),
         )) && let (Some(render_mesh), Some(vertex_buffer), Some(index_buffer)) = (
             &chunk.render_mesh,
             &chunk.vertex_buffer,
@@ -215,7 +215,7 @@ impl RenderCommand<Transparent2d> for DrawMesh {
                     index_format,
                     count,
                 } => {
-                    pass.set_index_buffer(index_buffer.slice(..), 0, *index_format);
+                    pass.set_index_buffer(index_buffer.slice(..), *index_format);
                     pass.draw_indexed(0..*count, 0, 0..1);
                 }
                 RenderMeshBufferInfo::NonIndexed => {
