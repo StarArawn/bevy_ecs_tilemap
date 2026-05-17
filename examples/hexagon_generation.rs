@@ -99,11 +99,11 @@ fn spawn_map_type_label(
             commands.spawn((
                 Text2d::new(format!("{map_type:?}")),
                 TextFont {
-                    font_size: 20.0,
+                    font_size: FontSize::Px(20.0),
                     ..default()
                 },
                 TextColor(Color::BLACK),
-                TextLayout::new_with_justify(Justify::Center),
+                TextLayout::justify(Justify::Center),
                 transform,
                 MapTypeLabel,
             ));
