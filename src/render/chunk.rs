@@ -459,12 +459,13 @@ impl RenderChunk2d {
                 .get_mesh_vertex_buffer_layout(mesh_vertex_buffer_layouts);
             self.render_mesh = Some(RenderMesh {
                 vertex_count: self.mesh.count_vertices() as u32,
+                aabb_center: Default::default(),
                 buffer_info,
                 layout: mesh_vertex_buffer_layout,
-                key_bits: BaseMeshPipelineKey::from_primitive_topology(
+                key_bits: BaseMeshPipelineKey::from_primitive_topology_and_strip_index(
                     PrimitiveTopology::TriangleList,
+                    None,
                 ),
-                morph_targets: None,
             });
             self.vertex_buffer = Some(vertex_buffer);
             self.index_buffer = Some(index_buffer);

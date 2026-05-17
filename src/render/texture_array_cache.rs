@@ -9,9 +9,9 @@ use bevy::{
     render::{
         render_asset::RenderAssets,
         render_resource::{
-            AddressMode, CommandEncoderDescriptor, Extent3d, FilterMode, Origin3d,
-            SamplerDescriptor, TextureAspect, TextureDescriptor, TextureDimension, TextureFormat,
-            TextureUsages, TextureViewDescriptor, TextureViewDimension,
+            AddressMode, CommandEncoderDescriptor, Extent3d, FilterMode, MipmapFilterMode,
+            Origin3d, SamplerDescriptor, TextureAspect, TextureDescriptor, TextureDimension,
+            TextureFormat, TextureUsages, TextureViewDescriptor, TextureViewDimension,
         },
         renderer::{RenderDevice, RenderQueue},
         texture::GpuImage,
@@ -185,7 +185,10 @@ impl TextureArrayCache {
                         address_mode_w: AddressMode::ClampToEdge,
                         mag_filter: *filter,
                         min_filter: *filter,
-                        mipmap_filter: *filter,
+                        mipmap_filter: match filter {
+                            FilterMode::Nearest => MipmapFilterMode::Nearest,
+                            FilterMode::Linear => MipmapFilterMode::Linear,
+                        },
                         lod_min_clamp: 0.0,
                         lod_max_clamp: f32::MAX,
                         compare: None,
@@ -205,20 +208,35 @@ impl TextureArrayCache {
                         usage: Some(gpu_texture.usage()),
                     });
 
-                    let mip_level_count = gpu_texture.mip_level_count();
-
                     let gpu_image = GpuImage {
-                        texture_format: *format,
                         texture: gpu_texture,
-                        sampler,
                         texture_view,
-                        size: Extent3d {
-                            width: tile_size.x as u32,
-                            height: tile_size.y as u32,
-                            depth_or_array_layers: 1,
+                        sampler,
+                        texture_descriptor: TextureDescriptor {
+                            label: Some("texture_array"),
+                            size: Extent3d {
+                                width: tile_size.x as u32,
+                                height: tile_size.y as u32,
+                                depth_or_array_layers: count,
+                            },
+                            mip_level_count: 1,
+                            sample_count: 1,
+                            dimension: TextureDimension::D2,
+                            format: *format,
+                            usage: TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING,
+                            view_formats: &[],
                         },
-                        mip_level_count,
-                        texture_view_format: Some(*format),
+                        texture_view_descriptor: Some(TextureViewDescriptor {
+                            label: Some("texture_array_view"),
+                            format: None,
+                            dimension: Some(TextureViewDimension::D2Array),
+                            aspect: TextureAspect::All,
+                            base_mip_level: 0,
+                            mip_level_count: None,
+                            base_array_layer: 0,
+                            array_layer_count: Some(count),
+                            usage: Some(TextureUsages::COPY_DST | TextureUsages::TEXTURE_BINDING),
+                        }),
                         had_data: false,
                     };
 

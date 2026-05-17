@@ -470,6 +470,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
             if !visible_entities
                 .get::<TilemapRenderSettings>()
                 .iter()
+                .flat_map(|render| render.iter_visible())
                 .any(|(entity, _main_entity)| entity.index() == tilemap_id.0.index())
             {
                 continue;
@@ -501,7 +502,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                 let key = TilemapPipelineKey {
                     msaa: msaa.samples(),
                     map_type: chunk.get_map_type(),
-                    hdr: view.hdr,
+                    target_format: view.target_format,
                 };
 
                 let pipeline_id = material_pipelines.specialize(
@@ -596,6 +597,7 @@ pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
                 if !visible_entities
                     .get::<TilemapRenderSettings>()
                     .iter()
+                    .flat_map(|render| render.iter_visible())
                     .any(|(entity, _main_entity)| entity.index() == tilemap_id.0.index())
                 {
                     continue;

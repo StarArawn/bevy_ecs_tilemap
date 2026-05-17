@@ -5,7 +5,6 @@ use crate::{
 };
 use bevy::render::render_resource::{FilterMode, TextureFormat};
 use bevy::{
-    image::BevyDefault,
     prelude::{Assets, Image, Res, ResMut, Resource},
     render::Extract,
 };
@@ -28,7 +27,7 @@ impl Default for TilemapArrayTexture {
             tile_size: Default::default(),
             tile_spacing: Default::default(),
             filter: Default::default(),
-            format: BevyDefault::bevy_default(),
+            format: TextureFormat::Rgba8UnormSrgb,
         }
     }
 }

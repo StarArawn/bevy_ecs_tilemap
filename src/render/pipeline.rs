@@ -1,7 +1,6 @@
 use bevy::{
     asset::uuid_handle,
     core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
-    image::BevyDefault,
     mesh::VertexBufferLayout,
     prelude::{Component, FromWorld, Handle, Resource, Shader, World},
     render::{
@@ -15,7 +14,7 @@ use bevy::{
             SpecializedRenderPipeline, StencilFaceState, StencilState, TextureFormat,
             TextureSampleType, TextureViewDimension, VertexFormat, VertexState, VertexStepMode,
         },
-        view::{ViewTarget, ViewUniform},
+        view::ViewUniform,
     },
 };
 
@@ -149,7 +148,7 @@ impl FromWorld for TilemapPipeline {
 pub struct TilemapPipelineKey {
     pub msaa: u32,
     pub map_type: TilemapType,
-    pub hdr: bool,
+    pub target_format: TextureFormat,
 }
 
 impl SpecializedRenderPipeline for TilemapPipeline {
@@ -202,11 +201,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 shader_defs,
                 entry_point: Some("fragment".into()),
                 targets: vec![Some(ColorTargetState {
-                    format: if key.hdr {
-                        ViewTarget::TEXTURE_FORMAT_HDR
-                    } else {
-                        TextureFormat::bevy_default()
-                    },
+                    format: key.target_format,
                     blend: Some(BlendState {
                         color: BlendComponent {
                             src_factor: BlendFactor::SrcAlpha,
@@ -238,8 +233,8 @@ impl SpecializedRenderPipeline for TilemapPipeline {
             },
             depth_stencil: Some(DepthStencilState {
                 format: CORE_2D_DEPTH_FORMAT,
-                depth_write_enabled: false,
-                depth_compare: CompareFunction::GreaterEqual,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(CompareFunction::GreaterEqual),
                 stencil: StencilState {
                     front: StencilFaceState::IGNORE,
                     back: StencilFaceState::IGNORE,
@@ -258,8 +253,8 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 alpha_to_coverage_enabled: false,
             },
             label: Some("tilemap_pipeline".into()),
-            push_constant_ranges: vec![],
             zero_initialize_workgroup_memory: false,
+            immediate_size: 0,
         }
     }
 }
