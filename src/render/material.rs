@@ -522,7 +522,7 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
                     transform.translation.z
                 };
 
-                transparent_phase.add(Transparent2d {
+                transparent_phase.add_transient(Transparent2d {
                     entity: (entity, tilemap_id.0.into()),
                     draw_function: draw_tilemap,
                     pipeline: pipeline_id,
