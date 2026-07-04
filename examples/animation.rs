@@ -85,7 +85,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             indices.push((x, y));
         }
     }
-    for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
+    for (x, y) in indices.into_iter().sample(&mut rng, 10) {
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
             .spawn((

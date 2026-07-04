@@ -341,7 +341,7 @@ fn swap_map_type(
 #[derive(Component)]
 struct TileLabel(Entity);
 
-const DEFAULT_FONT_SIZE: f32 = 14.0;
+const DEFAULT_FONT_SIZE: FontSize = FontSize::Px(14.0);
 
 fn spawn_tile_labels(
     mut commands: Commands,
@@ -384,7 +384,7 @@ fn spawn_tile_labels(
                         ..default()
                     },
                     TextColor(Color::BLACK),
-                    TextLayout::new_with_justify(Justify::Center),
+                    TextLayout::justify(Justify::Center),
                     transform,
                 ))
                 .id();

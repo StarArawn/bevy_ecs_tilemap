@@ -157,7 +157,7 @@ impl AssetLoader for TiledLoader {
                                 // assets/ directory structure then the tmx_dir will be empty, which is fine.
                                 let asset_path = load_context
                                     .path()
-                                    .resolve_embed(&img.source.to_string_lossy())
+                                    .resolve_embed_str(&img.source.to_string_lossy())
                                     .expect("The asset load context was empty.");
                                 info!(
                                     "Loading tile image from {asset_path:?} as image ({tileset_index}, {tile_id})"
@@ -177,7 +177,7 @@ impl AssetLoader for TiledLoader {
                     // assets/ directory structure then the tmx_dir will be empty, which is fine.
                     let asset_path = load_context
                         .path()
-                        .resolve_embed(&img.source.to_string_lossy())
+                        .resolve_embed_str(&img.source.to_string_lossy())
                         .expect("The asset load context was empty.");
 
                     info!(?asset_path);
