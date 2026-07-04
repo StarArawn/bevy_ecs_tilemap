@@ -282,7 +282,13 @@ pub fn extract(
             color: color.0.to_linear().to_f32_array(),
         };
 
-        let data = tilemap_query.get(tilemap_id.0).unwrap();
+        let Ok(data) = tilemap_query.get(tilemap_id.0) else {
+            error!(
+                "Failed to extract tilemap {}. Entity doesn't have the required components",
+                tilemap_id.0
+            );
+            continue;
+        };
 
         extracted_tilemaps.insert(
             data.0.id(),
