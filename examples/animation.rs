@@ -2,9 +2,9 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
+use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
-use bevy_ecs_tilemap::TilemapPlugin;
 use rand::{rng, seq::IteratorRandom};
 
 mod helpers;
