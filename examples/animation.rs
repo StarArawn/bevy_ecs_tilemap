@@ -2,9 +2,9 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex};
+use bevy_ecs_tilemap::TilemapPlugin;
 use rand::{rng, seq::IteratorRandom};
 
 mod helpers;
@@ -85,7 +85,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
             indices.push((x, y));
         }
     }
-    for (x, y) in indices.into_iter().choose_multiple(&mut rng, 10) {
+    for (x, y) in indices.into_iter().sample(&mut rng, 10) {
         let tile_pos = TilePos { x, y };
         let tile_entity = commands
             .spawn((
