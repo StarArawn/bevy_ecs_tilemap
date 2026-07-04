@@ -106,6 +106,7 @@ cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/we
 | bevy   | bevy_ecs_tilemap |
 | ------ | ---------------- |
 | `main` | `bevy-track`     |
+| 0.19   | 0.19             |
 | 0.18   | 0.18             |
 | 0.17   | 0.17             |
 | 0.16   | 0.16             |
