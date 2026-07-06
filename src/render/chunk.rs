@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
 use bevy::{
@@ -379,6 +380,25 @@ impl RenderChunk2d {
                 Vec::with_capacity(((self.size_in_tiles.x * self.size_in_tiles.y) * 6) as usize);
 
             let mut i = 0;
+
+            // y_sort tiles inside chunk
+            if self.y_sort {
+                // result=[0,1],[1,1],[0,0],[1,0] Keep entities with max X and min Y rendered last (on top)
+                self.tiles.sort_by(|a, b| {
+                    match (a, b) {
+                        (Some(a), Some(b)) => {
+                            match b.position.y.partial_cmp(&a.position.y) {
+                                Some(Ordering::Equal) => a.position.x.partial_cmp(&b.position.x).unwrap_or(Ordering::Equal),
+                                Some(ord) => ord,
+                                None => Ordering::Equal,
+                            }
+                        }
+                        (None, Some(_)) => Ordering::Greater,
+                        (Some(_), None) => Ordering::Less,
+                        (None, None) => Ordering::Equal,
+                    }
+                });
+            }
 
             // Convert tile into mesh data.
             for tile in self.tiles.iter().filter_map(|x| x.as_ref()) {
