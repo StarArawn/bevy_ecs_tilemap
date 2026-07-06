@@ -133,5 +133,6 @@ fn vertex(vertex_input: VertexInput) -> MeshVertexOutput {
     out.position = view.clip_from_world * mesh_data.world_position;
     out.color = vertex_input.color;
     out.storage_position = vec2<u32>(vertex_input.position.xy);
+    out.world_position = mesh_data.world_position;
     return out;
 }
