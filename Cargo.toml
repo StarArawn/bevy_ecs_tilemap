@@ -12,6 +12,7 @@ exclude = ["assets/*", "screenshots/*"]
 [features]
 default = ["render"]
 atlas = []
+picking = ["bevy/bevy_picking"]
 render = []
 serde = ["dep:serde", "bevy/serialize"]
 
