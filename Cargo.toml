@@ -169,6 +169,10 @@ name = "move_tile"
 path = "examples/move_tile.rs"
 required-features = ["render"]
 [[example]]
+name = "picking"
+path = "examples/picking.rs"
+required-features = ["render", "picking"]
+[[example]]
 name = "random_map"
 path = "examples/random_map.rs"
 required-features = ["render"]
