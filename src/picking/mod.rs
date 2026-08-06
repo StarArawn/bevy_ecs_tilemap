@@ -39,6 +39,7 @@ fn tile_picking(
         &GlobalTransform,
         &ViewVisibility,
     )>,
+    tiles_q: Query<&TileVisible>,
     mut output: MessageWriter<PointerHits>,
 ) {
     for (p_id, p_loc) in pointers_q
@@ -94,7 +95,10 @@ fn tile_picking(
                         map_type,
                         map_anchor,
                     )
-                    .and_then(|tile_pos| map_store.get(&tile_pos))?;
+                    .and_then(|tile_pos| map_store.get(&tile_pos))
+                    .filter(|&tile_entity| {
+                        tiles_q.get(tile_entity).is_ok_and(|visible| visible.0)
+                    })?;
 
                     Some((
                         tile_entity,
