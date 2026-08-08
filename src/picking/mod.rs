@@ -21,7 +21,13 @@ impl Plugin for TilemapPickingPlugin {
 
 fn tile_picking(
     pointers_q: Query<(&PointerId, &PointerLocation)>,
-    cameras_q: Query<(Entity, &Camera, &RenderTarget, &GlobalTransform)>,
+    cameras_q: Query<(
+        Entity,
+        &Camera,
+        &RenderTarget,
+        &GlobalTransform,
+        &Projection,
+    )>,
     primary_window_q: Query<Entity, With<PrimaryWindow>>,
     tilemap_q: Query<(
         &TilemapSize,
@@ -40,7 +46,13 @@ fn tile_picking(
         .iter()
         .filter_map(|(p_id, p_loc)| p_loc.location().map(|l| (p_id, l)))
     {
-        let Some((cam_entity, camera, _cam_target, cam_transform)) = cameras_q
+        let Some((
+            cam_entity,
+            camera,
+            _cam_target,
+            cam_transform,
+            Projection::Orthographic(cam_ortho),
+        )) = cameras_q
             .iter()
             .filter(|(_, camera, ..)| camera.is_active)
             .find(|(_, _, cam_target, ..)| {
@@ -94,10 +106,16 @@ fn tile_picking(
                         tiles_q.get(tile_entity).is_ok_and(|visible| visible.0)
                     })?;
 
-                    Some((
-                        tile_entity,
-                        HitData::new(cam_entity, -map_transform.translation().z, None, None),
-                    ))
+                    let hit_pos_world = map_transform.transform_point(in_map_pos.extend(0.0));
+
+                    let hit_pos_cam = cam_transform
+                        .affine()
+                        .inverse()
+                        .transform_point3(hit_pos_world);
+
+                    let depth = -cam_ortho.near - hit_pos_cam.z;
+
+                    Some((tile_entity, HitData::new(cam_entity, depth, None, None)))
                 },
             )
             .collect::<Vec<_>>();
