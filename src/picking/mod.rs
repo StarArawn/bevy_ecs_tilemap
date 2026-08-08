@@ -115,7 +115,15 @@ fn tile_picking(
 
                     let depth = -cam_ortho.near - hit_pos_cam.z;
 
-                    Some((tile_entity, HitData::new(cam_entity, depth, None, None)))
+                    Some((
+                        tile_entity,
+                        HitData::new(
+                            cam_entity,
+                            depth,
+                            Some(hit_pos_world),
+                            Some(*map_transform.back()),
+                        ),
+                    ))
                 },
             )
             .collect::<Vec<_>>();
