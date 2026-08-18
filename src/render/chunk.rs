@@ -387,22 +387,19 @@ impl RenderChunk2d {
                 }
 
                 let position: [f32; 4] = tile.position.to_array();
-                positions.extend(
-                    [
-                        // X, Y
-                        position,
-                        // X, Y + 1
-                        //[tile_pos.x, tile_pos.y + 1.0, animation_speed],
-                        position,
-                        // X + 1, Y + 1
-                        //[tile_pos.x + 1.0, tile_pos.y + 1.0, animation_speed],
-                        position,
-                        // X + 1, Y
-                        //[tile_pos.x + 1.0, tile_pos.y, animation_speed],
-                        position,
-                    ]
-                    .into_iter(),
-                );
+                positions.extend([
+                    // X, Y
+                    position,
+                    // X, Y + 1
+                    //[tile_pos.x, tile_pos.y + 1.0, animation_speed],
+                    position,
+                    // X + 1, Y + 1
+                    //[tile_pos.x + 1.0, tile_pos.y + 1.0, animation_speed],
+                    position,
+                    // X + 1, Y
+                    //[tile_pos.x + 1.0, tile_pos.y, animation_speed],
+                    position,
+                ]);
 
                 colors.extend(std::iter::repeat_n(tile.color, 4));
 
@@ -416,7 +413,7 @@ impl RenderChunk2d {
 
                 //let texture: [f32; 4] = tile.texture.xyxx().into();
                 let texture: [f32; 4] = tile.texture.to_array();
-                textures.extend([texture, texture, texture, texture].into_iter());
+                textures.extend([texture, texture, texture, texture]);
 
                 indices.extend_from_slice(&[i, i + 2, i + 1, i, i + 3, i + 2]);
                 i += 4;
@@ -459,12 +456,13 @@ impl RenderChunk2d {
                 .get_mesh_vertex_buffer_layout(mesh_vertex_buffer_layouts);
             self.render_mesh = Some(RenderMesh {
                 vertex_count: self.mesh.count_vertices() as u32,
+                aabb_center: Default::default(),
                 buffer_info,
                 layout: mesh_vertex_buffer_layout,
-                key_bits: BaseMeshPipelineKey::from_primitive_topology(
+                key_bits: BaseMeshPipelineKey::from_primitive_topology_and_strip_index(
                     PrimitiveTopology::TriangleList,
+                    None,
                 ),
-                morph_targets: None,
             });
             self.vertex_buffer = Some(vertex_buffer);
             self.index_buffer = Some(index_buffer);

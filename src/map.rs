@@ -198,7 +198,7 @@ impl TilemapTexture {
                     .texture_descriptor
                     .usage
                     .contains(TextureUsages::COPY_SRC)
-                && let Some(image) = images.get_mut(handle)
+                && let Some(mut image) = images.get_mut(handle)
             {
                 image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
                     | TextureUsages::COPY_SRC

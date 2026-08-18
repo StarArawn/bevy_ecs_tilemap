@@ -173,11 +173,11 @@ fn spawn_tile_labels(
                 .spawn((
                     Text2d::new(format!("{},{}", tile_pos.x, tile_pos.y)),
                     TextFont {
-                        font_size: 14.0,
+                        font_size: FontSize::Px(14.0),
                         ..default()
                     },
                     TextColor(Color::BLACK),
-                    TextLayout::new_with_justify(Justify::Center),
+                    TextLayout::justify(Justify::Center),
                     transform,
                 ))
                 .id();
@@ -205,7 +205,7 @@ fn spawn_map_label(
                     .extend(1.0),
                 ..Default::default()
             };
-            let font_size = 20.0;
+            let font_size = FontSize::Px(20.0);
             commands
                 .spawn((
                     Text2d::new("Anchor (SPACE): "),
@@ -213,7 +213,7 @@ fn spawn_map_label(
                         font_size,
                         ..default()
                     },
-                    TextLayout::new_with_justify(Justify::Left),
+                    TextLayout::justify(Justify::Left),
                     Anchor::TOP_LEFT,
                     transform,
                     MapLabel,

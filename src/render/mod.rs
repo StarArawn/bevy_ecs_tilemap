@@ -246,7 +246,7 @@ impl Plugin for TilemapRenderingPlugin {
             .insert_resource(RenderChunk2dStorage::default())
             .add_systems(
                 ExtractSchedule,
-                (extract::extract, extract_resource::<ModifiedImageIds>),
+                (extract::extract, extract_resource::<ModifiedImageIds, ()>),
             )
             .add_systems(
                 Render,
