@@ -1,3 +1,4 @@
+mod grid;
 mod storage;
 
 use bevy::{
@@ -5,6 +6,7 @@ use bevy::{
     prelude::{Bundle, Color, Component, Reflect, ReflectComponent},
     render::sync_world::SyncToRenderWorld,
 };
+pub use grid::*;
 pub use storage::*;
 
 use crate::TilemapSize;
