@@ -151,3 +151,37 @@ pub struct AnimatedTile {
     /// The speed the animation plays back at.
     pub speed: f32,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn to_index_flattens_row_major() {
+        let size = TilemapSize { x: 4, y: 4 };
+        assert_eq!(TilePos::new(0, 0).to_index(&size), 0);
+        assert_eq!(TilePos::new(1, 1).to_index(&size), 5);
+        assert_eq!(TilePos::new(3, 3).to_index(&size), 15);
+    }
+
+    #[test]
+    fn checked_to_index_rejects_out_of_bounds_positions() {
+        let size = TilemapSize { x: 4, y: 4 };
+        assert_eq!(TilePos::new(1, 1).to_checked_index(&size), Some(5));
+        // `(5, 0)` flattens to `5` as well, aliasing `(1, 1)`, so it must be rejected.
+        assert_eq!(TilePos::new(5, 0).to_checked_index(&size), None);
+        assert_eq!(TilePos::new(0, u32::MAX).to_checked_index(&size), None);
+    }
+
+    // `usize` is 32 bits wide on targets such as wasm32, where `u32::MAX * 4` genuinely cannot be
+    // represented, so this only holds on 64-bit targets.
+    #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn to_index_does_not_overflow_out_of_bounds() {
+        let size = TilemapSize { x: 4, y: 4 };
+        assert_eq!(
+            TilePos::new(0, u32::MAX).to_index(&size),
+            u32::MAX as usize * 4
+        );
+    }
+}

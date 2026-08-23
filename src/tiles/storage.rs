@@ -136,3 +136,67 @@ impl TileStorage {
         self.tiles.iter_mut().filter_map(|opt| opt.take())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entity(id: u32) -> Entity {
+        Entity::from_raw_u32(id).unwrap()
+    }
+
+    const ALIASING_POS: TilePos = TilePos { x: 5, y: 0 };
+    const ALIASED_POS: TilePos = TilePos { x: 1, y: 1 };
+
+    fn storage_4x4() -> TileStorage {
+        TileStorage::empty(TilemapSize { x: 4, y: 4 })
+    }
+
+    #[test]
+    fn checked_accessors_round_trip_in_bounds() {
+        let pos = TilePos::new(1, 1);
+        let mut storage = storage_4x4();
+
+        storage.checked_set(&pos, entity(7));
+        assert_eq!(storage.checked_get(&pos), Some(entity(7)));
+        assert_eq!(storage.checked_remove(&pos), Some(entity(7)));
+        assert_eq!(storage.checked_get(&pos), None);
+        assert_eq!(storage.checked_remove(&pos), None);
+    }
+
+    #[test]
+    fn checked_accessors_reject_out_of_bounds_positions() {
+        for out_of_bounds in [ALIASING_POS, TilePos::new(0, u32::MAX)] {
+            let mut storage = storage_4x4();
+            storage.set(&ALIASED_POS, entity(7));
+
+            assert_eq!(storage.checked_get(&out_of_bounds), None);
+            storage.checked_set(&out_of_bounds, entity(9));
+            assert_eq!(storage.checked_remove(&out_of_bounds), None);
+
+            assert_eq!(
+                storage.iter().flatten().copied().collect::<Vec<_>>(),
+                vec![entity(7)],
+                "{out_of_bounds:?} must not read, write or remove another tile's entity"
+            );
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "does not lie within the map extents")]
+    fn get_panics_on_aliasing_position() {
+        storage_4x4().get(&ALIASING_POS);
+    }
+
+    #[test]
+    #[should_panic(expected = "does not lie within the map extents")]
+    fn set_panics_on_aliasing_position() {
+        storage_4x4().set(&ALIASING_POS, entity(7));
+    }
+
+    #[test]
+    #[should_panic(expected = "does not lie within the map extents")]
+    fn remove_panics_on_aliasing_position() {
+        storage_4x4().remove(&ALIASING_POS);
+    }
+}
