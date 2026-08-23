@@ -18,8 +18,8 @@
 use bevy::{
     ecs::schedule::IntoScheduleConfigs,
     prelude::{
-        Bundle, Changed, Component, Deref, First, GlobalTransform, InheritedVisibility, Plugin,
-        Query, Reflect, ReflectComponent, SystemSet, Transform, ViewVisibility, Visibility,
+        Bundle, Changed, Component, Deref, Entity, First, GlobalTransform, InheritedVisibility,
+        Plugin, Query, Reflect, ReflectComponent, SystemSet, Transform, ViewVisibility, Visibility,
     },
     render::sync_world::SyncToRenderWorld,
     time::TimeSystems,
@@ -37,8 +37,8 @@ use prelude::{TilemapId, TilemapRenderSettings};
 #[cfg(feature = "render")]
 use render::material::{MaterialTilemap, StandardTilemapMaterial};
 use tiles::{
-    AnimatedTile, TileColor, TileFlip, TilePos, TilePosOld, TileStorage, TileTextureIndex,
-    TileVisible,
+    AnimatedTile, TileColor, TileFlip, TileGrid, TilePos, TilePosOld, TileStorage,
+    TileTextureIndex, TileVisible,
 };
 
 #[cfg(all(not(feature = "atlas"), feature = "render"))]
@@ -91,6 +91,7 @@ impl Plugin for TilemapPlugin {
             .register_type::<TileVisible>()
             .register_type::<TileFlip>()
             .register_type::<TileStorage>()
+            .register_type::<TileGrid<Option<Entity>>>()
             .register_type::<TilePosOld>()
             .register_type::<AnimatedTile>()
             .configure_sets(First, TilemapFirstSet.after(TimeSystems));

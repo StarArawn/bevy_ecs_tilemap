@@ -26,7 +26,7 @@ use crate::render::extract::ExtractedFrustum;
 use crate::{
     FrustumCulling, TilemapGridSize, TilemapTileSize,
     map::{TilemapSize, TilemapTexture, TilemapType},
-    tiles::TilePos,
+    tiles::{TileGrid, TilePos},
 };
 
 use super::RenderChunkSize;
@@ -192,8 +192,6 @@ pub struct RenderChunk2d {
     index: UVec3,
     /// The position of this chunk, in world space,
     position: Vec2,
-    /// Size of the chunk, in tiles.
-    pub size_in_tiles: UVec2,
     /// [`TilemapSize`] of the map this chunk belongs to.
     pub map_size: TilemapSize,
     /// [`TilemapType`] of the map this chunk belongs to.
@@ -213,7 +211,8 @@ pub struct RenderChunk2d {
     /// The matrix computed from this chunk's `transform`.
     transform_matrix: Mat4,
     pub spacing: Vec2,
-    pub tiles: Vec<Option<PackedTileData>>,
+    /// Per-tile render data for this chunk, indexed by in-chunk [`TilePos`].
+    tiles: TileGrid<Option<PackedTileData>>,
     pub texture: TilemapTexture,
     pub texture_size: Vec2,
     pub mesh: Mesh,
@@ -259,7 +258,6 @@ impl RenderChunk2d {
             id,
             index: *index,
             position,
-            size_in_tiles,
             map_size,
             map_type,
             grid_size,
@@ -279,7 +277,7 @@ impl RenderChunk2d {
             texture_size,
             texture,
             tilemap_id,
-            tiles: vec![None; TilemapSize::from(size_in_tiles).count()],
+            tiles: TileGrid::empty(size_in_tiles.into()),
             visible,
             frustum_culling,
             render_size,
@@ -287,18 +285,23 @@ impl RenderChunk2d {
         }
     }
 
+    /// Size of the chunk, in tiles.
+    pub fn size_in_tiles(&self) -> UVec2 {
+        self.tiles.size().into()
+    }
+
     pub fn get(&self, tile_pos: &TilePos) -> &Option<PackedTileData> {
-        &self.tiles[tile_pos.to_index(&self.size_in_tiles.into())]
+        self.tiles.get(tile_pos)
     }
 
     pub fn get_mut(&mut self, tile_pos: &TilePos) -> &mut Option<PackedTileData> {
         self.dirty_mesh = true;
-        &mut self.tiles[tile_pos.to_index(&self.size_in_tiles.into())]
+        self.tiles.get_mut(tile_pos)
     }
 
     pub fn set(&mut self, tile_pos: &TilePos, tile: Option<PackedTileData>) {
         self.dirty_mesh = true;
-        self.tiles[tile_pos.to_index(&self.size_in_tiles.into())] = tile;
+        self.tiles.set(tile_pos, tile);
     }
 
     pub fn get_index(&self) -> UVec3 {
@@ -337,7 +340,7 @@ impl RenderChunk2d {
 
             self.position = chunk_index_to_world_space(
                 self.index.xy(),
-                self.size_in_tiles,
+                self.size_in_tiles(),
                 &self.grid_size,
                 &self.map_type,
             );
@@ -346,7 +349,7 @@ impl RenderChunk2d {
             dirty_local_transform = true;
 
             self.aabb = chunk_aabb(
-                self.size_in_tiles,
+                self.size_in_tiles(),
                 &self.grid_size,
                 &self.tile_size,
                 &self.map_type,
@@ -371,7 +374,7 @@ impl RenderChunk2d {
         mesh_vertex_buffer_layouts: &mut MeshVertexBufferLayouts,
     ) {
         if self.dirty_mesh {
-            let tile_count = TilemapSize::from(self.size_in_tiles).count();
+            let tile_count = self.tiles.len();
             let size = tile_count * 4;
             let mut positions: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut textures: Vec<[f32; 4]> = Vec::with_capacity(size);
@@ -381,7 +384,7 @@ impl RenderChunk2d {
             let mut i = 0;
 
             // Convert tile into mesh data.
-            for tile in self.tiles.iter().filter_map(|x| x.as_ref()) {
+            for tile in self.tiles.iter().flatten() {
                 if !tile.visible {
                     continue;
                 }
@@ -485,7 +488,7 @@ pub struct TilemapUniformData {
 impl From<&RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &RenderChunk2d) -> Self {
         let chunk_ix: Vec2 = chunk.index.xy().as_vec2();
-        let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
+        let chunk_size: Vec2 = chunk.size_in_tiles().as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();
         Self {
@@ -502,7 +505,7 @@ impl From<&RenderChunk2d> for TilemapUniformData {
 impl From<&mut RenderChunk2d> for TilemapUniformData {
     fn from(chunk: &mut RenderChunk2d) -> Self {
         let chunk_pos: Vec2 = chunk.index.xy().as_vec2();
-        let chunk_size: Vec2 = chunk.size_in_tiles.as_vec2();
+        let chunk_size: Vec2 = chunk.size_in_tiles().as_vec2();
         let map_size: Vec2 = chunk.map_size.into();
         let tile_size: Vec2 = chunk.tile_size.into();
         Self {
