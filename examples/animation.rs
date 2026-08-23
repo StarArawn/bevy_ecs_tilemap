@@ -79,7 +79,7 @@ fn create_animated_flowers(mut commands: Commands, asset_server: Res<AssetServer
 
     // Choose 10 random tiles to contain flowers.
     let mut rng = rng();
-    let mut indices: Vec<(u32, u32)> = Vec::with_capacity((map_size.x * map_size.y) as usize);
+    let mut indices: Vec<(u32, u32)> = Vec::with_capacity(map_size.count());
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             indices.push((x, y));

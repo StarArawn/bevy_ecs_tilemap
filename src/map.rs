@@ -79,8 +79,9 @@ impl TilemapSize {
         Self { x, y }
     }
 
+    /// The total number of tiles in a tilemap of this size.
     pub const fn count(&self) -> usize {
-        (self.x * self.y) as usize
+        self.x as usize * self.y as usize
     }
 }
 
@@ -478,6 +479,18 @@ pub enum TilemapType {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tilemap_size_count_multiplies_extents() {
+        assert_eq!(TilemapSize { x: 3, y: 4 }.count(), 12);
+        // `usize` is 32 bits wide on targets such as wasm32, where `u32::MAX * 2` genuinely cannot
+        // be represented, so this only holds on 64-bit targets.
+        #[cfg(target_pointer_width = "64")]
+        assert_eq!(
+            TilemapSize { x: u32::MAX, y: 2 }.count(),
+            u32::MAX as usize * 2
+        );
+    }
 
     #[test]
     fn add_tilemap_size() {

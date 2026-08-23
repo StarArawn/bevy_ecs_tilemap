@@ -279,7 +279,7 @@ impl RenderChunk2d {
             texture_size,
             texture,
             tilemap_id,
-            tiles: vec![None; (size_in_tiles.x * size_in_tiles.y) as usize],
+            tiles: vec![None; TilemapSize::from(size_in_tiles).count()],
             visible,
             frustum_culling,
             render_size,
@@ -371,12 +371,12 @@ impl RenderChunk2d {
         mesh_vertex_buffer_layouts: &mut MeshVertexBufferLayouts,
     ) {
         if self.dirty_mesh {
-            let size = ((self.size_in_tiles.x * self.size_in_tiles.y) * 4) as usize;
+            let tile_count = TilemapSize::from(self.size_in_tiles).count();
+            let size = tile_count * 4;
             let mut positions: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut textures: Vec<[f32; 4]> = Vec::with_capacity(size);
             let mut colors: Vec<[f32; 4]> = Vec::with_capacity(size);
-            let mut indices: Vec<u32> =
-                Vec::with_capacity(((self.size_in_tiles.x * self.size_in_tiles.y) * 6) as usize);
+            let mut indices: Vec<u32> = Vec::with_capacity(tile_count * 6);
 
             let mut i = 0;
 

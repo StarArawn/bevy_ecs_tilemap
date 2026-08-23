@@ -36,12 +36,29 @@ impl TileStorage {
         }
     }
 
+    /// Converts `tile_pos` into an index into `tiles`, panicking if it lies outside the map.
+    #[inline]
+    fn index(&self, tile_pos: &TilePos) -> usize {
+        self.checked_index(tile_pos).unwrap_or_else(|| {
+            panic!(
+                "tile position {tile_pos:?} does not lie within the map extents {:?}",
+                self.size
+            )
+        })
+    }
+
+    /// Converts `tile_pos` into an index into `tiles`, or `None` if it lies outside the map.
+    #[inline]
+    fn checked_index(&self, tile_pos: &TilePos) -> Option<usize> {
+        tile_pos.to_checked_index(&self.size)
+    }
+
     /// Gets a tile entity for the given tile position, if an entity is associated with that tile
     /// position.
     ///
     /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn get(&self, tile_pos: &TilePos) -> Option<Entity> {
-        self.tiles[tile_pos.to_index(&self.size)]
+        self.tiles[self.index(tile_pos)]
     }
 
     /// Gets a tile entity for the given tile position, if:
@@ -50,11 +67,7 @@ impl TileStorage {
     ///
     /// otherwise it returns `None`.
     pub fn checked_get(&self, tile_pos: &TilePos) -> Option<Entity> {
-        if tile_pos.within_map_bounds(&self.size) {
-            self.tiles[tile_pos.to_index(&self.size)]
-        } else {
-            None
-        }
+        *self.tiles.get(self.checked_index(tile_pos)?)?
     }
 
     /// Sets a tile entity for the given tile position.
@@ -63,7 +76,8 @@ impl TileStorage {
     ///
     /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn set(&mut self, tile_pos: &TilePos, tile_entity: Entity) {
-        self.tiles[tile_pos.to_index(&self.size)].replace(tile_entity);
+        let index = self.index(tile_pos);
+        self.tiles[index].replace(tile_entity);
     }
 
     /// Sets a tile entity for the given tile position, if the tile position lies within the
@@ -71,8 +85,8 @@ impl TileStorage {
     ///
     /// If there is an entity already at that position, it will be replaced.
     pub fn checked_set(&mut self, tile_pos: &TilePos, tile_entity: Entity) {
-        if tile_pos.within_map_bounds(&self.size) {
-            self.tiles[tile_pos.to_index(&self.size)].replace(tile_entity);
+        if let Some(index) = self.checked_index(tile_pos) {
+            self.tiles[index].replace(tile_entity);
         }
     }
 
@@ -91,7 +105,8 @@ impl TileStorage {
     ///
     /// Panics if the given `tile_pos` doesn't lie within the extents of the underlying tile map.
     pub fn remove(&mut self, tile_pos: &TilePos) -> Option<Entity> {
-        self.tiles[tile_pos.to_index(&self.size)].take()
+        let index = self.index(tile_pos);
+        self.tiles[index].take()
     }
 
     /// Remove any stored `Entity` at the given tile position, leaving `None` in its place and
@@ -99,7 +114,8 @@ impl TileStorage {
     ///
     /// Checks that the given `tile_pos` lies within the extents of the underlying map.
     pub fn checked_remove(&mut self, tile_pos: &TilePos) -> Option<Entity> {
-        self.tiles.get_mut(tile_pos.to_index(&self.size))?.take()
+        let index = self.checked_index(tile_pos)?;
+        self.tiles.get_mut(index)?.take()
     }
 
     /// Removes all stored `Entity`s, leaving `None` in their place and

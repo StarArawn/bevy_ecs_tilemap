@@ -26,8 +26,18 @@ impl TilePos {
 
     /// Converts a tile position (2D) into an index in a flattened vector (1D), assuming the
     /// tile position lies in a tilemap of the specified size.
+    ///
+    /// An out-of-bounds x will produce a different tile position. Use
+    /// [`TilePos::to_checked_index`] to make sure the returned index is correct.
     pub fn to_index(&self, tilemap_size: &TilemapSize) -> usize {
-        ((self.y * tilemap_size.x) + self.x) as usize
+        (self.y as usize * tilemap_size.x as usize) + self.x as usize
+    }
+
+    /// Converts a tile position (2D) into an index in a flattened vector (1D), or returns `None`
+    /// if the tile position doesn't lie within a tilemap of the specified size.
+    pub fn to_checked_index(&self, tilemap_size: &TilemapSize) -> Option<usize> {
+        self.within_map_bounds(tilemap_size)
+            .then(|| self.to_index(tilemap_size))
     }
 
     /// Checks to see if `self` lies within a tilemap of the specified size.
