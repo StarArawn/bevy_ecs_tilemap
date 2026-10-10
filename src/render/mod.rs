@@ -107,6 +107,18 @@ pub const SQUARE: Handle<Shader> = uuid_handle!("6db56afb-a562-4e3c-b459-486a6d5
 pub const TILEMAP_VERTEX_OUTPUT: Handle<Shader> =
     uuid_handle!("49b568da-6c5a-4936-a3c8-d5dd6b894f92");
 
+// UUID handles are retained, while WESL imports use the embedded module namespace.
+fn tilemap_shader(source: &str, path: impl AsRef<str>) -> Shader {
+    let filename = std::path::Path::new(path.as_ref())
+        .file_name()
+        .expect("tilemap shader path has a filename")
+        .to_string_lossy();
+    Shader::from_wesl(
+        source.to_owned(),
+        format!("embedded://bevy_ecs_tilemap/render/shaders/{filename}"),
+    )
+}
+
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(not(feature = "atlas"))]
@@ -143,86 +155,66 @@ impl Plugin for TilemapRenderingPlugin {
         load_internal_asset!(
             app,
             COLUMN_EVEN_HEX,
-            "shaders/column_even_hex.wgsl",
-            Shader::from_wgsl
+            "shaders/column_even_hex.wesl",
+            tilemap_shader
         );
 
-        load_internal_asset!(
-            app,
-            COLUMN_HEX,
-            "shaders/column_hex.wgsl",
-            Shader::from_wgsl
-        );
+        load_internal_asset!(app, COLUMN_HEX, "shaders/column_hex.wesl", tilemap_shader);
 
         load_internal_asset!(
             app,
             COLUMN_ODD_HEX,
-            "shaders/column_odd_hex.wgsl",
-            Shader::from_wgsl
+            "shaders/column_odd_hex.wesl",
+            tilemap_shader
         );
 
-        load_internal_asset!(app, COMMON, "shaders/common.wgsl", Shader::from_wgsl);
+        load_internal_asset!(app, COMMON, "shaders/common.wesl", tilemap_shader);
 
-        load_internal_asset!(
-            app,
-            DIAMOND_ISO,
-            "shaders/diamond_iso.wgsl",
-            Shader::from_wgsl
-        );
+        load_internal_asset!(app, DIAMOND_ISO, "shaders/diamond_iso.wesl", tilemap_shader);
 
         load_internal_asset!(
             app,
             ROW_EVEN_HEX,
-            "shaders/row_even_hex.wgsl",
-            Shader::from_wgsl
+            "shaders/row_even_hex.wesl",
+            tilemap_shader
         );
 
-        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
+        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wesl", tilemap_shader);
 
-        load_internal_asset!(
-            app,
-            ROW_ODD_HEX,
-            "shaders/row_odd_hex.wgsl",
-            Shader::from_wgsl
-        );
+        load_internal_asset!(app, ROW_ODD_HEX, "shaders/row_odd_hex.wesl", tilemap_shader);
 
-        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
+        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wesl", tilemap_shader);
 
-        load_internal_asset!(
-            app,
-            MESH_OUTPUT,
-            "shaders/mesh_output.wgsl",
-            Shader::from_wgsl
-        );
+        load_internal_asset!(app, MESH_OUTPUT, "shaders/mesh_output.wesl", tilemap_shader);
 
-        load_internal_asset!(app, SQUARE, "shaders/square.wgsl", Shader::from_wgsl);
+        load_internal_asset!(app, SQUARE, "shaders/square.wesl", tilemap_shader);
 
         load_internal_asset!(
             app,
             STAGGERED_ISO,
-            "shaders/staggered_iso.wgsl",
-            Shader::from_wgsl
+            "shaders/staggered_iso.wesl",
+            tilemap_shader
         );
 
         load_internal_asset!(
             app,
             TILEMAP_VERTEX_OUTPUT,
-            "shaders/tilemap_vertex_output.wgsl",
-            Shader::from_wgsl
+            "shaders/tilemap_vertex_output.wesl",
+            tilemap_shader
         );
 
         load_internal_asset!(
             app,
             TILEMAP_SHADER_VERTEX,
-            "shaders/tilemap_vertex.wgsl",
-            Shader::from_wgsl
+            "shaders/tilemap_vertex.wesl",
+            tilemap_shader
         );
 
         load_internal_asset!(
             app,
             TILEMAP_SHADER_FRAGMENT,
-            "shaders/tilemap_fragment.wgsl",
-            Shader::from_wgsl
+            "shaders/tilemap_fragment.wesl",
+            tilemap_shader
         );
 
         let render_app = match app.get_sub_app_mut(RenderApp) {
@@ -246,7 +238,10 @@ impl Plugin for TilemapRenderingPlugin {
             .insert_resource(RenderChunk2dStorage::default())
             .add_systems(
                 ExtractSchedule,
-                (extract::extract, extract_resource::<ModifiedImageIds, ()>),
+                (
+                    extract::extract,
+                    extract_resource::<ModifiedImageIds, RenderApp, ()>,
+                ),
             )
             .add_systems(
                 Render,
@@ -301,14 +296,15 @@ pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
     MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
 
 #[derive(Component, ExtractComponent, Clone)]
-
+#[extract_app(RenderApp)]
 pub struct RemovedTileEntity(pub RenderEntity);
 
 #[derive(Component, ExtractComponent, Clone)]
+#[extract_app(RenderApp)]
 pub struct RemovedMapEntity(pub RenderEntity);
 
 fn on_remove_tile(
-    removed: On<Remove, TilePos>,
+    removed: On<Remove<TilePos>>,
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
@@ -318,7 +314,7 @@ fn on_remove_tile(
 }
 
 fn on_remove_tilemap(
-    removed: On<Remove, TileStorage>,
+    removed: On<Remove<TileStorage>>,
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
@@ -357,6 +353,7 @@ fn prepare_textures(
 
 /// Resource to hold the ids of modified Image assets of a single frame.
 #[derive(Resource, ExtractResource, Clone, Default)]
+#[extract_app(RenderApp)]
 pub struct ModifiedImageIds(HashSet<AssetId<Image>>);
 
 impl ModifiedImageIds {

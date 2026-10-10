@@ -106,6 +106,7 @@ cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/we
 | bevy   | bevy_ecs_tilemap |
 | ------ | ---------------- |
 | `main` | `bevy-track`     |
+| 0.20   | `main` (unreleased) |
 | 0.19   | 0.19             |
 | 0.18   | 0.18             |
 | 0.17   | 0.17             |
@@ -125,3 +126,26 @@ cargo run --example animation --target=wasm32-unknown-unknown --features=bevy/we
 ## Asset credits
 
 - Field of green by [GuttyKreum](https://guttykreum.itch.io/).
+
+## Bevy 0.20 migration
+
+This development branch targets Bevy 0.20.0. Shader modules and the custom shader
+example now use WESL imports and conditional attributes; old WGSL preprocessor
+imports are unsupported by Bevy 0.20. Internal library imports use
+`bevy_ecs_tilemap::render::shaders`, and Bevy view bindings use
+`bevy_sprite_render::mesh2d::view_bindings`. Package version changes remain part
+of the upstream release process.
+
+The port was initially exercised with a square tilemap on Vulkan in a consuming
+game. Validation of this full upstream checkout is pending, including atlas,
+hexagonal/isometric maps, custom materials and examples. Suggested checks:
+
+```sh
+cargo fmt --all --check
+cargo check --all-targets
+cargo check --all-targets --features atlas
+cargo check --all-targets --no-default-features
+cargo test
+cargo run --example custom_shader
+cargo run --example spacing --features atlas
+```

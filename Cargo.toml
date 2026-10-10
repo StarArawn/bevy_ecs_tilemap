@@ -16,7 +16,7 @@ render = []
 serde = ["dep:serde", "bevy/serialize"]
 
 [dependencies]
-bevy = { version = "0.19.0", default-features = false, features = [
+bevy = { version = "0.20.0", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_render",
     "bevy_asset",
@@ -39,7 +39,7 @@ getrandom = { version = "0.4", default-features = false, features = [
 ] }
 
 [dev-dependencies.bevy]
-version = "0.19.0"
+version = "0.20.0"
 default-features = false
 features = [
     "bevy_core_pipeline",
@@ -61,7 +61,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.19.0"
+version = "0.20.0"
 default-features = false
 features = [
     "bevy_core_pipeline",

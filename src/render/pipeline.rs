@@ -191,12 +191,14 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
+                constants: Default::default(),
                 shader: TILEMAP_SHADER_VERTEX,
                 entry_point: Some("vertex".into()),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
+                constants: Default::default(),
                 shader: TILEMAP_SHADER_FRAGMENT,
                 shader_defs,
                 entry_point: Some("fragment".into()),
