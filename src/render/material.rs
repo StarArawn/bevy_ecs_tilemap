@@ -2,6 +2,7 @@ use crate::prelude::{TilemapId, TilemapRenderSettings};
 
 #[cfg(not(feature = "atlas"))]
 use bevy::render::renderer::RenderQueue;
+use bevy::render::{material_bind_groups::FallbackBuffer, storage::GpuShaderBuffer};
 use bevy::{
     core_pipeline::core_2d::Transparent2d,
     ecs::system::{StaticSystemParam, SystemParamItem},
@@ -101,6 +102,7 @@ where
 }
 
 #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
+#[extract_app(RenderApp)]
 #[reflect(Component, Default)]
 pub struct MaterialTilemapHandle<M: MaterialTilemap>(pub Handle<M>);
 
@@ -331,6 +333,7 @@ impl<M: MaterialTilemap> Default for PrepareNextFrameMaterials<M> {
 
 /// This system prepares all assets of the corresponding [`Material2d`] type
 /// which where extracted this frame for the GPU.
+#[expect(clippy::too_many_arguments)]
 fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut prepare_next_frame: Local<PrepareNextFrameMaterials<M>>,
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
@@ -339,6 +342,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
     pipeline: Res<MaterialTilemapPipeline<M>>,
     mut param: StaticSystemParam<M::Param>,
     pipeline_cache: Res<PipelineCache>,
+    fallback_buffer: Res<FallbackBuffer>,
+    shader_buffers: Res<RenderAssets<GpuShaderBuffer>>,
 ) {
     let queued_assets = std::mem::take(&mut prepare_next_frame.assets);
     for (handle, material) in queued_assets {
@@ -347,6 +352,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             &render_device,
             &pipeline,
             &pipeline_cache,
+            &fallback_buffer,
+            &shader_buffers,
             &mut param,
         ) {
             Ok(prepared_asset) => {
@@ -376,6 +383,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
             &render_device,
             &pipeline,
             &pipeline_cache,
+            &fallback_buffer,
+            &shader_buffers,
             &mut param,
         ) {
             Ok(prepared_asset) => {
@@ -401,12 +410,16 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
     render_device: &RenderDevice,
     pipeline: &MaterialTilemapPipeline<M>,
     pipeline_cache: &PipelineCache,
+    fallback_buffer: &FallbackBuffer,
+    shader_buffers: &RenderAssets<GpuShaderBuffer>,
     param: &mut SystemParamItem<M::Param>,
 ) -> Result<PreparedMaterialTilemap<M>, AsBindGroupError> {
     let prepared = material.as_bind_group(
         &pipeline.material_tilemap_layout,
         render_device,
         pipeline_cache,
+        fallback_buffer,
+        shader_buffers,
         param,
     )?;
     let bind_group_data = material.bind_group_data();

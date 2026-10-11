@@ -52,6 +52,7 @@ pub struct LdtkMapBundle {
     pub global_transform: GlobalTransform,
 }
 
+#[allow(dead_code)]
 #[derive(TypePath)]
 pub struct LdtkLoader;
 
@@ -110,6 +111,7 @@ impl AssetLoader for LdtkLoader {
     }
 }
 
+#[allow(dead_code)]
 fn process_loaded_tile_maps(
     mut commands: Commands,
     mut map_events: MessageReader<AssetEvent<LdtkMap>>,

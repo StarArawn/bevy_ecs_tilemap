@@ -15,7 +15,7 @@ pub struct MyMaterial {
 
 impl MaterialTilemap for MyMaterial {
     fn fragment_shader() -> ShaderRef {
-        "custom_shader.wgsl".into()
+        "custom_shader.wesl".into()
     }
 }
 

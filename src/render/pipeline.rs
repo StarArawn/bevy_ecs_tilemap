@@ -1,8 +1,8 @@
 use bevy::{
-    asset::uuid_handle,
+    asset::load_embedded_asset,
     core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
     mesh::VertexBufferLayout,
-    prelude::{Component, FromWorld, Handle, Resource, Shader, World},
+    prelude::{AssetServer, Component, FromWorld, Handle, Resource, Shader, World},
     render::{
         globals::GlobalsUniform,
         render_resource::{
@@ -22,20 +22,17 @@ use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
-pub const TILEMAP_SHADER_VERTEX: Handle<Shader> =
-    uuid_handle!("915ef471-58b4-4431-acae-f38b41969a9e");
-pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> =
-    uuid_handle!("bf34308e-69df-4da8-b0ff-816042c716c8");
-
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
     pub view_layout: BindGroupLayoutDescriptor,
     pub material_layout: BindGroupLayoutDescriptor,
     pub mesh_layout: BindGroupLayoutDescriptor,
+    pub vertex_shader: Handle<Shader>,
+    pub fragment_shader: Handle<Shader>,
 }
 
 impl FromWorld for TilemapPipeline {
-    fn from_world(_world: &mut World) -> Self {
+    fn from_world(world: &mut World) -> Self {
         let view_layout = BindGroupLayoutDescriptor::new(
             "tilemap_view_layout",
             &[
@@ -137,10 +134,13 @@ impl FromWorld for TilemapPipeline {
             ],
         );
 
+        let asset_server = world.resource::<AssetServer>();
         TilemapPipeline {
             view_layout,
             material_layout,
             mesh_layout,
+            vertex_shader: load_embedded_asset!(asset_server, "shaders/tilemap_vertex.wesl"),
+            fragment_shader: load_embedded_asset!(asset_server, "shaders/tilemap_fragment.wesl"),
         }
     }
 }
@@ -191,15 +191,17 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: TILEMAP_SHADER_VERTEX,
+                shader: self.vertex_shader.clone(),
                 entry_point: Some("vertex".into()),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
+                constants: vec![],
             },
             fragment: Some(FragmentState {
-                shader: TILEMAP_SHADER_FRAGMENT,
+                shader: self.fragment_shader.clone(),
                 shader_defs,
                 entry_point: Some("fragment".into()),
+                constants: vec![],
                 targets: vec![Some(ColorTargetState {
                     format: key.target_format,
                     blend: Some(BlendState {
