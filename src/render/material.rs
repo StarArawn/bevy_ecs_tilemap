@@ -13,6 +13,7 @@ use bevy::{
         Extract, Render, RenderApp, RenderSystems,
         extract_component::{ExtractComponent, ExtractComponentPlugin},
         globals::GlobalsBuffer,
+        material_bind_groups::FallbackBuffer,
         render_asset::RenderAssets,
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItemExtraIndex, ViewSortedRenderPhases,
@@ -23,6 +24,7 @@ use bevy::{
             SpecializedRenderPipeline, SpecializedRenderPipelines,
         },
         renderer::RenderDevice,
+        storage::GpuShaderBuffer,
         texture::GpuImage,
         view::{ExtractedView, RenderVisibleEntities, ViewUniforms},
     },
@@ -101,6 +103,7 @@ where
 }
 
 #[derive(Component, Clone, Debug, Deref, DerefMut, Reflect, PartialEq, Eq, ExtractComponent)]
+#[extract_app(RenderApp)]
 #[reflect(Component, Default)]
 pub struct MaterialTilemapHandle<M: MaterialTilemap>(pub Handle<M>);
 
@@ -293,7 +296,7 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
     for event in events.read() {
         match event {
             AssetEvent::Added { id } | AssetEvent::Modified { id } => {
-                changed_assets.insert(id);
+                changed_assets.insert(*id);
             }
             AssetEvent::Removed { id } => {
                 changed_assets.remove(id);
@@ -305,8 +308,8 @@ fn extract_materials_tilemap<M: MaterialTilemap>(
 
     let mut extracted_assets = Vec::new();
     for id in changed_assets.drain() {
-        if let Some(asset) = assets.get(*id) {
-            extracted_assets.push((*id, asset.clone()));
+        if let Some(asset) = assets.get(id) {
+            extracted_assets.push((id, asset.clone()));
         }
     }
 
@@ -331,11 +334,14 @@ impl<M: MaterialTilemap> Default for PrepareNextFrameMaterials<M> {
 
 /// This system prepares all assets of the corresponding [`Material2d`] type
 /// which where extracted this frame for the GPU.
+#[allow(clippy::too_many_arguments)]
 fn prepare_materials_tilemap<M: MaterialTilemap>(
     mut prepare_next_frame: Local<PrepareNextFrameMaterials<M>>,
     mut extracted_assets: ResMut<ExtractedMaterialsTilemap<M>>,
     mut render_materials: ResMut<RenderMaterialsTilemap<M>>,
     render_device: Res<RenderDevice>,
+    fallback_buffer: Res<FallbackBuffer>,
+    gpu_shader_buffers: Res<RenderAssets<GpuShaderBuffer>>,
     pipeline: Res<MaterialTilemapPipeline<M>>,
     mut param: StaticSystemParam<M::Param>,
     pipeline_cache: Res<PipelineCache>,
@@ -345,6 +351,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
         match prepare_material_tilemap(
             &material,
             &render_device,
+            &fallback_buffer,
+            &gpu_shader_buffers,
             &pipeline,
             &pipeline_cache,
             &mut param,
@@ -374,6 +382,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
         match prepare_material_tilemap(
             &material,
             &render_device,
+            &fallback_buffer,
+            &gpu_shader_buffers,
             &pipeline,
             &pipeline_cache,
             &mut param,
@@ -399,6 +409,8 @@ fn prepare_materials_tilemap<M: MaterialTilemap>(
 fn prepare_material_tilemap<M: MaterialTilemap>(
     material: &M,
     render_device: &RenderDevice,
+    fallback_buffer: &FallbackBuffer,
+    gpu_shader_buffers: &RenderAssets<GpuShaderBuffer>,
     pipeline: &MaterialTilemapPipeline<M>,
     pipeline_cache: &PipelineCache,
     param: &mut SystemParamItem<M::Param>,
@@ -407,6 +419,8 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
         &pipeline.material_tilemap_layout,
         render_device,
         pipeline_cache,
+        fallback_buffer,
+        gpu_shader_buffers,
         param,
     )?;
     let bind_group_data = material.bind_group_data();

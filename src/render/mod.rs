@@ -15,6 +15,7 @@ use bevy::{
         render_resource::{FilterMode, SpecializedRenderPipelines, VertexFormat},
         sync_world::RenderEntity,
     },
+    shader::ShaderImport,
 };
 
 #[cfg(not(feature = "atlas"))]
@@ -107,6 +108,23 @@ pub const SQUARE: Handle<Shader> = uuid_handle!("6db56afb-a562-4e3c-b459-486a6d5
 pub const TILEMAP_VERTEX_OUTPUT: Handle<Shader> =
     uuid_handle!("49b568da-6c5a-4936-a3c8-d5dd6b894f92");
 
+macro_rules! load_wesl_shaders {
+    ($app:ident, [ $( ($handle:expr, $name:expr) ),* $(,)? ]) => {
+        $(
+            load_internal_asset!(
+                $app,
+                $handle,
+                concat!("shaders/", $name, ".wesl"),
+                |src, path| {
+                    let mut shader = Shader::from_wesl(src, path);
+                    shader.import_path = ShaderImport::Custom(concat!("bevy_ecs_tilemap::", $name).into());
+                    shader
+                }
+            );
+        )*
+    };
+}
+
 impl Plugin for TilemapRenderingPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(not(feature = "atlas"))]
@@ -140,89 +158,24 @@ impl Plugin for TilemapRenderingPlugin {
             |plugin| plugin.default_sampler.clone(),
         );
 
-        load_internal_asset!(
+        load_wesl_shaders!(
             app,
-            COLUMN_EVEN_HEX,
-            "shaders/column_even_hex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            COLUMN_HEX,
-            "shaders/column_hex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            COLUMN_ODD_HEX,
-            "shaders/column_odd_hex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(app, COMMON, "shaders/common.wgsl", Shader::from_wgsl);
-
-        load_internal_asset!(
-            app,
-            DIAMOND_ISO,
-            "shaders/diamond_iso.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            ROW_EVEN_HEX,
-            "shaders/row_even_hex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
-
-        load_internal_asset!(
-            app,
-            ROW_ODD_HEX,
-            "shaders/row_odd_hex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(app, ROW_HEX, "shaders/row_hex.wgsl", Shader::from_wgsl);
-
-        load_internal_asset!(
-            app,
-            MESH_OUTPUT,
-            "shaders/mesh_output.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(app, SQUARE, "shaders/square.wgsl", Shader::from_wgsl);
-
-        load_internal_asset!(
-            app,
-            STAGGERED_ISO,
-            "shaders/staggered_iso.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            TILEMAP_VERTEX_OUTPUT,
-            "shaders/tilemap_vertex_output.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            TILEMAP_SHADER_VERTEX,
-            "shaders/tilemap_vertex.wgsl",
-            Shader::from_wgsl
-        );
-
-        load_internal_asset!(
-            app,
-            TILEMAP_SHADER_FRAGMENT,
-            "shaders/tilemap_fragment.wgsl",
-            Shader::from_wgsl
+            [
+                (COLUMN_EVEN_HEX, "column_even_hex"),
+                (COLUMN_HEX, "column_hex"),
+                (COLUMN_ODD_HEX, "column_odd_hex"),
+                (COMMON, "common"),
+                (DIAMOND_ISO, "diamond_iso"),
+                (ROW_EVEN_HEX, "row_even_hex"),
+                (ROW_HEX, "row_hex"),
+                (ROW_ODD_HEX, "row_odd_hex"),
+                (MESH_OUTPUT, "mesh_output"),
+                (SQUARE, "square"),
+                (STAGGERED_ISO, "staggered_iso"),
+                (TILEMAP_VERTEX_OUTPUT, "vertex_output"),
+                (TILEMAP_SHADER_VERTEX, "tilemap_vertex"),
+                (TILEMAP_SHADER_FRAGMENT, "tilemap_fragment"),
+            ]
         );
 
         let render_app = match app.get_sub_app_mut(RenderApp) {
@@ -246,7 +199,10 @@ impl Plugin for TilemapRenderingPlugin {
             .insert_resource(RenderChunk2dStorage::default())
             .add_systems(
                 ExtractSchedule,
-                (extract::extract, extract_resource::<ModifiedImageIds, ()>),
+                (
+                    extract::extract,
+                    extract_resource::<ModifiedImageIds, RenderApp, ()>,
+                ),
             )
             .add_systems(
                 Render,
@@ -301,14 +257,15 @@ pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
     MeshVertexAttribute::new("Color", 231497124, VertexFormat::Float32x4);
 
 #[derive(Component, ExtractComponent, Clone)]
-
+#[extract_app(RenderApp)]
 pub struct RemovedTileEntity(pub RenderEntity);
 
 #[derive(Component, ExtractComponent, Clone)]
+#[extract_app(RenderApp)]
 pub struct RemovedMapEntity(pub RenderEntity);
 
 fn on_remove_tile(
-    removed: On<Remove, TilePos>,
+    removed: On<Remove<TilePos>>,
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
@@ -318,7 +275,7 @@ fn on_remove_tile(
 }
 
 fn on_remove_tilemap(
-    removed: On<Remove, TileStorage>,
+    removed: On<Remove<TileStorage>>,
     mut commands: Commands,
     query: Query<&RenderEntity>,
 ) {
@@ -357,6 +314,7 @@ fn prepare_textures(
 
 /// Resource to hold the ids of modified Image assets of a single frame.
 #[derive(Resource, ExtractResource, Clone, Default)]
+#[extract_app(RenderApp)]
 pub struct ModifiedImageIds(HashSet<AssetId<Image>>);
 
 impl ModifiedImageIds {
@@ -379,10 +337,8 @@ pub fn collect_modified_image_asset_messages(
     modified_image_ids.0.clear();
 
     for asset_event in asset_messages.read() {
-        let id = match asset_event {
-            AssetEvent::Modified { id } => id,
-            _ => continue,
-        };
-        modified_image_ids.0.insert(*id);
+        if let AssetEvent::Modified { id } = asset_event {
+            modified_image_ids.0.insert(*id);
+        }
     }
 }
