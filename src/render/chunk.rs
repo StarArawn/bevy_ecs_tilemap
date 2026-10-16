@@ -42,7 +42,6 @@ pub struct RenderChunk2dStorage {
 pub struct ChunkId(pub UVec3);
 
 impl RenderChunk2dStorage {
-    #[allow(clippy::too_many_arguments)]
     pub fn get_or_add(
         &mut self,
         tile_entity: Entity,
@@ -228,7 +227,6 @@ pub struct RenderChunk2d {
 }
 
 impl RenderChunk2d {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: u64,
         tilemap_id: u64,

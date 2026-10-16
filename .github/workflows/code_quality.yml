@@ -39,4 +39,4 @@ jobs:
         run: sudo apt-get install --no-install-recommends libwayland-dev libxkbcommon-dev
 
       - name: Run cargo clippy
-        run: cargo clippy --no-deps --examples -- -D warnings
+        run: cargo clippy --no-deps --examples

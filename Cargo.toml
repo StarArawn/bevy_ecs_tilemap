@@ -207,3 +207,10 @@ required-features = ["render"]
 name = "anchor"
 path = "examples/anchor.rs"
 required-features = ["render"]
+
+[lints.rust]
+warnings = "deny"
+
+[lints.clippy]
+too_many_arguments = "allow"
+type_complexity = "allow"

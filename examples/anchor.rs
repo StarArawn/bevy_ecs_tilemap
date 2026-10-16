@@ -263,7 +263,6 @@ fn spawn_map_label(
 /// Changes the anchor when user presses SPACE.
 /// Changes the map type when user presses ENTER.
 /// Changes the grid scale when user presses TAB.
-#[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
         &mut Transform,

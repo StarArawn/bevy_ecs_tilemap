@@ -176,7 +176,6 @@ fn spawn_map_type_label(
 }
 
 // Swaps the map type, when user presses SPACE
-#[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
         &mut Transform,
