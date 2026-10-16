@@ -179,7 +179,6 @@ fn hex_neighbors_radius(hex_pos: IVec2, radius: u32, map_type: &TilemapType) -> 
         .collect()
 }
 
-#[allow(clippy::too_many_arguments)]
 fn hex_neighbors_radius_from_tile_pos(
     tile_pos: &TilePos,
     map_size: &TilemapSize,
@@ -499,7 +498,6 @@ fn update_radius(mut radius: ResMut<HighlightRadius>, keyboard_input: Res<Button
 #[derive(Component)]
 struct NeighborHighlight;
 
-#[allow(clippy::too_many_arguments)]
 // Highlight neighbors of a tile in a radius
 fn highlight_neighbor_labels(
     mut commands: Commands,

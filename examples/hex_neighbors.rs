@@ -154,7 +154,6 @@ fn spawn_map_type_label(
 }
 
 // Swaps the map type, when user presses SPACE
-#[allow(clippy::too_many_arguments)]
 fn swap_map_type(
     mut tilemap_query: Query<(
         &Transform,
@@ -327,7 +326,6 @@ fn hover_highlight_tile_label(
 struct NeighborHighlight;
 
 // Highlight neighbor tiles of hovered tile
-#[allow(clippy::too_many_arguments)]
 fn highlight_neighbor_label(
     mut commands: Commands,
     tilemap_query: Query<(&TilemapType, &TilemapSize, &TileStorage)>,

@@ -417,7 +417,6 @@ fn prepare_material_tilemap<M: MaterialTilemap>(
     })
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     chunk_storage: Res<RenderChunk2dStorage>,
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
@@ -537,7 +536,6 @@ pub fn queue_material_tilemap_meshes<M: MaterialTilemap>(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn bind_material_tilemap_meshes<M: MaterialTilemap>(
     mut commands: Commands,
     chunk_storage: Res<RenderChunk2dStorage>,

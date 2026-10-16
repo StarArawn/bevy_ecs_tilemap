@@ -177,7 +177,6 @@ impl ExtractedFrustum {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn extract(
     mut commands: Commands,
     default_image_settings: Res<DefaultSampler>,
