@@ -57,6 +57,9 @@ pub(crate) mod render;
 /// A module which contains tile components.
 pub mod tiles;
 
+#[cfg(feature = "picking")]
+mod picking;
+
 /// A bevy tilemap plugin. This must be included in order for everything to be rendered.
 /// But is not necessary if you are running without a renderer.
 pub struct TilemapPlugin;
@@ -65,6 +68,9 @@ impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
         app.add_plugins(render::TilemapRenderingPlugin);
+
+        #[cfg(feature = "picking")]
+        app.add_plugins(picking::TilemapPickingPlugin);
 
         app.add_systems(First, update_changed_tile_positions.in_set(TilemapFirstSet));
 

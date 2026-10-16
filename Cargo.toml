@@ -12,6 +12,7 @@ exclude = ["assets/*", "screenshots/*"]
 [features]
 default = ["render"]
 atlas = []
+picking = ["bevy/bevy_picking"]
 render = []
 serde = ["dep:serde", "bevy/serialize"]
 
@@ -167,6 +168,10 @@ required-features = ["render"]
 name = "move_tile"
 path = "examples/move_tile.rs"
 required-features = ["render"]
+[[example]]
+name = "picking"
+path = "examples/picking.rs"
+required-features = ["render", "picking"]
 [[example]]
 name = "random_map"
 path = "examples/random_map.rs"
