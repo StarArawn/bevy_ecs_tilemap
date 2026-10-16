@@ -144,6 +144,7 @@ impl FromWorld for TilemapPipeline {
         }
     }
 }
+
 #[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TilemapPipelineKey {
     pub msaa: u32,
@@ -195,6 +196,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                 entry_point: Some("vertex".into()),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
+                constants: Default::default(),
             },
             fragment: Some(FragmentState {
                 shader: TILEMAP_SHADER_FRAGMENT,
@@ -216,6 +218,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                     }),
                     write_mask: ColorWrites::ALL,
                 })],
+                constants: Default::default(),
             }),
             layout: vec![
                 self.view_layout.clone(),

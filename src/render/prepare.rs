@@ -222,7 +222,7 @@ pub(crate) fn prepare(
                 index: tilemap_uniforms.0.push(&chunk_uniform),
                 marker: PhantomData,
             },
-            TemporaryRenderEntity,
+            TemporaryRenderEntity::default(),
         ));
     }
 
@@ -238,10 +238,10 @@ pub fn prepare_removal(
     removed_maps: Query<&RemovedMapEntity>,
 ) {
     for removed_tile in removed_tiles.iter() {
-        chunk_storage.remove_tile_with_entity(removed_tile.0.id())
+        chunk_storage.remove_tile_with_entity(*removed_tile.0)
     }
 
     for removed_map in removed_maps.iter() {
-        chunk_storage.remove_map(removed_map.0.id());
+        chunk_storage.remove_map(*removed_map.0);
     }
 }
