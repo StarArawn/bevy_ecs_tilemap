@@ -138,6 +138,8 @@ pub struct AnimatedTile {
     pub start: u32,
     /// The end frame index in the tilemap atlas/array (exclusive).
     pub end: u32,
+    /// The number of tiles between each frame in the animation.
+    pub gap: u32,
     /// The speed the animation plays back at.
     pub speed: f32,
 }
