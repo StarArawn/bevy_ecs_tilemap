@@ -54,6 +54,7 @@ fn update_damage(
 - [`chunking`](examples/chunking.rs) - A simple example showing how to implement an infinite tilemap by spawning multiple chunks.
 - [`colors`](examples/colors.rs) - Showcases how each tile can have an individual color.
 - [`custom_shader`](examples/custom_shader.rs) - An example showing how to use a custom shader.
+- [`textured_tile_shader`](examples/textured_tile_shader.rs) - An example showing how to use a custom shader to apply a texture across multiple tiles while preserving the edges.
 - [`frustum_cull_test`](examples/frustum_cull_test.rs) - An environment for testing frustum culling.
 - [`game_of_life`](examples/game_of_life.rs) - A game of life simulator.
 - [`hex_neighbors`](examples/hex_neighbors.rs) - An example showing how to get neighbors on hexagonal maps.

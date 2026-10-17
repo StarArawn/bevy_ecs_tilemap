@@ -114,6 +114,9 @@ required-features = ["render"]
 [[example]]
 name = "custom_shader"
 path = "examples/custom_shader.rs"
+[[example]]
+name = "textured_tile_shader"
+path = "examples/textured_tile_shader.rs"
 required-features = ["render"]
 [[example]]
 name = "frustum_cull_test"
