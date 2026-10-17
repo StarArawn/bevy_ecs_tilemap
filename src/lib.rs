@@ -64,15 +64,18 @@ pub struct TilemapPlugin;
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(feature = "render")]
-        app.add_plugins(render::TilemapRenderingPlugin);
+        if app.get_sub_app(RenderApp).is_some() {
+            app.add_plugins(render::TilemapRenderingPlugin);
+        }
 
         app.add_systems(First, update_changed_tile_positions.in_set(TilemapFirstSet));
 
         #[cfg(all(not(feature = "atlas"), feature = "render"))]
         {
             app.insert_resource(array_texture_preload::ArrayTextureLoader::default());
-            let render_app = app.sub_app_mut(RenderApp);
-            render_app.add_systems(ExtractSchedule, array_texture_preload::extract);
+            if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+                render_app.add_systems(ExtractSchedule, array_texture_preload::extract);
+            }
         }
 
         app.register_type::<FrustumCulling>()
