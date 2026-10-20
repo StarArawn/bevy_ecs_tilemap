@@ -1,5 +1,5 @@
 use bevy::{
-    asset::uuid_handle,
+    asset::{AssetServer, load_embedded_asset},
     core_pipeline::core_2d::CORE_2D_DEPTH_FORMAT,
     mesh::VertexBufferLayout,
     prelude::{Component, FromWorld, Handle, Resource, Shader, World},
@@ -22,20 +22,17 @@ use crate::map::{HexCoordSystem, IsoCoordSystem, TilemapType};
 
 use super::{chunk::TilemapUniformData, prepare::MeshUniform};
 
-pub const TILEMAP_SHADER_VERTEX: Handle<Shader> =
-    uuid_handle!("915ef471-58b4-4431-acae-f38b41969a9e");
-pub const TILEMAP_SHADER_FRAGMENT: Handle<Shader> =
-    uuid_handle!("bf34308e-69df-4da8-b0ff-816042c716c8");
-
 #[derive(Clone, Resource)]
 pub struct TilemapPipeline {
     pub view_layout: BindGroupLayoutDescriptor,
     pub material_layout: BindGroupLayoutDescriptor,
     pub mesh_layout: BindGroupLayoutDescriptor,
+    pub vertex: Handle<Shader>,
+    pub fragment: Handle<Shader>,
 }
 
 impl FromWorld for TilemapPipeline {
-    fn from_world(_world: &mut World) -> Self {
+    fn from_world(world: &mut World) -> Self {
         let view_layout = BindGroupLayoutDescriptor::new(
             "tilemap_view_layout",
             &[
@@ -141,6 +138,14 @@ impl FromWorld for TilemapPipeline {
             view_layout,
             material_layout,
             mesh_layout,
+            vertex: load_embedded_asset!(
+                world.resource::<AssetServer>(),
+                "shaders/tilemap_vertex.wesl"
+            ),
+            fragment: load_embedded_asset!(
+                world.resource::<AssetServer>(),
+                "shaders/tilemap_fragment.wesl"
+            ),
         }
     }
 }
@@ -191,13 +196,14 @@ impl SpecializedRenderPipeline for TilemapPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: TILEMAP_SHADER_VERTEX,
+                shader: self.vertex.clone(),
                 entry_point: Some("vertex".into()),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
+                constants: vec![],
             },
             fragment: Some(FragmentState {
-                shader: TILEMAP_SHADER_FRAGMENT,
+                shader: self.fragment.clone(),
                 shader_defs,
                 entry_point: Some("fragment".into()),
                 targets: vec![Some(ColorTargetState {
@@ -216,6 +222,7 @@ impl SpecializedRenderPipeline for TilemapPipeline {
                     }),
                     write_mask: ColorWrites::ALL,
                 })],
+                constants: vec![],
             }),
             layout: vec![
                 self.view_layout.clone(),
