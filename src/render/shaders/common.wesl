@@ -1,6 +1,5 @@
-#define_import_path bevy_ecs_tilemap::common
-
-#import bevy_sprite::mesh2d_view_bindings
+import bevy_sprite_render::mesh2d::view_bindings;
+import package::render::shaders::tilemap_vertex_output::MeshVertexOutput;
 
 struct Mesh {
     model: mat4x4<f32>,
@@ -26,21 +25,20 @@ struct VertexInput {
     @location(2) color: vec4<f32>,
 }
 
-#ifdef ATLAS
+@if(ATLAS) {
 @group(2) @binding(0)
 var sprite_texture: texture_2d<f32>;
-#else
+} @else {
 @group(2) @binding(0)
 var sprite_texture: texture_2d_array<f32>;
-#endif
+}
 
 @group(2) @binding(1)
 var sprite_sampler: sampler;
 
-#import bevy_ecs_tilemap::vertex_output::MeshVertexOutput
 
 fn process_fragment(in: MeshVertexOutput) -> vec4<f32> {
-    #ifdef ATLAS
+    @if(ATLAS) {
     let half_texture_pixel_size_u = 0.5 / tilemap_data.texture_size.x;
     let half_texture_pixel_size_v = 0.5 / tilemap_data.texture_size.y;
     let half_tile_pixel_size_u = 0.5 / tilemap_data.tile_size.x;
@@ -65,11 +63,11 @@ fn process_fragment(in: MeshVertexOutput) -> vec4<f32> {
         discard;
     }
     return color;
-    #else
+} @else {
     let color = textureSample(sprite_texture, sprite_sampler, in.uv.xy, in.tile_id) * in.color;
     if (color.a < 0.001) {
         discard;
     }
     return color;
-    #endif
+}
 }

@@ -1,7 +1,6 @@
-#define_import_path bevy_ecs_tilemap::column_even_hex
+import package::render::shaders::mesh_output::MeshOutput;
+import package::render::shaders::common::{VertexInput, tilemap_data, mesh};
 
-#import bevy_ecs_tilemap::mesh_output::MeshOutput
-#import bevy_ecs_tilemap::common::{VertexInput, tilemap_data, mesh}
 
 // Gets the screen space coordinates of the bottom left of an isometric tile position.
 fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f32) -> vec2<f32> {
@@ -15,7 +14,7 @@ fn hex_col_tile_pos_to_world_pos(pos: vec2<f32>, grid_width: f32, grid_height: f
 }
 
 fn col_even_to_axial(offset_pos: vec2<f32>) -> vec2<f32> {
-    let delta: f32 = ceil(offset_pos.x / 2.0);
+    let delta: f32 = floor(offset_pos.x / 2.0);
     return vec2<f32>(offset_pos.x, offset_pos.y - delta);
 }
 

@@ -222,7 +222,7 @@ pub(crate) fn prepare(
                 index: tilemap_uniforms.0.push(&chunk_uniform),
                 marker: PhantomData,
             },
-            TemporaryRenderEntity,
+            TemporaryRenderEntity::default(),
         ));
     }
 
