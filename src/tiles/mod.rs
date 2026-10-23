@@ -105,7 +105,26 @@ pub struct TileFlip {
     pub x: bool,
     /// Flip tile along the Y axis.
     pub y: bool,
-    pub d: bool, // anti
+    /// Flip tile along the diagonal axis stretching from upper left to bottom right corner
+    pub diag: bool,
+}
+
+impl TileFlip {
+    pub const X: TileFlip = TileFlip {
+        x: true,
+        y: false,
+        diag: false,
+    };
+    pub const Y: TileFlip = TileFlip {
+        x: false,
+        y: true,
+        diag: false,
+    };
+    pub const DIAG: TileFlip = TileFlip {
+        x: false,
+        y: false,
+        diag: true,
+    };
 }
 
 /// This an optional tile bundle with default components.
